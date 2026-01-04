@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://dm3jfmd14wxsf"]
+
+[ext_resource type="TileSet" uid="uid://bqae81gec30q1" path="res://assets/tilesets/terrain.tres" id="1_2q6dc"]
+[ext_resource type="Script" uid="uid://bqtabusxwrnaf" path="res://scripts/grid_manager.gd" id="1_w7c3h"]
+[ext_resource type="Texture2D" uid="uid://dgp1kwvpp3wnh" path="res://assets/palette_texture.tres" id="3_w8frs"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_w7c3h")
+
+[node name="TerrainLayer" type="TileMapLayer" parent="."]
+tile_set = ExtResource("1_2q6dc")
+
+[node name="ObjectLayer" type="TileMapLayer" parent="."]
+
+[node name="SelectionHighlight" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.60784316)
+texture = ExtResource("3_w8frs")
+region_enabled = true
+region_rect = Rect2(0, 0, 16, 16)
