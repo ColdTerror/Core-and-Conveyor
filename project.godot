@@ -19,6 +19,11 @@ config/icon="res://icon.svg"
 
 InventoryManager="*res://scripts/inventory_manager.gd"
 
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
