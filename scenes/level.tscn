@@ -10,9 +10,7 @@
 [ext_resource type="Resource" uid="uid://reqe4t0u3m16" path="res://resources/tiles/4_Stone.tres" id="7_wc255"]
 [ext_resource type="Resource" uid="uid://bfnvkjk4j5msp" path="res://resources/tiles/5_Buiding.tres" id="8_arp2o"]
 [ext_resource type="Script" uid="uid://c800uxnceihnq" path="res://scripts/camera_controller.gd" id="9_8iemx"]
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_olg7q"]
-load_path = "res://.godot/imported/Colors.png-6e2890f805229258212ce9222835dce3.ctex"
+[ext_resource type="Texture2D" uid="uid://ccb3pqwas4kud" path="res://assets/Tiles.png" id="11_t1rx8"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
 content_margin_left = 8.0
@@ -41,7 +39,7 @@ tile_set = ExtResource("2_w8frs")
 
 [node name="SelectionHighlight" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.60784316)
-texture = SubResource("CompressedTexture2D_olg7q")
+texture = ExtResource("11_t1rx8")
 region_enabled = true
 region_rect = Rect2(0, 0, 16, 16)
 
