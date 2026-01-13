@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://dm3jfmd14wxsf"]
+[gd_scene load_steps=18 format=3 uid="uid://dm3jfmd14wxsf"]
 
 [ext_resource type="Script" uid="uid://b6kxlovwh8gyn" path="res://scripts/Level.gd" id="1_olg7q"]
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="2_olg7q"]
@@ -15,6 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://ccb3pqwas4kud" path="res://assets/Tiles.png" id="11_t1rx8"]
 [ext_resource type="Resource" uid="uid://ijwrlheyckd8" path="res://resources/tiles/8_Conveyer_Left.tres" id="11_ux5qa"]
 [ext_resource type="Resource" uid="uid://dhst2ng5e26ob" path="res://resources/tiles/9_Conveyer_Down.tres" id="12_82cfe"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="13_arp2o"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
 content_margin_left = 8.0
@@ -25,6 +26,7 @@ content_margin_bottom = 4.0
 [node name="Level" type="Node2D"]
 script = ExtResource("1_olg7q")
 tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_arp2o"), ExtResource("9_wc255"), ExtResource("10_arp2o"), ExtResource("11_ux5qa"), ExtResource("12_82cfe")])
+item_scene = ExtResource("13_arp2o")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(640, 360)
@@ -62,7 +64,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_w7c3h")
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Button" type="Button" parent="CanvasLayer"]
+[node name="Generate Map" type="Button" parent="CanvasLayer"]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -71,4 +73,34 @@ offset_bottom = 31.0
 grow_horizontal = 0
 text = "Generate Map"
 
-[connection signal="pressed" from="CanvasLayer/Button" to="." method="generate_simple_map"]
+[node name="Print Objects" type="Button" parent="CanvasLayer"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -119.0
+offset_top = -15.5
+offset_bottom = 15.5
+grow_horizontal = 0
+grow_vertical = 2
+text = "Print Objects"
+
+[node name="Spawn Item" type="Button" parent="CanvasLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.5
+offset_top = -15.5
+offset_right = 59.5
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Spawn Item
+"
+
+[connection signal="pressed" from="CanvasLayer/Generate Map" to="." method="generate_simple_map"]
+[connection signal="pressed" from="CanvasLayer/Print Objects" to="." method="print_active_objects"]
+[connection signal="pressed" from="CanvasLayer/Spawn Item" to="." method="spawn_item_at_mouse"]

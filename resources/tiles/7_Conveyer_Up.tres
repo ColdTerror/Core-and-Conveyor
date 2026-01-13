@@ -7,5 +7,5 @@ script = ExtResource("1_f7lrl")
 display_name = "Conveyer_Up"
 is_object = true
 is_conveyor = true
-conveyor_direction = Vector2(0, 1)
+conveyor_direction = Vector2(0, -1)
 metadata/_custom_type_script = "uid://dnsharo0i5t5i"

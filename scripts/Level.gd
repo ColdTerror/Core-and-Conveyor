@@ -25,6 +25,38 @@ const RES_STONE := 4
 var current_tile_index := 0
 var active_grid_objects := {}
 
+
+
+@export var item_scene: PackedScene # Drag your Ore/Item .tscn here in the Inspector
+
+
+var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
+
+func spawn_item_at_mouse():
+	if item_scene == null:
+		print("Error: No item_scene assigned in the Inspector!")
+		return
+		
+	# 1. Get positions
+	var mouse_pos = get_global_mouse_position()
+	var grid_pos = object_layer.local_to_map(mouse_pos)
+	var spawn_pos = object_layer.map_to_local(grid_pos)
+	
+	if item_grid.has(grid_pos):
+		print("Cannot spawn: Tile occupied!")
+		return
+	
+	# 2. Create the item instance
+	var new_item = item_scene.instantiate()
+	
+	# 3. Add it to the scene
+	add_child(new_item)
+	
+	# 4. Set its position to the center of the tile
+	new_item.global_position = spawn_pos
+	
+	print("Spawned item at: ", grid_pos)
+
 func _ready():
 	generate_simple_map()
 
@@ -223,3 +255,39 @@ func _input(event):
 		if current_data.is_conveyor:
 			var start_index = 6 # Change this to the index of your first conveyor
 			current_tile_index = start_index + ((current_tile_index - start_index + 1) % 4)
+			
+			
+func print_active_objects():
+	print("--- CURRENT ACTIVE GRID OBJECTS ---")
+	if active_grid_objects.is_empty():
+		print("Grid is empty.")
+		return
+		
+	for grid_pos in active_grid_objects:
+		var info = active_grid_objects[grid_pos]
+		var data = info["data"]
+		
+		# Build a readable string for this specific tile
+		var output = "Pos: %s | Name: %s | HP: %d" % [grid_pos, data.display_name, info["health"]]
+		
+		# If it's a conveyor, add the direction info
+		if data.is_conveyor:
+			output += " | Dir: %s" % str(data.conveyor_direction)
+			
+		print(output)
+	print("------------------------------------")
+	print("--- CURRENT ACTIVE ITEM OBJECTS ---")
+	# Key: Vector2i (grid pos), Value: Node (the item)
+	if item_grid.is_empty():
+		print("Grid is empty.")
+		return
+		
+	for grid_pos in item_grid:
+		var info = item_grid[grid_pos]
+		
+		print(grid_pos)
+		
+		
+			
+	print("------------------------------------")
+	
