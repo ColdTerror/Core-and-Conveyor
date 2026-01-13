@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TileDataResource" load_steps=2 format=3 uid="uid://dhst2ng5e26ob"]
+
+[ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="1_23ylb"]
+
+[resource]
+script = ExtResource("1_23ylb")
+display_name = "Conveyer_Down"
+is_object = true
+is_conveyor = true
+conveyor_direction = Vector2(0, -1)
+metadata/_custom_type_script = "uid://dnsharo0i5t5i"

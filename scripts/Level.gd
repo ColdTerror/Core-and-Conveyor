@@ -11,7 +11,7 @@ extends Node2D
 @export var tile_library: Array[TileDataResource] = []
 
 const ATLAS_COLUMNS := 3
-const TILE_COUNT := 6
+const TILE_COUNT := 10
 const MAP_WIDTH := 50
 const MAP_HEIGHT := 50
 
@@ -170,12 +170,24 @@ func update_tooltip(grid_pos: Vector2i):
 
 func place_tile(grid_pos: Vector2i, data: TileDataResource):
 	var atlas_coords = Vector2i(current_tile_index % ATLAS_COLUMNS, current_tile_index / ATLAS_COLUMNS)
+	
 	if not data.is_object:
 		terrain_layer.set_cell(grid_pos, 0, atlas_coords)
 	else:
 		if can_place_object(grid_pos):
 			object_layer.set_cell(grid_pos, 0, atlas_coords)
-			active_grid_objects[grid_pos] = {"health": data.total_resources, "data": data}
+			
+			# Save the tile data to our dictionary
+			var tile_info = {
+				"health": data.total_resources,
+				"data": data
+			}
+			
+			# If it's a conveyor, we can add extra logic here if needed
+			if data.is_conveyor:
+				tile_info["direction"] = data.conveyor_direction
+				
+			active_grid_objects[grid_pos] = tile_info
 
 func can_place_object(grid_pos: Vector2i) -> bool:
 	var terrain_atlas = terrain_layer.get_cell_atlas_coords(grid_pos)
@@ -199,8 +211,15 @@ func update_highlight(grid_pos: Vector2i):
 	highlight.region_rect = Rect2(Vector2(atlas_pos) * tile_size_px, tile_size_px)
 
 func _input(event):
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			current_tile_index = (current_tile_index + 1) % TILE_COUNT
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			current_tile_index = (current_tile_index - 1 + TILE_COUNT) % TILE_COUNT
+	# Existing cycle logic...
+	if Input.is_key_pressed(KEY_PERIOD):
+		current_tile_index = (current_tile_index + 1) % tile_library.size()
+	elif Input.is_key_pressed(KEY_COMMA):
+		current_tile_index = (current_tile_index - 1 + tile_library.size()) % tile_library.size()
+
+	# NEW: Quick Rotate for Conveyors
+	if event.is_action_pressed("rotate_tile"): # Define 'rotate_tile' as 'R' in Input Map
+		var current_data = tile_library[current_tile_index]
+		if current_data.is_conveyor:
+			var start_index = 6 # Change this to the index of your first conveyor
+			current_tile_index = start_index + ((current_tile_index - start_index + 1) % 4)
