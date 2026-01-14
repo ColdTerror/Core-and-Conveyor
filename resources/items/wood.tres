@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="ItemResource" load_steps=2 format=3 uid="uid://cn8jh6p0ykffa"]
+
+[ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_nmid8"]
+
+[resource]
+script = ExtResource("1_nmid8")
+display_name = "Wood"
+metadata/_custom_type_script = "uid://c1ggtlkymktgi"

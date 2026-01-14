@@ -196,7 +196,7 @@ func update_tooltip(grid_pos: Vector2i):
 		index = terr_atlas.y * ATLAS_COLUMNS + terr_atlas.x
 		
 	if index != -1 and index < tile_library.size():
-		tooltip_label.text = tile_library[index].display_name
+		tooltip_label.text = tile_library[index].display_name + str(grid_pos)
 		tooltip.visible = true
 		tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
 
