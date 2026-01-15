@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="ItemResource" load_steps=2 format=3 uid="uid://cn8jh6p0ykffa"]
+[gd_resource type="Resource" script_class="ItemResource" load_steps=3 format=3 uid="uid://cn8jh6p0ykffa"]
 
 [ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_nmid8"]
+[ext_resource type="Texture2D" uid="uid://ojw6ckni4nwi" path="res://resources/items/textures/wood_texture.tres" id="2_w3n26"]
 
 [resource]
 script = ExtResource("1_nmid8")
 display_name = "Wood"
+texture = ExtResource("2_w3n26")
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"
