@@ -5,31 +5,46 @@ class_name StockpileBuilding
 var inventory := {}                # ItemResource → amount
 var occupied_tiles: Array[Vector2i] = []
 
-func can_place_at(tile_pos: Vector2i, object_layer: TileMapLayer) -> bool:
-	for x in range(size.x):
-		for y in range(size.y):
-			var cell := tile_pos + Vector2i(x, y)
-			if object_layer.get_cell_source_id(cell) != -1:
+func can_place_at(origin: Vector2i, object_layer: TileMapLayer) -> bool:
+	var terrain_layer: TileMapLayer = (object_layer.get_parent() as Node2D).terrain_layer
+
+
+	for x in size.x:
+		for y in size.y:
+			var tile := origin + Vector2i(x, y)
+
+			# Block water
+			var terr_atlas := terrain_layer.get_cell_atlas_coords(tile)
+			if terr_atlas == Vector2i(-1, -1):
 				return false
+
+			# Block objects/buildings
+			if object_layer.get_cell_source_id(tile) != -1:
+				return false
+
 	return true
 
-func place_at(tile_pos: Vector2i, object_layer: TileMapLayer):
+
+func place_at(origin: Vector2i, object_layer: TileMapLayer):
 	occupied_tiles.clear()
 
-	# Claim tiles
-	for x in range(size.x):
-		for y in range(size.y):
-			var cell := tile_pos + Vector2i(x, y)
-			occupied_tiles.append(cell)
+	for x in size.x:
+		for y in size.y:
+			var tile := origin + Vector2i(x, y)
+			occupied_tiles.append(tile)
 
-			# Mark tile as occupied (use a dedicated building tile or -1 if visual only)
-			object_layer.set_cell(cell, 0)  # 0 = building tile ID (example)
+			# Mark tiles as occupied in the object layer
+			object_layer.set_cell(tile, 0, Vector2i.ZERO)
 
-	# Position sprite centered over footprint
-	var top_left_world := object_layer.map_to_local(tile_pos)
-	var footprint_px = Vector2(size) * Vector2(object_layer.tile_set.tile_size)
-	global_position = top_left_world + footprint_px / 2
+	# Position sprite correctly
+	var tile_size := Vector2(object_layer.tile_set.tile_size)
+	var top_left_world := object_layer.map_to_local(origin)
+	var footprint_px := Vector2(size) * tile_size
+
 	
+	global_position = (top_left_world + footprint_px / 2) - (tile_size/2)
+	
+
 func remove(object_layer: TileMapLayer):
 	for cell in occupied_tiles:
 		object_layer.set_cell(cell, -1)

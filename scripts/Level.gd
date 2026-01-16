@@ -248,6 +248,9 @@ func _input(event):
 		current_tile_index = (current_tile_index + 1) % tile_library.size()
 	elif Input.is_key_pressed(KEY_COMMA):
 		current_tile_index = (current_tile_index - 1 + tile_library.size()) % tile_library.size()
+	elif Input.is_key_pressed(KEY_P):
+		place_stockpile()
+		
 
 	# NEW: Quick Rotate for Conveyors
 	if event.is_action_pressed("rotate_tile"): # Define 'rotate_tile' as 'R' in Input Map
@@ -290,4 +293,29 @@ func print_active_objects():
 		
 			
 	print("------------------------------------")
+	
+@export var stockpile_scene: PackedScene # Drag your Ore/Item .tscn here in the Inspector
+func place_stockpile():
+	if stockpile_scene == null:
+		print("Error: No stockpile_scene assigned in the Inspector!")
+		return
+		
+	var mouse_pos = get_global_mouse_position()
+	var grid_pos = object_layer.local_to_map(mouse_pos)
+	
+	
+	
+	var new_stockpile = stockpile_scene.instantiate()
+
+	if not new_stockpile.can_place_at(grid_pos, object_layer):
+		new_stockpile.queue_free()
+		return
+
+	add_child(new_stockpile)
+	new_stockpile.place_at(grid_pos, object_layer)
+
+		
+	new_stockpile.place_at(grid_pos, object_layer)
+	
+	print("Spawned stockpile at: ", grid_pos)
 	

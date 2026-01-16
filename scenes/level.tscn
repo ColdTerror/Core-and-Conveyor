@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://dm3jfmd14wxsf"]
+[gd_scene load_steps=19 format=3 uid="uid://dm3jfmd14wxsf"]
 
 [ext_resource type="Script" uid="uid://b6kxlovwh8gyn" path="res://scripts/Level.gd" id="1_olg7q"]
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="2_olg7q"]
@@ -16,6 +16,7 @@
 [ext_resource type="Resource" uid="uid://ijwrlheyckd8" path="res://resources/tiles/8_Conveyer_Left.tres" id="11_ux5qa"]
 [ext_resource type="Resource" uid="uid://dhst2ng5e26ob" path="res://resources/tiles/9_Conveyer_Down.tres" id="12_82cfe"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="13_arp2o"]
+[ext_resource type="PackedScene" uid="uid://cs65262rv84b4" path="res://scenes/stockpile_building.tscn" id="14_ux5qa"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
 content_margin_left = 8.0
@@ -27,6 +28,7 @@ content_margin_bottom = 4.0
 script = ExtResource("1_olg7q")
 tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_arp2o"), ExtResource("9_wc255"), ExtResource("10_arp2o"), ExtResource("11_ux5qa"), ExtResource("12_82cfe")])
 item_scene = ExtResource("13_arp2o")
+stockpile_scene = ExtResource("14_ux5qa")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(640, 360)
