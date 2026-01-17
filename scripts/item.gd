@@ -8,40 +8,46 @@ var stopped = false  # Tracks if item is blocked or finished conveyor
 var deadlocked = false  # NEW: permanent deadlock flag
 var blocked_by = null   # NEW: reference to item blocking us
 
+var conveyor_stopped = false
+
 func _ready():
 	if item_data:
 		texture = item_data.texture
 
 func _process(delta):
-	if deadlocked:
-		return  # Don't process if permanently stuck
-	if not level_node:
+	if deadlocked or not level_node:
 		return
-		
+
 	var object_layer = level_node.object_layer
 	var current_grid_pos = object_layer.local_to_map(global_position)
-	
-	# ---- CHECK FOR STOCKPILE CONSUMPTION ----
-	for node in level_node.get_children():
-		if node is StockpileBuilding:
-			if node.accepts_item_at(current_grid_pos):
-				if node.add_item(item_data):
-					level_node.item_grid.erase(current_grid_pos)
-					queue_free()
-					return
 
-	# ---- CLAIM CURRENT TILE SAFELY ----
+	# -----------------------------
+	# 1️⃣ Check if current tile is a stockpile
+	# -----------------------------
+	for node in level_node.get_children():
+		if node is StockpileBuilding and node.accepts_item_at(current_grid_pos):
+			if node.add_item(item_data):
+				level_node.item_grid.erase(current_grid_pos)
+				queue_free()
+				return
+
+	# -----------------------------
+	# 2️⃣ Claim current tile if possible
+	# -----------------------------
 	if level_node.item_grid.has(current_grid_pos):
 		if level_node.item_grid[current_grid_pos] != self:
-			# Tile occupied → stop at center
 			global_position = object_layer.map_to_local(current_grid_pos)
 			stopped = true
+			conveyor_stopped = true
 			return
 	else:
 		level_node.item_grid[current_grid_pos] = self
-		stopped = false  # We successfully claimed the tile
+		stopped = false
+		conveyor_stopped = false
 
-	# ---- CHECK FOR CONVEYOR ----
+	# -----------------------------
+	# 3️⃣ Check if we are on a conveyor
+	# -----------------------------
 	var move_vec = Vector2.ZERO
 	var on_conveyor = false
 	if level_node.active_grid_objects.has(current_grid_pos):
@@ -50,52 +56,74 @@ func _process(delta):
 			move_vec = data.conveyor_direction
 			on_conveyor = true
 
-	# ---- IF NOT ON CONVEYOR, SNAP AND STOP ----
 	if not on_conveyor:
+		# Snap and stop if not on a conveyor
 		global_position = object_layer.map_to_local(current_grid_pos)
 		stopped = true
+		conveyor_stopped = true
 		return
 
-	# ---- IF STOPPED, WAIT UNTIL NEXT TILE FREE ----
-	if stopped:
-		
-		# Check if next tile is now free
-		var next_grid_pos_check = current_grid_pos + Vector2i(move_vec.normalized())
-		if not level_node.item_grid.has(next_grid_pos_check):
-			stopped = false  # Can move now
-		else:
-			return  # Still blocked
+	# -----------------------------
+	# 4️⃣ Determine next tile
+	# -----------------------------
+	# Proper grid offset using sign
+	var offset = Vector2i(sign(move_vec.x), sign(move_vec.y))
+	var next_grid_pos = current_grid_pos + offset
 
-	# ---- PREDICT NEXT POSITION BY FRAME----
-	var next_pos = global_position + (move_vec * speed * delta)
-	var next_grid_pos = object_layer.local_to_map(next_pos)
+	# Check if next tile is a conveyor
+	var next_is_conveyor = false
+	if level_node.active_grid_objects.has(next_grid_pos):
+		var next_data = level_node.active_grid_objects[next_grid_pos]["data"]
+		if next_data.is_conveyor:
+			next_is_conveyor = true
 
-	# ---- BLOCKED BY NEXT ITEM ----
-	if next_grid_pos != current_grid_pos and level_node.item_grid.has(next_grid_pos):
-		print_debug("blocked by item")
+	# Check if next tile is a stockpile that accepts this item
+	var next_is_stockpile = false
+	for node in level_node.get_children():
+		if node is StockpileBuilding and node.accepts_item_at(next_grid_pos):
+			next_is_stockpile = true
+			break
+
+	# -----------------------------
+	# 5️⃣ Stop if next tile is neither conveyor nor stockpile
+	# -----------------------------
+	if not next_is_conveyor and not next_is_stockpile:
+		global_position = object_layer.map_to_local(current_grid_pos)
+		stopped = true
+		conveyor_stopped = true
+		return
+
+	# -----------------------------
+	# 6️⃣ Check if next tile is blocked by another item
+	# -----------------------------
+	if level_node.item_grid.has(next_grid_pos):
 		var blocking_item = level_node.item_grid[next_grid_pos]
-		blocked_by = blocking_item  # Store who's blocking us
-		
-		# Check for mutual deadlock (head-on collision)
+		blocked_by = blocking_item
+
+		# Deadlock detection
 		if blocking_item is Sprite2D and blocking_item.blocked_by == self:
-			# We block each other - permanent deadlock
 			deadlocked = true
 			blocking_item.deadlocked = true
-			modulate = Color.RED  # Visual indicator (optional)
+			modulate = Color.RED
 			blocking_item.modulate = Color.RED
-			print_debug("deadlock")
-		
+			print_debug("Deadlock!")
+
 		global_position = object_layer.map_to_local(current_grid_pos)
 		stopped = true
+		conveyor_stopped = true
 		return
 
-	# ---- MOVE SMOOTHLY ----
-	global_position = next_pos
+	# -----------------------------
+	# 7️⃣ Move smoothly
+	# -----------------------------
+	global_position += move_vec * speed * delta
 
-	# ---- UPDATE GRID OWNERSHIP ----
+	# -----------------------------
+	# 8️⃣ Update grid ownership
+	# -----------------------------
 	var new_grid_pos = object_layer.local_to_map(global_position)
 	if new_grid_pos != current_grid_pos:
 		if level_node.item_grid.get(current_grid_pos) == self:
 			level_node.item_grid.erase(current_grid_pos)
 		level_node.item_grid[new_grid_pos] = self
-		blocked_by = null  # Clear blocking reference after moving
+		blocked_by = null

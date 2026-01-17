@@ -3,7 +3,7 @@ class_name StockpileBuilding
 
 
 var inventory := {}                # ItemResource → amount
-@export var max_capacity := 200
+@export var max_capacity := 10
 var current_amount := 0
 
 @export var size := Vector2i(4, 4)  # 4x4 footprint
