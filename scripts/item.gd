@@ -20,6 +20,15 @@ func _process(delta):
 		
 	var object_layer = level_node.object_layer
 	var current_grid_pos = object_layer.local_to_map(global_position)
+	
+	# ---- CHECK FOR STOCKPILE CONSUMPTION ----
+	for node in level_node.get_children():
+		if node is StockpileBuilding:
+			if node.accepts_item_at(current_grid_pos):
+				if node.add_item(item_data):
+					level_node.item_grid.erase(current_grid_pos)
+					queue_free()
+					return
 
 	# ---- CLAIM CURRENT TILE SAFELY ----
 	if level_node.item_grid.has(current_grid_pos):

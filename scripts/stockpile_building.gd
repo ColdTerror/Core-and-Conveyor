@@ -1,8 +1,12 @@
 extends Node2D
 class_name StockpileBuilding
 
-@export var size := Vector2i(4, 4)  # 4x4 footprint
+
 var inventory := {}                # ItemResource → amount
+@export var max_capacity := 200
+var current_amount := 0
+
+@export var size := Vector2i(4, 4)  # 4x4 footprint
 var occupied_tiles: Array[Vector2i] = []
 
 func can_place_at(origin: Vector2i, object_layer: TileMapLayer) -> bool:
@@ -49,3 +53,17 @@ func remove(object_layer: TileMapLayer):
 	for cell in occupied_tiles:
 		object_layer.set_cell(cell, -1)
 	queue_free()
+	
+
+func accepts_item_at(tile: Vector2i) -> bool:
+	return tile in occupied_tiles
+	
+func add_item(item: ItemResource, amount := 1) -> bool:
+	if current_amount + amount > max_capacity:
+		return false
+
+	inventory[item] = inventory.get(item, 0) + amount
+	current_amount += amount
+
+	InventoryManager.add_resources(item.display_name, amount)
+	return true
