@@ -81,7 +81,8 @@ func _process(delta):
 	var next_is_stockpile = false
 	for node in level_node.get_children():
 		if node is StockpileBuilding and node.accepts_item_at(next_grid_pos):
-			next_is_stockpile = true
+			if node.can_accept_item(item_data):
+				next_is_stockpile = true
 			break
 
 	# -----------------------------

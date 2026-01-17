@@ -58,6 +58,11 @@ func remove(object_layer: TileMapLayer):
 func accepts_item_at(tile: Vector2i) -> bool:
 	return tile in occupied_tiles
 	
+func can_accept_item(item: ItemResource) -> bool:
+	if current_amount >= max_capacity:
+		return false
+	return true
+	
 func add_item(item: ItemResource, amount := 1) -> bool:
 	if current_amount + amount > max_capacity:
 		return false
