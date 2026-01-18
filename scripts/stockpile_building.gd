@@ -2,12 +2,32 @@ extends Node2D
 class_name StockpileBuilding
 
 
+@export var building_name: String = "Stockpile"
+@export var max_health := 100
+@export var health := 100
+
 var inventory := {}                # ItemResource → amount
 @export var max_capacity := 10
 var current_amount := 0
 
 @export var size := Vector2i(4, 4)  # 4x4 footprint
 var occupied_tiles: Array[Vector2i] = []
+
+
+signal hovered(building)
+signal unhovered(building)
+
+func _ready():
+	$Area2D.mouse_entered.connect(_on_mouse_entered)
+	$Area2D.mouse_exited.connect(_on_mouse_exited)
+
+func _on_mouse_entered():
+	emit_signal("hovered", self)
+
+func _on_mouse_exited():
+	emit_signal("unhovered", self)
+
+
 
 func can_place_at(origin: Vector2i, object_layer: TileMapLayer) -> bool:
 	var terrain_layer: TileMapLayer = (object_layer.get_parent() as Node2D).terrain_layer

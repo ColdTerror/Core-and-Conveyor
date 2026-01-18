@@ -7,6 +7,8 @@ extends Node2D
 @onready var tooltip := $"CanvasLayer/Tooltip"
 @onready var tooltip_label := $"CanvasLayer/Tooltip/Label"
 
+@onready var hover_popup := $CanvasLayer/BuildingHoverPopup
+
 @export var tile_size_px = Vector2(32, 32)
 @export var tile_library: Array[TileDataResource] = []
 
@@ -59,8 +61,12 @@ func spawn_item_at_mouse():
 
 func _ready():
 	generate_simple_map()
+	
+	#Hide popup at start
+	hover_popup.hide()
 
 func _process(_delta):
+
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
@@ -317,5 +323,19 @@ func place_stockpile():
 		
 	new_stockpile.place_at(grid_pos, object_layer)
 	
+	# 🔹 REGISTER HOVER SIGNALS HERE
+	register_building(new_stockpile)
+	
 	print("Spawned stockpile at: ", grid_pos)
 	
+	
+func register_building(building: StockpileBuilding):
+	building.hovered.connect(_on_building_hovered)
+	building.unhovered.connect(_on_building_unhovered)
+
+
+func _on_building_hovered(building: StockpileBuilding):
+	hover_popup.show_building(building)
+
+func _on_building_unhovered(_building):
+	hover_popup.hide_popup()
