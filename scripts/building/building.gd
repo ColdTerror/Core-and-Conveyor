@@ -78,7 +78,13 @@ func set_valid_placement(valid: bool):
 	else:
 		$Sprite2D.modulate = Color(1.0, 0.4, 0.4, 0.5)
 
-
+func get_footprint(origin: Vector2i) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	for x in range(size.x):
+		for y in range(size.y):
+			tiles.append(origin + Vector2i(x, y))
+	return tiles
+	
 # ---- Item hooks (to be overrriden) ----
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return false

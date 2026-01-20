@@ -6,6 +6,11 @@ class_name BuildingManager
 
 var buildings: Array[Building] = []
 
+var occupied_tiles := {} 
+# Key: Vector2i
+# Value: Building
+
+
 var ghost_building: Building = null
 var placing_building := false
 
@@ -40,7 +45,7 @@ func confirm_placement():
 
 	var grid_pos = _get_mouse_grid()
 
-	if not ghost_building.can_place_at(grid_pos, object_layer):
+	if not _can_place_building(ghost_building, grid_pos):
 		return
 
 	ghost_building.set_ghost(false)
@@ -49,6 +54,8 @@ func confirm_placement():
 	buildings.append(ghost_building)
 	_register_building(ghost_building)
 
+	_register_occupied_tiles(ghost_building)
+	
 	ghost_building = null
 	placing_building = false
 
@@ -64,13 +71,29 @@ func cancel_placement():
 # -------------------------------------------------
 # INTERNAL
 # -------------------------------------------------
+func _register_occupied_tiles(building: Building):
+	for tile in building.occupied_tiles:
+		occupied_tiles[tile] = building
+
+func _can_place_building(building: Building, origin: Vector2i) -> bool:
+	# 1. Terrain / object-layer check (existing logic)
+	if not building.can_place_at(origin, object_layer):
+		return false
+
+	# 2. Global building overlap check
+	for tile in building.get_footprint(origin):
+		if occupied_tiles.has(tile):
+			return false
+
+	return true
+
 
 func _update_ghost_position():
 	var grid_pos = _get_mouse_grid()
 
 	ghost_building.place_at(grid_pos, object_layer)
 
-	var valid := ghost_building.can_place_at(grid_pos, object_layer)
+	var valid := _can_place_building(ghost_building, grid_pos)
 	ghost_building.set_valid_placement(valid)
 
 
