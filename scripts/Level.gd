@@ -300,7 +300,7 @@ func print_active_objects():
 		
 			
 	print("------------------------------------")
-	print("--- CURRENT ACTIVE Buildings OBJECTS ---")
+	print("--- CURRENT ACTIVE Buildings ---")
 	# Key: Vector2i (grid pos), Value: Node (the item)
 	if buildings.is_empty():
 		print("buildings is empty.")
@@ -339,6 +339,7 @@ func place_stockpile():
 
 	
 func register_building(building: Building):
+	print_debug("registering " + building.building_name)
 	building.hovered.connect(_on_building_hovered)
 	building.unhovered.connect(_on_building_unhovered)
 

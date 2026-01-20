@@ -7,6 +7,7 @@ var inventory: Dictionary = {}  # ItemResource → amount
 
 
 func _ready():
+	super() #run building class ready as well
 	building_name = "Stockpile"
 	size = Vector2i(4, 4)
 	health = max_health

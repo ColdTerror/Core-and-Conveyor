@@ -8,6 +8,8 @@ extends PanelContainer
 func show_building_info(b: Building):
 	name_label.text = b.building_name
 	health_label.text = "%d / %d" % [b.health, b.max_health]
+	
+	show()
 
 	if b is StockpileBuilding:
 		show_inventory(b.inventory)

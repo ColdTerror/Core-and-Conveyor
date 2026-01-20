@@ -12,6 +12,11 @@ var health := max_health
 
 var occupied_tiles: Array[Vector2i] = []
 
+#Assume whatever extends this has an area2d node
+func _ready():
+	$Area2D.mouse_entered.connect(_on_mouse_entered)
+	$Area2D.mouse_exited.connect(_on_mouse_exited)
+
 
 func can_place_at(origin: Vector2i, object_layer: TileMapLayer) -> bool:
 	for x in range(size.x):
@@ -35,6 +40,15 @@ func place_at(origin: Vector2i, object_layer: TileMapLayer):
 	var top_left_world := object_layer.map_to_local(origin)
 	var footprint_px := Vector2(size) * tile_size
 	global_position = (top_left_world + footprint_px / 2) - (tile_size/2)
+	
+	
+	_update_collision(footprint_px)
+
+func _update_collision(footprint_px: Vector2):
+	var area := $Area2D
+	var shape := $Area2D/CollisionShape2D.shape as RectangleShape2D
+	shape.size = footprint_px
+	area.position = footprint_px / 2
 
 # ---- Item hooks (to be overrriden) ----
 func accepts_item_at(_tile: Vector2i) -> bool:

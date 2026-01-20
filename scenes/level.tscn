@@ -74,6 +74,7 @@ anchor_right = 1.0
 offset_left = -119.0
 offset_bottom = 31.0
 grow_horizontal = 0
+mouse_filter = 2
 text = "Generate Map"
 
 [node name="Print Objects" type="Button" parent="CanvasLayer"]
@@ -87,6 +88,7 @@ offset_top = -15.5
 offset_bottom = 15.5
 grow_horizontal = 0
 grow_vertical = 2
+mouse_filter = 2
 text = "Print Objects"
 
 [node name="Spawn Item" type="Button" parent="CanvasLayer"]
@@ -101,6 +103,7 @@ offset_right = 59.5
 offset_bottom = 15.5
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 text = "Spawn Item
 "
 
@@ -116,6 +119,7 @@ offset_right = 0.0
 offset_bottom = 0.0
 grow_horizontal = 0
 grow_vertical = 0
+mouse_filter = 2
 
 [connection signal="pressed" from="CanvasLayer/Generate Map" to="." method="generate_simple_map"]
 [connection signal="pressed" from="CanvasLayer/Print Objects" to="." method="print_active_objects"]
