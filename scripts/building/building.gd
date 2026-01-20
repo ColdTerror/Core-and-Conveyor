@@ -1,7 +1,6 @@
 extends Node2D
 class_name Building
 
-
 signal hovered(building: Building)
 signal unhovered(building: Building)
 
@@ -12,90 +11,62 @@ var health := max_health
 
 var occupied_tiles: Array[Vector2i] = []
 
-#Assume whatever extends this has an area2d node
+# --- Ready ---
 func _ready():
-	$Area2D.mouse_entered.connect(_on_mouse_entered)
-	$Area2D.mouse_exited.connect(_on_mouse_exited)
+	if has_node("Area2D"):
+		$Area2D.mouse_entered.connect(_on_mouse_entered)
+		$Area2D.mouse_exited.connect(_on_mouse_exited)
 
 
-func can_place_at(origin: Vector2i, object_layer: TileMapLayer) -> bool:
-	for x in range(size.x):
-		for y in range(size.y):
-			var pos = origin + Vector2i(x, y)
-			if object_layer.get_cell_source_id(pos) != -1:
-				return false
-	return true
-
-func place_at(origin: Vector2i, object_layer: TileMapLayer):
-	occupied_tiles.clear()
-	for x in range(size.x):
-		for y in range(size.y):
-			occupied_tiles.append(origin + Vector2i(x, y))
-
-	# Places with mouse at center
-	#global_position = object_layer.map_to_local(origin)
-	
-	# Places with mouse at top left
-	var tile_size := Vector2(object_layer.tile_set.tile_size)
-	var top_left_world := object_layer.map_to_local(origin)
-	var footprint_px := Vector2(size) * tile_size
-	global_position = (top_left_world + footprint_px / 2) - (tile_size/2)
-	
-	
-	_update_collision(footprint_px)
-
-func _update_collision(footprint_px: Vector2):
-	var area := $Area2D
-	var collision_shape := $Area2D/CollisionShape2D
-	var shape := collision_shape.shape as RectangleShape2D
-	
-	# 1. Set the size correctly
-	shape.size = footprint_px
-	
-	# 2. Reset Area2D to (0,0) so it aligns with the Building's global_position
-	area.position = Vector2.ZERO
-	
-	# 3. Ensure the CollisionShape2D itself has no local offset
-	collision_shape.position = Vector2.ZERO
-
-
+# --- Ghost / Visuals ---
 func set_ghost(enabled: bool):
-	# Disable hover + physics
 	if has_node("Area2D"):
 		$Area2D.monitoring = not enabled
 		$Area2D.visible = not enabled
 
-	# Tint sprite
 	if has_node("Sprite2D"):
-		if enabled:
-			$Sprite2D.modulate = Color(1, 1, 1, 0.5)
-		else:
-			$Sprite2D.modulate = Color(1, 1, 1, 1)
+		$Sprite2D.modulate = Color(1, 1, 1, 0.5 if enabled else 1)
 
 func set_valid_placement(valid: bool):
-	if valid:
-		$Sprite2D.modulate = Color(0.6, 1.0, 0.6, 0.5)
-	else:
-		$Sprite2D.modulate = Color(1.0, 0.4, 0.4, 0.5)
+	if has_node("Sprite2D"):
+		$Sprite2D.modulate = Color(0.6, 1, 0.6, 0.5) if valid else Color(1, 0.4, 0.4, 0.5)
 
+
+# --- Footprint calculation ---
 func get_footprint(origin: Vector2i) -> Array[Vector2i]:
 	var tiles: Array[Vector2i] = []
 	for x in range(size.x):
 		for y in range(size.y):
 			tiles.append(origin + Vector2i(x, y))
 	return tiles
-	
-# ---- Item hooks (to be overrriden) ----
-func accepts_item_at(_tile: Vector2i) -> bool:
-	return false
 
-func can_accept_item(_item) -> bool:
-	return false
 
-func accept_item(_item) -> bool:
-	return false
-	
-# ---- Signals ----
+# --- Placement ---
+func place_at(origin: Vector2i, object_layer: TileMapLayer):
+	occupied_tiles = get_footprint(origin)
+
+	var tile_size := Vector2(object_layer.tile_set.tile_size)
+	var top_left_world := object_layer.map_to_local(origin)
+	var footprint_px := Vector2(size) * tile_size
+	global_position = (top_left_world + footprint_px / 2) - (tile_size / 2)
+
+	_update_collision(footprint_px)
+
+
+func _update_collision(footprint_px: Vector2):
+	if not has_node("Area2D/CollisionShape2D"):
+		return
+
+	var area := $Area2D
+	var collision_shape := $Area2D/CollisionShape2D
+	var shape := collision_shape.shape as RectangleShape2D
+
+	shape.size = footprint_px
+	area.position = Vector2.ZERO
+	collision_shape.position = Vector2.ZERO
+
+
+# --- Signals ---
 func _on_mouse_entered():
 	hovered.emit(self)
 

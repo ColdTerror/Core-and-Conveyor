@@ -5,20 +5,15 @@ class_name BuildingManager
 @export var hover_popup: Control
 
 var buildings: Array[Building] = []
-
-var occupied_tiles := {} 
-# Key: Vector2i
-# Value: Building
-
+var occupied_tiles := {} # Key: Vector2i, Value: Building
 
 var ghost_building: Building = null
 var placing_building := false
 
 
-# -------------------------------------------------
+# -------------------------------
 # PUBLIC API
-# -------------------------------------------------
-
+# -------------------------------
 func start_placing(scene: PackedScene):
 	if scene == null:
 		return
@@ -31,7 +26,6 @@ func start_placing(scene: PackedScene):
 
 	ghost_building.set_ghost(true)
 	placing_building = true
-	
 
 
 func _process(_delta):
@@ -53,9 +47,8 @@ func confirm_placement():
 
 	buildings.append(ghost_building)
 	_register_building(ghost_building)
-
 	_register_occupied_tiles(ghost_building)
-	
+
 	ghost_building = null
 	placing_building = false
 
@@ -68,19 +61,30 @@ func cancel_placement():
 	placing_building = false
 
 
-# -------------------------------------------------
+# -------------------------------
 # INTERNAL
-# -------------------------------------------------
-func _register_occupied_tiles(building: Building):
-	for tile in building.occupied_tiles:
-		occupied_tiles[tile] = building
+# -------------------------------
+func _update_ghost_position():
+	var grid_pos = _get_mouse_grid()
+	ghost_building.place_at(grid_pos, object_layer)
+
+	var valid = _can_place_building(ghost_building, grid_pos)
+	ghost_building.set_valid_placement(valid)
+
+
+func _get_mouse_grid() -> Vector2i:
+	var mouse_global = get_global_mouse_position()
+	var mouse_local = object_layer.to_local(mouse_global)
+	return object_layer.local_to_map(mouse_local)
+
 
 func _can_place_building(building: Building, origin: Vector2i) -> bool:
-	# 1. Terrain / object-layer check (existing logic)
-	if not building.can_place_at(origin, object_layer):
-		return false
+	# 1. Check TileMap for obstacles
+	for tile in building.get_footprint(origin):
+		if object_layer.get_cell_source_id(tile) != -1:
+			return false
 
-	# 2. Global building overlap check
+	# 2. Check global occupied tiles
 	for tile in building.get_footprint(origin):
 		if occupied_tiles.has(tile):
 			return false
@@ -88,19 +92,9 @@ func _can_place_building(building: Building, origin: Vector2i) -> bool:
 	return true
 
 
-func _update_ghost_position():
-	var grid_pos = _get_mouse_grid()
-
-	ghost_building.place_at(grid_pos, object_layer)
-
-	var valid := _can_place_building(ghost_building, grid_pos)
-	ghost_building.set_valid_placement(valid)
-
-
-func _get_mouse_grid() -> Vector2i:
-	var mouse_global := get_global_mouse_position()
-	var mouse_local := object_layer.to_local(mouse_global)
-	return object_layer.local_to_map(mouse_local)
+func _register_occupied_tiles(building: Building):
+	for tile in building.occupied_tiles:
+		occupied_tiles[tile] = building
 
 
 func _register_building(building: Building):
