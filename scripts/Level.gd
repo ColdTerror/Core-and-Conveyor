@@ -29,9 +29,15 @@ var active_grid_objects := {}
 
 var buildings: Array[Building] = []
 
+var ghost_building: Building = null
+var placing_building := false
+
+
 
 
 @export var item_scene: PackedScene # Drag your Ore/Item .tscn here in the Inspector
+
+@export var stockpile_scene: PackedScene 
 
 
 var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
@@ -59,7 +65,6 @@ func spawn_item_at_mouse():
 	# 4. Set its position to the center of the tile
 	new_item.global_position = spawn_pos
 	
-	print("Spawned item at: ", grid_pos)
 
 func _ready():
 	generate_simple_map()
@@ -74,12 +79,18 @@ func _process(_delta):
 	
 	update_tooltip(grid_pos)
 	
+	if placing_building and ghost_building:
+		update_ghost_position()
+	
+		
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		if current_tile_index < tile_library.size():
 			place_tile(grid_pos, tile_library[current_tile_index])
 	
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 		mine_tile(grid_pos)
+		
+	
 	
 	update_highlight(grid_pos)
 
@@ -257,7 +268,18 @@ func _input(event):
 	elif Input.is_key_pressed(KEY_COMMA):
 		current_tile_index = (current_tile_index - 1 + tile_library.size()) % tile_library.size()
 	elif Input.is_key_pressed(KEY_P):
-		place_stockpile()
+		start_placing_building(stockpile_scene)
+		
+	if placing_building and event.is_action_pressed("ui_left"):
+		var mouse_pos = get_global_mouse_position()
+		var grid_pos = object_layer.local_to_map(mouse_pos)
+
+		if ghost_building.can_place_at(grid_pos, object_layer):
+			finalize_building_placement(grid_pos)
+
+	elif placing_building and event.is_action_pressed("ui_right"):
+		cancel_building_placement()
+
 		
 
 	# NEW: Quick Rotate for Conveyors
@@ -312,38 +334,59 @@ func print_active_objects():
 	
 	
 
-
-
-@export var stockpile_scene: PackedScene 
-func place_stockpile():
-	if stockpile_scene == null:
-		print("Error: No stockpile_scene assigned in the Inspector!")
+func start_placing_building(scene: PackedScene):
+	if scene == null:
 		return
-		
+
+	if placing_building:
+		cancel_building_placement()
+
+	ghost_building = scene.instantiate() as Building
+	add_child(ghost_building)
+
+	ghost_building.set_ghost(true)
+	placing_building = true
+
+
+func update_ghost_position():
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = object_layer.local_to_map(mouse_pos)
 
-	var b: Building = stockpile_scene.instantiate()
-	add_child(b)
+	ghost_building.place_at(grid_pos, object_layer)
 
-	if not b.can_place_at(grid_pos, object_layer):
-		b.queue_free()
+	var valid := ghost_building.can_place_at(grid_pos, object_layer)
+
+	ghost_building.set_valid_placement(valid)
+
+
+func finalize_building_placement(grid_pos: Vector2i):
+	if ghost_building == null:
 		return
 
-	b.place_at(grid_pos, object_layer)
+	if not ghost_building.can_place_at(grid_pos, object_layer):
+		return
 
-	buildings.append(b)
-	register_building(b)
+	ghost_building.set_ghost(false)
+	ghost_building.place_at(grid_pos, object_layer)
 
-	print("Spawned stockpile at: ", grid_pos)
+	buildings.append(ghost_building)
+	register_building(ghost_building)
 
-	
+	ghost_building = null
+	placing_building = false
+
+func cancel_building_placement():
+	if ghost_building:
+		ghost_building.queue_free()
+
+	ghost_building = null
+	placing_building = false
+
+
 func register_building(building: Building):
 	print_debug("registering " + building.building_name)
 	building.hovered.connect(_on_building_hovered)
 	building.unhovered.connect(_on_building_unhovered)
-
-
 
 func _on_building_hovered(building: Building):
 	hover_popup.show_building_info(building)

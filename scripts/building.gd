@@ -58,6 +58,27 @@ func _update_collision(footprint_px: Vector2):
 	# 3. Ensure the CollisionShape2D itself has no local offset
 	collision_shape.position = Vector2.ZERO
 
+
+func set_ghost(enabled: bool):
+	# Disable hover + physics
+	if has_node("Area2D"):
+		$Area2D.monitoring = not enabled
+		$Area2D.visible = not enabled
+
+	# Tint sprite
+	if has_node("Sprite2D"):
+		if enabled:
+			$Sprite2D.modulate = Color(1, 1, 1, 0.5)
+		else:
+			$Sprite2D.modulate = Color(1, 1, 1, 1)
+
+func set_valid_placement(valid: bool):
+	if valid:
+		$Sprite2D.modulate = Color(0.6, 1.0, 0.6, 0.5)
+	else:
+		$Sprite2D.modulate = Color(1.0, 0.4, 0.4, 0.5)
+
+
 # ---- Item hooks (to be overrriden) ----
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return false
