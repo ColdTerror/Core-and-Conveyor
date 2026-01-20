@@ -27,6 +27,8 @@ const RES_STONE := 4
 var current_tile_index := 0
 var active_grid_objects := {}
 
+var buildings: Array[Building] = []
+
 
 
 @export var item_scene: PackedScene # Drag your Ore/Item .tscn here in the Inspector
@@ -289,18 +291,30 @@ func print_active_objects():
 	# Key: Vector2i (grid pos), Value: Node (the item)
 	if item_grid.is_empty():
 		print("Grid is empty.")
-		return
-		
-	for grid_pos in item_grid:
-		var info = item_grid[grid_pos]
-		
-		print(grid_pos)
+	else:
+		for grid_pos in item_grid:
+			var info = item_grid[grid_pos]
+			
+			print(grid_pos)
 		
 		
 			
 	print("------------------------------------")
+	print("--- CURRENT ACTIVE Buildings OBJECTS ---")
+	# Key: Vector2i (grid pos), Value: Node (the item)
+	if buildings.is_empty():
+		print("buildings is empty.")
+	else:
+		for b in buildings:
+			print(b.building_name)
+			print(b.inventory)
+	print("------------------------------------")
 	
-@export var stockpile_scene: PackedScene # Drag your Ore/Item .tscn here in the Inspector
+	
+
+
+
+@export var stockpile_scene: PackedScene 
 func place_stockpile():
 	if stockpile_scene == null:
 		print("Error: No stockpile_scene assigned in the Inspector!")
@@ -308,34 +322,32 @@ func place_stockpile():
 		
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = object_layer.local_to_map(mouse_pos)
-	
-	
-	
-	var new_stockpile = stockpile_scene.instantiate()
 
-	if not new_stockpile.can_place_at(grid_pos, object_layer):
-		new_stockpile.queue_free()
+	var b: Building = stockpile_scene.instantiate()
+	add_child(b)
+
+	if not b.can_place_at(grid_pos, object_layer):
+		b.queue_free()
 		return
 
-	add_child(new_stockpile)
-	new_stockpile.place_at(grid_pos, object_layer)
+	b.place_at(grid_pos, object_layer)
 
-		
-	new_stockpile.place_at(grid_pos, object_layer)
-	
-	# 🔹 REGISTER HOVER SIGNALS HERE
-	register_building(new_stockpile)
-	
+	buildings.append(b)
+	register_building(b)
+
 	print("Spawned stockpile at: ", grid_pos)
+
 	
-	
-func register_building(building: StockpileBuilding):
+func register_building(building: Building):
 	building.hovered.connect(_on_building_hovered)
 	building.unhovered.connect(_on_building_unhovered)
 
 
-func _on_building_hovered(building: StockpileBuilding):
-	hover_popup.show_building(building)
+
+func _on_building_hovered(building: Building):
+	hover_popup.show_building_info(building)
 
 func _on_building_unhovered(_building):
 	hover_popup.hide_popup()
+	
+	

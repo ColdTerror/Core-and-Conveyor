@@ -22,14 +22,16 @@ func _process(delta):
 	var current_grid_pos = object_layer.local_to_map(global_position)
 
 	# -----------------------------
-	# 1️⃣ Check if current tile is a stockpile
+	# 1️⃣ Check if current tile is a building that accepts items
 	# -----------------------------
-	for node in level_node.get_children():
-		if node is StockpileBuilding and node.accepts_item_at(current_grid_pos):
-			if node.add_item(item_data):
+	for building in level_node.buildings:
+		if building.accepts_item_at(current_grid_pos):
+			if building.can_accept_item(item_data):
+				building.accept_item(item_data)
 				level_node.item_grid.erase(current_grid_pos)
 				queue_free()
 				return
+
 
 	# -----------------------------
 	# 2️⃣ Claim current tile if possible
@@ -77,18 +79,13 @@ func _process(delta):
 		if next_data.is_conveyor:
 			next_is_conveyor = true
 
-	# Check if next tile is a stockpile that accepts this item
-	var next_is_stockpile = false
-	for node in level_node.get_children():
-		if node is StockpileBuilding and node.accepts_item_at(next_grid_pos):
-			if node.can_accept_item(item_data):
-				next_is_stockpile = true
-			break
+			
+
 
 	# -----------------------------
-	# 5️⃣ Stop if next tile is neither conveyor nor stockpile
+	# 5️⃣ Stop if next tile is neither conveyor nor building accepts items
 	# -----------------------------
-	if not next_is_conveyor and not next_is_stockpile:
+	if not next_is_conveyor and not next_tile_accepts_item(next_grid_pos):
 		global_position = object_layer.map_to_local(current_grid_pos)
 		stopped = true
 		conveyor_stopped = true
@@ -128,3 +125,9 @@ func _process(delta):
 			level_node.item_grid.erase(current_grid_pos)
 		level_node.item_grid[new_grid_pos] = self
 		blocked_by = null
+		
+func next_tile_accepts_item(tile: Vector2i) -> bool:
+	for b in level_node.buildings:
+		if b.accepts_item_at(tile):
+			return b.can_accept_item(item_data)
+	return false
