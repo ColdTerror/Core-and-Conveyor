@@ -46,9 +46,17 @@ func place_at(origin: Vector2i, object_layer: TileMapLayer):
 
 func _update_collision(footprint_px: Vector2):
 	var area := $Area2D
-	var shape := $Area2D/CollisionShape2D.shape as RectangleShape2D
+	var collision_shape := $Area2D/CollisionShape2D
+	var shape := collision_shape.shape as RectangleShape2D
+	
+	# 1. Set the size correctly
 	shape.size = footprint_px
-	area.position = footprint_px / 2
+	
+	# 2. Reset Area2D to (0,0) so it aligns with the Building's global_position
+	area.position = Vector2.ZERO
+	
+	# 3. Ensure the CollisionShape2D itself has no local offset
+	collision_shape.position = Vector2.ZERO
 
 # ---- Item hooks (to be overrriden) ----
 func accepts_item_at(_tile: Vector2i) -> bool:
