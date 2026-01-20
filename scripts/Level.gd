@@ -27,10 +27,7 @@ const RES_STONE := 4
 var current_tile_index := 0
 var active_grid_objects := {}
 
-var buildings: Array[Building] = []
 
-var ghost_building: Building = null
-var placing_building := false
 
 
 
@@ -313,18 +310,5 @@ func print_active_objects():
 			var info = item_grid[grid_pos]
 			
 			print(grid_pos)
-		
-		
-			
 	print("------------------------------------")
-	print("--- CURRENT ACTIVE Buildings ---")
-	# Key: Vector2i (grid pos), Value: Node (the item)
-	if buildings.is_empty():
-		print("buildings is empty.")
-	else:
-		for b in buildings:
-			print(b.building_name)
-			print(b.inventory)
-	print("------------------------------------")
-	
 	
