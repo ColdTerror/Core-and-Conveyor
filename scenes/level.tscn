@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://dm3jfmd14wxsf"]
+[gd_scene load_steps=21 format=3 uid="uid://dm3jfmd14wxsf"]
 
 [ext_resource type="Script" uid="uid://b6kxlovwh8gyn" path="res://scripts/Level.gd" id="1_olg7q"]
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="2_olg7q"]
@@ -17,6 +17,7 @@
 [ext_resource type="Resource" uid="uid://dhst2ng5e26ob" path="res://resources/tiles/9_Conveyer_Down.tres" id="12_82cfe"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="13_arp2o"]
 [ext_resource type="PackedScene" uid="uid://cs65262rv84b4" path="res://scenes/stockpile_building.tscn" id="14_ux5qa"]
+[ext_resource type="Script" uid="uid://y8ifotnqs7ch" path="res://scripts/building/building_manager.gd" id="15_gunhw"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/building_hover_popup.tscn" id="18_82cfe"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
@@ -51,6 +52,11 @@ modulate = Color(1, 1, 1, 0.60784316)
 texture = ExtResource("11_t1rx8")
 region_enabled = true
 region_rect = Rect2(0, 0, 16, 16)
+
+[node name="BuildingManager" type="Node2D" parent="." node_paths=PackedStringArray("object_layer", "hover_popup")]
+script = ExtResource("15_gunhw")
+object_layer = NodePath("../ObjectLayer")
+hover_popup = NodePath("../CanvasLayer/BuildingHoverPopup")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

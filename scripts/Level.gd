@@ -39,6 +39,8 @@ var placing_building := false
 
 @export var stockpile_scene: PackedScene 
 
+@onready var building_manager: BuildingManager = $BuildingManager
+
 
 var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
 
@@ -78,9 +80,7 @@ func _process(_delta):
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
 	update_tooltip(grid_pos)
-	
-	if placing_building and ghost_building:
-		update_ghost_position()
+
 	
 		
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -268,17 +268,12 @@ func _input(event):
 	elif Input.is_key_pressed(KEY_COMMA):
 		current_tile_index = (current_tile_index - 1 + tile_library.size()) % tile_library.size()
 	elif Input.is_key_pressed(KEY_P):
-		start_placing_building(stockpile_scene)
+		building_manager.start_placing(stockpile_scene)
 		
-	if placing_building and event.is_action_pressed("ui_left"):
-		var mouse_pos = get_global_mouse_position()
-		var grid_pos = object_layer.local_to_map(mouse_pos)
-
-		if ghost_building.can_place_at(grid_pos, object_layer):
-			finalize_building_placement(grid_pos)
-
-	elif placing_building and event.is_action_pressed("ui_right"):
-		cancel_building_placement()
+	if event.is_action_pressed("ui_left"):
+		building_manager.confirm_placement()
+	elif event.is_action_pressed("ui_right"):
+		building_manager.cancel_placement()
 
 		
 
@@ -331,67 +326,5 @@ func print_active_objects():
 			print(b.building_name)
 			print(b.inventory)
 	print("------------------------------------")
-	
-	
-
-func start_placing_building(scene: PackedScene):
-	if scene == null:
-		return
-
-	if placing_building:
-		cancel_building_placement()
-
-	ghost_building = scene.instantiate() as Building
-	add_child(ghost_building)
-
-	ghost_building.set_ghost(true)
-	placing_building = true
-
-
-func update_ghost_position():
-	var mouse_pos = get_global_mouse_position()
-	var grid_pos = object_layer.local_to_map(mouse_pos)
-
-	ghost_building.place_at(grid_pos, object_layer)
-
-	var valid := ghost_building.can_place_at(grid_pos, object_layer)
-
-	ghost_building.set_valid_placement(valid)
-
-
-func finalize_building_placement(grid_pos: Vector2i):
-	if ghost_building == null:
-		return
-
-	if not ghost_building.can_place_at(grid_pos, object_layer):
-		return
-
-	ghost_building.set_ghost(false)
-	ghost_building.place_at(grid_pos, object_layer)
-
-	buildings.append(ghost_building)
-	register_building(ghost_building)
-
-	ghost_building = null
-	placing_building = false
-
-func cancel_building_placement():
-	if ghost_building:
-		ghost_building.queue_free()
-
-	ghost_building = null
-	placing_building = false
-
-
-func register_building(building: Building):
-	print_debug("registering " + building.building_name)
-	building.hovered.connect(_on_building_hovered)
-	building.unhovered.connect(_on_building_unhovered)
-
-func _on_building_hovered(building: Building):
-	hover_popup.show_building_info(building)
-
-func _on_building_unhovered(_building):
-	hover_popup.hide_popup()
 	
 	
