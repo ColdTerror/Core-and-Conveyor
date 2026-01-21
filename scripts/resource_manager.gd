@@ -1,6 +1,6 @@
 extends Node
 
-@export var forest_regrow_time := 10.0
+@export var forest_regrow_time := 5.0
 
 # Key: Vector2i (tile position)
 # Value: float (seconds until regrown)
@@ -12,6 +12,7 @@ func harvest_forest(tile: Vector2i):
 	if regrowing_forests.has(tile):
 		return
 
+	print('harvesting')
 	regrowing_forests[tile] = forest_regrow_time
 
 func _process(delta):

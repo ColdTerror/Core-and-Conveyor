@@ -70,6 +70,37 @@ func _ready():
 	
 	#Hide popup at start
 	hover_popup.hide()
+	
+	ResourceManager.forest_regrown.connect(_on_forest_regrown)
+
+
+# =========================
+# Forest regrowth helpers
+# =========================
+
+func is_forest_tile(tile: Vector2i) -> bool:
+	var index := get_object_tile_index(tile)
+	return index == RES_TREE
+	
+func remove_forest(tile: Vector2i):
+	object_layer.erase_cell(tile)
+	ResourceManager.harvest_forest(tile)
+
+func _on_forest_regrown(tile: Vector2i):
+	print(get_object_tile_index(tile))
+	if get_object_tile_index(tile) != -1:
+		return
+
+	object_layer.set_cell(tile, 0, Vector2i(
+		RES_TREE % ATLAS_COLUMNS,
+		RES_TREE / ATLAS_COLUMNS
+	))
+
+func get_object_tile_index(tile: Vector2i) -> int:
+	var atlas := object_layer.get_cell_atlas_coords(tile)
+	if atlas == Vector2i(-1, -1):
+		return -1
+	return atlas.y * ATLAS_COLUMNS + atlas.x
 
 func _process(_delta):
 
@@ -85,7 +116,8 @@ func _process(_delta):
 			place_tile(grid_pos, tile_library[current_tile_index])
 	
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-		mine_tile(grid_pos)
+		if is_forest_tile(grid_pos):
+			remove_forest(grid_pos)
 		
 	
 	
@@ -242,16 +274,7 @@ func can_place_object(grid_pos: Vector2i) -> bool:
 	var terrain_index = terrain_atlas.y * ATLAS_COLUMNS + terrain_atlas.x
 	return terrain_index != TERRAIN_WATER and object_layer.get_cell_source_id(grid_pos) == -1
 
-func mine_tile(grid_pos: Vector2i):
-	if active_grid_objects.has(grid_pos):
-		var tile_info = active_grid_objects[grid_pos]
-		var data = tile_info["data"]
-		tile_info["health"] -= data.amount_per_mine
-		if tile_info["health"] <= 0:
-			if "InventoryManager" in self: # Safe check
-				InventoryManager.add_resources(data.display_name, data.total_resources)
-			object_layer.set_cell(grid_pos, -1)
-			active_grid_objects.erase(grid_pos)
+
 
 func update_highlight(grid_pos: Vector2i):
 	highlight.global_position = terrain_layer.map_to_local(grid_pos)
