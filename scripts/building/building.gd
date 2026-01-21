@@ -72,3 +72,7 @@ func _on_mouse_entered():
 
 func _on_mouse_exited():
 	unhovered.emit(self)
+	
+# --- Building Functions ---
+func building_tick(delta: float) -> void:
+	pass

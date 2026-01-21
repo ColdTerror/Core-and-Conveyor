@@ -28,7 +28,10 @@ func start_placing(scene: PackedScene):
 	placing_building = true
 
 
-func _process(_delta):
+func _process(delta):
+	for b in buildings:
+		b.building_tick(delta)
+	
 	if placing_building and ghost_building:
 		_update_ghost_position()
 
