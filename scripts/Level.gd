@@ -71,30 +71,36 @@ func _ready():
 	#Hide popup at start
 	hover_popup.hide()
 	
-	ResourceManager.forest_regrown.connect(_on_forest_regrown)
+	ResourceManager.forest_state_changed.connect(_on_forest_state_changed)
+
 
 
 # =========================
 # Forest regrowth helpers
 # =========================
 
+const TREE_FULL_ATLAS := Vector2i(1, 3)
+const TREE_LEAFLESS_ATLAS := Vector2i(2, 3)
+const TREE_STUMP_ATLAS := Vector2i(0, 4)
+
 func is_forest_tile(tile: Vector2i) -> bool:
-	var index := get_object_tile_index(tile)
-	return index == RES_TREE
+	var atlas := object_layer.get_cell_atlas_coords(tile)
+	return atlas == TREE_FULL_ATLAS
 	
 func remove_forest(tile: Vector2i):
-	object_layer.erase_cell(tile)
 	ResourceManager.harvest_forest(tile)
 
-func _on_forest_regrown(tile: Vector2i):
-	print(get_object_tile_index(tile))
-	if get_object_tile_index(tile) != -1:
-		return
+func _on_forest_state_changed(tile: Vector2i, state: int):
+	match state:
+		ResourceManager.ForestState.FULL:
+			object_layer.set_cell(tile, 0, TREE_FULL_ATLAS)
 
-	object_layer.set_cell(tile, 0, Vector2i(
-		RES_TREE % ATLAS_COLUMNS,
-		RES_TREE / ATLAS_COLUMNS
-	))
+		ResourceManager.ForestState.HARVESTING:
+			object_layer.set_cell(tile, 0, TREE_LEAFLESS_ATLAS)
+
+		ResourceManager.ForestState.DEPLETED:
+			object_layer.set_cell(tile, 0, TREE_STUMP_ATLAS)
+
 
 func get_object_tile_index(tile: Vector2i) -> int:
 	var atlas := object_layer.get_cell_atlas_coords(tile)
@@ -191,7 +197,8 @@ func generate_simple_map():
 			# Thick Forests on Grass
 			if t_type == TERRAIN_GRASS:
 				if d_val > 0.68: # Higher number = thicker, smaller groves
-					place_resource_at(pos, RES_TREE)
+					object_layer.set_cell(pos, 0, TREE_FULL_ATLAS)
+					ResourceManager.forest_states[pos] = ResourceManager.ForestState.FULL
 			
 			# Concentrated Rock Veins on Mountains
 			if t_type == RES_STONE:
@@ -234,6 +241,12 @@ func clear_starting_zone():
 
 func update_tooltip(grid_pos: Vector2i):
 	tooltip.visible = false
+	if is_forest_tile(grid_pos):
+		tooltip_label.text = "Forest"
+		tooltip.visible = true
+		tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
+		return
+	
 	var obj_atlas = object_layer.get_cell_atlas_coords(grid_pos)
 	var terr_atlas = terrain_layer.get_cell_atlas_coords(grid_pos)
 	
