@@ -67,40 +67,55 @@ func spawn_item_at_mouse():
 
 func _ready():
 	generate_simple_map()
-	
-	#Hide popup at start
 	hover_popup.hide()
 	
-	ResourceManager.forest_state_changed.connect(_on_forest_state_changed)
+	# Connect the new Generic Signal
+	ResourceManager.resource_state_changed.connect(_on_resource_state_changed)
 
 
 
 # =========================
-# Forest regrowth helpers
+# Resource state change
 # =========================
 
-const TREE_FULL_ATLAS := Vector2i(1, 3)
-const TREE_LEAFLESS_ATLAS := Vector2i(2, 3)
-const TREE_STUMP_ATLAS := Vector2i(0, 4)
-
-func is_forest_tile(tile: Vector2i) -> bool:
-	var atlas := object_layer.get_cell_atlas_coords(tile)
-	return atlas == TREE_FULL_ATLAS
+func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResource):
+	# Now we don't need hardcoded constants like TREE_FULL_ATLAS!
+	# We use the data passed back to us.
 	
-func remove_forest(tile: Vector2i):
-	ResourceManager.harvest_forest(tile)
-
-func _on_forest_state_changed(tile: Vector2i, state: int):
 	match state:
-		ResourceManager.ForestState.FULL:
-			object_layer.set_cell(tile, 0, TREE_FULL_ATLAS)
+		ResourceManager.ResourceState.FULL:
+			object_layer.set_cell(tile, 0, data.atlas_coords_full)
+			# Refill health in your tracking dict
+			if active_grid_objects.has(tile):
+				active_grid_objects[tile]["health"] = data.total_resources
 
-		ResourceManager.ForestState.HARVESTING:
-			object_layer.set_cell(tile, 0, TREE_LEAFLESS_ATLAS)
+		ResourceManager.ResourceState.HARVESTING:
+			# If the data has a specific look for harvesting (leafless), use it
+			if data.atlas_coords_harvesting != Vector2i(-1, -1):
+				object_layer.set_cell(tile, 0, data.atlas_coords_harvesting)
 
-		ResourceManager.ForestState.DEPLETED:
-			object_layer.set_cell(tile, 0, TREE_STUMP_ATLAS)
+		ResourceManager.ResourceState.DEPLETED:
+			# If the data has a stump look, use it; otherwise remove tile
+			if data.atlas_coords_depleted != Vector2i(-1, -1):
+				object_layer.set_cell(tile, 0, data.atlas_coords_depleted)
+			else:
+				object_layer.set_cell(tile, -1) # Remove completely if no stump sprite
 
+
+
+func handle_harvest_input(grid_pos: Vector2i):
+	# 1. Check if something exists here
+	if not active_grid_objects.has(grid_pos):
+		return
+		
+	var obj_info = active_grid_objects[grid_pos]
+	var data = obj_info["data"]
+	
+	# 2. Send Request to Manager
+	# We pass 'obj_info' so the manager can edit the health directly.
+	# We can also pass a specific amount (e.g. 10) if we have a super-pickaxe later.
+	ResourceManager.request_harvest(grid_pos, obj_info)
+# ===========================
 
 func get_object_tile_index(tile: Vector2i) -> int:
 	var atlas := object_layer.get_cell_atlas_coords(tile)
@@ -122,8 +137,7 @@ func _process(_delta):
 			place_tile(grid_pos, tile_library[current_tile_index])
 	
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-		if is_forest_tile(grid_pos):
-			remove_forest(grid_pos)
+		handle_harvest_input(grid_pos)
 		
 	
 	
@@ -197,8 +211,7 @@ func generate_simple_map():
 			# Thick Forests on Grass
 			if t_type == TERRAIN_GRASS:
 				if d_val > 0.68: # Higher number = thicker, smaller groves
-					object_layer.set_cell(pos, 0, TREE_FULL_ATLAS)
-					ResourceManager.forest_states[pos] = ResourceManager.ForestState.FULL
+					place_resource_at(pos, RES_TREE)
 			
 			# Concentrated Rock Veins on Mountains
 			if t_type == RES_STONE:
@@ -214,10 +227,13 @@ func generate_simple_map():
 
 func place_resource_at(grid_pos: Vector2i, resource_index: int):
 	if resource_index >= tile_library.size(): return
-	var data = tile_library[resource_index]
-	var atlas_coords = Vector2i(resource_index % ATLAS_COLUMNS, resource_index / ATLAS_COLUMNS)
 	
-	object_layer.set_cell(grid_pos, 0, atlas_coords)
+	var data = tile_library[resource_index]
+	
+	# NEW: Use the explicit coordinate from the resource data
+	object_layer.set_cell(grid_pos, 0, data.atlas_coords_full)
+	
+	# Register in the system
 	active_grid_objects[grid_pos] = {
 		"health": data.total_resources,
 		"data": data
@@ -241,25 +257,26 @@ func clear_starting_zone():
 
 func update_tooltip(grid_pos: Vector2i):
 	tooltip.visible = false
-	if is_forest_tile(grid_pos):
-		tooltip_label.text = "Forest"
+	
+	# 1. Check for Objects (Trees, Rocks, Buildings) using your dictionary
+	if active_grid_objects.has(grid_pos):
+		var info = active_grid_objects[grid_pos]
+		var data = info["data"]
+		
+		tooltip_label.text = "%s\nHP: %d/%d" % [data.display_name, info["health"], data.total_resources]
 		tooltip.visible = true
 		tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
 		return
-	
-	var obj_atlas = object_layer.get_cell_atlas_coords(grid_pos)
+
+	# 2. Fallback: Check for Terrain (Grass/Water/Sand)
+	# Since terrain isn't in active_grid_objects, we keep the old math logic here
 	var terr_atlas = terrain_layer.get_cell_atlas_coords(grid_pos)
-	
-	var index = -1
-	if obj_atlas != Vector2i(-1, -1):
-		index = obj_atlas.y * ATLAS_COLUMNS + obj_atlas.x
-	elif terr_atlas != Vector2i(-1, -1):
-		index = terr_atlas.y * ATLAS_COLUMNS + terr_atlas.x
-		
-	if index != -1 and index < tile_library.size():
-		tooltip_label.text = tile_library[index].display_name + str(grid_pos)
-		tooltip.visible = true
-		tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
+	if terr_atlas != Vector2i(-1, -1):
+		var index = terr_atlas.y * ATLAS_COLUMNS + terr_atlas.x
+		if index < tile_library.size():
+			tooltip_label.text = tile_library[index].display_name
+			tooltip.visible = true
+			tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
 
 func place_tile(grid_pos: Vector2i, data: TileDataResource):
 	var atlas_coords = Vector2i(current_tile_index % ATLAS_COLUMNS, current_tile_index / ATLAS_COLUMNS)
