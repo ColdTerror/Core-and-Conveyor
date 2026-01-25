@@ -10,10 +10,16 @@ var occupied_tiles := {} # Key: Vector2i, Value: Building
 var ghost_building: Building = null
 var placing_building := false
 
+var level_ref: Node2D 
 
+
+	
 # -------------------------------
 # PUBLIC API
 # -------------------------------
+func initialize(level_instance: Node2D):
+	level_ref = level_instance
+	
 func start_placing(scene: PackedScene):
 	if scene == null:
 		return
@@ -47,6 +53,11 @@ func confirm_placement():
 
 	ghost_building.set_ghost(false)
 	ghost_building.place_at(grid_pos, object_layer)
+	
+	# --- NEW INJECTION HERE ---
+	# If the building script has a 'setup' function, pass the level to it
+	if ghost_building.has_method("setup"):
+		ghost_building.setup(level_ref)
 
 	buildings.append(ghost_building)
 	_register_building(ghost_building)

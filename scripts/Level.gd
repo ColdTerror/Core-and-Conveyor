@@ -35,6 +35,7 @@ var active_grid_objects := {}
 @export var item_scene: PackedScene # Drag your Ore/Item .tscn here in the Inspector
 
 @export var stockpile_scene: PackedScene 
+@export var lumberjack_scene: PackedScene
 
 @onready var building_manager: BuildingManager = $BuildingManager
 
@@ -71,6 +72,9 @@ func _ready():
 	
 	# Connect the new Generic Signal
 	ResourceManager.resource_state_changed.connect(_on_resource_state_changed)
+	
+	# Give the manager a reference to this Level node
+	building_manager.initialize(self)
 
 
 
@@ -319,6 +323,12 @@ func _input(event):
 		current_tile_index = (current_tile_index - 1 + tile_library.size()) % tile_library.size()
 	elif Input.is_key_pressed(KEY_P):
 		building_manager.start_placing(stockpile_scene)
+		# --- NEW HARVESTER KEY ---
+	elif Input.is_key_pressed(KEY_L): # Press 'L' to build Lumberjack Hut
+		if lumberjack_scene:
+			building_manager.start_placing(lumberjack_scene)
+		else:
+			print("Error: Lumberjack scene not assigned in Level Inspector")
 		
 	if event.is_action_pressed("ui_left"):
 		building_manager.confirm_placement()
