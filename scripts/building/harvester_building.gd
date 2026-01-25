@@ -3,6 +3,7 @@ class_name HarvesterBuilding
 
 @export_group("Settings")
 @export var target_resource: TileDataResource 
+@export var generic_item_scene: PackedScene
 @export var scan_radius: int = 4
 @export var harvest_damage: int = 2
 @export var work_interval: float = 1.0
@@ -96,6 +97,9 @@ func _on_mouse_exited():
 func building_tick(delta: float) -> void:
 	if not level_ref or not target_resource: return
 	
+	if stored_amount > 0:
+		_try_output_item()
+	
 	# NEW: Check Capacity before doing anything
 	if stored_amount >= buffer_capacity:
 		# We are full! Stop working.
@@ -173,3 +177,68 @@ func get_inventory_info() -> Dictionary:
 	if target_resource and stored_amount > 0:
 		return { target_resource: stored_amount }
 	return {}
+	
+# --- OUTPUT LOGIC ---
+
+func _try_output_item():
+	# 1. Loop through every tile this building occupies (e.g., all 16 tiles)
+	for my_tile in occupied_tiles:
+		
+		# 2. Check all 4 directions from this specific tile
+		var directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
+		
+		for offset in directions:
+			var target_pos = my_tile + offset
+			
+			# 3. CRITICAL: Skip if this neighbor is actually still part of myself!
+			# (We don't want to output from the left side of the building into the right side)
+			if occupied_tiles.has(target_pos):
+				continue
+				
+			# 4. Safety: Is the target tile blocked by another item?
+			if level_ref.item_grid.has(target_pos):
+				continue 
+
+			# 5. Check for Conveyor
+			if _is_conveyor_at(target_pos):
+				_spawn_item(target_pos)
+				return # Successfully output one item; stop for this frame.
+
+func _is_conveyor_at(grid_pos: Vector2i) -> bool:
+	if level_ref.active_grid_objects.has(grid_pos):
+		var data = level_ref.active_grid_objects[grid_pos]["data"]
+		return data.is_conveyor
+	return false
+
+func _spawn_item(target_pos: Vector2i):
+	# 1. Validation
+	if not generic_item_scene:
+		print("Error: Generic Item Scene not assigned to Harvester Inspector!")
+		return
+	
+	# Ensure the Resource (Tree.tres) has an Item (Log.tres) assigned
+	if not target_resource.item_drop:
+		print("Error: Resource %s has no item_drop assigned!" % target_resource.display_name)
+		return
+
+	# 2. Instantiate
+	var new_item_node = generic_item_scene.instantiate()
+	
+	# 3. Inject Data
+	# We give the generic item the specific data (Log/Stone)
+	if "item_data" in new_item_node:
+		new_item_node.item_data = target_resource.item_drop
+		# If your item script needs a kick to update the texture:
+		if new_item_node.has_method("_ready"):
+			new_item_node._ready() 
+	
+	# 4. Add to World
+	level_ref.add_child(new_item_node)
+	new_item_node.global_position = level_ref.object_layer.map_to_local(target_pos)
+	
+	# 5. Update Logic
+	stored_amount -= 1
+	level_ref.item_grid[target_pos] = new_item_node # Register to grid
+	
+	inventory_changed.emit()
+	print("Output item to ", target_pos)
