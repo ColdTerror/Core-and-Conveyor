@@ -1,9 +1,8 @@
-# HarvesterBuilding.gd
 extends Building
 class_name HarvesterBuilding
 
 @export_group("Settings")
-@export var target_resource: TileDataResource  # Drag Tree.tres or Stone.tres here!
+@export var target_resource: TileDataResource 
 @export var scan_radius: int = 4
 @export var harvest_damage: int = 2
 @export var work_interval: float = 1.0
@@ -15,46 +14,84 @@ var level_ref: Node2D
 var work_timer: float = 0.0
 var current_target: Vector2i = Vector2i.MAX
 
-# --- SETUP (Called by BuildingManager) ---
+# --- NEW: Range Visual Variables ---
+var show_range_overlay := false:
+	set(value):
+		show_range_overlay = value
+		queue_redraw() # Forces Godot to run _draw() again
+
+const TILE_SIZE = 32 # Assuming 32x32 tiles. Change if different!
+
+# --- SETUP ---
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
-# --- MAIN LOOP ---
-func building_tick(delta: float) -> void:
-	# Safety checks
-	if not level_ref or not target_resource: 
-		return
+# --- DRAWING THE RANGE ---
+func _draw():
+	if show_range_overlay:
+		# Calculate the size of the square
+		# Radius 4 means: 4 left + center + 4 right = 9 tiles width
+		var diameter_tiles = (scan_radius * 2) + 1
+		var size_px = diameter_tiles * TILE_SIZE
+		
+		# Center the square on the building (0,0 is the center of this node)
+		var top_left = Vector2(-size_px / 2.0, -size_px / 2.0)
+		var rect = Rect2(top_left, Vector2(size_px, size_px))
+		
+		# Draw the background (Transparent Green)
+		draw_rect(rect, Color(0.2, 0.8, 0.2, 0.2), true)
+		# Draw the border (Solid Green)
+		draw_rect(rect, Color(0.2, 1.0, 0.2, 0.5), false, 2.0)
 
+# --- OVERRIDES FOR VISIBILITY ---
+
+# 1. When becoming a Ghost (Placement Mode)
+func set_ghost(enabled: bool):
+	super.set_ghost(enabled) # Run the original logic (transparency)
+	show_range_overlay = enabled # Show range while placing!
+
+# 2. When Mouse Enters (Hover Mode)
+func _on_mouse_entered():
+	super._on_mouse_entered() # Run original signal logic
+	# Only show if placed (not a ghost) to avoid conflict, 
+	# though ghost usually handles its own state.
+	if not get_node("Area2D").monitoring: return # Ghost mode check
+	show_range_overlay = true
+
+# 3. When Mouse Exits
+func _on_mouse_exited():
+	super._on_mouse_exited()
+	# Only hide if we aren't a ghost (ghosts always show range)
+	if not get_node("Area2D").monitoring: return 
+	show_range_overlay = false
+
+# --- MAIN LOOP  ---
+func building_tick(delta: float) -> void:
+	if not level_ref or not target_resource: return
 	work_timer -= delta
 	
-	# 1. Update Visuals
 	if current_target != Vector2i.MAX:
 		_draw_beam(current_target)
 	else:
 		if beam_line: beam_line.clear_points()
 
-	# 2. Work Logic
 	if work_timer <= 0:
 		work_timer = work_interval
 		_perform_harvest()
 
 func _perform_harvest():
-	# If we lost our target or it became invalid, find a new one
 	if not _is_valid_target(current_target):
 		current_target = _find_nearest_target()
 	
-	# If we have a valid target, hit it
 	if current_target != Vector2i.MAX:
 		var info = level_ref.active_grid_objects[current_target]
 		ResourceManager.request_harvest(current_target, info, harvest_damage)
 
-# --- FINDER LOGIC ---
 func _find_nearest_target() -> Vector2i:
 	var center = level_ref.object_layer.local_to_map(global_position)
 	var best_pos = Vector2i.MAX
 	var min_dist = 99999.0
 	
-	# Scan the square area around the building
 	for x in range(-scan_radius, scan_radius + 1):
 		for y in range(-scan_radius, scan_radius + 1):
 			var check_pos = center + Vector2i(x, y)
@@ -64,35 +101,21 @@ func _find_nearest_target() -> Vector2i:
 				if dist < min_dist:
 					min_dist = dist
 					best_pos = check_pos
-	
+					
 	return best_pos
 
 func _is_valid_target(pos: Vector2i) -> bool:
 	if pos == Vector2i.MAX: return false
-	
-	# 1. Does the level have an object there?
-	if not level_ref.active_grid_objects.has(pos):
-		return false
-	
+	if not level_ref.active_grid_objects.has(pos): return false
 	var info = level_ref.active_grid_objects[pos]
-	
-	# 2. Is it dead/empty?
 	if info["health"] <= 0: return false
-	
-	# 3. IS IT THE RIGHT RESOURCE? (The Magic Check)
-	# This checks if the file in the grid matches the file in our Inspector
-	if info["data"] != target_resource:
-		return false
-		
+	if info["data"] != target_resource: return false
 	return true
 
 func _draw_beam(grid_pos: Vector2i):
 	if not beam_line: return
-	
-	# Convert grid coordinate to local coordinate
 	var target_world = level_ref.object_layer.map_to_local(grid_pos)
 	var target_local = to_local(target_world)
-	
 	beam_line.clear_points()
-	beam_line.add_point(Vector2.ZERO) # Start at building center
-	beam_line.add_point(target_local) # End at tree
+	beam_line.add_point(Vector2.ZERO)
+	beam_line.add_point(target_local)
