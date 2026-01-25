@@ -24,13 +24,22 @@ func _process(delta):
 	# -----------------------------
 	# 1️⃣ Check if current tile is a building that accepts items
 	# -----------------------------
-	for building in level_node.buildings:
-		if building.accepts_item_at(current_grid_pos):
-			if building.can_accept_item(item_data):
-				building.accept_item(item_data)
+	var b_manager = level_node.building_manager 
+	
+	# Optimization: Use the dictionary lookup instead of looping through all buildings
+	if b_manager.occupied_tiles.has(current_grid_pos):
+		var building = b_manager.occupied_tiles[current_grid_pos]
+		
+		# Now check if this specific building wants the item
+		if building.accepts_item_at(current_grid_pos) and building.can_accept_item(item_data):
+			building.accept_item(item_data)
+			
+			# Cleanup grid and delete item
+			if level_node.item_grid.get(current_grid_pos) == self:
 				level_node.item_grid.erase(current_grid_pos)
-				queue_free()
-				return
+				
+			queue_free()
+			return
 
 
 	# -----------------------------
@@ -127,7 +136,10 @@ func _process(delta):
 		blocked_by = null
 		
 func next_tile_accepts_item(tile: Vector2i) -> bool:
-	for b in level_node.buildings:
-		if b.accepts_item_at(tile):
-			return b.can_accept_item(item_data)
+	var b_manager = level_node.building_manager
+	
+	if b_manager.occupied_tiles.has(tile):
+		var building = b_manager.occupied_tiles[tile]
+		return building.accepts_item_at(tile) and building.can_accept_item(item_data)
+		
 	return false
