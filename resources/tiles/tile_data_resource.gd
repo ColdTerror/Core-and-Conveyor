@@ -24,3 +24,8 @@ class_name TileDataResource
 @export var atlas_coords_depleted: Vector2i = Vector2i(-1, -1)
 # Optional: Intermediate state (e.g. Leafless tree)
 @export var atlas_coords_harvesting: Vector2i = Vector2i(-1, -1)
+
+@export_group("Harvesting Drops")
+# LINK: When mined, this tile produces this Item
+@export var item_drop: ItemResource 
+@export var drop_amount: int = 1

@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="TileDataResource" load_steps=2 format=3 uid="uid://cwk72joli5ujg"]
+[gd_resource type="Resource" script_class="TileDataResource" load_steps=3 format=3 uid="uid://cwk72joli5ujg"]
 
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="1_dcr3u"]
+[ext_resource type="Resource" uid="uid://cn8jh6p0ykffa" path="res://resources/items/wood.tres" id="1_mpivr"]
 
 [resource]
 script = ExtResource("1_dcr3u")
@@ -10,4 +11,5 @@ can_regrow = true
 atlas_coords_full = Vector2i(1, 3)
 atlas_coords_depleted = Vector2i(0, 4)
 atlas_coords_harvesting = Vector2i(2, 3)
+item_drop = ExtResource("1_mpivr")
 metadata/_custom_type_script = "uid://dnsharo0i5t5i"
