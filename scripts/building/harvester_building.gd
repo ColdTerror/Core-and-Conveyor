@@ -7,6 +7,11 @@ class_name HarvesterBuilding
 @export var harvest_damage: int = 2
 @export var work_interval: float = 1.0
 
+
+@export_group("Inventory")
+@export var buffer_capacity: int = 10 # Stops working if we hold 10 items
+var stored_amount: int = 0
+
 # Visuals
 @onready var beam_line: Line2D = $Line2D
 
@@ -90,8 +95,18 @@ func _on_mouse_exited():
 # --- MAIN LOOP  ---
 func building_tick(delta: float) -> void:
 	if not level_ref or not target_resource: return
+	
+	# NEW: Check Capacity before doing anything
+	if stored_amount >= buffer_capacity:
+		# We are full! Stop working.
+		
+		# VISUAL FIX: Clear the laser immediately so it doesn't look like we are working
+		if beam_line: beam_line.clear_points()
+		return
+		
 	work_timer -= delta
 	
+	# Update Visuals (Only if not full)
 	if current_target != Vector2i.MAX:
 		_draw_beam(current_target)
 	else:
@@ -107,7 +122,14 @@ func _perform_harvest():
 	
 	if current_target != Vector2i.MAX:
 		var info = level_ref.active_grid_objects[current_target]
+		
+		# 1. Mine the resource
 		ResourceManager.request_harvest(current_target, info, harvest_damage)
+		
+		# 2. NEW: Add to Internal Buffer
+		stored_amount += harvest_damage
+		print("Harvester Buffer: %d/%d" % [stored_amount, buffer_capacity])
+		
 
 func _find_nearest_target() -> Vector2i:
 	var center = level_ref.object_layer.local_to_map(global_position)
