@@ -29,19 +29,41 @@ func setup(level_instance: Node2D):
 # --- DRAWING THE RANGE ---
 func _draw():
 	if show_range_overlay:
-		# Calculate the size of the square
-		# Radius 4 means: 4 left + center + 4 right = 9 tiles width
-		var diameter_tiles = (scan_radius * 2) + 1
-		var size_px = diameter_tiles * TILE_SIZE
+		# 1. Get the center TILE (the exact same logic _perform_harvest uses)
+		# If level_ref is missing (e.g. disconnected ghost), fallback to simple rect
+		if not level_ref:
+			_draw_fallback_rect()
+			return
+
+		var center_tile = level_ref.object_layer.local_to_map(global_position)
 		
-		# Center the square on the building (0,0 is the center of this node)
-		var top_left = Vector2(-size_px / 2.0, -size_px / 2.0)
-		var rect = Rect2(top_left, Vector2(size_px, size_px))
+		# 2. Calculate the Grid Bounds
+		# We scan from -radius to +radius. 
+		# If radius is 4, width is 9 tiles (4 left + 1 center + 4 right)
+		var top_left_tile = center_tile - Vector2i(scan_radius, scan_radius)
+		var size_in_tiles = Vector2(scan_radius * 2 + 1, scan_radius * 2 + 1)
 		
-		# Draw the background (Transparent Green)
-		draw_rect(rect, Color(0.2, 0.8, 0.2, 0.2), true)
-		# Draw the border (Solid Green)
-		draw_rect(rect, Color(0.2, 1.0, 0.2, 0.5), false, 2.0)
+		# 3. Convert Grid -> World Pixels
+		# map_to_local gives the CENTER of the tile. 
+		# We need the TOP-LEFT corner of the rectangle.
+		var tile_center_world = level_ref.object_layer.map_to_local(top_left_tile)
+		var tile_top_left_world = tile_center_world - (Vector2(TILE_SIZE, TILE_SIZE) / 2.0)
+		
+		# 4. Convert World -> Local (relative to this building node)
+		var local_pos = to_local(tile_top_left_world)
+		var size_px = size_in_tiles * TILE_SIZE
+		
+		# 5. Draw
+		var rect = Rect2(local_pos, size_px)
+		draw_rect(rect, Color(0.2, 0.8, 0.2, 0.2), true) # Transparent Fill
+		draw_rect(rect, Color(0.2, 1.0, 0.2, 0.5), false, 2.0) # Border
+
+func _draw_fallback_rect():
+	# Keeps the old logic just in case the level reference is missing
+	var diameter_tiles = (scan_radius * 2) + 1
+	var size_px = diameter_tiles * TILE_SIZE
+	var top_left = Vector2(-size_px / 2.0, -size_px / 2.0)
+	draw_rect(Rect2(top_left, Vector2(size_px, size_px)), Color(1, 0, 0, 0.3), true)
 
 # --- OVERRIDES FOR VISIBILITY ---
 

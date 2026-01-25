@@ -29,6 +29,11 @@ func start_placing(scene: PackedScene):
 
 	ghost_building = scene.instantiate() as Building
 	add_child(ghost_building)
+	
+	# --- NEW: Inject Level immediately so Ghost can see the grid ---
+	if ghost_building.has_method("setup") and level_ref:
+		ghost_building.setup(level_ref)
+	# ---------------------------------------------------------------
 
 	ghost_building.set_ghost(true)
 	placing_building = true
