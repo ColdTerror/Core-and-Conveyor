@@ -31,6 +31,11 @@ func accept_item(item: ItemResource) -> bool:
 		return false
 
 	inventory[item] = inventory.get(item, 0) + 1
+	
+	# Emit inventory changed signal for ui
+	inventory_changed.emit()
+	
+	
 	return true
 
 
@@ -47,3 +52,6 @@ func get_total_items() -> int:
 
 func get_item_amount(item: ItemResource) -> int:
 	return inventory.get(item, 0)
+	
+func get_inventory_info() -> Dictionary:
+	return inventory

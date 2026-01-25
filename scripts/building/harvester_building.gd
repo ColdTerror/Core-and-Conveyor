@@ -130,6 +130,9 @@ func _perform_harvest():
 		stored_amount += harvest_damage
 		print("Harvester Buffer: %d/%d" % [stored_amount, buffer_capacity])
 		
+		# 3. Emit inventory changed signal for ui
+		inventory_changed.emit()
+		
 
 func _find_nearest_target() -> Vector2i:
 	var center = level_ref.object_layer.local_to_map(global_position)
@@ -163,3 +166,10 @@ func _draw_beam(grid_pos: Vector2i):
 	beam_line.clear_points()
 	beam_line.add_point(Vector2.ZERO)
 	beam_line.add_point(target_local)
+	
+	
+func get_inventory_info() -> Dictionary:
+	# If we have a resource and items, return them
+	if target_resource and stored_amount > 0:
+		return { target_resource: stored_amount }
+	return {}

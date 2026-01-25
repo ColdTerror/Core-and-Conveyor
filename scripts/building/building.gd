@@ -76,3 +76,11 @@ func _on_mouse_exited():
 # --- Building Functions ---
 func building_tick(delta: float) -> void:
 	pass
+	
+# --- Inventory stuff ---
+
+signal inventory_changed
+
+# Returns a Dictionary where Key = Resource/String, Value = Amount
+func get_inventory_info() -> Dictionary:
+	return {}
