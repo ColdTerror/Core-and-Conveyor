@@ -1,7 +1,7 @@
 extends Sprite2D
 
 @export var speed = 100.0
-@onready var level_node = get_tree().current_scene
+var level_node: Node2D
 @export var item_data: ItemResource
 
 var stopped = false  # Tracks if item is blocked or finished conveyor
@@ -10,6 +10,12 @@ var blocked_by = null   # NEW: reference to item blocking us
 
 var conveyor_stopped = false
 
+
+# NEW: Setup function to receive the level
+func setup(level_instance: Node2D):
+	level_node = level_instance
+	
+	
 func _ready():
 	if item_data:
 		texture = item_data.texture

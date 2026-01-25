@@ -59,6 +59,9 @@ func spawn_item_at_mouse():
 	# 2. Create the item instance
 	var new_item = item_scene.instantiate()
 	
+	if new_item.has_method("setup"):
+		new_item.setup(self)
+		
 	# 3. Add it to the scene
 	add_child(new_item)
 	

@@ -100,14 +100,12 @@ func building_tick(delta: float) -> void:
 	if stored_amount > 0:
 		_try_output_item()
 	
-	# NEW: Check Capacity before doing anything
-	if stored_amount >= buffer_capacity:
-		# We are full! Stop working.
 		
-		# VISUAL FIX: Clear the laser immediately so it doesn't look like we are working
+	# NEW LOGIC: Check if there is space for the NEXT harvest
+	# If we have 9/10 and harvest gives 2, (9+2) > 10, so we wait.
+	if stored_amount + harvest_damage > buffer_capacity:
 		if beam_line: beam_line.clear_points()
 		return
-		
 	work_timer -= delta
 	
 	# Update Visuals (Only if not full)
@@ -225,6 +223,11 @@ func _spawn_item(target_pos: Vector2i):
 	var new_item_node = generic_item_scene.instantiate()
 	
 	# 3. Inject Data
+	
+	if new_item_node.has_method("setup"):
+		new_item_node.setup(level_ref)
+		
+	
 	# We give the generic item the specific data (Log/Stone)
 	if "item_data" in new_item_node:
 		new_item_node.item_data = target_resource.item_drop
