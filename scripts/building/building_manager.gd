@@ -55,6 +55,16 @@ func confirm_placement():
 
 	if not _can_place_building(ghost_building, grid_pos):
 		return
+		
+	# Check Economy (Can we afford it?)
+	var cost = ghost_building.get_build_cost()
+	if not EconomyManager.can_afford(cost):
+		print("Cannot afford building! Needed: ", cost)
+		# Optional: Play a "buzzer" sound or flash the ghost red
+		return
+
+	# Pay the Cost
+	EconomyManager.spend_resources(cost)
 
 	ghost_building.set_ghost(false)
 	ghost_building.place_at(grid_pos, object_layer)

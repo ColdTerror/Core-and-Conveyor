@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://dm3jfmd14wxsf"]
+[gd_scene format=3 uid="uid://dm3jfmd14wxsf"]
 
 [ext_resource type="Script" uid="uid://b6kxlovwh8gyn" path="res://scripts/Level.gd" id="1_olg7q"]
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="2_olg7q"]
@@ -27,14 +27,14 @@ content_margin_top = 4.0
 content_margin_right = 8.0
 content_margin_bottom = 4.0
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
 tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_arp2o"), ExtResource("9_wc255"), ExtResource("10_arp2o"), ExtResource("11_ux5qa"), ExtResource("12_82cfe")])
 item_scene = ExtResource("13_arp2o")
 stockpile_scene = ExtResource("14_ux5qa")
 lumberjack_scene = ExtResource("15_8gofh")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
 position = Vector2(640, 360)
 script = ExtResource("9_8iemx")
 edge_pan_margin = 5
@@ -43,26 +43,26 @@ min_zoom = 0.1
 max_zoom = 5.0
 pan_smoothing = 0.0
 
-[node name="TerrainLayer" type="TileMapLayer" parent="."]
+[node name="TerrainLayer" type="TileMapLayer" parent="." unique_id=20833604]
 tile_set = ExtResource("2_w8frs")
 
-[node name="ObjectLayer" type="TileMapLayer" parent="."]
+[node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
 tile_set = ExtResource("2_w8frs")
 
-[node name="SelectionHighlight" type="Sprite2D" parent="."]
+[node name="SelectionHighlight" type="Sprite2D" parent="." unique_id=587936511]
 modulate = Color(1, 1, 1, 0.60784316)
 texture = ExtResource("11_t1rx8")
 region_enabled = true
 region_rect = Rect2(0, 0, 16, 16)
 
-[node name="BuildingManager" type="Node2D" parent="." node_paths=PackedStringArray("object_layer", "hover_popup")]
+[node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "hover_popup")]
 script = ExtResource("15_gunhw")
 object_layer = NodePath("../ObjectLayer")
 hover_popup = NodePath("../CanvasLayer/BuildingHoverPopup")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1762792378]
 
-[node name="Tooltip" type="PanelContainer" parent="CanvasLayer"]
+[node name="Tooltip" type="PanelContainer" parent="CanvasLayer" unique_id=63814202]
 visible = false
 offset_right = 40.0
 offset_bottom = 40.0
@@ -71,11 +71,11 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_w7c3h")
 
-[node name="Label" type="Label" parent="CanvasLayer/Tooltip"]
+[node name="Label" type="Label" parent="CanvasLayer/Tooltip" unique_id=1661542650]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Generate Map" type="Button" parent="CanvasLayer"]
+[node name="Generate Map" type="Button" parent="CanvasLayer" unique_id=1749926711]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -84,7 +84,7 @@ offset_bottom = 31.0
 grow_horizontal = 0
 text = "Generate Map"
 
-[node name="Print Objects" type="Button" parent="CanvasLayer"]
+[node name="Print Objects" type="Button" parent="CanvasLayer" unique_id=471860525]
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
@@ -97,7 +97,7 @@ grow_horizontal = 0
 grow_vertical = 2
 text = "Print Objects"
 
-[node name="Spawn Item" type="Button" parent="CanvasLayer"]
+[node name="Spawn Item" type="Button" parent="CanvasLayer" unique_id=292236248]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -112,7 +112,7 @@ grow_vertical = 2
 text = "Spawn Item
 "
 
-[node name="BuildingHoverPopup" parent="CanvasLayer" instance=ExtResource("18_82cfe")]
+[node name="BuildingHoverPopup" parent="CanvasLayer" unique_id=545312411 instance=ExtResource("18_82cfe")]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0

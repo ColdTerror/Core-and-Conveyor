@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://dupuw0x1fcxf2"]
+[gd_scene format=3 uid="uid://dupuw0x1fcxf2"]
 
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="1_0p6bf"]
 [ext_resource type="Script" uid="uid://f7k820tvfbd6" path="res://scripts/building/harvester_building.gd" id="1_kb7jr"]
@@ -8,23 +8,24 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
 size = Vector2(128, 128)
 
-[node name="LumberjackBuilding" type="Node2D"]
+[node name="LumberjackBuilding" type="Node2D" unique_id=2042910788]
 script = ExtResource("1_kb7jr")
 target_resource = ExtResource("2_kh24c")
 generic_item_scene = ExtResource("3_nikr4")
 building_name = "Lumberjack"
 size = Vector2i(4, 4)
+cost_wood = 50
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
 texture = ExtResource("1_0p6bf")
 region_enabled = true
 region_rect = Rect2(128, 128, 128, 128)
 
-[node name="Area2D" type="Area2D" parent="."]
+[node name="Area2D" type="Area2D" parent="." unique_id=803807135]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1856652810]
 shape = SubResource("RectangleShape2D_0p6bf")
 
-[node name="Line2D" type="Line2D" parent="."]
+[node name="Line2D" type="Line2D" parent="." unique_id=1388375912]
 width = 2.0
 default_color = Color(0.8211179, 0, 0.4125038, 1)

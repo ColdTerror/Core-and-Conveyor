@@ -4,12 +4,18 @@ class_name Building
 signal hovered(building: Building)
 signal unhovered(building: Building)
 
+signal inventory_changed
+
 @export var building_name := "Building"
 @export var size := Vector2i(1, 1)
 @export var max_health := 100
 var health := max_health
 
 var occupied_tiles: Array[Vector2i] = []
+
+@export_group("Economy")
+@export var cost_wood: int = 10
+@export var cost_stone: int = 0
 
 # --- Ready ---
 func _ready():
@@ -79,8 +85,15 @@ func building_tick(delta: float) -> void:
 	
 # --- Inventory stuff ---
 
-signal inventory_changed
-
 # Returns a Dictionary where Key = Resource/String, Value = Amount
 func get_inventory_info() -> Dictionary:
 	return {}
+	
+
+# --- Economy stuff ---
+# Helper to bundle costs into a dictionary for the Manager
+func get_build_cost() -> Dictionary:
+	var cost = {}
+	if cost_wood > 0: cost["Wood"] = cost_wood
+	if cost_stone > 0: cost["Stone"] = cost_stone
+	return cost

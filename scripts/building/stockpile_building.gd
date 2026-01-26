@@ -35,6 +35,9 @@ func accept_item(item: ItemResource) -> bool:
 	# Emit inventory changed signal for ui
 	inventory_changed.emit()
 	
+	# NEW: Update Global Economy
+	# We use the item's name (e.g., "Wood") to match the Economy variable
+	EconomyManager.add_resources(item.display_name, 1)
 	
 	return true
 

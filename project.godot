@@ -21,7 +21,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-InventoryManager="*res://scripts/inventory_manager.gd"
+EconomyManager="*res://scripts/economy_manager.gd"
 ResourceManager="*res://scripts/resource_manager.gd"
 
 [display]
