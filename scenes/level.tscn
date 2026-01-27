@@ -20,6 +20,7 @@
 [ext_resource type="PackedScene" uid="uid://dupuw0x1fcxf2" path="res://scenes/lumberjack_building.tscn" id="15_8gofh"]
 [ext_resource type="Script" uid="uid://y8ifotnqs7ch" path="res://scripts/building/building_manager.gd" id="15_gunhw"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/building_hover_popup.tscn" id="18_82cfe"]
+[ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/game_ui.tscn" id="21_h6wmr"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
 content_margin_left = 8.0
@@ -61,6 +62,8 @@ object_layer = NodePath("../ObjectLayer")
 hover_popup = NodePath("../CanvasLayer/BuildingHoverPopup")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1762792378]
+
+[node name="GameUI" parent="CanvasLayer" unique_id=678937411 instance=ExtResource("21_h6wmr")]
 
 [node name="Tooltip" type="PanelContainer" parent="CanvasLayer" unique_id=63814202]
 visible = false

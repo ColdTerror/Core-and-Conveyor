@@ -28,7 +28,7 @@ func _process(delta):
 	var current_grid_pos = object_layer.local_to_map(global_position)
 
 	# -----------------------------
-	# 1️⃣ Check if current tile is a building that accepts items
+	# 1️ Check if current tile is a building that accepts items
 	# -----------------------------
 	var b_manager = level_node.building_manager 
 	
@@ -49,7 +49,7 @@ func _process(delta):
 
 
 	# -----------------------------
-	# 2️⃣ Claim current tile if possible
+	# 2 Claim current tile if possible
 	# -----------------------------
 	if level_node.item_grid.has(current_grid_pos):
 		if level_node.item_grid[current_grid_pos] != self:
@@ -63,7 +63,7 @@ func _process(delta):
 		conveyor_stopped = false
 
 	# -----------------------------
-	# 3️⃣ Check if we are on a conveyor
+	# 3️ Check if we are on a conveyor
 	# -----------------------------
 	var move_vec = Vector2.ZERO
 	var on_conveyor = false
@@ -81,7 +81,7 @@ func _process(delta):
 		return
 
 	# -----------------------------
-	# 4️⃣ Determine next tile
+	# 4 Determine next tile
 	# -----------------------------
 	# Proper grid offset using sign
 	var offset = Vector2i(sign(move_vec.x), sign(move_vec.y))
@@ -98,7 +98,7 @@ func _process(delta):
 
 
 	# -----------------------------
-	# 5️⃣ Stop if next tile is neither conveyor nor building accepts items
+	# 5️ Stop if next tile is neither conveyor nor building accepts items
 	# -----------------------------
 	if not next_is_conveyor and not next_tile_accepts_item(next_grid_pos):
 		global_position = object_layer.map_to_local(current_grid_pos)
@@ -107,7 +107,7 @@ func _process(delta):
 		return
 
 	# -----------------------------
-	# 6️⃣ Check if next tile is blocked by another item
+	# 6️ Check if next tile is blocked by another item
 	# -----------------------------
 	if level_node.item_grid.has(next_grid_pos):
 		var blocking_item = level_node.item_grid[next_grid_pos]
@@ -127,12 +127,12 @@ func _process(delta):
 		return
 
 	# -----------------------------
-	# 7️⃣ Move smoothly
+	# 7️ Move smoothly
 	# -----------------------------
 	global_position += move_vec * speed * delta
 
 	# -----------------------------
-	# 8️⃣ Update grid ownership
+	# 8️ Update grid ownership
 	# -----------------------------
 	var new_grid_pos = object_layer.local_to_map(global_position)
 	if new_grid_pos != current_grid_pos:
