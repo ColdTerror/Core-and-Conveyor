@@ -45,9 +45,11 @@ max_zoom = 5.0
 pan_smoothing = 0.0
 
 [node name="TerrainLayer" type="TileMapLayer" parent="." unique_id=20833604]
+z_index = -1
 tile_set = ExtResource("2_w8frs")
 
 [node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
+z_index = -1
 tile_set = ExtResource("2_w8frs")
 
 [node name="SelectionHighlight" type="Sprite2D" parent="." unique_id=587936511]

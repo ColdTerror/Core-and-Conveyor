@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="TileDataResource" load_steps=2 format=3 uid="uid://ijwrlheyckd8"]
+[gd_resource type="Resource" script_class="TileDataResource" format=3 uid="uid://ijwrlheyckd8"]
 
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="1_6anvb"]
 
@@ -8,4 +8,5 @@ display_name = "Conveyer_Left"
 is_object = true
 is_conveyor = true
 conveyor_direction = Vector2(-1, 0)
+atlas_coords_full = Vector2i(2, 2)
 metadata/_custom_type_script = "uid://dnsharo0i5t5i"

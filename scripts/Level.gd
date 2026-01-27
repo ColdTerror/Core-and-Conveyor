@@ -28,6 +28,13 @@ var current_tile_index := 0
 var active_grid_objects := {}
 
 
+# Dragging Variables
+var is_dragging_line: bool = false
+var drag_start_pos: Vector2i
+# Configure this to match your library! 
+# Assuming your library has 4 conveyor items in order: Right, Down, Left, Up
+@export var conveyor_start_index: int = 6
+
 
 
 
@@ -131,25 +138,125 @@ func get_object_tile_index(tile: Vector2i) -> int:
 	return atlas.y * ATLAS_COLUMNS + atlas.x
 
 func _process(_delta):
-
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
 	update_tooltip(grid_pos)
-
-	
-		
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		if current_tile_index < tile_library.size():
-			place_tile(grid_pos, tile_library[current_tile_index])
-	
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-		handle_harvest_input(grid_pos)
-		
-	
-	
 	update_highlight(grid_pos)
 
+	# --- DRAG & DROP LOGIC ---
+	
+	# 1. Start Dragging
+	if Input.is_action_just_pressed("start_end_drag"): # Usually Left Click
+		var current_data = tile_library[current_tile_index]
+		
+		# Only enable drag mode if we are holding a conveyor
+		if current_data.is_conveyor:
+			is_dragging_line = true
+			drag_start_pos = grid_pos
+		else:
+			# Normal placement for Trees/Walls
+			if current_tile_index < tile_library.size():
+				place_tile(grid_pos, tile_library[current_tile_index])
+
+	# 2. While Dragging (Visuals)
+	if is_dragging_line:
+		queue_redraw() # Tells Godot to run _draw() every frame
+
+	# 3. Release (Commit)
+	if Input.is_action_just_released("start_end_drag"):
+		if is_dragging_line:
+			_commit_drag_line(grid_pos)
+			is_dragging_line = false
+			queue_redraw() # Clear the lines
+
+	# 4. Right Click (Cancel/Harvest)
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		if is_dragging_line:
+			is_dragging_line = false
+			queue_redraw()
+		else:
+			handle_harvest_input(grid_pos)
+
+# ============================================================================
+# Conveyer Drag Drop 
+# ============================================================================
+func _draw():
+	if is_dragging_line:
+		var current_grid = terrain_layer.local_to_map(get_global_mouse_position())
+		var points = _get_straight_line(drag_start_pos, current_grid)
+		
+		for pt in points:
+			# Convert grid point to local position (centered)
+			var world_pos = terrain_layer.map_to_local(pt)
+			# Offset to top-left for drawing rect
+			var draw_pos = world_pos - (tile_size_px / 2.0)
+			
+			# Draw a semi-transparent blue box
+			draw_rect(Rect2(draw_pos, tile_size_px), Color(0.2, 0.6, 1.0, 0.5), true)
+			
+# --- DRAG HELPERS ---
+
+func _commit_drag_line(end_pos: Vector2i):
+	var points = _get_straight_line(drag_start_pos, end_pos)
+	var dir_index = _get_drag_direction_index(drag_start_pos, end_pos)
+	
+	# Determine which tile resource to use based on direction
+	# Assuming Library Order: [6=Right, 7=Down, 8=Left, 9=Up]
+	# Adjust 'conveyor_start_index' in variables to match your setup!
+	var correct_resource_index = conveyor_start_index + dir_index
+	
+	if correct_resource_index >= tile_library.size():
+		print("Error: Conveyor index out of bounds")
+		return
+
+	var data = tile_library[correct_resource_index]
+
+	# Place the tiles
+	for pt in points:
+		place_tile(pt, data)
+
+# Returns 0=Right, 1=Up, 2=Left, 3=Down
+func _get_drag_direction_index(start: Vector2i, end: Vector2i) -> int:
+	var diff = end - start
+	
+	# If start == end, default to Right (0)
+	if diff == Vector2i.ZERO: return 0
+	
+	if abs(diff.x) >= abs(diff.y):
+		# Horizontal
+		return 0 if diff.x > 0 else 2 # 0=Right, 2=Left
+	else:
+		# Vertical
+		# Y is negative going UP in Godot (0,0 is top-left)
+		return 3 if diff.y > 0 else 1 # 3=Down, 1=Up
+
+func _get_straight_line(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
+	var points: Array[Vector2i] = []
+	var diff = end - start
+	var final_end = end
+	
+	# Axis Lock
+	if abs(diff.x) >= abs(diff.y):
+		final_end.y = start.y
+	else:
+		final_end.x = start.x
+		
+	# Walk
+	var current = start
+	var step = Vector2i.ZERO
+	if final_end.x != start.x: step.x = sign(final_end.x - start.x)
+	if final_end.y != start.y: step.y = sign(final_end.y - start.y)
+	
+	# Safety loop
+	var safe = 0
+	while safe < 100:
+		points.append(current)
+		if current == final_end: break
+		current += step
+		safe += 1
+		
+	return points
 # ============================================================================
 # MAP GENERATION - RISE TO RUINS STYLE
 # ============================================================================
@@ -286,21 +393,30 @@ func update_tooltip(grid_pos: Vector2i):
 			tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
 
 func place_tile(grid_pos: Vector2i, data: TileDataResource):
-	var atlas_coords = Vector2i(current_tile_index % ATLAS_COLUMNS, current_tile_index / ATLAS_COLUMNS)
+	# FIX: Find the actual index of the data we want to place
+	var correct_index = tile_library.find(data)
+	if correct_index == -1: return # Safety check
+
+	# Use correct_index instead of current_tile_index
+	var atlas_coords = Vector2i(correct_index % ATLAS_COLUMNS, correct_index / ATLAS_COLUMNS)
 	
 	if not data.is_object:
 		terrain_layer.set_cell(grid_pos, 0, atlas_coords)
 	else:
 		if can_place_object(grid_pos):
-			object_layer.set_cell(grid_pos, 0, atlas_coords)
+			# NEW: If the data defines its own full sprite (like trees), use that.
+			# Otherwise fallback to the calculated atlas_coords (like walls/conveyors)
+			var final_coords = atlas_coords
+			if data.atlas_coords_full != Vector2i(-1, -1):
+				final_coords = data.atlas_coords_full
+
+			object_layer.set_cell(grid_pos, 0, final_coords)
 			
-			# Save the tile data to our dictionary
 			var tile_info = {
 				"health": data.total_resources,
 				"data": data
 			}
 			
-			# If it's a conveyor, we can add extra logic here if needed
 			if data.is_conveyor:
 				tile_info["direction"] = data.conveyor_direction
 				
