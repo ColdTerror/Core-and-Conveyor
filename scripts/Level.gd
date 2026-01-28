@@ -199,6 +199,13 @@ func _draw():
 # --- DRAG HELPERS ---
 
 func _commit_drag_line(end_pos: Vector2i):
+	# FIX: Check if this was just a single click (No drag occurred)
+	if drag_start_pos == end_pos:
+		# If we didn't move, use the tile we currently have selected 
+		# (This respects the rotation you set with 'R')
+		place_tile(end_pos, tile_library[current_tile_index])
+		return
+	
 	var points = _get_straight_line(drag_start_pos, end_pos)
 	var dir_index = _get_drag_direction_index(drag_start_pos, end_pos)
 	
