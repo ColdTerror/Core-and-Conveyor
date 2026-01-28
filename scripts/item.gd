@@ -67,6 +67,7 @@ func _process(delta):
 	# -----------------------------
 	var move_vec = Vector2.ZERO
 	var on_conveyor = false
+
 	if level_node.active_grid_objects.has(current_grid_pos):
 		var data = level_node.active_grid_objects[current_grid_pos]["data"]
 		if data.is_conveyor:
@@ -136,6 +137,15 @@ func _process(delta):
 	# -----------------------------
 	var new_grid_pos = object_layer.local_to_map(global_position)
 	if new_grid_pos != current_grid_pos:
+		# Check if the new tile has a different conveyor direction
+		if level_node.active_grid_objects.has(new_grid_pos):
+			var new_data = level_node.active_grid_objects[new_grid_pos]["data"]
+			if new_data.is_conveyor:
+				var new_direction = new_data.conveyor_direction
+				# Snap to center if direction changed
+				if new_direction != move_vec:
+					global_position = object_layer.map_to_local(new_grid_pos)
+		
 		if level_node.item_grid.get(current_grid_pos) == self:
 			level_node.item_grid.erase(current_grid_pos)
 		level_node.item_grid[new_grid_pos] = self

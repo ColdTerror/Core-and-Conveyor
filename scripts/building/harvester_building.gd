@@ -157,21 +157,36 @@ func _draw_beam(grid_pos: Vector2i):
 
 # --- OUTPUT LOGIC ---
 func _try_output_item():
-	# Loop through every tile occupied by this building
 	for my_tile in occupied_tiles:
-		var directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
+		# These are the directions we are "pushing" items out to
+		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
-		for offset in directions:
+		for offset in push_directions:
 			var target_pos = my_tile + offset
 			
-			# Don't output into myself
+			# 1. Standard Checks (Don't output into myself or blocked tiles)
 			if occupied_tiles.has(target_pos): continue
-			# Don't output if target tile is blocked
 			if level_ref.item_grid.has(target_pos): continue 
-
-			if _is_conveyor_at(target_pos):
-				_spawn_item(target_pos)
-				return 
+			
+			# 2. Check Grid Data
+			if level_ref.active_grid_objects.has(target_pos):
+				var info = level_ref.active_grid_objects[target_pos]
+				var data = info["data"]
+				
+				# 3. Is it a Conveyor?
+				if data.is_conveyor:
+					# 4. CRITICAL: Check Direction
+					# We retrieve the specific direction stored in the grid dictionary
+					# (Make sure Level.gd place_tile is saving "direction" correctly!)
+					var conveyor_dir = info.get("direction", Vector2.ZERO)
+					
+					# We want the conveyor to be moving in the SAME direction we are pushing.
+					# offset is our push direction (e.g. (1, 0) for Right)
+					# conveyor_dir is the belt's movement (e.g. (1, 0) for Right)
+					
+					# Note: We cast offset to Vector2 to match conveyor_dir type
+					if conveyor_dir == Vector2(offset):
+						_spawn_item(target_pos)
 
 func _is_conveyor_at(grid_pos: Vector2i) -> bool:
 	if level_ref.active_grid_objects.has(grid_pos):
