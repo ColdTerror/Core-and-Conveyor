@@ -143,7 +143,13 @@ func _process(_delta):
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
 	update_tooltip(grid_pos)
-	update_highlight(grid_pos)
+	
+	# FIX: Only update/show the single-tile highlight if NOT dragging a line
+	if is_dragging_line:
+		highlight.visible = false
+	else:
+		highlight.visible = true
+		update_highlight(grid_pos)
 
 	# --- DRAG & DROP LOGIC ---
 	
@@ -187,14 +193,44 @@ func _draw():
 		var current_grid = terrain_layer.local_to_map(get_global_mouse_position())
 		var points = _get_straight_line(drag_start_pos, current_grid)
 		
+		# 1. Determine WHICH data to draw
+		var data_to_draw: TileDataResource
+		
+		if drag_start_pos == current_grid:
+			# If we haven't moved, show the currently selected tile (respects 'R' key)
+			data_to_draw = tile_library[current_tile_index]
+		else:
+			# If dragging, calculate the correct direction
+			var dir_index = _get_drag_direction_index(drag_start_pos, current_grid)
+			var idx = conveyor_start_index + dir_index
+			if idx < tile_library.size():
+				data_to_draw = tile_library[idx]
+			else:
+				return # Safety
+
+		# 2. Get the Texture from the TileSet (Assuming Source 0 is your main atlas)
+		var source = object_layer.tile_set.get_source(0)
+		var texture = source.texture
+		
+		# 3. Calculate the Source Rect (Where on the sheet is this sprite?)
+		# Prefer the explicit full coord, fallback to calculated if needed
+		var coords = data_to_draw.atlas_coords_full
+		if coords == Vector2i(-1, -1):
+			var found_idx = tile_library.find(data_to_draw)
+			coords = Vector2i(found_idx % ATLAS_COLUMNS, found_idx / ATLAS_COLUMNS)
+			
+		var src_rect = Rect2(Vector2(coords) * tile_size_px, tile_size_px)
+
+		# 4. Draw the Ghosts
 		for pt in points:
-			# Convert grid point to local position (centered)
 			var world_pos = terrain_layer.map_to_local(pt)
-			# Offset to top-left for drawing rect
 			var draw_pos = world_pos - (tile_size_px / 2.0)
 			
-			# Draw a semi-transparent blue box
-			draw_rect(Rect2(draw_pos, tile_size_px), Color(0.2, 0.6, 1.0, 0.5), true)
+			# Optional: Keep a faint blue background to indicate "Valid Placement"
+			draw_rect(Rect2(draw_pos, tile_size_px), Color(0.2, 0.6, 1.0, 0.2), true)
+			
+			# Draw the actual Conveyor Sprite (semi-transparent)
+			draw_texture_rect_region(texture, Rect2(draw_pos, tile_size_px), src_rect, Color(1, 1, 1, 0.6))
 			
 # --- DRAG HELPERS ---
 
