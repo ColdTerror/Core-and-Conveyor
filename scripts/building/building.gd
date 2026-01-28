@@ -91,9 +91,27 @@ func get_inventory_info() -> Dictionary:
 	
 
 # --- Economy stuff ---
+
 # Helper to bundle costs into a dictionary for the Manager
 func get_build_cost() -> Dictionary:
 	var cost = {}
 	if cost_wood > 0: cost["Wood"] = cost_wood
 	if cost_stone > 0: cost["Stone"] = cost_stone
 	return cost
+	
+# --- Item Stuff ---
+
+# Can items enter this specific tile of the building?
+# Default: NO (Walls, Harvesters, etc. block items)
+func accepts_item_at(_tile: Vector2i) -> bool:
+	return false
+
+# Is the item type allowed? (e.g. Filter logic)
+# Default: NO
+func can_accept_item(_item: ItemResource) -> bool:
+	return false
+
+# Actually take the item
+# Default: Fail safely
+func accept_item(_item: ItemResource) -> bool:
+	return false
