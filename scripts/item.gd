@@ -53,14 +53,19 @@ func _process(delta):
 	# -----------------------------
 	if level_node.item_grid.has(current_grid_pos):
 		if level_node.item_grid[current_grid_pos] != self:
-			global_position = object_layer.map_to_local(current_grid_pos)
-			stopped = true
-			conveyor_stopped = true
-			return
+			# Another item is claiming this tile, check distance
+			var other_item = level_node.item_grid[current_grid_pos]
+			var distance = global_position.distance_to(other_item.global_position)
+			if distance < 16.0:  # Too close
+				global_position = object_layer.map_to_local(current_grid_pos)
+				stopped = true
+				conveyor_stopped = true
+				return
 	else:
 		level_node.item_grid[current_grid_pos] = self
-		stopped = false
-		conveyor_stopped = false
+
+	stopped = false
+	conveyor_stopped = false
 
 	# -----------------------------
 	# 3️ Check if we are on a conveyor
@@ -112,20 +117,27 @@ func _process(delta):
 	# -----------------------------
 	if level_node.item_grid.has(next_grid_pos):
 		var blocking_item = level_node.item_grid[next_grid_pos]
-		blocked_by = blocking_item
+		
+		# Calculate distance to blocking item
+		var distance_to_blocker = global_position.distance_to(blocking_item.global_position)
+		var min_distance = 32.0  # Slightly more than half a tile for safety
+		
+		# Only stop if too close to the blocking item
+		if distance_to_blocker < min_distance:
+			blocked_by = blocking_item
+			
+			# Deadlock detection
+			if blocking_item is Sprite2D and blocking_item.blocked_by == self:
+				deadlocked = true
+				blocking_item.deadlocked = true
+				modulate = Color.RED
+				blocking_item.modulate = Color.RED
+				print_debug("Deadlock!")
 
-		# Deadlock detection
-		if blocking_item is Sprite2D and blocking_item.blocked_by == self:
-			deadlocked = true
-			blocking_item.deadlocked = true
-			modulate = Color.RED
-			blocking_item.modulate = Color.RED
-			print_debug("Deadlock!")
-
-		global_position = object_layer.map_to_local(current_grid_pos)
-		stopped = true
-		conveyor_stopped = true
-		return
+			global_position = object_layer.map_to_local(current_grid_pos)
+			stopped = true
+			conveyor_stopped = true
+			return
 
 	# -----------------------------
 	# 7️ Move smoothly
