@@ -43,6 +43,7 @@ var drag_start_pos: Vector2i
 
 @export var stockpile_scene: PackedScene 
 @export var lumberjack_scene: PackedScene
+@export var sawmill_scene: PackedScene
 
 @onready var building_manager: BuildingManager = $BuildingManager
 
@@ -448,7 +449,11 @@ func _input(event):
 			building_manager.start_placing(lumberjack_scene)
 		else:
 			print("Error: Lumberjack scene not assigned in Level Inspector")
-		
+	elif Input.is_key_pressed(KEY_M): # Press 'L' to build Lumberjack Hut
+		if sawmill_scene:
+			building_manager.start_placing(sawmill_scene)
+		else:
+			print("Error: sawmill scene not assigned in Level Inspector")
 	if event.is_action_pressed("ui_left"):
 		building_manager.confirm_placement()
 	elif event.is_action_pressed("ui_right"):

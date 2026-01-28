@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://cs65262rv84b4" path="res://scenes/stockpile_building.tscn" id="14_ux5qa"]
 [ext_resource type="PackedScene" uid="uid://dupuw0x1fcxf2" path="res://scenes/lumberjack_building.tscn" id="15_8gofh"]
 [ext_resource type="Script" uid="uid://y8ifotnqs7ch" path="res://scripts/building/building_manager.gd" id="15_gunhw"]
+[ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/sawmill_building.tscn" id="16_pqd0y"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/building_hover_popup.tscn" id="18_82cfe"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/game_ui.tscn" id="21_h6wmr"]
 
@@ -34,6 +35,7 @@ tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResourc
 item_scene = ExtResource("13_arp2o")
 stockpile_scene = ExtResource("14_ux5qa")
 lumberjack_scene = ExtResource("15_8gofh")
+sawmill_scene = ExtResource("16_pqd0y")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
 position = Vector2(640, 360)
