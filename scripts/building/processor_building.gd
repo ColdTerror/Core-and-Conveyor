@@ -152,3 +152,9 @@ func get_inventory_info() -> Dictionary:
 		if output_inventory > 0:
 			info["Out: " + recipe.output_item.display_name] = output_inventory
 	return info
+	
+# Returns a value between 0.0 (0%) and 1.0 (100%)
+func get_progress_ratio() -> float:
+	if not is_working or not recipe or recipe.craft_time == 0:
+		return 0.0
+	return 1.0 - (work_timer / recipe.craft_time)

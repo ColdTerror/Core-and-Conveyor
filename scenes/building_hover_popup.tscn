@@ -1,26 +1,30 @@
-[gd_scene load_steps=2 format=3 uid="uid://2067p75ou047"]
+[gd_scene format=3 uid="uid://2067p75ou047"]
 
 [ext_resource type="Script" uid="uid://buo2l7ygi8sii" path="res://scripts/building/building_hover_popup.gd" id="1_v6t2t"]
 
-[node name="BuildingHoverPopup" type="PanelContainer"]
+[node name="BuildingHoverPopup" type="PanelContainer" unique_id=1620014474]
 offset_right = 130.0
 offset_bottom = 72.0
 script = ExtResource("1_v6t2t")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1554655849]
 layout_mode = 2
 
-[node name="Name" type="Label" parent="VBoxContainer"]
+[node name="Name" type="Label" parent="VBoxContainer" unique_id=622154460]
 layout_mode = 2
 text = "Name"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Health" type="Label" parent="VBoxContainer"]
+[node name="Health" type="Label" parent="VBoxContainer" unique_id=1453959623]
 layout_mode = 2
 text = "Health"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Inventory" type="VBoxContainer" parent="VBoxContainer"]
+[node name="Inventory" type="VBoxContainer" parent="VBoxContainer" unique_id=68541522]
+layout_mode = 2
+
+[node name="WorkBar" type="ProgressBar" parent="VBoxContainer" unique_id=528835672]
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2

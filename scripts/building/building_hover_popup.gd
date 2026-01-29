@@ -4,24 +4,44 @@ extends PanelContainer
 @onready var health_label = $VBoxContainer/Health
 @onready var inventory_box = $VBoxContainer/Inventory
 
+# NEW NODE
+@onready var work_bar = $VBoxContainer/WorkBar
+
 var current_building: Building = null
 
+func _ready():
+	work_bar.visible = false
+
+func _process(_delta):
+	# SMOOTH ANIMATION LOOP
+	# Only run this if the popup is visible and we are looking at a machine
+	if visible and current_building is ProcessorBuilding:
+		var b = current_building as ProcessorBuilding
+		if b.has_method("get_progress_ratio"):
+			work_bar.value = b.get_progress_ratio() * 100.0
+
 func show_building_info(b: Building):
-	# 1. Clean up previous connection if switching buildings fast
+	# 1. Clean up previous connection
 	if current_building and current_building.inventory_changed.is_connected(_on_inventory_changed):
 		current_building.inventory_changed.disconnect(_on_inventory_changed)
 	
 	current_building = b
 	
 	# 2. Update Static Info
-	name_label.text = b.building_name
+	name_label.text = b.building_name 
 	health_label.text = "%d / %d" % [b.health, b.max_health]
 	
-	# 3. Connect Signal for Live Updates
+	# 3. Connect Signal (Updates the text inventory)
 	if not current_building.inventory_changed.is_connected(_on_inventory_changed):
 		current_building.inventory_changed.connect(_on_inventory_changed)
 	
-	# 4. Draw Initial State
+	# 4. HANDLE PROGRESS BAR
+	if b is ProcessorBuilding:
+		work_bar.visible = true
+	else:
+		work_bar.visible = false
+	
+	# 5. Draw Initial State
 	_refresh_inventory_ui()
 	show()
 
@@ -45,15 +65,13 @@ func show_inventory(inventory: Dictionary):
 	for child in inventory_box.get_children():
 		child.queue_free()
 
-	# Populate rows
+	# Populate rows (Handles "Log: 5", "Plank: 10", etc.)
 	for key in inventory.keys():
 		var amount = inventory[key]
 		var display_text = "Unknown"
 
-		# Handle Resource Objects (TileDataResource / ItemResource)
 		if key is Resource and "display_name" in key:
 			display_text = key.display_name
-		# Handle Simple Strings (fallback)
 		elif key is String:
 			display_text = key
 			
@@ -65,7 +83,6 @@ func hide_inventory():
 	inventory_box.visible = false
 
 func hide_popup():
-	# Clean up connection when hiding
 	if current_building and current_building.inventory_changed.is_connected(_on_inventory_changed):
 		current_building.inventory_changed.disconnect(_on_inventory_changed)
 	
