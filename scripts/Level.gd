@@ -4,11 +4,11 @@ extends Node2D
 @onready var terrain_layer: TileMapLayer = $TerrainLayer
 @onready var object_layer: TileMapLayer = $ObjectLayer
 @onready var highlight: Sprite2D = $SelectionHighlight
-@onready var tooltip := $"CanvasLayer/Tooltip"
-@onready var tooltip_label := $"CanvasLayer/Tooltip/Label"
+@onready var tooltip := $"CanvasLayer/Popup_Layer/Tooltip"
+@onready var tooltip_label := $"CanvasLayer/Popup_Layer/Tooltip/Label"
 
-@onready var hover_popup := $CanvasLayer/BuildingHoverPopup
-@onready var hotbar = $CanvasLayer/HotBar_UI
+@onready var hover_popup := $CanvasLayer/Popup_Layer/BuildingHoverPopup
+@onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
 
 # Mode State
 enum InteractionMode { NONE, PLACE_TILE, PLACE_BUILDING }
