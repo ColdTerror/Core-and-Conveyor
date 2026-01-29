@@ -8,8 +8,15 @@ extends Node2D
 @onready var tooltip_label := $"CanvasLayer/Tooltip/Label"
 
 @onready var hover_popup := $CanvasLayer/BuildingHoverPopup
+@onready var hotbar = $CanvasLayer/HotBar_UI
 
-@export var tile_size_px = Vector2(32, 32)
+# Mode State
+enum InteractionMode { NONE, PLACE_TILE, PLACE_BUILDING }
+var current_mode = InteractionMode.NONE
+
+
+@export var tile_size_px: Vector2 = Vector2(32, 32)
+
 @export var tile_library: Array[TileDataResource] = []
 
 const ATLAS_COLUMNS := 3
@@ -87,8 +94,78 @@ func _ready():
 	# Give the manager a reference to this Level node
 	building_manager.initialize(self)
 
+	# NEW: Connect Hotbar Signal
+	if hotbar:
+		hotbar.item_selected.connect(_on_hotbar_item_selected)
+		_setup_hotbar_items()
 
+# =========================
+# Hotbar stuff
+# =========================
 
+# 1. DEFINE WHAT GOES ON THE BAR
+func _setup_hotbar_items():
+	# A. Add Conveyor Button
+	# We use the Right Conveyor (Index 6) as the default "icon" and data
+	# Ensure your tile_library has the conveyor at conveyor_start_index!
+	if tile_library.size() > conveyor_start_index:
+		var conv_data = tile_library[conveyor_start_index]
+		
+		# 1. Get the main texture from the TileMapLayer
+		var source = object_layer.tile_set.get_source(0)
+		var base_texture = source.texture
+		
+		# 2. Create a crop (AtlasTexture)
+		var atlas_tex = AtlasTexture.new()
+		atlas_tex.atlas = base_texture
+		
+		# Calculate the rectangle to crop
+		# Prefer full coords, fallback to calculated
+		var coords = conv_data.atlas_coords_full
+		if coords == Vector2i(-1, -1):
+			var idx = conveyor_start_index
+			coords = Vector2i(idx % ATLAS_COLUMNS, idx / ATLAS_COLUMNS)
+			
+		atlas_tex.region = Rect2(Vector2(coords) * tile_size_px, tile_size_px)
+		
+		# 3. Add button
+		hotbar.add_button("Belt", atlas_tex, conveyor_start_index, false)
+	
+	# B. Add Building Buttons
+	# We instantiate briefly to get the icon/cost, or you can use a separate Resource system.
+	# For now, we trust the packed scenes are assigned.
+	
+	_add_building_to_bar("Hut", lumberjack_scene)
+	_add_building_to_bar("Sawmill", sawmill_scene)
+	_add_building_to_bar("Stockpile", stockpile_scene)
+
+func _add_building_to_bar(name: String, packed_scene: PackedScene):
+	if not packed_scene: return
+	
+	# Hack: Instance it momentarily to read the 'icon' property we added
+	var temp = packed_scene.instantiate()
+	var icon = null
+	if "icon" in temp: icon = temp.icon
+	
+	hotbar.add_button(name, icon, packed_scene, true)
+	temp.queue_free()
+	
+# 2. HANDLE CLICKS
+func _on_hotbar_item_selected(data, is_building):
+	# Reset states
+	building_manager.cancel_placement()
+	current_tile_index = 0
+	is_dragging_line = false
+	
+	if is_building:
+		# Data is a PackedScene
+		current_mode = InteractionMode.PLACE_BUILDING
+		building_manager.start_placing(data)
+	else:
+		# Data is an Integer (Tile Index)
+		current_mode = InteractionMode.PLACE_TILE
+		current_tile_index = data # This sets us to the "Right" conveyor
+		# Note: The player can still use 'R' to rotate because 'place_tile' checks current_tile_index
 # =========================
 # Resource state change
 # =========================
@@ -144,46 +221,28 @@ func _process(_delta):
 	
 	update_tooltip(grid_pos)
 	
-	# FIX: Only update/show the single-tile highlight if NOT dragging a line
-	if is_dragging_line:
-		highlight.visible = false
-	else:
+	if is_dragging_line: highlight.visible = false
+	else: 
 		highlight.visible = true
 		update_highlight(grid_pos)
 
-	# --- DRAG & DROP LOGIC ---
-	
-	# 1. Start Dragging
-	if Input.is_action_just_pressed("start_end_drag"): # Usually Left Click
-		var current_data = tile_library[current_tile_index]
+	# Only allow Drag Logic if we are in TILE mode
+	if current_mode == InteractionMode.PLACE_TILE:
+		if Input.is_action_just_pressed("start_end_drag"):
+			var current_data = tile_library[current_tile_index]
+			if current_data.is_conveyor:
+				is_dragging_line = true
+				drag_start_pos = grid_pos
+				highlight.visible = false
 		
-		# Only enable drag mode if we are holding a conveyor
-		if current_data.is_conveyor:
-			is_dragging_line = true
-			drag_start_pos = grid_pos
-		else:
-			# Normal placement for Trees/Walls
-			if current_tile_index < tile_library.size():
-				place_tile(grid_pos, tile_library[current_tile_index])
+		if is_dragging_line: queue_redraw()
 
-	# 2. While Dragging (Visuals)
-	if is_dragging_line:
-		queue_redraw() # Tells Godot to run _draw() every frame
-
-	# 3. Release (Commit)
-	if Input.is_action_just_released("start_end_drag"):
-		if is_dragging_line:
-			_commit_drag_line(grid_pos)
-			is_dragging_line = false
-			queue_redraw() # Clear the lines
-
-	# 4. Right Click (Cancel/Harvest)
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-		if is_dragging_line:
-			is_dragging_line = false
-			queue_redraw()
-		else:
-			handle_harvest_input(grid_pos)
+		if Input.is_action_just_released("start_end_drag"):
+			if is_dragging_line:
+				_commit_drag_line(grid_pos)
+				is_dragging_line = false
+				highlight.visible = true
+				queue_redraw()
 
 # ============================================================================
 # Conveyer Drag Drop 
@@ -478,40 +537,37 @@ func update_highlight(grid_pos: Vector2i):
 	var atlas_pos = Vector2i(current_tile_index % ATLAS_COLUMNS, current_tile_index / ATLAS_COLUMNS)
 	highlight.region_rect = Rect2(Vector2(atlas_pos) * tile_size_px, tile_size_px)
 
+
 func _input(event):
-	# Existing cycle logic...
-	if Input.is_key_pressed(KEY_PERIOD):
-		current_tile_index = (current_tile_index + 1) % tile_library.size()
-	elif Input.is_key_pressed(KEY_COMMA):
-		current_tile_index = (current_tile_index - 1 + tile_library.size()) % tile_library.size()
-	elif Input.is_key_pressed(KEY_P):
-		building_manager.start_placing(stockpile_scene)
-		# --- NEW HARVESTER KEY ---
-	elif Input.is_key_pressed(KEY_L): # Press 'L' to build Lumberjack Hut
-		if lumberjack_scene:
-			building_manager.start_placing(lumberjack_scene)
-		else:
-			print("Error: Lumberjack scene not assigned in Level Inspector")
-	elif Input.is_key_pressed(KEY_M): # Press 'L' to build Lumberjack Hut
-		if sawmill_scene:
-			building_manager.start_placing(sawmill_scene)
-		else:
-			print("Error: sawmill scene not assigned in Level Inspector")
-	if event.is_action_pressed("ui_left"):
-		building_manager.confirm_placement()
-	elif event.is_action_pressed("ui_right"):
-		building_manager.cancel_placement()
-
-		
-
-	# NEW: Quick Rotate for Conveyors
-	if event.is_action_pressed("rotate_tile"): # Define 'rotate_tile' as 'R' in Input Map
+	# 1. Rotation (Always allowed)
+	if event.is_action_pressed("rotate_tile"):
 		var current_data = tile_library[current_tile_index]
 		if current_data.is_conveyor:
-			var start_index = 6 # Change this to the index of your first conveyor
-			current_tile_index = start_index + ((current_tile_index - start_index + 1) % 4)
+			var start = conveyor_start_index
+			current_tile_index = start + ((current_tile_index - start + 1) % 4)
+
+	# 2. Mouse Clicks (Mode Dependent)
+	if event.is_action_pressed("ui_left"):
+		# CASE A: Placing a Building (from Hotbar)
+		if current_mode == InteractionMode.PLACE_BUILDING:
+			building_manager.confirm_placement()
 			
-			
+		# CASE B: Placing a Tile (from Hotbar)
+		elif current_mode == InteractionMode.PLACE_TILE:
+			# Single click placement (Dragging is handled in _process)
+			if not is_dragging_line:
+				place_tile(terrain_layer.local_to_map(get_global_mouse_position()), tile_library[current_tile_index])
+
+	# 3. Right Click (Cancel)
+	elif event.is_action_pressed("ui_right"):
+		building_manager.cancel_placement()
+		current_mode = InteractionMode.NONE
+		is_dragging_line = false
+		queue_redraw()
+		
+		# Optional: Default right-click behavior (Harvest)
+		handle_harvest_input(terrain_layer.local_to_map(get_global_mouse_position()))
+
 func print_active_objects():
 	print("--- CURRENT ACTIVE GRID OBJECTS ---")
 	if active_grid_objects.is_empty():

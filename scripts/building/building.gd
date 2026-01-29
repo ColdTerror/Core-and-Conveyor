@@ -11,6 +11,8 @@ signal inventory_changed
 @export var max_health := 100
 var health := max_health
 
+@export var icon: Texture2D
+
 var occupied_tiles: Array[Vector2i] = []
 
 @export_group("Economy")

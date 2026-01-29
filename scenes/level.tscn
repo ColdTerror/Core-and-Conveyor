@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/sawmill_building.tscn" id="16_pqd0y"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/building_hover_popup.tscn" id="18_82cfe"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/game_ui.tscn" id="21_h6wmr"]
+[ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/hot_bar_ui.tscn" id="23_5k0ak"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
 content_margin_left = 8.0
@@ -68,6 +69,8 @@ hover_popup = NodePath("../CanvasLayer/BuildingHoverPopup")
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1762792378]
 
 [node name="GameUI" parent="CanvasLayer" unique_id=678937411 instance=ExtResource("21_h6wmr")]
+
+[node name="HotBar_UI" parent="CanvasLayer" unique_id=1026067039 instance=ExtResource("23_5k0ak")]
 
 [node name="Tooltip" type="PanelContainer" parent="CanvasLayer" unique_id=63814202]
 visible = false

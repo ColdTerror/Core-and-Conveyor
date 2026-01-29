@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dwddqgu14pdbm"]
+
+[ext_resource type="Script" uid="uid://du3ljsq3v3eje" path="res://scripts/hot_bar_ui.gd" id="1_nnjbc"]
+
+[node name="HotBar_UI" type="Control" unique_id=1026067039]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_nnjbc")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=615215221]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer" unique_id=2082290049]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
