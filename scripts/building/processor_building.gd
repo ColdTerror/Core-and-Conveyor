@@ -2,8 +2,17 @@ extends Building
 class_name ProcessorBuilding
 
 @export_group("Settings")
-@export var recipe: RecipeResource
+# CHANGE: Now an Array to support switching (e.g. Wood Arrow -> Stone Arrow)
+@export var recipes: Array[RecipeResource] = [] 
 @export var generic_item_scene: PackedScene # Reference to GenericItem.tscn
+
+# Recipe State
+var current_recipe_index: int = 0
+var active_recipe: RecipeResource:
+	get:
+		if recipes.size() > 0:
+			return recipes[current_recipe_index]
+		return null
 
 # Buffers
 var input_inventory: int = 0
@@ -22,17 +31,24 @@ func setup(level_instance: Node2D):
 	level_ref = level_instance
 
 # --- INPUT LOGIC (From Conveyors) ---
-# Override the generic check from Item.gd
+
+# 1. Override base default: Yes, we accept items generally
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return true
 
-# Check if the item matches our recipe AND we have space
+# 2. Specific Check: Do we want THIS item right now?
 func can_accept_item(item: ItemResource) -> bool:
-	if not recipe: return false
-	if item != recipe.input_item: return false
+	if not active_recipe: return false
+	
+	# Only accept ingredients for the ACTIVE recipe
+	if item != active_recipe.input_item: return false
+	
+	# Check buffer space
 	if input_inventory >= buffer_limit: return false
+	
 	return true
 
+# 3. Take the item
 func accept_item(item: ItemResource) -> bool:
 	if not can_accept_item(item): return false
 	
@@ -42,7 +58,7 @@ func accept_item(item: ItemResource) -> bool:
 
 # --- MAIN LOOP ---
 func building_tick(delta: float) -> void:
-	if not level_ref or not recipe: return
+	if not level_ref or not active_recipe: return
 
 	# 1. Attempt to Output (Always try to empty the output buffer)
 	if output_inventory > 0:
@@ -55,80 +71,83 @@ func building_tick(delta: float) -> void:
 		_check_can_start_work()
 
 func _check_can_start_work():
+	if not active_recipe: return
+
 	# Conditions to start:
 	# 1. Have enough ingredients?
 	# 2. Have space for output?
-	if input_inventory >= recipe.input_count and output_inventory < buffer_limit:
+	if input_inventory >= active_recipe.input_count and output_inventory < buffer_limit:
 		# Consume Input
-		input_inventory -= recipe.input_count
+		input_inventory -= active_recipe.input_count
 		inventory_changed.emit()
 		
 		# Start Timer
 		is_working = true
-		work_timer = recipe.craft_time
+		work_timer = active_recipe.craft_time
 
 func _process_work(delta: float):
+	if not active_recipe: return
+
 	work_timer -= delta
 	
-	# Optional: Emit signal for progress bars
-	var progress = 1.0 - (work_timer / recipe.craft_time)
-	processing_tick.emit(progress) 
+	# Optional: Emit signal if needed, though UI polls get_progress_ratio() usually
+	# var progress = 1.0 - (work_timer / active_recipe.craft_time)
+	# processing_tick.emit(progress) 
 
 	if work_timer <= 0:
 		_finish_work()
 
 func _finish_work():
+	if not active_recipe: return
+
 	is_working = false
-	output_inventory += recipe.output_count
+	output_inventory += active_recipe.output_count
 	inventory_changed.emit()
-	print("Crafted %s! Output buffer: %d" % [recipe.output_item.display_name, output_inventory])
 	
 	# Immediately try to start next job
 	_check_can_start_work()
 
-# --- OUTPUT LOGIC (Same as Harvester) ---
+# --- OUTPUT LOGIC ---
 func _try_output_item():
 	for my_tile in occupied_tiles:
-		# These are the directions we are "pushing" items out to
+		# Directions we are pushing OUT to
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
 		for offset in push_directions:
 			var target_pos = my_tile + offset
 			
-			# 1. Standard Checks (Don't output into myself or blocked tiles)
-			if occupied_tiles.has(target_pos): continue
-			if level_ref.item_grid.has(target_pos): continue 
+			# 1. Basic Obstacle Checks
+			if occupied_tiles.has(target_pos): continue # Don't output into myself
+			if level_ref.item_grid.has(target_pos): continue # Don't output onto existing item
 			
-			# 2. Check Grid Data
+			# 2. Grid Data Check
 			if level_ref.active_grid_objects.has(target_pos):
 				var info = level_ref.active_grid_objects[target_pos]
 				var data = info["data"]
 				
-				# 3. Is it a Conveyor?
+				# 3. Conveyor Logic
 				if data.is_conveyor:
-					# 4. CRITICAL: Check Direction
-					# We retrieve the specific direction stored in the grid dictionary
-					# (Make sure Level.gd place_tile is saving "direction" correctly!)
+					# Check Direction Matching
+					# We only output if the belt is moving AWAY from us (or same direction we push)
+					# If belt moves LEFT (-1, 0) and we push LEFT (-1, 0) -> OK
+					# If belt moves RIGHT (1, 0) and we push LEFT (-1, 0) -> JAM
+					
 					var conveyor_dir = info.get("direction", Vector2.ZERO)
 					
-					# We want the conveyor to be moving in the SAME direction we are pushing.
-					# offset is our push direction (e.g. (1, 0) for Right)
-					# conveyor_dir is the belt's movement (e.g. (1, 0) for Right)
-					
-					# Note: We cast offset to Vector2 to match conveyor_dir type
+					# Cast offset to Vector2 to match types
 					if conveyor_dir == Vector2(offset):
 						_spawn_output(target_pos)
 						return # Success!
 
 func _spawn_output(target_pos: Vector2i):
-	if not generic_item_scene or not recipe.output_item: return
+	if not generic_item_scene or not active_recipe: return
 
 	var new_item = generic_item_scene.instantiate()
 	
 	if new_item.has_method("setup"): new_item.setup(level_ref)
 	
 	if "item_data" in new_item:
-		new_item.item_data = recipe.output_item
+		new_item.item_data = active_recipe.output_item
 		if new_item.has_method("_ready"): new_item._ready()
 
 	level_ref.add_child(new_item)
@@ -138,23 +157,37 @@ func _spawn_output(target_pos: Vector2i):
 	level_ref.item_grid[target_pos] = new_item
 	inventory_changed.emit()
 
-func _is_conveyor_at(grid_pos: Vector2i) -> bool:
-	if level_ref.active_grid_objects.has(grid_pos):
-		return level_ref.active_grid_objects[grid_pos]["data"].is_conveyor
-	return false
+# --- UI HELPERS ---
 
-# --- UI INFO ---
 func get_inventory_info() -> Dictionary:
 	var info = {}
-	if recipe:
+	if active_recipe:
+		info["Recipe"] = active_recipe.recipe_name # Show active recipe name
+		
 		if input_inventory > 0:
-			info["In: " + recipe.input_item.display_name] = input_inventory
+			info[active_recipe.input_item.display_name] = input_inventory
 		if output_inventory > 0:
-			info["Out: " + recipe.output_item.display_name] = output_inventory
+			info[active_recipe.output_item.display_name] = output_inventory
+	else:
+		info["Status"] = "No Recipe"
+		
 	return info
-	
-# Returns a value between 0.0 (0%) and 1.0 (100%)
+
+# Used by the Progress Bar in UI
 func get_progress_ratio() -> float:
-	if not is_working or not recipe or recipe.craft_time == 0:
+	if not is_working or not active_recipe or active_recipe.craft_time == 0:
 		return 0.0
-	return 1.0 - (work_timer / recipe.craft_time)
+	return 1.0 - (work_timer / active_recipe.craft_time)
+
+# Call this from a UI button to switch arrows/products
+func cycle_recipe():
+	if recipes.size() <= 1: return
+	
+	# Safety: Don't switch if we have items buffered, or we lose them!
+	if is_working or input_inventory > 0 or output_inventory > 0:
+		print("Cannot switch recipe while holding items!")
+		return
+
+	current_recipe_index = (current_recipe_index + 1) % recipes.size()
+	print("Switched to recipe: " + active_recipe.recipe_name)
+	inventory_changed.emit()

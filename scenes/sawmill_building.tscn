@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b72vyugc0vaax"]
 
 [ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/building/processor_building.gd" id="1_1l473"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_54i5s"]
 [ext_resource type="Resource" uid="uid://bx2kdsrebhihj" path="res://resources/recipes/sawmill_plank_recipe.tres" id="2_bsvfy"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="3_54i5s"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="4_l8ny5"]
@@ -10,7 +11,7 @@ size = Vector2(128, 128)
 
 [node name="SawmillBuilding" type="Node2D" unique_id=2042910788]
 script = ExtResource("1_1l473")
-recipe = ExtResource("2_bsvfy")
+recipes = Array[ExtResource("2_54i5s")]([ExtResource("2_bsvfy")])
 generic_item_scene = ExtResource("3_54i5s")
 building_name = "Sawmill"
 size = Vector2i(4, 4)
