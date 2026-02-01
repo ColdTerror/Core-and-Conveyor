@@ -1,5 +1,5 @@
 # test_enemy.gd
-extends Area2D
+extends CharacterBody2D
 
 @export var health: int = 50
 

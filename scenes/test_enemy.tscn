@@ -6,7 +6,8 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mkyue"]
 size = Vector2(32, 32)
 
-[node name="TestEnemy" type="Area2D" unique_id=722599789 groups=["Enemies"]]
+[node name="TestEnemy" type="CharacterBody2D" unique_id=1134500982 groups=["Enemies"]]
+collision_layer = 3
 script = ExtResource("1_mkyue")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1688166691]
