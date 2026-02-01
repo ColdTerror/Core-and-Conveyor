@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cs65262rv84b4"]
 
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="1_5oplf"]
-[ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/building/stockpile_building.gd" id="1_sqy8c"]
+[ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/building/generic scripts/stockpile_building.gd" id="1_sqy8c"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sqy8c"]
 size = Vector2(128, 128)

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b72vyugc0vaax"]
 
-[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/building/processor_building.gd" id="1_1l473"]
+[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/building/generic scripts/processor_building.gd" id="1_1l473"]
 [ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_54i5s"]
 [ext_resource type="Resource" uid="uid://bx2kdsrebhihj" path="res://resources/recipes/sawmill_plank_recipe.tres" id="2_bsvfy"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="3_54i5s"]

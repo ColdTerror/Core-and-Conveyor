@@ -9,6 +9,7 @@ display_name = "Stone Arrow"
 texture = ExtResource("2_p02n0")
 description = "Basic Stone Arrow"
 is_ammo = true
+ammo_type = "Rock"
 damage = 15
 stack_size = 10
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"

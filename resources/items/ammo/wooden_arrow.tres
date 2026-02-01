@@ -9,6 +9,7 @@ display_name = "Wooden Arrow"
 texture = ExtResource("2_tfvn0")
 description = "Basic Wooden Arrow"
 is_ammo = true
+ammo_type = "Rock"
 damage = 10
 stack_size = 5
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"

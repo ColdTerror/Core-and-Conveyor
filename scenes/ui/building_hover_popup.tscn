@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://2067p75ou047"]
 
-[ext_resource type="Script" uid="uid://buo2l7ygi8sii" path="res://scripts/building/building_hover_popup.gd" id="1_v6t2t"]
+[ext_resource type="Script" uid="uid://buo2l7ygi8sii" path="res://scripts/building/building ui/building_hover_popup.gd" id="1_v6t2t"]
 
 [node name="BuildingHoverPopup" type="PanelContainer" unique_id=1620014474]
 offset_right = 130.0
