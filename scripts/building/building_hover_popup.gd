@@ -65,18 +65,27 @@ func show_inventory(inventory: Dictionary):
 	for child in inventory_box.get_children():
 		child.queue_free()
 
-	# Populate rows (Handles "Log: 5", "Plank: 10", etc.)
+	# Populate rows
 	for key in inventory.keys():
-		var amount = inventory[key]
+		var value = inventory[key] # could be int (5) or String ("Wooden Arrow")
 		var display_text = "Unknown"
 
+		# 1. Determine the Label Name
 		if key is Resource and "display_name" in key:
 			display_text = key.display_name
 		elif key is String:
 			display_text = key
 			
 		var row := Label.new()
-		row.text = "%s: %d" % [display_text, amount]
+		
+		# 2. FIX: Format based on value type
+		if value is int or value is float:
+			# It's a number (e.g. "Wood: 5")
+			row.text = "%s: %d" % [display_text, value]
+		else:
+			# It's a string (e.g. "Recipe: Arrows")
+			row.text = "%s: %s" % [display_text, str(value)]
+			
 		inventory_box.add_child(row)
 
 func hide_inventory():

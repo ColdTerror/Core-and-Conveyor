@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/sawmill_building.tscn" id="16_pqd0y"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/building_hover_popup.tscn" id="18_82cfe"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/game_ui.tscn" id="21_h6wmr"]
+[ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/building_menu.tscn" id="21_wu01b"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/hot_bar_ui.tscn" id="23_5k0ak"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
@@ -76,6 +77,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="BuildingMenu" parent="CanvasLayer/Popup_Layer" unique_id=1200069952 instance=ExtResource("21_wu01b")]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -136.0
+offset_right = 60.0
+offset_bottom = 0.0
+grow_vertical = 0
 
 [node name="BuildingHoverPopup" parent="CanvasLayer/Popup_Layer" unique_id=545312411 instance=ExtResource("18_82cfe")]
 layout_mode = 1

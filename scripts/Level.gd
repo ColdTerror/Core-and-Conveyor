@@ -54,6 +54,8 @@ var drag_start_pos: Vector2i
 
 @onready var building_manager: BuildingManager = $BuildingManager
 
+@onready var building_menu = $CanvasLayer/Popup_Layer/BuildingMenu 
+
 
 var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
 
@@ -548,15 +550,22 @@ func _input(event):
 
 	# 2. Mouse Clicks (Mode Dependent)
 	if event.is_action_pressed("ui_left"):
-		# CASE A: Placing a Building (from Hotbar)
+		print_debug('left click' + str(current_mode))
+		
+		# MODE 1: Placing a Building
 		if current_mode == InteractionMode.PLACE_BUILDING:
 			building_manager.confirm_placement()
 			
-		# CASE B: Placing a Tile (from Hotbar)
+			current_mode = InteractionMode.NONE
+			
+		# MODE 2: Placing Tiles (Belts)
 		elif current_mode == InteractionMode.PLACE_TILE:
-			# Single click placement (Dragging is handled in _process)
 			if not is_dragging_line:
 				place_tile(terrain_layer.local_to_map(get_global_mouse_position()), tile_library[current_tile_index])
+
+		# MODE 3: Selection / Interaction (Clicking existing stuff)
+		elif current_mode == InteractionMode.NONE:
+			_handle_selection_click()
 
 	# 3. Right Click (Cancel)
 	elif event.is_action_pressed("ui_right"):
@@ -567,6 +576,19 @@ func _input(event):
 		
 		# Optional: Default right-click behavior (Harvest)
 		handle_harvest_input(terrain_layer.local_to_map(get_global_mouse_position()))
+
+func _handle_selection_click():
+	var grid_pos = terrain_layer.local_to_map(get_global_mouse_position())
+	
+	# Check if there is a building at this tile
+	if building_manager.occupied_tiles.has(grid_pos):
+		var building = building_manager.occupied_tiles[grid_pos]
+		
+		# Open the menu for this building
+		building_menu.open_menu(building)
+		
+		# Optional: Close the hover popup so it doesn't overlap
+		hover_popup.hide()
 
 func print_active_objects():
 	print("--- CURRENT ACTIVE GRID OBJECTS ---")

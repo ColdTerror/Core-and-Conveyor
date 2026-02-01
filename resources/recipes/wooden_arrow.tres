@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RecipeResource" format=3 uid="uid://cknrujmv6ndsh"]
+
+[ext_resource type="Resource" uid="uid://cn8jh6p0ykffa" path="res://resources/items/raw_resources/wood.tres" id="1_tp8wn"]
+[ext_resource type="Resource" uid="uid://cnhueyxniv0a7" path="res://resources/items/refined_resources/plank.tres" id="2_o07c1"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="3_7x0fj"]
+
+[resource]
+script = ExtResource("3_7x0fj")
+recipe_name = "Wooden Arrow"
+input_item = ExtResource("1_tp8wn")
+output_item = ExtResource("2_o07c1")
+output_count = 5
+metadata/_custom_type_script = "uid://cklg1indprsb3"
