@@ -20,7 +20,9 @@
 [ext_resource type="PackedScene" uid="uid://dupuw0x1fcxf2" path="res://scenes/buildings/lumberjack_building.tscn" id="15_8gofh"]
 [ext_resource type="Script" uid="uid://y8ifotnqs7ch" path="res://scripts/building/building_manager.gd" id="15_gunhw"]
 [ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/buildings/sawmill_building.tscn" id="16_pqd0y"]
+[ext_resource type="PackedScene" uid="uid://u8dr3txp3net" path="res://scenes/buildings/towers/bow_tower.tscn" id="17_xy2fk"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/building_hover_popup.tscn" id="18_82cfe"]
+[ext_resource type="PackedScene" uid="uid://cg13cd0e8r5ne" path="res://scenes/buildings/towers/projectile.tscn" id="18_cmcjb"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
 [ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/building_menu.tscn" id="21_wu01b"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
@@ -38,6 +40,8 @@ item_scene = ExtResource("13_arp2o")
 stockpile_scene = ExtResource("14_ux5qa")
 lumberjack_scene = ExtResource("15_8gofh")
 sawmill_scene = ExtResource("16_pqd0y")
+bow_tower_scene = ExtResource("17_xy2fk")
+projectile_scene = ExtResource("18_cmcjb")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
 position = Vector2(640, 360)

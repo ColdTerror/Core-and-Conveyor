@@ -46,15 +46,21 @@ var drag_start_pos: Vector2i
 
 
 
-@export var item_scene: PackedScene # Drag your Ore/Item .tscn here in the Inspector
+@export var item_scene: PackedScene 
 
 @export var stockpile_scene: PackedScene 
 @export var lumberjack_scene: PackedScene
 @export var sawmill_scene: PackedScene
 
+@export var bow_tower_scene: PackedScene
+
+@export var projectile_scene: PackedScene
+
+
 @onready var building_manager: BuildingManager = $BuildingManager
 
 @onready var building_menu = $CanvasLayer/Popup_Layer/BuildingMenu 
+
 
 
 var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
@@ -140,6 +146,7 @@ func _setup_hotbar_items():
 	_add_building_to_bar("Hut", lumberjack_scene)
 	_add_building_to_bar("Sawmill", sawmill_scene)
 	_add_building_to_bar("Stockpile", stockpile_scene)
+	_add_building_to_bar("Bow Tower", bow_tower_scene)
 
 func _add_building_to_bar(name: String, packed_scene: PackedScene):
 	if not packed_scene: return
@@ -554,9 +561,13 @@ func _input(event):
 		
 		# MODE 1: Placing a Building
 		if current_mode == InteractionMode.PLACE_BUILDING:
-			building_manager.confirm_placement()
-			
-			current_mode = InteractionMode.NONE
+			# FIX: Only reset mode if placement was successful (returned true)
+			if building_manager.confirm_placement():
+				current_mode = InteractionMode.NONE
+			else:
+				# Optional: Play "invalid placement" sound here
+				print_debug("invalid placement")
+				pass
 			
 		# MODE 2: Placing Tiles (Belts)
 		elif current_mode == InteractionMode.PLACE_TILE:
@@ -589,6 +600,35 @@ func _handle_selection_click():
 		
 		# Optional: Close the hover popup so it doesn't overlap
 		hover_popup.hide()
+
+
+# This function listens for the Tower's signal
+func _on_tower_fired(start_pos, target_node, item_data, final_damage, speed, angle_offset):
+	if not projectile_scene:
+		print("Error: Projectile Scene not assigned in Level Inspector")
+		return
+	
+	# 1. Calculate Direction
+	var dir = Vector2.RIGHT # Default
+	if is_instance_valid(target_node):
+		dir = (target_node.global_position - start_pos).normalized()
+	
+	# 2. Apply Spread (Rotate the vector)
+	# If angle_offset is 0 (Bow), this does nothing. 
+	# If Shotgun, this fans the arrows out.
+	dir = dir.rotated(angle_offset)
+	
+	# 3. Spawn the Projectile
+	var proj = projectile_scene.instantiate()
+	
+	# Add to Object Layer so it sorts with buildings/units
+	object_layer.add_child(proj)
+	
+	# Configure it
+	# Note: We assume your Projectile.gd has a 'setup' function
+	if proj.has_method("setup"):
+		proj.setup(start_pos, dir, speed, final_damage, item_data.texture)
+		
 
 func print_active_objects():
 	print("--- CURRENT ACTIVE GRID OBJECTS ---")
