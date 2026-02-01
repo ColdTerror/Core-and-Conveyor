@@ -28,6 +28,9 @@ func setup(level_instance: Node2D):
 
 # --- 1. FILTERED INPUT ---
 
+func accepts_item_at(tile: Vector2i) -> bool:
+	return tile in occupied_tiles
+
 func can_accept_item(item: ItemResource) -> bool:
 	# 1. Must be ammo
 	if not item.is_ammo: return false

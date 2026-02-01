@@ -29,6 +29,10 @@ ResourceManager="*res://scripts/resource_manager.gd"
 window/size/viewport_width=1280
 window/size/viewport_height=720
 
+[global_group]
+
+Enemies="Enemies that are able to be shot at"
+
 [input]
 
 ui_left={

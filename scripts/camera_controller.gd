@@ -38,7 +38,8 @@ func handle_keyboard_pan(delta):
 	# WASD or Arrow keys
 	if Input.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
 		move_direction.x += 1
-	if Input.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
+	#if Input.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
+	if Input.is_key_pressed(KEY_A):
 		move_direction.x -= 1
 	if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
 		move_direction.y += 1

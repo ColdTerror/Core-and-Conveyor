@@ -1,15 +1,15 @@
 [gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bgjuamr7jeqjq"]
 
 [ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_pu64l"]
-[ext_resource type="Texture2D" uid="uid://ojw6ckni4nwi" path="res://resources/items/textures/wood_texture.tres" id="2_tfvn0"]
+[ext_resource type="Texture2D" uid="uid://co7er1a3gnju" path="res://resources/items/textures/stone_texture.tres" id="2_8eeev"]
 
 [resource]
 script = ExtResource("1_pu64l")
 display_name = "Wooden Arrow"
-texture = ExtResource("2_tfvn0")
+texture = ExtResource("2_8eeev")
 description = "Basic Wooden Arrow"
 is_ammo = true
-ammo_type = "Rock"
+ammo_type = "Arrow"
 damage = 10
 stack_size = 5
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"
