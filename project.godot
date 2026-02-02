@@ -32,6 +32,7 @@ window/size/viewport_height=720
 [global_group]
 
 Enemies="Enemies that are able to be shot at"
+PriorityTarget="buildings enemies will target first"
 
 [input]
 
