@@ -1,12 +1,16 @@
 [gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bvibrdqlgge7s"]
 
 [ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_p02n0"]
-[ext_resource type="Texture2D" uid="uid://co7er1a3gnju" path="res://resources/items/textures/stone_texture.tres" id="2_p02n0"]
+[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_ppqlo"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8vysk"]
+atlas = ExtResource("2_ppqlo")
+region = Rect2(96, 32, 32, 32)
 
 [resource]
 script = ExtResource("1_p02n0")
 display_name = "Stone Arrow"
-texture = ExtResource("2_p02n0")
+texture = SubResource("AtlasTexture_8vysk")
 description = "Basic Stone Arrow"
 is_ammo = true
 ammo_type = "Rock"

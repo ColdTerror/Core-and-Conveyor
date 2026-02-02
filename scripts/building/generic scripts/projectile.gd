@@ -7,7 +7,7 @@ var lifetime: float = 10.0
 
 func setup(pos: Vector2, dir: Vector2, speed: float, dmg: int, texture: Texture2D):
 	global_position = pos
-	rotation = dir.angle()
+	rotation = dir.angle() - deg_to_rad(270)  # Offset for arrow's default angle
 	velocity = dir * speed
 	damage = dmg
 	if texture: $Sprite2D.texture = texture

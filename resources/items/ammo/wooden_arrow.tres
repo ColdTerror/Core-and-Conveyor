@@ -1,12 +1,16 @@
 [gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bgjuamr7jeqjq"]
 
 [ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_pu64l"]
-[ext_resource type="Texture2D" uid="uid://co7er1a3gnju" path="res://resources/items/textures/stone_texture.tres" id="2_8eeev"]
+[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_8eeev"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7jaw8"]
+atlas = ExtResource("2_8eeev")
+region = Rect2(96, 0, 32, 32)
 
 [resource]
 script = ExtResource("1_pu64l")
 display_name = "Wooden Arrow"
-texture = ExtResource("2_8eeev")
+texture = SubResource("AtlasTexture_7jaw8")
 description = "Basic Wooden Arrow"
 is_ammo = true
 ammo_type = "Arrow"
