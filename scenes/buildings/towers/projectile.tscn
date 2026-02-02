@@ -1,17 +1,21 @@
 [gd_scene format=3 uid="uid://cg13cd0e8r5ne"]
 
 [ext_resource type="Script" uid="uid://c60uxc0byyjgu" path="res://scripts/building/generic scripts/projectile.gd" id="1_g55b2"]
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_grtuu"]
+[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_g55b2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nl2a8"]
+atlas = ExtResource("2_g55b2")
+region = Rect2(96, 0, 32, 32)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_g55b2"]
-radius = 64.0
+radius = 16.0
 
 [node name="Projectile" type="Area2D" unique_id=681699648]
 collision_mask = 3
 script = ExtResource("1_g55b2")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=533441957]
-texture = ExtResource("1_grtuu")
+texture = SubResource("AtlasTexture_nl2a8")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=531071026]
 shape = SubResource("CircleShape2D_g55b2")
