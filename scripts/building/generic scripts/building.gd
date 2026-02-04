@@ -1,10 +1,13 @@
 extends Node2D
 class_name Building
 
+
 signal hovered(building: Building)
 signal unhovered(building: Building)
 
 signal inventory_changed
+
+var is_ghost: bool = false
 
 @export var building_name := "Building"
 @export var size := Vector2i(1, 1)
@@ -19,6 +22,7 @@ var occupied_tiles: Array[Vector2i] = []
 @export var cost_wood: int = 10
 @export var cost_stone: int = 0
 
+
 # --- Ready ---
 func _ready():
 	if has_node("Area2D"):
@@ -28,6 +32,7 @@ func _ready():
 
 # --- Ghost / Visuals ---
 func set_ghost(enabled: bool):
+	is_ghost = enabled
 	if has_node("Area2D"):
 		$Area2D.monitoring = not enabled
 		$Area2D.visible = not enabled

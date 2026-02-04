@@ -48,13 +48,25 @@ func _on_navigation_agent_2d_velocity_computed(safe_velocity):
 	move_and_slide()
 
 func _find_target():
-	# Look for any PriorityTarget
 	var targets = get_tree().get_nodes_in_group("PriorityTarget")
-	if targets.size() > 0:
-		current_target = targets[0]
-	else:
-		# Fallback: Just move to center of map?
-		pass
+	
+	var nearest_target: Node2D = null
+	var min_dist: float = INF # Start with "Infinity" so the first valid target is always closer
+	
+	for t in targets:
+		# 1. Validation Check
+		if not is_instance_valid(t): continue
+		if t is Building and t.is_ghost: continue
+		
+		# 2. Distance Check
+		# We use distance_squared_to because it's faster (avoids square roots)
+		var dist = global_position.distance_squared_to(t.global_position)
+		
+		if dist < min_dist:
+			min_dist = dist
+			nearest_target = t
+	
+	current_target = nearest_target
 
 # --- COMBAT (Existing) ---
 func take_damage(amount: int):
