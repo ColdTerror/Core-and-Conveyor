@@ -65,6 +65,11 @@ var drag_start_pos: Vector2i
 
 var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
 
+
+
+@onready var pathfinder = $Pathfinder # The node we just made
+
+
 func spawn_item_at_mouse():
 	if item_scene == null:
 		print("Error: No item_scene assigned in the Inspector!")
@@ -106,6 +111,10 @@ func _ready():
 	if hotbar:
 		hotbar.item_selected.connect(_on_hotbar_item_selected)
 		_setup_hotbar_items()
+		
+	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
+	pathfinder.setup(terrain_layer, object_layer, map_rect)
+	building_manager.pathfinder = pathfinder
 
 # =========================
 # Hotbar stuff

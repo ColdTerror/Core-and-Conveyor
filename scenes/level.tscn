@@ -28,6 +28,7 @@
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/test_enemy.tscn" id="27_cmcjb"]
 [ext_resource type="Script" uid="uid://nb12wvb8i6eh" path="res://scripts/ghost_layer.gd" id="28_556r4"]
+[ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/pathfinder.gd" id="29_7agi7"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
 content_margin_left = 8.0
@@ -195,6 +196,9 @@ position = Vector2(667, 541)
 [node name="GhostLayer" type="Node2D" parent="." unique_id=1770065455]
 z_index = 100
 script = ExtResource("28_556r4")
+
+[node name="Pathfinder" type="Node2D" parent="." unique_id=1266074560]
+script = ExtResource("29_7agi7")
 
 [connection signal="pressed" from="CanvasLayer/Debug_Layer/Generate Map" to="." method="generate_simple_map"]
 [connection signal="pressed" from="CanvasLayer/Debug_Layer/Print Objects" to="." method="print_active_objects"]

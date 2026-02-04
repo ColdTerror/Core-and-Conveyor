@@ -2,79 +2,127 @@ extends CharacterBody2D
 
 @export var movement_speed: float = 60.0
 @export var health: int = 50
+@export var attack_range: float = 40.0 # Distance to stop and attack
 
-@onready var nav_agent: NavigationAgent2D = $NavigationAgent2D
+# References
+var pathfinder: Pathfinder 
+var current_target: Node2D
 
-# The target node (The Town Center)
-var current_target: Node2D = null
+# Pathfinding State
+var current_path: PackedVector2Array = []
+var path_update_timer: float = 0.0
 
 func _ready():
-	# Wait one frame for the map to initialize
+	# 1. FIND THE PATHFINDER
+	# We search the scene tree for the "Pathfinder" node we created earlier.
+	# "true, false" means recursive search, but don't look inside owner-less nodes.
+	pathfinder = get_tree().root.find_child("Pathfinder", true, false)
+	
+	# Wait a frame to let the map generate before looking for targets
 	await get_tree().physics_frame
 	_find_target()
 
 func _physics_process(delta):
 	if health <= 0: return
 
-	# 1. Check if we need a target
-	if not is_instance_valid(current_target):
-		_find_target()
-		return
-		
-	# 2. Set the target position for the pathfinder
-	nav_agent.target_position = current_target.global_position
-	
-	# 3. Get the next step
-	if nav_agent.is_navigation_finished():
-		# We reached the base! Attack logic goes here later.
-		return
-		
-	var current_agent_position = global_position
-	var next_path_position = nav_agent.get_next_path_position()
-	
-	# 4. Move
-	var new_velocity = current_agent_position.direction_to(next_path_position) * movement_speed
-	
-	# Setup simple collision avoidance (optional)
-	if nav_agent.avoidance_enabled:
-		nav_agent.set_velocity(new_velocity)
+	# --- 1. TARGET CHECK ---
+	# Ensure target is still valid (not deleted, not a ghost)
+	if is_instance_valid(current_target):
+		if current_target is Building and current_target.is_ghost:
+			current_target = null
+			current_path = []
+			_find_target()
+			return
 	else:
-		velocity = new_velocity
-		move_and_slide()
+		_find_target()
+		return # Wait for next frame to find one
 
-# This function is called by the agent if Avoidance is ON
-func _on_navigation_agent_2d_velocity_computed(safe_velocity):
-	velocity = safe_velocity
+	# --- 2. ATTACK CHECK ---
+	# Are we close enough to hit the building?
+	var dist_to_target = global_position.distance_to(current_target.global_position)
+	
+	# If targeting a building, we subtract its radius so we stop AT the wall, not inside it
+	var stop_distance = attack_range
+	if current_target.has_method("get_radius"):
+		stop_distance += current_target.get_radius()
+
+	if dist_to_target <= stop_distance:
+		# We arrived! Stop and Attack.
+		velocity = Vector2.ZERO
+		# _perform_attack() # Uncomment when you have attack logic
+		return
+
+	# --- 3. PATH UPDATE (Throttled) ---
+	path_update_timer -= delta
+	if path_update_timer <= 0.0:
+		_recalculate_path()
+		path_update_timer = 0.5 # Update 2 times a second
+
+	# --- 4. MOVEMENT ---
+	if current_path.is_empty():
+		velocity = Vector2.ZERO
+		return
+
+	# The path is a list of points. Index 0 is the next tile center we need to hit.
+	var next_point = current_path[0]
+	var dir = global_position.direction_to(next_point)
+	
+	velocity = dir * movement_speed
 	move_and_slide()
+	
+	# Check if we reached the waypoint (within 4 pixels)
+	if global_position.distance_to(next_point) < 4.0:
+		current_path.remove_at(0) # Done with this tile, look at the next one
+
+# --- HELPERS ---
+
+func _recalculate_path():
+	if not pathfinder or not is_instance_valid(current_target):
+		return
+		
+	# Ask the Pathfinder node for the route
+	# It returns exact center points of tiles (e.g. 16,16 -> 48,16 -> etc)
+	current_path = pathfinder.get_path_route(global_position, current_target.global_position)
+	
+	# Optimization: The first point is usually the tile we are standing on.
+	# If we are already close to it, skip it so we don't walk backwards.
+	if not current_path.is_empty():
+		if global_position.distance_to(current_path[0]) < 10.0:
+			current_path.remove_at(0)
 
 func _find_target():
 	var targets = get_tree().get_nodes_in_group("PriorityTarget")
-	
 	var nearest_target: Node2D = null
-	var min_dist: float = INF # Start with "Infinity" so the first valid target is always closer
+	var min_dist: float = INF 
 	
 	for t in targets:
-		# 1. Validation Check
 		if not is_instance_valid(t): continue
+		
+		# Ignore Ghosts
 		if t is Building and t.is_ghost: continue
 		
-		# 2. Distance Check
-		# We use distance_squared_to because it's faster (avoids square roots)
-		var dist = global_position.distance_squared_to(t.global_position)
+		# Ignore things at (0,0) just to be safe
+		if t.global_position.length_squared() < 10.0: continue
 		
+		var dist = global_position.distance_squared_to(t.global_position)
 		if dist < min_dist:
 			min_dist = dist
 			nearest_target = t
 	
 	current_target = nearest_target
 
-# --- COMBAT (Existing) ---
-func take_damage(amount: int):
-	health -= amount
-	modulate = Color.RED
-	await get_tree().create_timer(0.1).timeout
-	modulate = Color.WHITE
-	if health <= 0: die()
+# --- DEBUG DRAWING (Optional) ---
+func _process(_delta):
+	queue_redraw() # Update line every frame
 
-func die():
-	queue_free()
+func _draw():
+	if current_path.size() > 0:
+		# Draw the path lines relative to the enemy position
+		var local_points = PackedVector2Array()
+		local_points.append(Vector2.ZERO) # Start at enemy center
+		
+		for point in current_path:
+			local_points.append(to_local(point))
+			
+		draw_polyline(local_points, Color.CYAN, 2.0)
+		draw_circle(local_points[1] if local_points.size() > 1 else Vector2.ZERO, 3.0, Color.GREEN)

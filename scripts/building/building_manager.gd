@@ -12,6 +12,8 @@ var placing_building := false
 
 var level_ref: Node2D 
 
+var pathfinder: Pathfinder
+
 # -------------------------------
 # PUBLIC API
 # -------------------------------
@@ -78,10 +80,17 @@ func confirm_placement() -> bool:
 	buildings.append(ghost_building)
 	_register_building(ghost_building)
 	_register_occupied_tiles(ghost_building)
+	
+	if pathfinder:
+		var occupied_tiles = ghost_building.get_footprint(grid_pos)
+		for tile in occupied_tiles:
+			pathfinder.set_obstacle(tile, true) # Mark as Solid
 
 	# Important: We do NOT queue_free the ghost here because it BECAME the real building.
 	ghost_building = null
 	placing_building = false
+	
+	
 	
 	return true # Success!
 
