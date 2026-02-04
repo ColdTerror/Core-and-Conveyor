@@ -17,3 +17,9 @@ texture = ExtResource("1_h17bh")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=850654236]
 shape = SubResource("RectangleShape2D_mkyue")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=313030865]
+path_desired_distance = 10.0
+avoidance_enabled = true
+
+[connection signal="velocity_computed" from="NavigationAgent2D" to="." method="_on_navigation_agent_2d_velocity_computed"]
