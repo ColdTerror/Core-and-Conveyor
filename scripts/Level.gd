@@ -300,12 +300,22 @@ func _draw():
 			var world_pos = terrain_layer.map_to_local(pt)
 			var draw_pos = world_pos - (tile_size_px / 2.0)
 			
-			# Optional: Keep a faint blue background to indicate "Valid Placement"
-			draw_rect(Rect2(draw_pos, tile_size_px), Color(0.2, 0.6, 1.0, 0.2), true)
+			# --- NEW: Check Validity ---
+			var is_valid = can_place_object(pt)
 			
-			# Draw the actual Conveyor Sprite (semi-transparent)
-			draw_texture_rect_region(texture, Rect2(draw_pos, tile_size_px), src_rect, Color(1, 1, 1, 0.6))
+			var draw_color = Color(1, 1, 1, 0.6) # Normal (White Ghost)
+			var bg_color = Color(0.2, 0.6, 1.0, 0.2) # Blue BG (Valid)
 			
+			if not is_valid:
+				draw_color = Color(1, 0, 0, 0.6) # Red Ghost (Blocked)
+				bg_color = Color(1, 0, 0, 0.2) # Red BG (Blocked)
+			# ---------------------------
+			
+			# Draw Background Box
+			draw_rect(Rect2(draw_pos, tile_size_px), bg_color, true)
+			
+			# Draw the Conveyor Sprite
+			draw_texture_rect_region(texture, Rect2(draw_pos, tile_size_px), src_rect, draw_color)
 # --- DRAG HELPERS ---
 
 func _commit_drag_line(end_pos: Vector2i):
@@ -541,10 +551,24 @@ func place_tile(grid_pos: Vector2i, data: TileDataResource):
 			active_grid_objects[grid_pos] = tile_info
 
 func can_place_object(grid_pos: Vector2i) -> bool:
+	# 1. Check Terrain (Water check)
 	var terrain_atlas = terrain_layer.get_cell_atlas_coords(grid_pos)
+	# Safety check for invalid terrain
+	if terrain_atlas == Vector2i(-1, -1): return false 
+	
 	var terrain_index = terrain_atlas.y * ATLAS_COLUMNS + terrain_atlas.x
-	return terrain_index != TERRAIN_WATER and object_layer.get_cell_source_id(grid_pos) == -1
+	if terrain_index == TERRAIN_WATER:
+		return false
 
+	# 2. Check Object Layer (Trees, Rocks, existing Belts)
+	if object_layer.get_cell_source_id(grid_pos) != -1:
+		return false
+
+	# 3. Check Buildings (Towers, Sawmills)
+	if building_manager.occupied_tiles.has(grid_pos):
+		return false
+
+	return true
 
 
 func update_highlight(grid_pos: Vector2i):
