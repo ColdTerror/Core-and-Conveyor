@@ -61,7 +61,7 @@ var drag_start_pos: Vector2i
 
 @onready var building_menu = $CanvasLayer/Popup_Layer/BuildingMenu 
 
-
+@onready var ghost_layer = $GhostLayer
 
 var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
 
@@ -250,19 +250,19 @@ func _process(_delta):
 				drag_start_pos = grid_pos
 				highlight.visible = false
 		
-		if is_dragging_line: queue_redraw()
+		if is_dragging_line: $GhostLayer.queue_redraw()
 
 		if Input.is_action_just_released("start_end_drag"):
 			if is_dragging_line:
 				_commit_drag_line(grid_pos)
 				is_dragging_line = false
 				highlight.visible = true
-				queue_redraw()
+				$GhostLayer.queue_redraw()
 
 # ============================================================================
 # Conveyer Drag Drop 
 # ============================================================================
-func _draw():
+func draw_drag_line(canvas_item: CanvasItem):
 	if is_dragging_line:
 		var current_grid = terrain_layer.local_to_map(get_global_mouse_position())
 		var points = _get_straight_line(drag_start_pos, current_grid)
@@ -312,10 +312,11 @@ func _draw():
 			# ---------------------------
 			
 			# Draw Background Box
-			draw_rect(Rect2(draw_pos, tile_size_px), bg_color, true)
+			canvas_item.draw_rect(Rect2(draw_pos, tile_size_px), bg_color, true)
 			
 			# Draw the Conveyor Sprite
-			draw_texture_rect_region(texture, Rect2(draw_pos, tile_size_px), src_rect, draw_color)
+			canvas_item.draw_texture_rect_region(texture, Rect2(draw_pos, tile_size_px), src_rect, draw_color)
+			
 # --- DRAG HELPERS ---
 
 func _commit_drag_line(end_pos: Vector2i):
@@ -614,7 +615,7 @@ func _input(event):
 		building_manager.cancel_placement()
 		current_mode = InteractionMode.NONE
 		is_dragging_line = false
-		queue_redraw()
+		$GhostLayer.queue_redraw()
 		
 		# Optional: Default right-click behavior (Harvest)
 		handle_harvest_input(terrain_layer.local_to_map(get_global_mouse_position()))
