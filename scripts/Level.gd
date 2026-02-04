@@ -230,10 +230,16 @@ func _process(_delta):
 	
 	update_tooltip(grid_pos)
 	
-	if is_dragging_line: highlight.visible = false
+	if is_dragging_line: 
+		highlight.visible = false
 	else: 
-		highlight.visible = true
-		update_highlight(grid_pos)
+		# CHANGE: Only show the ghost tile if we are actually placing tiles
+		if current_mode == InteractionMode.PLACE_TILE:
+			highlight.visible = true
+			update_highlight(grid_pos)
+		else:
+			# Hide it when selecting buildings or doing nothing
+			highlight.visible = false
 
 	# Only allow Drag Logic if we are in TILE mode
 	if current_mode == InteractionMode.PLACE_TILE:
@@ -571,8 +577,9 @@ func _input(event):
 			
 		# MODE 2: Placing Tiles (Belts)
 		elif current_mode == InteractionMode.PLACE_TILE:
-			if not is_dragging_line:
-				place_tile(terrain_layer.local_to_map(get_global_mouse_position()), tile_library[current_tile_index])
+			pass #handle draging belts in process
+			#if not is_dragging_line:
+			#	place_tile(terrain_layer.local_to_map(get_global_mouse_position()), tile_library[current_tile_index])
 
 		# MODE 3: Selection / Interaction (Clicking existing stuff)
 		elif current_mode == InteractionMode.NONE:
