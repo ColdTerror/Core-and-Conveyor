@@ -10,7 +10,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
 size = Vector2(128, 128)
 
-[node name="SawmillBuilding" type="Node2D" unique_id=2042910788]
+[node name="SawmillBuilding" type="Node2D" unique_id=2042910788 groups=["Structure"]]
 script = ExtResource("1_1l473")
 recipes = Array[ExtResource("2_54i5s")]([ExtResource("2_bsvfy"), ExtResource("4_54i5s")])
 generic_item_scene = ExtResource("3_54i5s")

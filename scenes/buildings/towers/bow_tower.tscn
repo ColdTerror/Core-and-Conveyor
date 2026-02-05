@@ -6,7 +6,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sa4vh"]
 size = Vector2(64, 64)
 
-[node name="BowTower" type="Node2D" unique_id=454978287 groups=["Structure"]]
+[node name="BowTower" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_vc0d4")
 attack_range = 256.0
 building_name = "Bow Tower"

@@ -80,15 +80,20 @@ func _recalculate_path():
 	if not pathfinder or not is_instance_valid(current_target):
 		return
 		
-	# Ask the Pathfinder node for the route
-	# It returns exact center points of tiles (e.g. 16,16 -> 48,16 -> etc)
+	# 1. Print the ACTUAL target location
+	print("--- PATH REQUEST ---")
+	print("Target Real Position: ", current_target.global_position)
+	
+	# 2. Ask for the path
 	current_path = pathfinder.get_path_route(global_position, current_target.global_position)
 	
-	# Optimization: The first point is usually the tile we are standing on.
-	# If we are already close to it, skip it so we don't walk backwards.
-	if not current_path.is_empty():
-		if global_position.distance_to(current_path[0]) < 10.0:
-			current_path.remove_at(0)
+	# 3. Print where the path actually ends
+	if current_path.size() > 0:
+		var final_point = current_path[current_path.size() - 1]
+		print("Path Final Point: ", final_point)
+		
+	else:
+		print("Path is Empty.")
 
 func _find_target():
 	var targets = get_tree().get_nodes_in_group("PriorityTarget")
@@ -108,8 +113,12 @@ func _find_target():
 		if dist < min_dist:
 			min_dist = dist
 			nearest_target = t
-	
+			
 	current_target = nearest_target
+	if current_target:
+		print("Enemy: Locked onto ", current_target.name, " at ", current_target.global_position)
+	else:
+		print("Enemy: No targets found!")
 
 # --- DEBUG DRAWING (Optional) ---
 func _process(_delta):
@@ -126,3 +135,8 @@ func _draw():
 			
 		draw_polyline(local_points, Color.CYAN, 2.0)
 		draw_circle(local_points[1] if local_points.size() > 1 else Vector2.ZERO, 3.0, Color.GREEN)
+		
+		# Draw a Red X at the final destination
+		var end_point = to_local(current_path[current_path.size() - 1])
+		draw_line(end_point - Vector2(5,5), end_point + Vector2(5,5), Color.RED, 2.0)
+		draw_line(end_point - Vector2(5,-5), end_point + Vector2(5,-5), Color.RED, 2.0)

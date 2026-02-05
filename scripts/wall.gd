@@ -1,7 +1,7 @@
 # Wall.gd
-extends StaticBody2D
+extends Building
 
-@export var health: int = 100
+
 
 func take_damage(amount: int):
 	health -= amount

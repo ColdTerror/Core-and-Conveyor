@@ -82,9 +82,22 @@ func confirm_placement() -> bool:
 	_register_occupied_tiles(ghost_building)
 	
 	if pathfinder:
-		var occupied_tiles = ghost_building.get_footprint(grid_pos)
-		for tile in occupied_tiles:
-			pathfinder.set_obstacle(tile, true) # Mark as Solid
+		var footprint = ghost_building.get_footprint(grid_pos)
+		
+		# CHECK: Is this a Wall?
+		if ghost_building.is_solid_obstacle:
+			print_debug("not wall")
+			# It's a solid building (Stockpile)
+			for tile in footprint:
+				pathfinder.set_obstacle(tile, true)
+				
+		else:
+			print_debug("wall")
+			# It's a weighted building (Wall)
+			# We use the cost directly from the inspector
+			for tile in footprint:
+				pathfinder.set_weighted_obstacle(tile, ghost_building.path_cost)
+				
 
 	# Important: We do NOT queue_free the ghost here because it BECAME the real building.
 	ghost_building = null

@@ -6,7 +6,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sqy8c"]
 size = Vector2(128, 128)
 
-[node name="StockpileBuilding" type="Node2D" unique_id=1914910995 groups=["PriorityTarget"]]
+[node name="StockpileBuilding" type="Node2D" unique_id=1914910995 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_sqy8c")
 size = Vector2i(4, 4)
 icon = ExtResource("1_5oplf")

@@ -13,7 +13,7 @@ func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Re
 	
 	# 1. Configure the Grid
 	astar.region = map_rect # The size of your map (e.g. 0,0 to 100,100)
-	astar.cell_size = terrain_layer.tile_set.tile_size # e.g. (32, 32)
+	astar.cell_size = Vector2(1, 1)
 	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES # Allows cutting corners cleanly
 	astar.update() # Build the internal nodes
 	
@@ -38,10 +38,23 @@ func set_obstacle(coords: Vector2i, is_solid: bool):
 	if astar.is_in_boundsv(coords):
 		astar.set_point_solid(coords, is_solid)
 
+# Add this new function to change tile weights
+func set_weighted_obstacle(coords: Vector2i, cost: float):
+	if astar.is_in_boundsv(coords):
+		# Unlock the tile (so A* considers it a valid path)
+		astar.set_point_solid(coords, false)
+		# Increase the "Cost" to walk on it
+		astar.set_point_weight_scale(coords, cost)
+
 # The function Enemies call to get a path
 func get_path_route(start_world: Vector2, end_world: Vector2) -> PackedVector2Array:
-	var start_grid = main_layer.local_to_map(start_world)
-	var end_grid = main_layer.local_to_map(end_world)
+	# 1. TRANSLATION LAYER (World Pixels -> Grid Indices)
+	# Converts (800, 896) -> Local (800, 896) -> Grid (25, 28)
+	var start_local = main_layer.to_local(start_world)
+	var end_local = main_layer.to_local(end_world)
+	
+	var start_grid = main_layer.local_to_map(start_local)
+	var end_grid = main_layer.local_to_map(end_local)
 	
 	# --- 1. HANDLE SOLID TARGETS (BFS SEARCH) ---
 	if astar.is_in_boundsv(end_grid) and astar.is_point_solid(end_grid):
@@ -78,12 +91,16 @@ func get_path_route(start_world: Vector2, end_world: Vector2) -> PackedVector2Ar
 			return [] # Return empty path
 	# -------------------------------------------
 
-	# 2. Convert Grid Path to World Path
+	# 2. Get the Path (Grid Indices)
+	# AStar returns: [(25, 28), (25, 27), ...]
 	var path_points = astar.get_point_path(start_grid, end_grid)
+	
+	# 3. CONVERT BACK (Grid Indices -> World Pixels)
 	var world_path = PackedVector2Array()
 	
 	for point in path_points:
-		var world_pos = main_layer.map_to_local(point)
-		world_path.append(world_pos)
+		var local_pos = main_layer.map_to_local(point) # (25, 28) -> (800, 896)
+		var global_pos = main_layer.to_global(local_pos)
+		world_path.append(global_pos)
 		
 	return world_path

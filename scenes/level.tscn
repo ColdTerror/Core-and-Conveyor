@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" uid="uid://u8dr3txp3net" path="res://scenes/buildings/towers/bow_tower.tscn" id="17_xy2fk"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/building_hover_popup.tscn" id="18_82cfe"]
 [ext_resource type="PackedScene" uid="uid://cg13cd0e8r5ne" path="res://scenes/buildings/towers/projectile.tscn" id="18_cmcjb"]
+[ext_resource type="PackedScene" uid="uid://c0fjlwuepy3iy" path="res://scenes/buildings/wall.tscn" id="18_kih21"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
 [ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/building_menu.tscn" id="21_wu01b"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
@@ -44,6 +45,7 @@ stockpile_scene = ExtResource("14_ux5qa")
 lumberjack_scene = ExtResource("15_8gofh")
 sawmill_scene = ExtResource("16_pqd0y")
 bow_tower_scene = ExtResource("17_xy2fk")
+wall_scene = ExtResource("18_kih21")
 projectile_scene = ExtResource("18_cmcjb")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]

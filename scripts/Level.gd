@@ -51,8 +51,8 @@ var drag_start_pos: Vector2i
 @export var stockpile_scene: PackedScene 
 @export var lumberjack_scene: PackedScene
 @export var sawmill_scene: PackedScene
-
 @export var bow_tower_scene: PackedScene
+@export var wall_scene: PackedScene
 
 @export var projectile_scene: PackedScene
 
@@ -156,6 +156,7 @@ func _setup_hotbar_items():
 	_add_building_to_bar("Sawmill", sawmill_scene)
 	_add_building_to_bar("Stockpile", stockpile_scene)
 	_add_building_to_bar("Bow Tower", bow_tower_scene)
+	_add_building_to_bar("Wall", wall_scene)
 
 func _add_building_to_bar(name: String, packed_scene: PackedScene):
 	if not packed_scene: return

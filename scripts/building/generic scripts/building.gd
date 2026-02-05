@@ -9,6 +9,13 @@ signal inventory_changed
 
 var is_ghost: bool = false
 
+# True = Stockpile (Blocks path completely)
+# False = Wall (Walkable but expensive)
+@export var is_solid_obstacle: bool = true 
+
+# If not solid, how expensive is it?
+@export var path_cost: float = 10
+
 @export var building_name := "Building"
 @export var size := Vector2i(1, 1)
 @export var max_health := 100
