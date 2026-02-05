@@ -10,7 +10,9 @@ var current_target: Node2D
 
 # Pathfinding State
 var current_path: PackedVector2Array = []
-var path_update_timer: float = 0.0
+var path_update_timer: float = 0
+
+var find_target_timer: float = 1
 
 func _ready():
 	# 1. FIND THE PATHFINDER
@@ -34,7 +36,10 @@ func _physics_process(delta):
 			_find_target()
 			return
 	else:
-		_find_target()
+		find_target_timer -= delta
+		if (find_target_timer <= 0.0):
+			_find_target()
+			find_target_timer = 1
 		return # Wait for next frame to find one
 
 	# --- 2. ATTACK CHECK ---
@@ -56,7 +61,7 @@ func _physics_process(delta):
 	path_update_timer -= delta
 	if path_update_timer <= 0.0:
 		_recalculate_path()
-		path_update_timer = 0.5 # Update 2 times a second
+		path_update_timer = 1 # Update 1 times a second
 
 	# --- 4. MOVEMENT ---
 	if current_path.is_empty():
