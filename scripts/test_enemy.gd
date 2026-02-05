@@ -85,20 +85,20 @@ func _recalculate_path():
 	if not pathfinder or not is_instance_valid(current_target):
 		return
 		
-	# 1. Print the ACTUAL target location
-	print("--- PATH REQUEST ---")
-	print("Target Real Position: ", current_target.global_position)
+	# 1. Ask for the path
+	var new_path = pathfinder.get_path_route(global_position, current_target.global_position)
 	
-	# 2. Ask for the path
-	current_path = pathfinder.get_path_route(global_position, current_target.global_position)
-	
-	# 3. Print where the path actually ends
-	if current_path.size() > 0:
-		var final_point = current_path[current_path.size() - 1]
-		print("Path Final Point: ", final_point)
-		
-	else:
-		print("Path is Empty.")
+	# 2. THE FIX: Prune the first point if we are already there
+	if not new_path.is_empty():
+		# The first point is usually the center of the tile we are standing on.
+		# If we are within ~20 pixels of it (less than 1 tile away), ignore it.
+		# This prevents the "turn around" stutter.
+		if global_position.distance_to(new_path[0]) < 32.0:
+			new_path.remove_at(0)
+
+	# 3. Update the path variable
+	current_path = new_path
+
 
 func _find_target():
 	var targets = get_tree().get_nodes_in_group("PriorityTarget")
