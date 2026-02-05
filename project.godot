@@ -33,6 +33,7 @@ window/size/viewport_height=720
 
 Enemies="Enemies that are able to be shot at"
 PriorityTarget="buildings enemies will target first"
+Structure="A structure/building that has hp and can be damaged"
 
 [input]
 
