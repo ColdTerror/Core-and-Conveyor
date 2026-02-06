@@ -66,6 +66,7 @@ func handle_input(event, current_grid_pos: Vector2i) -> bool:
 		if ghost_building.is_draggable:
 			is_dragging = true
 			drag_start = current_grid_pos
+			_update_drag_line(current_grid_pos)
 			ghost_building.visible = false # Hide the main cursor
 			return false # Keep processing input
 			
@@ -207,36 +208,37 @@ func _commit_drag_line():
 	# Store the original scene to respawn logic later
 	if drag_ghosts.size() == 0: return
 	
-	# We need to preserve the "main" ghost reference logic, 
-	# so we loop through our drag ghosts and treat them as the active one.
-	
-	# 1. Capture the original prototype logic (to restore cursor later)
 	var original_scene_path = ghost_building.scene_file_path
 	var original_scene = load(original_scene_path)
 	
+	# 1. Kill the main cursor ghost so it doesn't get in the way
+	if ghost_building:
+		ghost_building.queue_free()
+		ghost_building = null
+	
 	# 2. Iterate and Build
 	for g in drag_ghosts:
-		# We hijack the main 'ghost_building' variable because confirm_placement uses it
-		# (But first we free the hidden cursor ghost so it doesn't conflict)
-		if ghost_building:
-			ghost_building.queue_free()
-			
+		# Promote 'g' to be the active ghost
 		ghost_building = g
 		
 		# Calculate grid pos from the ghost's visual position
+		# (Must use local_to_map relative to object_layer)
 		var grid_pos = object_layer.local_to_map(object_layer.to_local(g.global_position))
 		
 		# Try to build
-		confirm_placement(grid_pos)
+		var success = confirm_placement(grid_pos)
 		
-		# Note: confirm_placement sets ghost_building to null on success
-		# If it failed (no money), ghost_building is still 'g', so we should free it manually
-		if ghost_building != null:
-			ghost_building.queue_free()
-			ghost_building = null
+		# If placement failed (blocked/no money), we must delete the unused ghost
+		if not success:
+			g.queue_free()
+			
+	# --- CRITICAL FIX ---
+	# We have either used or deleted all ghosts. 
+	# Clear the array so handle_input doesn't try to delete them again!
+	drag_ghosts.clear() 
+	# --------------------
 
 	# 3. Restore the main cursor for the next placement
-	# (Since we consumed all the ghosts in the loop)
 	start_placing(original_scene)
 
 

@@ -13,7 +13,10 @@ func _ready():
 	work_bar.visible = false
 
 func _process(_delta):
-	# SMOOTH ANIMATION LOOP
+	if not is_instance_valid(current_building):
+		if visible:
+			hide_popup() # Close automatically if the building was destroyed
+		return
 	# Only run this if the popup is visible and we are looking at a machine
 	if visible and current_building is ProcessorBuilding:
 		var b = current_building as ProcessorBuilding
