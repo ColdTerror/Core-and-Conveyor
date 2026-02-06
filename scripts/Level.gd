@@ -588,7 +588,7 @@ func update_highlight(grid_pos: Vector2i):
 	highlight.region_rect = Rect2(Vector2(atlas_pos) * tile_size_px, tile_size_px)
 
 
-func _input(event):
+func _unhandled_input(event):
 	# 1. Rotation (Always allowed)
 	if event.is_action_pressed("rotate_tile"):
 		var current_data = tile_library[current_tile_index]

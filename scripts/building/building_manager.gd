@@ -107,12 +107,7 @@ func confirm_placement() -> bool:
 	
 	return true # Success!
 
-func cancel_placement():
-	if ghost_building:
-		ghost_building.queue_free()
 
-	ghost_building = null
-	placing_building = false
 
 # -------------------------------
 # INTERNAL
@@ -154,6 +149,18 @@ func _register_occupied_tiles(building: Building):
 func _register_building(building: Building):
 	building.hovered.connect(_on_building_hovered)
 	building.unhovered.connect(_on_building_unhovered)
+
+func _unhandled_input(event):
+	# Check if the player pressed ESC (ui_cancel is built-in)
+	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
+		if ghost_building != null:
+			cancel_placement()
+			
+func cancel_placement():
+	if ghost_building:
+		ghost_building.queue_free()
+		ghost_building = null
+		print("Placement cancelled.")
 
 func _on_building_hovered(building: Building):
 	if hover_popup:
