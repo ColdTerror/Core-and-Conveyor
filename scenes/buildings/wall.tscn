@@ -10,6 +10,9 @@ region = Rect2(64, 0, 32, 32)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_r6sg1"]
 size = Vector2(32, 32)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gxk2j"]
+size = Vector2(32, 32)
+
 [node name="Wall" type="StaticBody2D" unique_id=613196680 groups=["Structure"]]
 script = ExtResource("1_gxk2j")
 is_solid_obstacle = false
@@ -25,3 +28,8 @@ region_rect = Rect2(64, 0, 32, 32)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1142028149]
 shape = SubResource("RectangleShape2D_r6sg1")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1119633970]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=495812014]
+shape = SubResource("RectangleShape2D_gxk2j")
