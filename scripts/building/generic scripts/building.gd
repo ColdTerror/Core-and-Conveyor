@@ -13,8 +13,12 @@ var is_ghost: bool = false
 # False = Wall (Walkable but expensive)
 @export var is_solid_obstacle: bool = true 
 
+
+
 # If not solid, how expensive is it?
 @export var path_cost: float = 10
+
+@export var is_draggable: bool = false
 
 @export var building_name := "Building"
 @export var size := Vector2i(1, 1)

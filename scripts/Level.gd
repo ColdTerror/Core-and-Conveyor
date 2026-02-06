@@ -589,46 +589,55 @@ func update_highlight(grid_pos: Vector2i):
 
 
 func _unhandled_input(event):
+	var mouse_pos = get_global_mouse_position()
+	var grid_pos = terrain_layer.local_to_map(mouse_pos)
+
 	# 1. Rotation (Always allowed)
 	if event.is_action_pressed("rotate_tile"):
 		var current_data = tile_library[current_tile_index]
 		if current_data.is_conveyor:
 			var start = conveyor_start_index
 			current_tile_index = start + ((current_tile_index - start + 1) % 4)
+		return # Stop here
 
-	# 2. Mouse Clicks (Mode Dependent)
-	if event.is_action_pressed("ui_left"):
-		print_debug('left click' + str(current_mode))
-		
-		# MODE 1: Placing a Building
-		if current_mode == InteractionMode.PLACE_BUILDING:
-			# FIX: Only reset mode if placement was successful (returned true)
-			if building_manager.confirm_placement():
-				current_mode = InteractionMode.NONE
-			else:
-				# Optional: Play "invalid placement" sound here
-				print_debug("invalid placement")
-				pass
+	# 2. BUILDING MODE (Delegated to Manager)
+	# We check this FIRST. If we are placing a building, we send Presses, Releases, 
+	# and Motion events to the manager so it can handle dragging walls.
+	if current_mode == InteractionMode.PLACE_BUILDING:
+		if event is InputEventMouse: # Covers Motion and Buttons
+			# The manager returns TRUE if it placed a single building and finished.
+			# It returns FALSE if it's dragging or waiting for more input.
+			var finished = building_manager.handle_input(event, grid_pos)
 			
+			if finished:
+				current_mode = InteractionMode.NONE
+			return # Don't let building clicks trigger other logic below
+
+	# 3. TILE MODE & SELECTION (Standard Clicks)
+	# Only listen for explicit "Presses" for these modes
+	if event.is_action_pressed("ui_left"):
+		
 		# MODE 2: Placing Tiles (Belts)
-		elif current_mode == InteractionMode.PLACE_TILE:
-			pass #handle draging belts in process
-			#if not is_dragging_line:
-			#	place_tile(terrain_layer.local_to_map(get_global_mouse_position()), tile_library[current_tile_index])
+		if current_mode == InteractionMode.PLACE_TILE:
+			# Belt logic is handled in _process via dragging, so we pass here.
+			# If you had single-click tile placement, put it here.
+			pass 
 
 		# MODE 3: Selection / Interaction (Clicking existing stuff)
 		elif current_mode == InteractionMode.NONE:
 			_handle_selection_click()
 
-	# 3. Right Click (Cancel)
-	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
+	# 4. CANCELLATION (Escape OR Right Click)
+	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+		# Common Cancel
 		building_manager.cancel_placement()
 		current_mode = InteractionMode.NONE
 		is_dragging_line = false
 		$GhostLayer.queue_redraw()
 		
-		# Optional: Default right-click behavior (Harvest)
-		#handle_harvest_input(terrain_layer.local_to_map(get_global_mouse_position()))
+		# Specific Right Click (Harvest)
+		#if event.is_action_pressed("ui_right"):
+		#	handle_harvest_input(grid_pos)
 
 func _handle_selection_click():
 	var grid_pos = terrain_layer.local_to_map(get_global_mouse_position())

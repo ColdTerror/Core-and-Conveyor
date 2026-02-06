@@ -17,6 +17,7 @@ size = Vector2(32, 32)
 script = ExtResource("1_gxk2j")
 is_solid_obstacle = false
 path_cost = 50.0
+is_draggable = true
 building_name = "Wall"
 icon = SubResource("AtlasTexture_gxk2j")
 cost_wood = 0
