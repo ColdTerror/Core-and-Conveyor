@@ -621,14 +621,14 @@ func _unhandled_input(event):
 			_handle_selection_click()
 
 	# 3. Right Click (Cancel)
-	elif event.is_action_pressed("ui_right"):
+	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 		building_manager.cancel_placement()
 		current_mode = InteractionMode.NONE
 		is_dragging_line = false
 		$GhostLayer.queue_redraw()
 		
 		# Optional: Default right-click behavior (Harvest)
-		handle_harvest_input(terrain_layer.local_to_map(get_global_mouse_position()))
+		#handle_harvest_input(terrain_layer.local_to_map(get_global_mouse_position()))
 
 func _handle_selection_click():
 	var grid_pos = terrain_layer.local_to_map(get_global_mouse_position())
