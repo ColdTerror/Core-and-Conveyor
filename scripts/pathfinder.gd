@@ -48,59 +48,73 @@ func set_weighted_obstacle(coords: Vector2i, cost: float):
 
 # The function Enemies call to get a path
 func get_path_route(start_world: Vector2, end_world: Vector2) -> PackedVector2Array:
-	# 1. TRANSLATION LAYER (World Pixels -> Grid Indices)
-	# Converts (800, 896) -> Local (800, 896) -> Grid (25, 28)
 	var start_local = main_layer.to_local(start_world)
 	var end_local = main_layer.to_local(end_world)
 	
 	var start_grid = main_layer.local_to_map(start_local)
 	var end_grid = main_layer.local_to_map(end_local)
 	
-	# --- 1. HANDLE SOLID TARGETS (BFS SEARCH) ---
+	# --- SMART TARGETING (Cost-Aware) ---
+	# If the target is a solid building, we need to find the best "Doorstep"
 	if astar.is_in_boundsv(end_grid) and astar.is_point_solid(end_grid):
-		var found_valid_tile = false
 		
-		# BFS Variables
-		var queue: Array[Vector2i] = [end_grid]
-		var visited: Dictionary = { end_grid: true }
-		var search_limit = 20 # Don't search more than 20 tiles away
+		var best_path_ids: Array[Vector2i] = []
+		var lowest_cost = INF
 		
-		while queue.size() > 0:
-			var current = queue.pop_front()
-			
-			# Check if this tile is walkable
-			if astar.is_in_boundsv(current) and not astar.is_point_solid(current):
-				end_grid = current # Found our new target!
-				found_valid_tile = true
-				break
-			
-			# If we've searched too far, stop
-			if visited.size() > search_limit:
-				break
-			
-			# Add neighbors to queue
-			var neighbors = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
-			for n in neighbors:
-				var next = current + n
-				if not visited.has(next) and astar.is_in_boundsv(next):
-					visited[next] = true
-					queue.append(next)
+		# 1. Define Search Area (Perimeter of the building)
+		# Use 1 for 1x1 buildings, 2 for larger ones to be safe
+		var radius = 2 
 		
-		if not found_valid_tile:
-			print("Pathfinder: Target is deeply buried in walls! Cannot reach.")
-			return [] # Return empty path
+		for x in range(end_grid.x - radius, end_grid.x + radius + 1):
+			for y in range(end_grid.y - radius, end_grid.y + radius + 1):
+				var neighbor = Vector2i(x, y)
+				
+				# Skip invalid tiles or the building center itself
+				if not astar.is_in_boundsv(neighbor): continue
+				if neighbor == end_grid: continue 
+				
+				# Optimization: Only check "Solid" neighbors if they are Walls (weighted)
+				# If it's a hard obstacle (Water), skip it.
+				if astar.is_point_solid(neighbor):
+					# If weight is 1.0, it's a generic solid (like water/bedrock), skip.
+					# If weight > 1.0, it's a Wall, so it's a valid target to break.
+					if astar.get_point_weight_scale(neighbor) <= 1.0:
+						continue
+
+				# 2. GENERATE PATH to this candidate
+				var potential_path = astar.get_id_path(start_grid, neighbor)
+				if potential_path.is_empty(): continue
+				
+				# 3. CALCULATE TRUE COST
+				# Sum the weight of every tile in the path.
+				# (Grass = 1, Wall = 50).
+				var current_cost = 0.0
+				for id in potential_path:
+					current_cost += astar.get_point_weight_scale(id)
+				
+				# 4. Compare
+				if current_cost < lowest_cost:
+					lowest_cost = current_cost
+					best_path_ids = potential_path
+					
+		# If we found a valid path, convert IDs to World Position
+		if not best_path_ids.is_empty():
+			var world_path = PackedVector2Array()
+			for point in best_path_ids:
+				var local_pos = main_layer.map_to_local(point)
+				world_path.append(main_layer.to_global(local_pos))
+			return world_path
+			
+		else:
+			# Fallback: If absolutely no path found (Target islanded?)
+			return []
 	# -------------------------------------------
 
-	# 2. Get the Path (Grid Indices)
-	# AStar returns: [(25, 28), (25, 27), ...]
+	# Normal movement (Grid to Grid)
 	var path_points = astar.get_point_path(start_grid, end_grid)
-	
-	# 3. CONVERT BACK (Grid Indices -> World Pixels)
 	var world_path = PackedVector2Array()
-	
 	for point in path_points:
-		var local_pos = main_layer.map_to_local(point) # (25, 28) -> (800, 896)
-		var global_pos = main_layer.to_global(local_pos)
-		world_path.append(global_pos)
+		var local_pos = main_layer.map_to_local(point)
+		world_path.append(main_layer.to_global(local_pos))
 		
 	return world_path
