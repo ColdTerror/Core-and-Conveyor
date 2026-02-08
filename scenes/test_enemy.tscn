@@ -3,8 +3,8 @@
 [ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_h17bh"]
 [ext_resource type="Script" uid="uid://b4o0egbbmxkeh" path="res://scripts/test_enemy.gd" id="1_mkyue"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mkyue"]
-size = Vector2(32, 32)
+[sub_resource type="CircleShape2D" id="CircleShape2D_mkyue"]
+radius = 14.0
 
 [node name="TestEnemy" type="CharacterBody2D" unique_id=1134500982 groups=["Enemies"]]
 collision_layer = 3
@@ -16,4 +16,4 @@ scale = Vector2(0.25, 0.25)
 texture = ExtResource("1_h17bh")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=850654236]
-shape = SubResource("RectangleShape2D_mkyue")
+shape = SubResource("CircleShape2D_mkyue")
