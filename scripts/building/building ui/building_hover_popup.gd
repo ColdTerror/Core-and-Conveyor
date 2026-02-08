@@ -3,57 +3,101 @@ extends PanelContainer
 @onready var name_label = $VBoxContainer/Name
 @onready var health_label = $VBoxContainer/Health
 @onready var inventory_box = $VBoxContainer/Inventory
-
-# NEW NODE
 @onready var work_bar = $VBoxContainer/WorkBar
 
 var current_building: Building = null
 
 func _ready():
 	work_bar.visible = false
+	hide() # Start hidden
 
 func _process(_delta):
-	if not is_instance_valid(current_building):
-		if visible:
-			hide_popup() # Close automatically if the building was destroyed
+	# SAFETY CHECK: If building died, close popup immediately
+	if visible and not is_instance_valid(current_building):
+		hide_popup()
 		return
-	# Only run this if the popup is visible and we are looking at a machine
-	if visible and current_building is ProcessorBuilding:
-		var b = current_building as ProcessorBuilding
-		if b.has_method("get_progress_ratio"):
-			work_bar.value = b.get_progress_ratio() * 100.0
+
+	# PROGRESS BAR ANIMATION (Only runs if visible + is machine)
+	if visible and current_building.has_method("get_progress_ratio"):
+		work_bar.value = current_building.get_progress_ratio() * 100.0
 
 func show_building_info(b: Building):
-	# 1. Clean up previous connection
-	if current_building and current_building.inventory_changed.is_connected(_on_inventory_changed):
-		current_building.inventory_changed.disconnect(_on_inventory_changed)
+	# 1. Check if we are switching to a NEW building
+	var is_new_target = (current_building != b)
+	
+	# 2. Clean up OLD connections
+	_disconnect_signals()
 	
 	current_building = b
 	
-	# 2. Update Static Info
+	# 3. Update Text & Connect Signals (Your existing logic)
 	name_label.text = b.building_name 
 	health_label.text = "%d / %d" % [b.health, b.max_health]
+	_update_health_text(b.health, b.max_health)
 	
-	# 3. Connect Signal (Updates the text inventory)
-	if not current_building.inventory_changed.is_connected(_on_inventory_changed):
-		current_building.inventory_changed.connect(_on_inventory_changed)
+	if not current_building.health_changed.is_connected(_on_health_changed):
+		current_building.health_changed.connect(_on_health_changed)
 	
-	# 4. HANDLE PROGRESS BAR
-	if b is ProcessorBuilding:
-		work_bar.visible = true
-	else:
-		work_bar.visible = false
-	
-	# 5. Draw Initial State
+	# Handle Inventory / Work Bar...
+	work_bar.visible = (b is ProcessorBuilding)
 	_refresh_inventory_ui()
-	show()
+	
+	# --- 4. THE FLASH ANIMATION ---
+	# Only play this if we switched targets or the popup was hidden
+	if is_new_target or not visible:
+		# Ensure we are visible first
+		show()
+		
+		# Set Pivot to center so it scales from the middle
+		pivot_offset = size / 2
+		
+		# Reset to "Small and Transparent"
+		scale = Vector2(0.9, 0.9)
+		modulate.a = 0.5 
+		
+		# Create a Tween to "Pop" it back to normal
+		var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		
+		# Animate Scale and Opacity back to 1.0 over 0.1 seconds (Very fast)
+		tween.tween_property(self, "scale", Vector2.ONE, 0.1)
+		tween.parallel().tween_property(self, "modulate:a", 1.0, 0.1)
+
+func hide_popup():
+	_disconnect_signals()
+	current_building = null
+	hide()
+
+# --- HELPER: CLEAN DISCONNECT ---
+func _disconnect_signals():
+	if current_building and is_instance_valid(current_building):
+		if current_building.health_changed.is_connected(_on_health_changed):
+			current_building.health_changed.disconnect(_on_health_changed)
+			
+		if current_building.has_signal("inventory_changed"):
+			if current_building.inventory_changed.is_connected(_on_inventory_changed):
+				current_building.inventory_changed.disconnect(_on_inventory_changed)
+
+# --- SIGNAL CALLBACKS ---
+
+func _on_health_changed(current: int, max_hp: int):
+	_update_health_text(current, max_hp)
+
+func _update_health_text(current: int, max_hp: int):
+	health_label.text = "HP: %d / %d" % [current, max_hp]
 
 func _on_inventory_changed():
 	_refresh_inventory_ui()
 
+# --- INVENTORY LOGIC (Unchanged) ---
+
 func _refresh_inventory_ui():
 	if not current_building: return
 	
+	# Safety: Ensure building has this function before calling
+	if not current_building.has_method("get_inventory_info"):
+		hide_inventory()
+		return
+
 	var info = current_building.get_inventory_info()
 	
 	if not info.is_empty():
@@ -70,10 +114,9 @@ func show_inventory(inventory: Dictionary):
 
 	# Populate rows
 	for key in inventory.keys():
-		var value = inventory[key] # could be int (5) or String ("Wooden Arrow")
+		var value = inventory[key] 
 		var display_text = "Unknown"
 
-		# 1. Determine the Label Name
 		if key is Resource and "display_name" in key:
 			display_text = key.display_name
 		elif key is String:
@@ -81,22 +124,12 @@ func show_inventory(inventory: Dictionary):
 			
 		var row := Label.new()
 		
-		# 2. FIX: Format based on value type
 		if value is int or value is float:
-			# It's a number (e.g. "Wood: 5")
 			row.text = "%s: %d" % [display_text, value]
 		else:
-			# It's a string (e.g. "Recipe: Arrows")
 			row.text = "%s: %s" % [display_text, str(value)]
 			
 		inventory_box.add_child(row)
 
 func hide_inventory():
 	inventory_box.visible = false
-
-func hide_popup():
-	if current_building and current_building.inventory_changed.is_connected(_on_inventory_changed):
-		current_building.inventory_changed.disconnect(_on_inventory_changed)
-	
-	current_building = null
-	hide()

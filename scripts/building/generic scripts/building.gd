@@ -6,6 +6,7 @@ signal hovered(building: Building)
 signal unhovered(building: Building)
 
 signal inventory_changed
+signal health_changed(current_hp: int, max_hp: int)
 
 var is_ghost: bool = false
 
@@ -138,6 +139,8 @@ func accept_item(_item: ItemResource) -> bool:
 # --- Health Stuff ---
 func take_damage(amount: int):
 	health -= amount
+	
+	health_changed.emit(health, max_health)
 	# Optional: Flash color to show damage
 	modulate = Color.RED
 	await get_tree().create_timer(0.1).timeout

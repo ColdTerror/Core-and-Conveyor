@@ -304,9 +304,12 @@ func _on_building_hovered(building: Building):
 	if hover_popup:
 		hover_popup.show_building_info(building)
 
-func _on_building_unhovered(_building):
+func _on_building_unhovered(building):
 	if hover_popup:
-		hover_popup.hide_popup()
+		# THE FIX: Only hide if the popup is currently displaying THIS building.
+		# If the popup has already switched to a new building, ignore this signal.
+		if hover_popup.current_building == building:
+			hover_popup.hide_popup()
 
 # Same math as your Level.gd
 func _get_straight_line(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
