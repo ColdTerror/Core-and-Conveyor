@@ -96,12 +96,41 @@ func _process(delta):
 	# Note: We handled ghost position in handle_input, so we don't strictly need it here
 	# unless you want it to update even when mouse doesn't move.
 
-func _on_building_destroyed(building_instance):
-	if buildings.has(building_instance):
-		buildings.erase(building_instance)
+func _on_building_destroyed(b: Building):
+	if b in buildings:
+		buildings.erase(b)
+	
+	for tile in b.occupied_tiles:
+		if occupied_tiles.has(tile):
+			occupied_tiles.erase(tile)
+	
+	# Free up the Pathfinder Tiles
+	# We iterate through the tiles the building used to occupy
+	if pathfinder:
+		for tile in b.occupied_tiles:
+			# Reset the tile to be Walkable (Not Solid)
+			pathfinder.set_obstacle(tile, false)
+			
+			# Reset the Weight (Cost) to default Grass (1.0)
+			# This ensures Walls don't leave behind invisible "slow zones"
+			pathfinder.set_weighted_obstacle(tile, 1.0)
+
+	# Handle Inventory / Economy
+	# Since the node is about to be deleted, its inventory data is about to vanish.
+	# If your EconomyManager counts items by looping through buildings, 
+	# you just need to tell it to recount NOW.
+	
+	# Example:
+	# EconomyManager.force_recalculate() 
+	
+	# OR: If you keep a running total, you must subtract it manually:
+	# if b.has_method("get_inventory_info"):
+	#     var lost_items = b.get_inventory_info()
+	#     EconomyManager.remove_resources(lost_items)
+
+	print("Building Destroyed: Map tiles cleared.")
 		
-	# Optional: Clean up occupied tiles if you aren't doing it elsewhere
-	# (This depends on how you handle tile clearing)
+
 # --- UPDATED: Accepts optional grid position for Dragging ---
 func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if not placing_building or ghost_building == null:
@@ -138,6 +167,8 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	# Connect Signals (Towers)
 	if ghost_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
 		ghost_building.fired_projectile.connect(level_ref._on_tower_fired)
+		
+	ghost_building.destroyed.connect(_on_building_destroyed)
 
 	buildings.append(ghost_building)
 	_register_building(ghost_building)
