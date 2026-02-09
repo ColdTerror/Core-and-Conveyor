@@ -195,15 +195,18 @@ mouse_filter = 2
 [node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 instance=ExtResource("21_h6wmr")]
 layout_mode = 1
 
-[node name="TestEnemy" parent="." unique_id=722599789 instance=ExtResource("27_cmcjb")]
-position = Vector2(667, 541)
-
 [node name="GhostLayer" type="Node2D" parent="." unique_id=1770065455]
 z_index = 100
 script = ExtResource("28_556r4")
 
 [node name="Pathfinder" type="Node2D" parent="." unique_id=1266074560]
 script = ExtResource("29_7agi7")
+
+[node name="TestEnemy" parent="." unique_id=722599789 instance=ExtResource("27_cmcjb")]
+position = Vector2(667, 541)
+
+[node name="TestEnemy2" parent="." unique_id=1134500982 instance=ExtResource("27_cmcjb")]
+position = Vector2(829, 614)
 
 [connection signal="pressed" from="CanvasLayer/Debug_Layer/Generate Map" to="." method="generate_simple_map"]
 [connection signal="pressed" from="CanvasLayer/Debug_Layer/Print Objects" to="." method="print_active_objects"]
