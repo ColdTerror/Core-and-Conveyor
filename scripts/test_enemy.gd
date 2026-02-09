@@ -81,12 +81,19 @@ func _move_along_path(delta):
 
 	if current_path.is_empty():
 		if is_instance_valid(current_target):
-			# Calculate distance
+			
+			# Get Target Size
+			var target_radius = 16.0 # Default size (half a tile)
+			if current_target.has_method("get_radius"):
+				target_radius = current_target.get_radius()
+			
+			
+			var max_approach_dist = target_radius
+			
 			var dist = global_position.distance_to(current_target.global_position)
 			
-			# ONLY move straight if we are less than 1 tile away (32px)
-			# This prevents "Water Walking" from across the map
-			if dist < 32.0:
+			# Check Distance
+			if dist < max_approach_dist:
 				var dir = global_position.direction_to(current_target.global_position)
 				velocity = dir * movement_speed
 				move_and_slide()
@@ -98,10 +105,10 @@ func _move_along_path(delta):
 						if collider == current_target or collider.is_in_group("Structure"):
 							_perform_structure_attack(collider)
 			else:
-				# We are far away and have no path -> We are stuck. Stop moving.
+				# Too far away (Cross-map water/void check)
 				velocity = Vector2.ZERO
 		return
-	# ----------------
+	# -------------------------------
 
 	# 2. Move towards next point
 	var next_point = current_path[0]

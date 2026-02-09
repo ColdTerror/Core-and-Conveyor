@@ -65,6 +65,31 @@ func get_footprint(origin: Vector2i) -> Array[Vector2i]:
 			tiles.append(origin + Vector2i(x, y))
 	return tiles
 
+func get_radius() -> float:
+	# Calculate an approximate radius based on occupied tiles.
+	# Standard tile is 32x32, so radius is ~16.
+	# If we occupy 9 tiles (3x3), the "radius" from center is roughly 48px.
+	
+	if occupied_tiles.is_empty():
+		return 16.0 # Default fallback
+		
+	# Quick math: Get the largest dimension
+	var min_x = INF
+	var max_x = -INF
+	var min_y = INF
+	var max_y = -INF
+	
+	for tile in occupied_tiles:
+		min_x = min(min_x, tile.x)
+		max_x = max(max_x, tile.x)
+		min_y = min(min_y, tile.y)
+		max_y = max(max_y, tile.y)
+		
+	var width = (max_x - min_x + 1) * 32.0
+	var height = (max_y - min_y + 1) * 32.0
+	
+	# Return half the largest side (Radius)
+	return max(width, height) / 2.0
 
 # --- Placement ---
 func place_at(origin: Vector2i, object_layer: TileMapLayer):

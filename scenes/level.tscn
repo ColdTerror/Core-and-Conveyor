@@ -137,6 +137,7 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Generate Map" type="Button" parent="CanvasLayer/Debug_Layer" unique_id=1749926711]
+visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -147,6 +148,7 @@ grow_horizontal = 0
 text = "Generate Map"
 
 [node name="Print Objects" type="Button" parent="CanvasLayer/Debug_Layer" unique_id=471860525]
+visible = false
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -161,6 +163,7 @@ grow_vertical = 2
 text = "Print Objects"
 
 [node name="Spawn Item" type="Button" parent="CanvasLayer/Debug_Layer" unique_id=292236248]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
