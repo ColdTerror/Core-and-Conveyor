@@ -192,6 +192,12 @@ func accept_item(_item: ItemResource) -> bool:
 	return false
 	
 	
+# NEW FUNCTION:
+# Returns a clean dictionary of { "ResourceName": Amount }
+# Default: Empty (Towers/Walls return nothing, so no crash)
+func get_economy_assets() -> Dictionary:
+	return {}
+
 # --- Health Stuff ---
 func take_damage(amount: int):
 	health -= amount

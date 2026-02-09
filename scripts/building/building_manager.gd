@@ -115,12 +115,16 @@ func _on_building_destroyed(b: Building):
 			# This ensures Walls don't leave behind invisible "slow zones"
 			pathfinder.set_weighted_obstacle(tile, 1.0)
 
-	if b.has_method("get_inventory_info"):
-		var stored_items = b.get_inventory_info()
+	# --- 4. THE FIX ---
+	# We call the translator function. 
+	# - If it's a Tower, it returns {} (Safe).
+	# - If it's a Stockpile, it returns {"Wood": 50} (Safe).
+	if b.has_method("get_economy_assets"):
+		var assets = b.get_economy_assets()
 		
-		# If it had items, remove them from the global total
-		if not stored_items.is_empty():
-			EconomyManager.remove_resources(stored_items)
+		if not assets.is_empty():
+			EconomyManager.remove_resources(assets)
+	# ------------------
 
 	print("Building Destroyed: Map tiles cleared.")
 		

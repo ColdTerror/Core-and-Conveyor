@@ -59,3 +59,16 @@ func get_item_amount(item: ItemResource) -> int:
 	
 func get_inventory_info() -> Dictionary:
 	return inventory
+	
+func get_economy_assets() -> Dictionary:
+	var assets = {}
+	
+	# Translate Internal Inventory (ItemResource -> int)
+	# Into Economy Format (String -> int)
+	for item in inventory:
+		if item is ItemResource:
+			# Example: We have <Resource:Wood>.
+			# We grab its name "Wood" and use that as the key.
+			assets[item.display_name] = inventory[item]
+			
+	return assets
