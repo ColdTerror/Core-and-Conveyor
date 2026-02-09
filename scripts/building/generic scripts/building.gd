@@ -91,6 +91,35 @@ func get_radius() -> float:
 	# Return half the largest side (Radius)
 	return max(width, height) / 2.0
 
+# Returns a list of world positions where an enemy can stand to hit this building
+func get_access_points(pathfinder_node: Pathfinder) -> Array[Vector2]:
+	var points: Array[Vector2] = []
+	var grid = pathfinder_node.astar
+	
+	# Loop through every tile this building occupies
+	for tile_pos in occupied_tiles:
+		# Check all 4 neighbors of this specific tile
+		var neighbors = [
+			Vector2i(0, 1), Vector2i(0, -1), 
+			Vector2i(1, 0), Vector2i(-1, 0)
+		]
+		
+		for offset in neighbors:
+			var check_pos = tile_pos + offset
+			
+			# 1. Is it inside map bounds?
+			if not grid.is_in_boundsv(check_pos): continue
+			
+			# 2. Is it NOT solid? (i.e., Walkable)
+			# We want to stand on empty ground, not inside a wall.
+			if not grid.is_point_solid(check_pos):
+				# Convert to World Position
+				var local_pos = pathfinder_node.main_layer.map_to_local(check_pos)
+				var global_pos = pathfinder_node.main_layer.to_global(local_pos)
+				points.append(global_pos)
+				
+	return points
+	
 # --- Placement ---
 func place_at(origin: Vector2i, object_layer: TileMapLayer):
 	occupied_tiles = get_footprint(origin)

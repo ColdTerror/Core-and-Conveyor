@@ -186,11 +186,42 @@ func _find_target():
 			nearest = t
 	current_target = nearest
 
+# Enemy.gd
+
 func _recalculate_path():
 	if not pathfinder or not is_instance_valid(current_target): return
-	var new_path = pathfinder.get_path_route(global_position, current_target.global_position)
+	
+	var target_pos = current_target.global_position
+	
+	# --- NEW: SMART BUILDING TARGETING ---
+	# If the target is a building, ask "Where should I stand?"
+	if current_target is Building:
+		var access_points = current_target.get_access_points(pathfinder)
+		
+		if access_points.is_empty():
+			# Building is completely buried/unreachable
+			return 
+			
+		# Find the closest point to ME
+		var closest_point = Vector2.ZERO
+		var min_dist = INF
+		
+		for pt in access_points:
+			var d = global_position.distance_squared_to(pt)
+			if d < min_dist:
+				min_dist = d
+				closest_point = pt
+		
+		# Override the target destination with this specific tile center
+		target_pos = closest_point
+	# -------------------------------------
+
+	var new_path = pathfinder.get_path_route(global_position, target_pos)
+	
+	# Prune start node logic (keeps movement smooth)
 	if not new_path.is_empty() and global_position.distance_to(new_path[0]) < 32.0:
 		new_path.remove_at(0)
+
 	current_path = new_path
 
 func _has_line_of_sight(target) -> bool:
