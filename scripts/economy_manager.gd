@@ -40,3 +40,22 @@ func spend_resources(cost: Dictionary):
 			
 	resources_changed.emit()
 	print("Spent resources. Remaining | Wood: %d | Stone: %d" % [wood, stone])
+	
+#4. NEW: Loss of resources (Building Destruction)
+func remove_resources(resources: Dictionary):
+	if resources.is_empty(): return
+	
+
+	for resource_name in resources:
+		var amount = resources[resource_name]
+		
+		print_debug(str(amount) + str(resource_name.display_name))
+		
+		match resource_name.display_name:
+			"Wood": 
+				wood = max(0, wood - amount) # Prevent negative numbers
+			"Stone": 
+				stone = max(0, stone - amount)
+				
+	resources_changed.emit()
+	print("Lost resources! Remaining | Wood: %d | Stone: %d" % [wood, stone])

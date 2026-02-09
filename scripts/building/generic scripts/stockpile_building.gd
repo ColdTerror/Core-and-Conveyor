@@ -27,6 +27,7 @@ func can_accept_item(item: ItemResource) -> bool:
 
 
 func accept_item(item: ItemResource) -> bool:
+	print('accepting item')
 	if not can_accept_item(item):
 		return false
 

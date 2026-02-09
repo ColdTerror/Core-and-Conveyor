@@ -115,18 +115,12 @@ func _on_building_destroyed(b: Building):
 			# This ensures Walls don't leave behind invisible "slow zones"
 			pathfinder.set_weighted_obstacle(tile, 1.0)
 
-	# Handle Inventory / Economy
-	# Since the node is about to be deleted, its inventory data is about to vanish.
-	# If your EconomyManager counts items by looping through buildings, 
-	# you just need to tell it to recount NOW.
-	
-	# Example:
-	# EconomyManager.force_recalculate() 
-	
-	# OR: If you keep a running total, you must subtract it manually:
-	# if b.has_method("get_inventory_info"):
-	#     var lost_items = b.get_inventory_info()
-	#     EconomyManager.remove_resources(lost_items)
+	if b.has_method("get_inventory_info"):
+		var stored_items = b.get_inventory_info()
+		
+		# If it had items, remove them from the global total
+		if not stored_items.is_empty():
+			EconomyManager.remove_resources(stored_items)
 
 	print("Building Destroyed: Map tiles cleared.")
 		
@@ -173,7 +167,6 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	buildings.append(ghost_building)
 	_register_building(ghost_building)
 	_register_occupied_tiles(ghost_building)
-	ghost_building.tree_exiting.connect(_on_building_destroyed.bind(ghost_building))
 	
 	# Update Pathfinder
 	if pathfinder:

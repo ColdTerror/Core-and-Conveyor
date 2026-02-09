@@ -37,6 +37,9 @@ func show_building_info(b: Building):
 	
 	if not current_building.health_changed.is_connected(_on_health_changed):
 		current_building.health_changed.connect(_on_health_changed)
+		
+	if not current_building.inventory_changed.is_connected(_on_inventory_changed):
+		current_building.inventory_changed.connect(_on_inventory_changed)
 	
 	# Handle Inventory / Work Bar...
 	work_bar.visible = (b is ProcessorBuilding)
