@@ -8,6 +8,8 @@ signal unhovered(building: Building)
 signal inventory_changed
 signal health_changed(current_hp: int, max_hp: int)
 
+signal destroyed(building_instance: Building)
+
 var is_ghost: bool = false
 
 # True = Stockpile (Blocks path completely)
@@ -206,4 +208,5 @@ func take_damage(amount: int):
 func die():
 	# We need to tell the pathfinder this tile is open again!
 	# (We will add a signal for this later, for now just free it)
+	destroyed.emit(self)
 	queue_free()
