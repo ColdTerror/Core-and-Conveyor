@@ -78,24 +78,30 @@ func _move_along_path(delta):
 		_recalculate_path()
 		path_update_timer = 0.5 # Update 2 times a second
 
-	# --- THE FIX: FINAL APPROACH ---
-	# If path is empty, but we have a target, move straight towards it!
+
 	if current_path.is_empty():
 		if is_instance_valid(current_target):
-			var dir = global_position.direction_to(current_target.global_position)
-			velocity = dir * movement_speed
-			move_and_slide()
+			# Calculate distance
+			var dist = global_position.distance_to(current_target.global_position)
 			
-			# Check for the bump
-			if get_slide_collision_count() > 0:
-				for i in get_slide_collision_count():
-					var collider = get_slide_collision(i).get_collider()
-					if collider == current_target or collider.is_in_group("Structure"):
-						_perform_structure_attack(collider)
-		else:
-			velocity = Vector2.ZERO
+			# ONLY move straight if we are less than 1 tile away (32px)
+			# This prevents "Water Walking" from across the map
+			if dist < 32.0:
+				var dir = global_position.direction_to(current_target.global_position)
+				velocity = dir * movement_speed
+				move_and_slide()
+				
+				# Bump Logic
+				if get_slide_collision_count() > 0:
+					for i in get_slide_collision_count():
+						var collider = get_slide_collision(i).get_collider()
+						if collider == current_target or collider.is_in_group("Structure"):
+							_perform_structure_attack(collider)
+			else:
+				# We are far away and have no path -> We are stuck. Stop moving.
+				velocity = Vector2.ZERO
 		return
-	# -------------------------------
+	# ----------------
 
 	# 2. Move towards next point
 	var next_point = current_path[0]

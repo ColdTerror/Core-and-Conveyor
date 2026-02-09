@@ -21,15 +21,22 @@ func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Re
 	for x in range(map_rect.position.x, map_rect.end.x):
 		for y in range(map_rect.position.y, map_rect.end.y):
 			var coords = Vector2i(x, y)
+			# 1. Get Tile Data (This holds collisions, custom data, etc)
+			var tile_data = terrain_layer.get_cell_tile_data(coords)
 			
-			# RULE A: Terrain Layer (Water Check)
-			# If the cell is empty (-1), it's water/void -> Solid
-			if terrain_layer.get_cell_source_id(coords) == -1:
+			# If tile_data is null, it's empty space (VOID) -> Solid
+			if tile_data == null:
 				astar.set_point_solid(coords, true)
-				continue # No need to check objects if it's already water
-			
-			# RULE B: Object Layer (Tree/Rock Check)
-			# If the cell has a tile (ID != -1), it's a tree -> Solid
+				continue
+				
+			# 2. Check Custom Data "is_walkable" (The Fix)
+			# This handles Water, Bedrock, or any other unwalkable terrain
+			var is_walkable = tile_data.get_custom_data("is_Walkable")
+			if not is_walkable:
+				astar.set_point_solid(coords, true)
+				continue
+
+			# 3. Object Layer Check (Trees/Rocks)
 			if object_layer.get_cell_source_id(coords) != -1:
 				astar.set_point_solid(coords, true)
 
