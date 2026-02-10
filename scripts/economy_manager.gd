@@ -39,7 +39,8 @@ func spend_resources(cost: Dictionary):
 			"Stone": stone -= amount
 			
 	resources_changed.emit()
-	print("Spent resources. Remaining | Wood: %d | Stone: %d" % [wood, stone])
+	if (wood > 0 or stone > 0):
+		print_debug("Spent resources. Remaining | Wood: %d | Stone: %d" % [wood, stone])
 	
 #4. NEW: Loss of resources (Building Destruction)
 func remove_resources(assets: Dictionary):

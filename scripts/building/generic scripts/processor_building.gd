@@ -183,10 +183,11 @@ func get_progress_ratio() -> float:
 func cycle_recipe():
 	if recipes.size() <= 1: return
 	
-	# Safety: Don't switch if we have items buffered, or we lose them!
+	# Empty buffers and set working to false
 	if is_working or input_inventory > 0 or output_inventory > 0:
-		print("Cannot switch recipe while holding items!")
-		return
+		input_inventory = 0
+		output_inventory = 0
+		is_working = false
 
 	current_recipe_index = (current_recipe_index + 1) % recipes.size()
 	print("Switched to recipe: " + active_recipe.recipe_name)

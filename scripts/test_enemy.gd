@@ -243,3 +243,14 @@ func _draw():
 		for point in current_path:
 			local_points.append(to_local(point))
 		draw_polyline(local_points, Color.CYAN, 2.0)
+		
+
+func take_damage(damage: int):
+	health -= damage
+	
+	if (health <= 0):
+		die()
+		
+func die():
+	print_debug("enemy died")
+	queue_free()
