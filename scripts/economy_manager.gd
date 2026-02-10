@@ -7,6 +7,8 @@ var stone: int = 0
 
 signal resources_changed # Connect your UI to this later
 
+
+
 # 1. Helper to add resources (Harvesting)
 func add_resources(resource_name: String, amount: int):
 	match resource_name:

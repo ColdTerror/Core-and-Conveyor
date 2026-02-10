@@ -23,11 +23,21 @@ var path_update_timer: float = 0.0
 var find_target_timer: float = 1.0
 var attack_cooldown: float = 0.0
 
+
+signal enemy_clicked(enemy: Enemy) # REPLACES hovered/unhovered
+
+
 func _ready():
 	pathfinder = get_tree().root.find_child("Pathfinder", true, false)
 	await get_tree().physics_frame
 	_find_target()
-
+	
+	# 1. Enable Physics Clicking
+	input_pickable = true 
+	
+	# 2. Connect the built-in click detector
+	input_event.connect(_on_input_event)
+	
 func _physics_process(delta):
 	if health <= 0: return
 
@@ -254,3 +264,15 @@ func take_damage(damage: int):
 func die():
 	print_debug("enemy died")
 	queue_free()
+	
+# --- THE CLICK LOGIC ---
+func _on_input_event(_viewport, event, _shape_idx):
+	# Check for Left Click
+	if event.is_action_pressed("ui_left"): # Or "click"
+		print("Enemy Clicked: ", self)
+		
+		enemy_clicked.emit(self)
+		
+		# CRITICAL: This stops the event from bubbling up to the Level.
+		# This ensures clicking an enemy DOES NOT trigger "Deselect".
+		get_viewport().set_input_as_handled()
