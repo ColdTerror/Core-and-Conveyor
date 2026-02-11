@@ -21,8 +21,8 @@ var current_mode = InteractionMode.NONE
 
 const ATLAS_COLUMNS := 3
 const TILE_COUNT := 10
-const MAP_WIDTH := 50
-const MAP_HEIGHT := 50
+const MAP_WIDTH := 100
+const MAP_HEIGHT := 100
 
 # Terrain indices based on your library
 const TERRAIN_GRASS := 0
@@ -45,9 +45,8 @@ var drag_start_pos: Vector2i
 
 
 
-
+@export_group("Scenes")
 @export var item_scene: PackedScene 
-
 @export var stockpile_scene: PackedScene 
 @export var lumberjack_scene: PackedScene
 @export var sawmill_scene: PackedScene
@@ -74,11 +73,11 @@ var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
 var selected_enemy: Enemy = null
 
 # 1. CONNECTING THE ENEMY
-func spawn_enemy():
+func spawn_enemy(pos: Vector2i):
 	var enemy = enemy_scene.instantiate()
 	add_child(enemy)
 	
-	enemy.global_position = Vector2i(800,600)
+	enemy.global_position = pos
 	
 	# Connect the new signal
 	enemy.enemy_clicked.connect(_on_enemy_clicked)
@@ -140,7 +139,6 @@ func _ready():
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	building_manager.pathfinder = pathfinder
 	
-	spawn_enemy()
 
 # =========================
 # Hotbar stuff
@@ -201,6 +199,8 @@ func _on_hotbar_item_selected(data, is_building):
 	building_manager.cancel_placement()
 	current_tile_index = 0
 	is_dragging_line = false
+	$GhostLayer.queue_redraw()
+	highlight.visible = false
 	
 	if is_building:
 		# Data is a PackedScene
@@ -613,7 +613,11 @@ func update_highlight(grid_pos: Vector2i):
 	var atlas_pos = Vector2i(current_tile_index % ATLAS_COLUMNS, current_tile_index / ATLAS_COLUMNS)
 	highlight.region_rect = Rect2(Vector2(atlas_pos) * tile_size_px, tile_size_px)
 
-
+func _input(event):
+	if event.is_action_pressed("spawn_enemy"):
+		var mouse_pos = get_global_mouse_position()
+		spawn_enemy(mouse_pos)
+	
 func _unhandled_input(event):
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
