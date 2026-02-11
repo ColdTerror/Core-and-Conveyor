@@ -67,8 +67,32 @@ var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
 
 
 
-@onready var pathfinder = $Pathfinder # The node we just made
+@onready var pathfinder = $Pathfinder
 
+@export var enemy_scene: PackedScene
+@export var enemy_popup: Control 
+var selected_enemy: Enemy = null
+
+# 1. CONNECTING THE ENEMY
+func spawn_enemy():
+	var enemy = enemy_scene.instantiate()
+	add_child(enemy)
+	
+	enemy.global_position = Vector2i(800,600)
+	
+	# Connect the new signal
+	enemy.enemy_clicked.connect(_on_enemy_clicked)
+
+# 2. HANDLE SELECTION (Enemy Clicked)
+func _on_enemy_clicked(enemy):
+	selected_enemy = enemy
+	enemy_popup.show_info(enemy)
+	
+
+func deselect_enemy():
+	if selected_enemy:
+		selected_enemy = null
+		enemy_popup.hide_info()
 
 func spawn_item_at_mouse():
 	if item_scene == null:
@@ -115,6 +139,8 @@ func _ready():
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	building_manager.pathfinder = pathfinder
+	
+	spawn_enemy()
 
 # =========================
 # Hotbar stuff
@@ -626,6 +652,7 @@ func _unhandled_input(event):
 		# MODE 3: Selection / Interaction (Clicking existing stuff)
 		elif current_mode == InteractionMode.NONE:
 			_handle_selection_click()
+			deselect_enemy()
 
 	# 4. CANCELLATION (Escape OR Right Click)
 	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):

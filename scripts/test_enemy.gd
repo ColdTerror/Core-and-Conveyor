@@ -3,7 +3,8 @@ class_name Enemy
 
 # --- CONFIGURATION ---
 @export_group("Stats")
-@export var health: int = 50
+@export var max_health: int = 50
+var health: int = max_health
 @export var movement_speed: float = 60.0
 @export var damage: int = 10
 @export var attack_speed: float = 1.0 
