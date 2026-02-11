@@ -74,7 +74,8 @@ func _process_movement(delta):
 	path_update_timer -= delta
 	if path_update_timer <= 0.0:
 		_recalculate_path()
-		path_update_timer = 0.5
+		# TODO : UPDATE THIS TO USE SIGNAL
+		path_update_timer = 10
 
 	var move_dir = Vector2.ZERO
 
@@ -213,18 +214,36 @@ func _recalculate_path():
 			# Building is completely buried/unreachable
 			return 
 			
-		# Find the closest point to ME
-		var closest_point = Vector2.ZERO
-		var min_dist = INF
-		
+		var best_path = PackedVector2Array()
+		var best_cost := INF
+
 		for pt in access_points:
-			var d = global_position.distance_squared_to(pt)
-			if d < min_dist:
-				min_dist = d
-				closest_point = pt
-		
-		# Override the target destination with this specific tile center
-		target_pos = closest_point
+			var path = pathfinder.get_path_route(global_position, pt)
+			if path.is_empty():
+				continue
+
+			var total_cost := 0.0
+
+			# Convert world positions back to grid coords
+			for world_point in path:
+				var local = pathfinder.main_layer.to_local(world_point)
+				var map_coords = pathfinder.main_layer.local_to_map(local)
+
+				var weight = pathfinder.astar.get_point_weight_scale(map_coords)
+				total_cost += weight
+
+			print("Access Point:", pt)
+			print("   Path length:", path.size())
+			print("   Total weight cost:", total_cost)
+
+			if best_path.is_empty() or total_cost < best_cost:
+				best_cost = total_cost
+				best_path = path
+
+		current_path = best_path
+
+		return
+
 	# -------------------------------------
 
 	var new_path = pathfinder.get_path_route(global_position, target_pos)

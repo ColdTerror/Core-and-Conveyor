@@ -38,10 +38,8 @@ func set_weighted_obstacle(coords: Vector2i, cost: float):
 	if astar.is_in_boundsv(coords):
 		astar.set_point_solid(coords, false)
 		astar.set_point_weight_scale(coords, cost)
-
-# Pathfinder.gd
-
-# Pathfinder.gd
+		print("Weight:", astar.get_point_weight_scale(coords))
+		print("Solid:", astar.is_point_solid(coords))
 
 func get_path_route(start_world: Vector2, end_world: Vector2) -> PackedVector2Array:
 	var start_local = main_layer.to_local(start_world)

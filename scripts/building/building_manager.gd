@@ -183,7 +183,9 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		else:
 			# Weighted (Wall)
 			for tile in footprint:
+				print_debug("Path cost " + str(ghost_building.path_cost))
 				pathfinder.set_weighted_obstacle(tile, ghost_building.path_cost)
+				
 				
 	# Important: We placed the ghost, so we clear the variable.
 	# But we set placing_building = true so the Level knows we are still in "Build Mode"
