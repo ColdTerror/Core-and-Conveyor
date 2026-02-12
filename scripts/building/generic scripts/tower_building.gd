@@ -7,12 +7,12 @@ class_name TowerBuilding
 
 @export_group("Combat Stats")
 @export var attack_range: float = 200.0
-@export var fire_rate: float = 1.0 # Volleys per second
-@export var damage_multiplier: float = 1.0 # 2.0 = Double damage (Ballista)
+@export var fire_rate: float = 1.0 
+@export var damage_multiplier: float = 1.0 
 
 @export_subgroup("Multi-Shot (Shotgun)")
-@export var projectiles_per_shot: int = 1 # 1 = Bow, 5 = Rock Shotgun
-@export var spread_degrees: float = 0.0 # 30.0 = Wide cone
+@export var projectiles_per_shot: int = 1 
+@export var spread_degrees: float = 0.0 
 
 # Internal State
 var ammo_inventory: Array[ItemResource] = []
@@ -23,8 +23,47 @@ var level_ref: Node2D
 # Signal: Position, Target, ItemData, FinalDamage, Speed, SpreadOffset
 signal fired_projectile(start_pos, target_node, item_data, final_damage, speed, angle_offset)
 
+# --- VISUALIZATION VARIABLES ---
+var show_range_overlay := false:
+	set(value):
+		show_range_overlay = value
+		queue_redraw() # Forces _draw() to run again
+
 func setup(level_instance: Node2D):
 	level_ref = level_instance
+
+# ============================================================
+#  RANGE VISUALIZATION (New Code)
+# ============================================================
+
+func _draw():
+	# Only draw if the flag is true
+	if show_range_overlay:
+		# 1. Draw Transparent Fill
+		draw_circle(Vector2.ZERO, attack_range, Color(1, 0, 0, 0.1))
+		
+		# 2. Draw Outline (High quality arc)
+		# position, radius, start_angle, end_angle, point_count, color, width, antialiased
+		draw_arc(Vector2.ZERO, attack_range, 0, TAU, 64, Color(1, 0, 0, 0.5), 2.0, true)
+
+# Override Base Building functions to toggle range
+func set_ghost(enabled: bool):
+	super.set_ghost(enabled)
+	# Always show range when dragging the ghost
+	show_range_overlay = enabled 
+
+func _on_mouse_entered():
+	super._on_mouse_entered()
+	# Only show if placed (monitoring is usually false for ghosts)
+	if has_node("Area2D") and $Area2D.monitoring:
+		show_range_overlay = true
+
+func _on_mouse_exited():
+	super._on_mouse_exited()
+	if has_node("Area2D") and $Area2D.monitoring:
+		show_range_overlay = false
+
+# ============================================================
 
 # --- 1. FILTERED INPUT ---
 
@@ -32,15 +71,9 @@ func accepts_item_at(tile: Vector2i) -> bool:
 	return tile in occupied_tiles
 
 func can_accept_item(item: ItemResource) -> bool:
-	# 1. Must be ammo
 	if not item.is_ammo: return false
-	
-	# 2. Must match my specific type (No Rocks in Bow Towers!)
 	if item.ammo_type != required_ammo_type: return false
-	
-	# 3. Must have space
 	if ammo_inventory.size() >= ammo_capacity: return false
-	
 	return true
 
 func accept_item(item: ItemResource) -> bool:
@@ -75,7 +108,7 @@ func _find_nearest_enemy() -> Node2D:
 	
 	var nearest: Node2D = null
 	var min_dist = attack_range
-	var enemies = get_tree().get_nodes_in_group("Enemies")
+	var enemies = get_tree().get_nodes_in_group("Enemies") # Ensure your Enemy.gd adds itself to "Enemies" group!
 	
 	for enemy in enemies:
 		var dist = global_position.distance_to(enemy.global_position)
@@ -87,28 +120,19 @@ func _find_nearest_enemy() -> Node2D:
 # --- 3. FIRING LOGIC ---
 
 func _shoot():
-	# Consume 1 Ammo item per volley
 	var ammo_data = ammo_inventory.pop_front()
 	inventory_changed.emit()
 	
-	# Reset Cooldown
 	attack_cooldown = 1.0 / fire_rate
-	
-	# Calculate Stats
 	var final_damage = ammo_data.damage * damage_multiplier
 	
-	# Fire Projectiles (Handle Multishot)
 	for i in range(projectiles_per_shot):
 		var angle_offset = 0.0
-		
-		# Calculate spread if we have multiple shots
 		if projectiles_per_shot > 1:
 			var spread_rad = deg_to_rad(spread_degrees)
 			var step = spread_rad / (projectiles_per_shot - 1)
-			# Center the cone: Start at -spread/2, increment by step
 			angle_offset = - (spread_rad / 2.0) + (i * step)
 		
-		# Emit signal for the Level to spawn the actual arrow/rock
 		fired_projectile.emit(
 			global_position, 
 			current_target, 
@@ -117,9 +141,6 @@ func _shoot():
 			ammo_data.projectile_speed, 
 			angle_offset
 		)
-	
-	# Debug print
-	# print("%s fired %d x %s!" % [building_name, projectiles_per_shot, ammo_data.display_name])
 
 # --- UI ---
 func get_inventory_info() -> Dictionary:
@@ -127,3 +148,7 @@ func get_inventory_info() -> Dictionary:
 		"Ammo": ammo_inventory.size(),
 		"Type": required_ammo_type
 	}
+
+# --- ECONOMY ---
+func get_economy_assets() -> Dictionary:
+	return {}
