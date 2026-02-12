@@ -68,30 +68,6 @@ var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
 
 @onready var pathfinder = $Pathfinder
 
-@export var enemy_scene: PackedScene
-@export var enemy_popup: Control 
-var selected_enemy: Enemy = null
-
-# 1. CONNECTING THE ENEMY
-func spawn_enemy(pos: Vector2i):
-	var enemy = enemy_scene.instantiate()
-	add_child(enemy)
-	
-	enemy.global_position = pos
-	
-	# Connect the new signal
-	enemy.enemy_clicked.connect(_on_enemy_clicked)
-
-# 2. HANDLE SELECTION (Enemy Clicked)
-func _on_enemy_clicked(enemy):
-	selected_enemy = enemy
-	enemy_popup.show_info(enemy)
-	
-
-func deselect_enemy():
-	if selected_enemy:
-		selected_enemy = null
-		enemy_popup.hide_info()
 
 func spawn_item_at_mouse():
 	if item_scene == null:
@@ -613,10 +589,7 @@ func update_highlight(grid_pos: Vector2i):
 	var atlas_pos = Vector2i(current_tile_index % ATLAS_COLUMNS, current_tile_index / ATLAS_COLUMNS)
 	highlight.region_rect = Rect2(Vector2(atlas_pos) * tile_size_px, tile_size_px)
 
-func _input(event):
-	if event.is_action_pressed("spawn_enemy"):
-		var mouse_pos = get_global_mouse_position()
-		spawn_enemy(mouse_pos)
+
 	
 func _unhandled_input(event):
 	var mouse_pos = get_global_mouse_position()
@@ -656,7 +629,8 @@ func _unhandled_input(event):
 		# MODE 3: Selection / Interaction (Clicking existing stuff)
 		elif current_mode == InteractionMode.NONE:
 			_handle_selection_click()
-			deselect_enemy()
+			if has_node("WaveManager"):
+				$WaveManager.deselect_enemy()
 
 	# 4. CANCELLATION (Escape OR Right Click)
 	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):

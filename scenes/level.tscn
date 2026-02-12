@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://dm3jfmd14wxsf"]
+[gd_scene format=3 uid="uid://dm3jfmd14wxsf"]
 
 [ext_resource type="Script" uid="uid://b6kxlovwh8gyn" path="res://scripts/Level.gd" id="1_olg7q"]
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="2_olg7q"]
@@ -31,6 +31,7 @@
 [ext_resource type="Script" uid="uid://nb12wvb8i6eh" path="res://scripts/ghost_layer.gd" id="28_556r4"]
 [ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/pathfinder.gd" id="29_7agi7"]
 [ext_resource type="PackedScene" uid="uid://mc4h1u2qxbyd" path="res://scenes/ui/enemy_info_popup.tscn" id="29_w3o6u"]
+[ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/wave_manager.tscn" id="32_2e2fo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
 content_margin_left = 8.0
@@ -38,7 +39,7 @@ content_margin_top = 4.0
 content_margin_right = 8.0
 content_margin_bottom = 4.0
 
-[node name="Level" type="Node2D" unique_id=368109732 node_paths=PackedStringArray("enemy_popup")]
+[node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
 tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_arp2o"), ExtResource("9_wc255"), ExtResource("10_arp2o"), ExtResource("11_ux5qa"), ExtResource("12_82cfe")])
 item_scene = ExtResource("13_arp2o")
@@ -48,8 +49,6 @@ sawmill_scene = ExtResource("16_pqd0y")
 bow_tower_scene = ExtResource("17_xy2fk")
 wall_scene = ExtResource("18_kih21")
 projectile_scene = ExtResource("18_cmcjb")
-enemy_scene = ExtResource("27_cmcjb")
-enemy_popup = NodePath("CanvasLayer/Popup_Layer/EnemyInfoPopup")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
 position = Vector2(640, 360)
@@ -66,7 +65,6 @@ tile_set = ExtResource("2_w8frs")
 
 [node name="CorruptionLayer" type="TileMapLayer" parent="." unique_id=1141556788]
 z_index = -1
-tile_map_data = PackedByteArray("AAARAAgAAAACAAEAAAASAAgAAAACAAEAAAATAAgAAAACAAEAAAAUAAgAAAACAAEAAAAVAAgAAAACAAEAAAAVAAkAAAACAAEAAAAUAAkAAAACAAEAAAAWAAgAAAACAAEAAAAXAAgAAAACAAEAAAAYAAgAAAACAAEAAAAXAAkAAAACAAEAAAAWAAkAAAACAAEAAAATAAkAAAACAAEAAAASAAkAAAACAAEAAAARAAkAAAACAAEAAAAQAAkAAAACAAEAAAAYAAkAAAACAAEAAAA=")
 tile_set = ExtResource("2_w8frs")
 
 [node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
@@ -219,6 +217,13 @@ mouse_filter = 2
 
 [node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 instance=ExtResource("21_h6wmr")]
 layout_mode = 1
+
+[node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "enemy_popup") instance=ExtResource("32_2e2fo")]
+level_ref = NodePath("..")
+corruption_layer = NodePath("../CorruptionLayer")
+enemy_scene = ExtResource("27_cmcjb")
+enemy_popup = NodePath("../CanvasLayer/Popup_Layer/EnemyInfoPopup")
+time_between_waves = 10.0
 
 [connection signal="pressed" from="CanvasLayer/Debug_Layer/Generate Map" to="." method="generate_simple_map"]
 [connection signal="pressed" from="CanvasLayer/Debug_Layer/Print Objects" to="." method="print_active_objects"]

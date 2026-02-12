@@ -232,10 +232,6 @@ func _recalculate_path():
 				var weight = pathfinder.astar.get_point_weight_scale(map_coords)
 				total_cost += weight
 
-			print("Access Point:", pt)
-			print("   Path length:", path.size())
-			print("   Total weight cost:", total_cost)
-
 			if best_path.is_empty() or total_cost < best_cost:
 				best_cost = total_cost
 				best_path = path
@@ -289,7 +285,6 @@ func die():
 func _on_input_event(_viewport, event, _shape_idx):
 	# Check for Left Click
 	if event.is_action_pressed("ui_left"): # Or "click"
-		print("Enemy Clicked: ", self)
 		
 		enemy_clicked.emit(self)
 		
