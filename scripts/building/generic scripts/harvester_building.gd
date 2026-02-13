@@ -27,6 +27,38 @@ var show_range_overlay := false:
 
 const TILE_SIZE = 32
 
+func _ready():
+	super() # Make sure this calls Building._ready()
+	
+	# 1. Register Self
+	EconomyManager.register_source(self)
+
+func _exit_tree():
+	# 2. Unregister Self
+	EconomyManager.unregister_source(self)
+
+# 3. Implement Consumption Logic
+func consume_resources(remaining_bill: Dictionary):
+	# Harvesters only hold ONE type of resource, so check is simple
+	if not target_resource or not target_resource.item_drop: return
+	
+	var res_name = target_resource.item_drop.display_name
+	
+	if remaining_bill.has(res_name):
+		var amount_needed = remaining_bill[res_name]
+		var amount_we_have = stored_amount
+		
+		var amount_to_take = min(amount_needed, amount_we_have)
+		
+		# A. Remove from Internal Buffer
+		stored_amount -= amount_to_take
+		
+		# B. Update the Bill
+		remaining_bill[res_name] -= amount_to_take
+		if remaining_bill[res_name] <= 0:
+			remaining_bill.erase(res_name)
+			
+		inventory_changed.emit()
 # --- SETUP ---
 func setup(level_instance: Node2D):
 	level_ref = level_instance
@@ -109,6 +141,12 @@ func _perform_harvest():
 		var info = level_ref.active_grid_objects[current_target]
 		ResourceManager.request_harvest(current_target, info, harvest_damage)
 		stored_amount += harvest_damage
+		# --- THE FIX: ADD TO BANK ---
+		# We physically have the item, so we tell the EconomyManager we are richer.
+		if target_resource.item_drop:
+			EconomyManager.add_resources(target_resource.item_drop.display_name, harvest_damage)
+		# ----------------------------
+		
 		inventory_changed.emit()
 
 # --- TARGET FINDING (UPDATED) ---
@@ -211,6 +249,13 @@ func _spawn_item(target_pos: Vector2i):
 	new_item_node.global_position = level_ref.object_layer.map_to_local(target_pos)
 	
 	stored_amount -= 1
+	# --- THE FIX: REMOVE FROM BANK ---
+	# The item is leaving "Storage" and going onto a belt.
+	# Items on belts are considered "In Transit" (not spendable), so we deduct it.
+	# (It will be re-added when it enters a Stockpile later).
+	var dict = { target_resource.item_drop.display_name: 1 }
+	EconomyManager.remove_resources_from_global(dict)
+	# ---------------------------------
 	level_ref.item_grid[target_pos] = new_item_node
 	inventory_changed.emit()
 	

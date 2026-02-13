@@ -216,3 +216,10 @@ func die():
 	# (We will add a signal for this later, for now just free it)
 	destroyed.emit(self)
 	queue_free()
+	
+# --- NEW VIRTUAL FUNCTION ---
+# Called by EconomyManager when spending resources.
+# 'remaining_bill' is a Dictionary { "Wood": 10 }.
+# The building should subtract what it has, and lower the bill.
+func consume_resources(remaining_bill: Dictionary):
+	pass # Default behavior: Do nothing (Walls/Towers don't hold items)
