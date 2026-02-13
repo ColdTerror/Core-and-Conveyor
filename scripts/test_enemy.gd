@@ -21,7 +21,7 @@ var current_path: PackedVector2Array = []
 
 # Timers
 var path_update_timer: float = 0.0
-var find_target_timer: float = 1.0
+var find_target_timer: float = .5
 var attack_cooldown: float = 0.0
 
 
@@ -75,7 +75,7 @@ func _process_movement(delta):
 	if path_update_timer <= 0.0:
 		_recalculate_path()
 		# TODO : UPDATE THIS TO USE SIGNAL
-		path_update_timer = 10
+		path_update_timer = 5
 
 	var move_dir = Vector2.ZERO
 
@@ -176,13 +176,14 @@ func _validate_target(delta) -> bool:
 	# Search cooldown
 	find_target_timer -= delta
 	if find_target_timer <= 0.0:
-		_find_target()
-		find_target_timer = 1.0
+		_reset_target()
+		find_target_timer = .5
 	return false
 
 func _reset_target():
 	current_target = null
 	current_path = []
+	path_update_timer = 0.0
 	_find_target()
 
 func _find_target():

@@ -126,7 +126,6 @@ func _on_building_destroyed(b: Building):
 			EconomyManager.remove_resources(assets)
 	# ------------------
 
-	print("Building Destroyed: Map tiles cleared.")
 		
 
 # --- UPDATED: Accepts optional grid position for Dragging ---

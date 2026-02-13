@@ -50,6 +50,14 @@ bow_tower_scene = ExtResource("17_xy2fk")
 wall_scene = ExtResource("18_kih21")
 projectile_scene = ExtResource("18_cmcjb")
 
+[node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "enemy_popup") instance=ExtResource("32_2e2fo")]
+level_ref = NodePath("..")
+corruption_layer = NodePath("../CorruptionLayer")
+enemy_scene = ExtResource("27_cmcjb")
+fallback_spawn_radius = 100.0
+time_between_waves = 5.0
+enemy_popup = NodePath("../CanvasLayer/Popup_Layer/EnemyInfoPopup")
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
 position = Vector2(640, 360)
 script = ExtResource("9_8iemx")
@@ -217,13 +225,6 @@ mouse_filter = 2
 
 [node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 instance=ExtResource("21_h6wmr")]
 layout_mode = 1
-
-[node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "enemy_popup") instance=ExtResource("32_2e2fo")]
-level_ref = NodePath("..")
-corruption_layer = NodePath("../CorruptionLayer")
-enemy_scene = ExtResource("27_cmcjb")
-enemy_popup = NodePath("../CanvasLayer/Popup_Layer/EnemyInfoPopup")
-time_between_waves = 10.0
 
 [connection signal="pressed" from="CanvasLayer/Debug_Layer/Generate Map" to="." method="generate_simple_map"]
 [connection signal="pressed" from="CanvasLayer/Debug_Layer/Print Objects" to="." method="print_active_objects"]
