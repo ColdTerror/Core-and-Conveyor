@@ -55,7 +55,7 @@ level_ref = NodePath("..")
 corruption_layer = NodePath("../CorruptionLayer")
 enemy_scene = ExtResource("27_cmcjb")
 fallback_spawn_radius = 100.0
-time_between_waves = 5.0
+time_between_waves = 50000.0
 enemy_popup = NodePath("../CanvasLayer/Popup_Layer/EnemyInfoPopup")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]

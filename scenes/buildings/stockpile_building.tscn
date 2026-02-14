@@ -2,12 +2,14 @@
 
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="1_5oplf"]
 [ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/building/generic scripts/stockpile_building.gd" id="1_sqy8c"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="2_shrhu"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sqy8c"]
 size = Vector2(128, 128)
 
 [node name="StockpileBuilding" type="Node2D" unique_id=1914910995 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_sqy8c")
+generic_item_scene = ExtResource("2_shrhu")
 size = Vector2i(4, 4)
 icon = ExtResource("1_5oplf")
 cost_wood = 25

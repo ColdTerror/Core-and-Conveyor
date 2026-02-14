@@ -20,7 +20,7 @@ vertical_alignment = 1
 [node name="HSeparator" type="HSeparator" parent="VBoxContainer" unique_id=766700358]
 layout_mode = 2
 
-[node name="RecipeLabel" type="Label" parent="VBoxContainer" unique_id=992167351]
+[node name="InfoLabel" type="Label" parent="VBoxContainer" unique_id=992167351]
 layout_mode = 2
 text = "Plank"
 horizontal_alignment = 1

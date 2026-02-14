@@ -37,7 +37,7 @@ func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1):
 	# 4. THE MATH
 	var final_amount = amount if amount > 0 else data.amount_per_mine
 	object_info["health"] -= final_amount
-	print("Harvested! HP: %d. Cooldown started: %.1fs" % [object_info["health"], data.mining_time])
+	#print("Harvested! HP: %d. Cooldown started: %.1fs" % [object_info["health"], data.mining_time])
 
 	# 5. State Decision
 	if object_info["health"] <= 0:
