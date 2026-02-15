@@ -45,7 +45,7 @@ func accepts_item_at(_tile: Vector2i) -> bool:
 	return held_item == null  # Only accept if we're empty
 
 # Actual transfer function: Take ownership of an item node
-func accept_item_node(item_node: Node2D) -> bool:
+func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -> bool:
 	# Reject if we already have an item or haven't been set up
 	if held_item != null or not level_ref: 
 		return false
@@ -58,6 +58,15 @@ func accept_item_node(item_node: Node2D) -> bool:
 	# Ensure the item is a child of level_ref (not another belt or null)
 	var old_parent = item_node.get_parent()
 	
+	# Check if the item is coming from another ConveyorBuilding via parameter
+	var perpendicular_transfer = false
+	
+	if source_belt:
+		var prev_direction = source_belt.direction
+		# Check if directions are perpendicular (dot product = 0)
+		# e.g., RIGHT (1,0) dot UP (0,1) = 0
+		perpendicular_transfer = (Vector2(prev_direction).dot(Vector2(direction)) == 0)
+	
 	# If item has a parent AND it's not our level, remove it from old parent
 	if old_parent and old_parent != level_ref:
 		old_parent.remove_child(item_node)
@@ -67,10 +76,14 @@ func accept_item_node(item_node: Node2D) -> bool:
 		level_ref.add_child(item_node)
 	
 	# === POSITION SNAPPING ===
-	# Always snap incoming items to our "back edge" (entry point)
-	# This ensures consistent positioning regardless of where item came from
-	var back_edge = global_position - (Vector2(direction) * 16.0)
-	item_node.global_position = back_edge
+	if perpendicular_transfer:
+		# Item is turning a corner - DON'T snap position, let it move smoothly to center
+		# The item will naturally continue from its current position toward our center
+		pass
+	else:
+		# Item is continuing straight (or coming from non-belt) - snap to back edge
+		var back_edge = global_position - (Vector2(direction) * 16.0)
+		item_node.global_position = back_edge
 		
 	return true  # Success!
 
@@ -79,12 +92,13 @@ func accept_item_node(item_node: Node2D) -> bool:
 # ============================================================
 
 func _process(delta):
+	
+	
 	# Early exit: Nothing to move if belt is empty
 	if held_item == null: 
 		return
 	
 	# Safety check: Item might have been freed/deleted elsewhere
-	# This prevents crashes from dangling references
 	if not is_instance_valid(held_item):
 		held_item = null
 		return
@@ -102,15 +116,16 @@ func _process(delta):
 		var move_step = speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
-		# Check if we're approaching the center (12 pixels away)
-		# We check EARLY (not at arrival) to prevent stuttering
+		# Check if we've reached the center
 		var distance_to_center = held_item.global_position.distance_to(target_pos)
-		if distance_to_center < 12.0:
-			# Can we proceed to the next belt/building?
-			if _can_push_to_neighbor():
-				# Yes! Switch to Phase 2
+		if distance_to_center < 1.0:
+			# We're at center - settle here and wait
+			held_item.global_position = target_pos  # Snap to exact center to stop micro-movements
+			
+			if  _can_push_to_neighbor():
+				# Path is clear! Switch to Phase 2
 				is_moving_to_edge = true
-			# If no: Keep moving to center and wait there (item will settle)
+			# Otherwise: Stay at center, don't move
 	
 	# ========================================
 	# PHASE 2: Moving to Edge (Handoff)
@@ -131,9 +146,9 @@ func _process(delta):
 				pass
 			else:
 				# Failed! Neighbor filled up while we were moving
-				# Go back to Phase 1 (wait at center)
+				# Go back to Phase 1 (wait at center) and start cooldown
 				is_moving_to_edge = false
-
+				
 # ============================================================
 # NEIGHBOR INTERACTION
 # ============================================================
@@ -169,7 +184,8 @@ func _push_to_neighbor() -> bool:
 	
 	# --- CASE 1: Push to another Conveyor Belt ---
 	if neighbor is ConveyorBuilding:
-		if neighbor.accept_item_node(held_item):
+		# Pass ourselves as the source so neighbor knows our direction
+		if neighbor.accept_item_node(held_item, self):
 			# Success! Neighbor took ownership
 			held_item = null  # We no longer own it
 			return true
@@ -185,7 +201,6 @@ func _push_to_neighbor() -> bool:
 	
 	# Transfer failed
 	return false
-
 # Helper: Get the building/belt in the direction we're facing
 func _get_neighbor() -> Node:
 	# Safety check
