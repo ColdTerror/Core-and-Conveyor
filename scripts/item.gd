@@ -37,11 +37,15 @@ func _process(delta):
 			return
 
 	# -----------------------------
-	# 2. Claim Tile (Unchanged)
+	# 2. Claim Tile (FIXED)
 	# -----------------------------
 	if level_node.item_grid.has(current_grid_pos):
-		if level_node.item_grid[current_grid_pos] != self:
-			var other_item = level_node.item_grid[current_grid_pos]
+		var other_item = level_node.item_grid[current_grid_pos]
+		
+		# --- FIX 1: Check if the item is valid before touching it ---
+		if not is_instance_valid(other_item):
+			level_node.item_grid.erase(current_grid_pos) # Clean up dead ref
+		elif other_item != self:
 			var distance = global_position.distance_to(other_item.global_position)
 			if distance < 16.0: 
 				stopped = true
@@ -86,46 +90,42 @@ func _process(delta):
 		next_is_valid = true
 
 	# -----------------------------
-	# 5. DOCKING LOGIC (THE FIX)
+	# 5. DOCKING LOGIC
 	# -----------------------------
-	# If the path ends here, we don't stop immediately.
-	# Instead, we move towards the CENTER of the current tile.
 	if not next_is_valid:
 		var center_pos = object_layer.map_to_local(current_grid_pos)
-		
-		# Move towards center
 		global_position = global_position.move_toward(center_pos, speed * delta)
-		
-		# If we reached the center, NOW we stop.
 		if global_position == center_pos:
 			stopped = true
 			conveyor_stopped = true
-		
-		# Return here so we skip the standard movement logic below.
-		# This effectively "traps" the item in the center of the last tile.
 		return
 
 	# -----------------------------
-	# 6. Check Blocking (Unchanged)
+	# 6. Check Blocking (FIXED)
 	# -----------------------------
 	if level_node.item_grid.has(next_grid_pos):
 		var blocking_item = level_node.item_grid[next_grid_pos]
-		var distance_to_blocker = global_position.distance_to(blocking_item.global_position)
-		var min_distance = 32.0 
 		
-		if distance_to_blocker < min_distance:
-			blocked_by = blocking_item
+		# --- FIX 2: Check validity here too ---
+		if not is_instance_valid(blocking_item):
+			level_node.item_grid.erase(next_grid_pos) # Clean up dead ref
+		else:
+			var distance_to_blocker = global_position.distance_to(blocking_item.global_position)
+			var min_distance = 32.0 
 			
-			if blocking_item is Sprite2D and blocking_item.blocked_by == self:
-				deadlocked = true
-				blocking_item.deadlocked = true
-				modulate = Color.RED
-				blocking_item.modulate = Color.RED
-				print("Deadlock!")
+			if distance_to_blocker < min_distance:
+				blocked_by = blocking_item
+				
+				if blocking_item is Sprite2D and blocking_item.blocked_by == self:
+					deadlocked = true
+					blocking_item.deadlocked = true
+					modulate = Color.RED
+					blocking_item.modulate = Color.RED
+					print("Deadlock!")
 
-			stopped = true
-			conveyor_stopped = true
-			return
+				stopped = true
+				conveyor_stopped = true
+				return
 
 	# -----------------------------
 	# 7. Move & Smooth Align (Unchanged)

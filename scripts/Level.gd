@@ -43,8 +43,6 @@ var drag_start_pos: Vector2i
 @export var conveyor_start_index: int = 6
 
 
-
-
 @export_group("Scenes")
 @export var item_scene: PackedScene 
 @export var stockpile_scene: PackedScene 
@@ -52,6 +50,9 @@ var drag_start_pos: Vector2i
 @export var sawmill_scene: PackedScene
 @export var bow_tower_scene: PackedScene
 @export var wall_scene: PackedScene
+# --- NEW EXPORT ---
+@export var conveyor_scene: PackedScene 
+# ------------------
 
 @export var projectile_scene: PackedScene
 
@@ -533,6 +534,10 @@ func update_tooltip(grid_pos: Vector2i):
 			tooltip.visible = true
 			tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
 
+
+# ====================================================
+# MODIFIED: place_tile (Now Handles Conveyor Buildings)
+# ====================================================
 func place_tile(grid_pos: Vector2i, data: TileDataResource):
 	# FIX: Find the actual index of the data we want to place
 	var correct_index = tile_library.find(data)
@@ -541,12 +546,36 @@ func place_tile(grid_pos: Vector2i, data: TileDataResource):
 	# Use correct_index instead of current_tile_index
 	var atlas_coords = Vector2i(correct_index % ATLAS_COLUMNS, correct_index / ATLAS_COLUMNS)
 	
+	# --- CONVEYOR LOGIC (Spawn Building) ---
+	if data.is_conveyor:
+		# 1. Validation
+		if not conveyor_scene:
+			print("Error: No Conveyor Scene assigned in Level!")
+			return
+		if not can_place_object(grid_pos):
+			return
+		if building_manager.occupied_tiles.has(grid_pos):
+			return # Already has a building
+			
+		# 2. Spawn Logic
+		var belt = conveyor_scene.instantiate()
+		object_layer.add_child(belt)
+		
+		# 3. Setup Building (Using Building.gd base functions)
+		belt.place_at(grid_pos, object_layer)
+		belt.setup(self, data.conveyor_direction)
+		
+		# 4. Register with Manager (So it's treated as a building)
+		building_manager.occupied_tiles[grid_pos] = belt
+		building_manager.buildings.append(belt)
+		return # Stop, don't paint a tile
+	# ---------------------------------------
+
+	# Normal Terrain / Trees logic
 	if not data.is_object:
 		terrain_layer.set_cell(grid_pos, 0, atlas_coords)
 	else:
 		if can_place_object(grid_pos):
-			# NEW: If the data defines its own full sprite (like trees), use that.
-			# Otherwise fallback to the calculated atlas_coords (like walls/conveyors)
 			var final_coords = atlas_coords
 			if data.atlas_coords_full != Vector2i(-1, -1):
 				final_coords = data.atlas_coords_full
@@ -557,10 +586,8 @@ func place_tile(grid_pos: Vector2i, data: TileDataResource):
 				"health": data.total_resources,
 				"data": data
 			}
+			# Note: We don't save 'direction' here anymore because the belt is a Node
 			
-			if data.is_conveyor:
-				tile_info["direction"] = data.conveyor_direction
-				
 			active_grid_objects[grid_pos] = tile_info
 
 func can_place_object(grid_pos: Vector2i) -> bool:
@@ -715,4 +742,3 @@ func print_active_objects():
 			
 			print(grid_pos)
 	print("------------------------------------")
-	

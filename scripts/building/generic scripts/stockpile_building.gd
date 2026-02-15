@@ -81,7 +81,6 @@ func _try_output_item():
 	if not "level_ref" in self or not level_ref: return
 	
 	
-	print("try to output item")
 	for my_tile in occupied_tiles:
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		

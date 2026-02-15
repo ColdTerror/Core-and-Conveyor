@@ -25,7 +25,7 @@ func _ready():
 
 func _process(delta):
 	handle_keyboard_pan(delta)
-	handle_edge_pan(delta)
+	#handle_edge_pan(delta)
 	
 	zoom = Vector2(target_zoom, target_zoom)
 	

@@ -59,6 +59,7 @@ func consume_resources(remaining_bill: Dictionary):
 			remaining_bill.erase(res_name)
 			
 		inventory_changed.emit()
+
 # --- SETUP ---
 func setup(level_instance: Node2D):
 	level_ref = level_instance
@@ -67,25 +68,18 @@ func setup(level_instance: Node2D):
 func _draw():
 	if show_range_overlay and level_ref:
 		# 1. Get the building's Top-Left Tile
-		# Since 'place_at' in Building.gd centers the node, 
-		# we calculate the true grid origin using the size.
 		var center_tile = level_ref.object_layer.local_to_map(global_position)
-		
-		# Even sizes (2,4) shift the center tile index. 
-		# We subtract half size to get back to Top-Left.
 		var top_left_tile = center_tile - (size / 2)
 		
-		# 2. Calculate Drawing Start Point (Top-Left minus Radius)
+		# 2. Calculate Drawing Start Point
 		var range_top_left = top_left_tile - Vector2i(scan_radius, scan_radius)
 		
-		# 3. Calculate Total Dimensions in Tiles
-		# Width = Building Width + Left Radius + Right Radius
+		# 3. Calculate Total Dimensions
 		var total_width = size.x + (scan_radius * 2)
 		var total_height = size.y + (scan_radius * 2)
 		
-		# 4. Convert Grid -> Local Pixels for drawing
+		# 4. Convert Grid -> Local Pixels
 		var world_pos = level_ref.object_layer.map_to_local(range_top_left)
-		# map_to_local is center of tile; adjust to top-left corner of that tile
 		world_pos -= Vector2(TILE_SIZE, TILE_SIZE) / 2.0
 		
 		var local_pos = to_local(world_pos)
@@ -117,7 +111,6 @@ func building_tick(delta: float) -> void:
 	if stored_amount > 0:
 		_try_output_item()
 	
-	# Check if adding harvest_damage would exceed capacity
 	if stored_amount + harvest_damage > buffer_capacity:
 		if beam_line: beam_line.clear_points()
 		return
@@ -140,31 +133,29 @@ func _perform_harvest():
 	if current_target != Vector2i.MAX:
 		var info = level_ref.active_grid_objects[current_target]
 		ResourceManager.request_harvest(current_target, info, harvest_damage)
+		
 		stored_amount += harvest_damage
-		# --- THE FIX: ADD TO BANK ---
-		# We physically have the item, so we tell the EconomyManager we are richer.
+		
+		# --- ECONOMY: ADD TO BANK ---
 		if target_resource.item_drop:
 			EconomyManager.add_resources(target_resource.item_drop.display_name, harvest_damage)
 		# ----------------------------
 		
 		inventory_changed.emit()
 
-# --- TARGET FINDING (UPDATED) ---
+# --- TARGET FINDING ---
 func _find_nearest_target() -> Vector2i:
 	var center_tile = level_ref.object_layer.local_to_map(global_position)
-	var top_left_tile = center_tile - (size / 2) # Use self.size from Building.gd
+	var top_left_tile = center_tile - (size / 2)
 	
-	# Define bounds relative to the building footprint
 	var start_x = top_left_tile.x - scan_radius
-	var end_x = top_left_tile.x + size.x + scan_radius - 1 # -1 for inclusive index
-	
+	var end_x = top_left_tile.x + size.x + scan_radius - 1
 	var start_y = top_left_tile.y - scan_radius
 	var end_y = top_left_tile.y + size.y + scan_radius - 1
 	
 	var best_pos = Vector2i.MAX
 	var min_dist = 99999.0
 	
-	# Spiral or simple box scan
 	for x in range(start_x, end_x + 1):
 		for y in range(start_y, end_y + 1):
 			var check_pos = Vector2i(x, y)
@@ -193,72 +184,64 @@ func _draw_beam(grid_pos: Vector2i):
 	beam_line.add_point(Vector2.ZERO)
 	beam_line.add_point(target_local)
 
-# --- OUTPUT LOGIC ---
+# =================================================================
+# NEW: OUTPUT LOGIC (Updated for ConveyorBuilding Nodes)
+# =================================================================
+
 func _try_output_item():
+	# Loop through all tiles we occupy (e.g. 2x2 grid)
 	for my_tile in occupied_tiles:
-		# These are the directions we are "pushing" items out to
+		# Try all 4 directions
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
 		for offset in push_directions:
 			var target_pos = my_tile + offset
 			
-			# 1. Standard Checks (Don't output into myself or blocked tiles)
+			# Don't output into ourself
 			if occupied_tiles.has(target_pos): continue
-			if level_ref.item_grid.has(target_pos): continue 
 			
-			# 2. Check Grid Data
-			if level_ref.active_grid_objects.has(target_pos):
-				var info = level_ref.active_grid_objects[target_pos]
-				var data = info["data"]
+			# Check BuildingManager for neighbors
+			# (We no longer use level_ref.item_grid or active_grid_objects for output)
+			var manager = level_ref.building_manager
+			
+			if manager.occupied_tiles.has(target_pos):
+				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# 3. Is it a Conveyor?
-				if data.is_conveyor:
-					# 4. CRITICAL: Check Direction
-					# We retrieve the specific direction stored in the grid dictionary
-					# (Make sure Level.gd place_tile is saving "direction" correctly!)
-					var conveyor_dir = info.get("direction", Vector2.ZERO)
+				# Is it a Conveyor?
+				if neighbor is ConveyorBuilding:
+					# Optional: Check if conveyor direction matches our push?
+					# For Harvesters, we usually just side-load onto it regardless.
 					
-					# We want the conveyor to be moving in the SAME direction we are pushing.
-					# offset is our push direction (e.g. (1, 0) for Right)
-					# conveyor_dir is the belt's movement (e.g. (1, 0) for Right)
-					
-					# Note: We cast offset to Vector2 to match conveyor_dir type
-					if conveyor_dir == Vector2(offset):
-						_spawn_item(target_pos)
+					_spawn_item_into_conveyor(neighbor)
+					return # Only output 1 item per tick
 
-func _is_conveyor_at(grid_pos: Vector2i) -> bool:
-	if level_ref.active_grid_objects.has(grid_pos):
-		var data = level_ref.active_grid_objects[grid_pos]["data"]
-		return data.is_conveyor
-	return false
-
-func _spawn_item(target_pos: Vector2i):
+func _spawn_item_into_conveyor(conveyor: ConveyorBuilding):
 	if not generic_item_scene or not target_resource.item_drop: return
-
+	
+	# 1. Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
+	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
+	if "item_data" in new_item_node: new_item_node.item_data = target_resource.item_drop
+	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	if new_item_node.has_method("setup"):
-		new_item_node.setup(level_ref)
-	
-	if "item_data" in new_item_node:
-		new_item_node.item_data = target_resource.item_drop
-		if new_item_node.has_method("_ready"):
-			new_item_node._ready() 
+	# 2. Try to hand it to the Conveyor
+	if conveyor.accept_item_node(new_item_node):
+		# Success!
+		stored_amount -= 1
+		inventory_changed.emit()
+		
+		# --- ECONOMY: REMOVE FROM BANK ---
+		# Item moved to Belt (In Transit) -> Remove from Global Count
+		var dict = { target_resource.item_drop.display_name: 1 }
+		EconomyManager.remove_resources_from_global(dict)
+		# ---------------------------------
+		
+	else:
+		# Belt was full or refused, delete the temp node
+		new_item_node.queue_free()
 
-	level_ref.add_child(new_item_node)
-	new_item_node.global_position = level_ref.object_layer.map_to_local(target_pos)
-	
-	stored_amount -= 1
-	# --- THE FIX: REMOVE FROM BANK ---
-	# The item is leaving "Storage" and going onto a belt.
-	# Items on belts are considered "In Transit" (not spendable), so we deduct it.
-	# (It will be re-added when it enters a Stockpile later).
-	var dict = { target_resource.item_drop.display_name: 1 }
-	EconomyManager.remove_resources_from_global(dict)
-	# ---------------------------------
-	level_ref.item_grid[target_pos] = new_item_node
-	inventory_changed.emit()
-	
+# =================================================================
+
 func get_inventory_info() -> Dictionary:
 	if target_resource and stored_amount > 0:
 		return { target_resource: stored_amount }

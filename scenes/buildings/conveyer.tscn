@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dtgqlytnlxmmy"]
+
+[ext_resource type="Script" uid="uid://b42i3e20qg8yw" path="res://scripts/building/conveyer_building.gd" id="1_34v7p"]
+[ext_resource type="Texture2D" uid="uid://ccb3pqwas4kud" path="res://assets/Tiles.png" id="1_yfprp"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_34v7p"]
+size = Vector2(32, 32)
+
+[node name="Conveyer" type="Node2D" unique_id=2033791368]
+script = ExtResource("1_34v7p")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=657515564]
+texture = ExtResource("1_yfprp")
+region_enabled = true
+region_rect = Rect2(0, 64, 32, 32)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=664039167]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=89032225]
+shape = SubResource("RectangleShape2D_34v7p")
