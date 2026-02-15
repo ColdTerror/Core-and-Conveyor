@@ -107,55 +107,61 @@ func _finish_work():
 	# Immediately try to start next job
 	_check_can_start_work()
 
-# --- OUTPUT LOGIC ---
+# =================================================================
+# UPDATED: OUTPUT LOGIC (Now using ConveyorBuilding Nodes)
+# =================================================================
+
 func _try_output_item():
+	if not level_ref: return
+	var manager = level_ref.building_manager
+	
+	# Loop through all tiles we occupy
 	for my_tile in occupied_tiles:
-		# Directions we are pushing OUT to
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
 		for offset in push_directions:
 			var target_pos = my_tile + offset
 			
-			# 1. Basic Obstacle Checks
-			if occupied_tiles.has(target_pos): continue # Don't output into myself
-			if level_ref.item_grid.has(target_pos): continue # Don't output onto existing item
+			# Don't output into ourself
+			if occupied_tiles.has(target_pos): continue
 			
-			# 2. Grid Data Check
-			if level_ref.active_grid_objects.has(target_pos):
-				var info = level_ref.active_grid_objects[target_pos]
-				var data = info["data"]
+			# Check BuildingManager for neighbors
+			if manager.occupied_tiles.has(target_pos):
+				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# 3. Conveyor Logic
-				if data.is_conveyor:
-					# Check Direction Matching
-					# We only output if the belt is moving AWAY from us (or same direction we push)
-					# If belt moves LEFT (-1, 0) and we push LEFT (-1, 0) -> OK
-					# If belt moves RIGHT (1, 0) and we push LEFT (-1, 0) -> JAM
-					
-					var conveyor_dir = info.get("direction", Vector2.ZERO)
-					
-					# Cast offset to Vector2 to match types
-					if conveyor_dir == Vector2(offset):
-						_spawn_output(target_pos)
-						return # Success!
+				# Is it a Conveyor?
+				if neighbor is ConveyorBuilding:
+					# Try to output to this conveyor
+					# If successful, return. If not, continue to next neighbor
+					if _spawn_item_into_conveyor(neighbor):
+						return # Successfully outputted, stop here
+					# If it failed, loop continues to try next neighbor
 
-func _spawn_output(target_pos: Vector2i):
-	if not generic_item_scene or not active_recipe: return
+func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
+	if not generic_item_scene or not active_recipe: return false
+	
+	# 1. Create the Visual Node
+	var new_item_node = generic_item_scene.instantiate()
+	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
+	if "item_data" in new_item_node: new_item_node.item_data = active_recipe.output_item
+	
+	# Position the item at the processor's location before handoff
+	new_item_node.global_position = global_position
+	
+	if new_item_node.has_method("_ready"): new_item_node._ready()
+	
+	# 2. Try to hand it to the Conveyor
+	if conveyor.accept_item_node(new_item_node):
+		# Success!
+		output_inventory -= 1
+		inventory_changed.emit()
+		return true # Success!
+	else:
+		# Belt was full or refused, delete the temp node
+		new_item_node.queue_free()
+		return false # Failed, try next conveyor
 
-	var new_item = generic_item_scene.instantiate()
-	
-	if new_item.has_method("setup"): new_item.setup(level_ref)
-	
-	if "item_data" in new_item:
-		new_item.item_data = active_recipe.output_item
-		if new_item.has_method("_ready"): new_item._ready()
-
-	level_ref.add_child(new_item)
-	new_item.global_position = level_ref.object_layer.map_to_local(target_pos)
-	
-	output_inventory -= 1
-	level_ref.item_grid[target_pos] = new_item
-	inventory_changed.emit()
+# =================================================================
 
 # --- UI HELPERS ---
 
