@@ -1,133 +1,208 @@
 extends Building
 class_name ConveyorBuilding
 
-@export var speed: float = 64.0 
-var direction: Vector2i = Vector2i.RIGHT 
+# ============================================================
+# EXPORTS & VARIABLES
+# ============================================================
 
-var held_item: Node2D = null 
-var level_ref: Node2D
+@export var speed: float = 64.0  # Pixels per second the item travels
 
-# State to track if we are waiting at the middle
-var is_moving_to_edge: bool = false 
+var direction: Vector2i = Vector2i.RIGHT  # Grid direction (UP, DOWN, LEFT, RIGHT)
+var held_item: Node2D = null  # The item currently on this belt (null = empty)
+var level_ref: Node2D  # Reference to the level/world node
 
+# State tracking for two-phase movement system
+var is_moving_to_edge: bool = false  # false = moving to center, true = moving to edge
+
+# ============================================================
+# SETUP & CLEANUP
+# ============================================================
+
+# Called by BuildingManager when belt is placed
 func setup(level_instance: Node2D, dir: Vector2i):
 	level_ref = level_instance
-	direction = dir
-	rotation = Vector2(dir).angle()
+	
+	# Safety: Prevent zero direction which would break movement
+	direction = dir if dir != Vector2i.ZERO else Vector2i.RIGHT
+	
+	# Rotate the belt sprite to match direction
+	rotation = Vector2(direction).angle()
 
-# --- INPUT ---
+# Called when this node is removed from the scene tree
+func _exit_tree():
+	# Clean up orphaned items to prevent memory leaks
+	if held_item and is_instance_valid(held_item):
+		held_item.queue_free()
+		held_item = null
+
+# ============================================================
+# ITEM ACCEPTANCE (INPUT)
+# ============================================================
+
+# Query function: Can this belt accept an item at the given tile?
+# Used by harvesters and other belts before attempting transfer
 func accepts_item_at(_tile: Vector2i) -> bool:
-	return held_item == null
+	return held_item == null  # Only accept if we're empty
 
+# Actual transfer function: Take ownership of an item node
 func accept_item_node(item_node: Node2D) -> bool:
-	if held_item != null: return false
+	# Reject if we already have an item or haven't been set up
+	if held_item != null or not level_ref: 
+		return false
 	
+	# Take ownership
 	held_item = item_node
-	is_moving_to_edge = false # Reset state logic
+	is_moving_to_edge = false  # Start in "moving to center" phase
 	
-	# --- THE FIX ---
+	# === PARENTING LOGIC ===
+	# Ensure the item is a child of level_ref (not another belt or null)
 	var old_parent = item_node.get_parent()
 	
-	if old_parent:
-		# Case A: Moving from another belt (already has a parent)
-		if old_parent != level_ref:
-			old_parent.remove_child(item_node)
-			level_ref.add_child(item_node)
-	else:
-		# Case B: Freshly spawned (has no parent)
-		level_ref.add_child(item_node)
-	# ---------------
+	# If item has a parent AND it's not our level, remove it from old parent
+	if old_parent and old_parent != level_ref:
+		old_parent.remove_child(item_node)
 	
-	# Snap Check: If it's too far away (teleporting), snap to our "Back Edge"
+	# If item has no parent now, add it to the level
+	if not item_node.get_parent():
+		level_ref.add_child(item_node)
+	
+	# === POSITION SNAPPING ===
+	# Always snap incoming items to our "back edge" (entry point)
+	# This ensures consistent positioning regardless of where item came from
 	var back_edge = global_position - (Vector2(direction) * 16.0)
-	if item_node.global_position.distance_to(back_edge) > 32:
-		item_node.global_position = back_edge
+	item_node.global_position = back_edge
 		
-	return true
-# --- MOVEMENT LOOP ---
+	return true  # Success!
+
+# ============================================================
+# MOVEMENT LOOP (runs every frame)
+# ============================================================
+
 func _process(delta):
-	if held_item == null: return
+	# Early exit: Nothing to move if belt is empty
+	if held_item == null: 
+		return
+	
+	# Safety check: Item might have been freed/deleted elsewhere
+	# This prevents crashes from dangling references
+	if not is_instance_valid(held_item):
+		held_item = null
+		return
 	
 	var target_pos = Vector2.ZERO
 	
+	# ========================================
+	# PHASE 1: Moving to Center
+	# ========================================
 	if not is_moving_to_edge:
-		# PHASE 1: Move to Center
+		# Target is the belt's center point
 		target_pos = global_position
 		
-		# Move
+		# Move item toward center
 		var move_step = speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
-		# Check Arrival
-		if held_item.global_position.distance_to(target_pos) < 1.0:
-			# We are at center! Check if we can proceed.
+		# Check if we're approaching the center (12 pixels away)
+		# We check EARLY (not at arrival) to prevent stuttering
+		var distance_to_center = held_item.global_position.distance_to(target_pos)
+		if distance_to_center < 12.0:
+			# Can we proceed to the next belt/building?
 			if _can_push_to_neighbor():
+				# Yes! Switch to Phase 2
 				is_moving_to_edge = true
-			else:
-				# Neighbor is full/blocked. Stay here.
-				pass
-				
+			# If no: Keep moving to center and wait there (item will settle)
+	
+	# ========================================
+	# PHASE 2: Moving to Edge (Handoff)
+	# ========================================
 	else:
-		# PHASE 2: Move to Edge
-		# Target is 16px in front (The Handoff Point)
+		# Target is 16 pixels in front of center (the handoff point)
 		target_pos = global_position + (Vector2(direction) * 16.0)
 		
-		# Move
+		# Move item toward edge
 		var move_step = speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
-		# Check Arrival at Edge
+		# Have we reached the edge?
 		if held_item.global_position.distance_to(target_pos) < 1.0:
-			# Try to actually hand it over now
+			# Try to actually transfer the item
 			if _push_to_neighbor():
-				pass # Success! Item is gone.
+				# Success! Item is gone, we're done
+				pass
 			else:
-				# Failed (Neighbor filled up while we were walking).
-				# Go back to waiting state.
+				# Failed! Neighbor filled up while we were moving
+				# Go back to Phase 1 (wait at center)
 				is_moving_to_edge = false
 
-# --- NEIGHBOR CHECKS ---
+# ============================================================
+# NEIGHBOR INTERACTION
+# ============================================================
 
-# Just CHECKS if the neighbor is open (Does not move item)
+# Query: Can we push to the next belt/building?
+# This is called BEFORE we commit to moving the item to the edge
 func _can_push_to_neighbor() -> bool:
 	var neighbor = _get_neighbor()
-	if not neighbor: return false
+	if not neighbor: 
+		return false  # No neighbor = dead end
 	
-	# 1. Check Conveyors
+	# --- CASE 1: Neighbor is another Conveyor Belt ---
 	if neighbor is ConveyorBuilding:
-		return neighbor.accepts_item_at(Vector2i.ZERO) # Vector2i.ZERO is dummy arg
-		
-	# 2. Check Buildings (Stockpiles/Factories)
-	if neighbor.has_method("can_accept_item"):
-		# We assume we have item_data on the node
-		if "item_data" in held_item:
-			return neighbor.can_accept_item(held_item.item_data)
-			
+		# Accept if neighbor is empty OR its item is already leaving
+		# This creates "pipelined" flow - we can start moving while
+		# the neighbor's item is on its way out
+		return neighbor.held_item == null or neighbor.is_moving_to_edge
+	
+	# --- CASE 2: Neighbor is a Building (Stockpile/Factory) ---
+	if neighbor.has_method("can_accept_item") and "item_data" in held_item:
+		# Ask the building if it can accept this specific item type
+		return neighbor.can_accept_item(held_item.item_data)
+	
+	# Unknown neighbor type or missing methods
 	return false
 
-# Actually MOVES the item
+# Action: Actually transfer the item to the neighbor
+# This is called when the item reaches the edge
 func _push_to_neighbor() -> bool:
 	var neighbor = _get_neighbor()
-	if not neighbor: return false
+	if not neighbor: 
+		return false
 	
+	# --- CASE 1: Push to another Conveyor Belt ---
 	if neighbor is ConveyorBuilding:
 		if neighbor.accept_item_node(held_item):
+			# Success! Neighbor took ownership
+			held_item = null  # We no longer own it
+			return true
+	
+	# --- CASE 2: Push to a Building (Stockpile/Factory) ---
+	elif neighbor.has_method("accept_item") and "item_data" in held_item:
+		if neighbor.accept_item(held_item.item_data):
+			# Building consumed the item (added to inventory)
+			# We need to destroy the visual node
+			held_item.queue_free()
 			held_item = null
 			return true
-			
-	elif neighbor.has_method("accept_item"):
-		if "item_data" in held_item:
-			if neighbor.accept_item(held_item.item_data):
-				held_item.queue_free()
-				held_item = null
-				return true
+	
+	# Transfer failed
 	return false
 
+# Helper: Get the building/belt in the direction we're facing
 func _get_neighbor() -> Node:
+	# Safety check
+	if not level_ref: 
+		return null
+	
+	# Convert our world position to grid coordinates
 	var my_grid = level_ref.object_layer.local_to_map(global_position)
+	
+	# Calculate the grid position we're facing
 	var neighbor_grid = my_grid + direction
+	
+	# Look up what's at that position in the BuildingManager
 	var manager = level_ref.building_manager
 	
 	if manager.occupied_tiles.has(neighbor_grid):
 		return manager.occupied_tiles[neighbor_grid]
+	
+	# Nothing there (empty space)
 	return null

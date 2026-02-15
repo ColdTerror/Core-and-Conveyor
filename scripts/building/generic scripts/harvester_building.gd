@@ -222,6 +222,10 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding):
 	var new_item_node = generic_item_scene.instantiate()
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	if "item_data" in new_item_node: new_item_node.item_data = target_resource.item_drop
+	
+	# Position the item at the harvester's location before handoff
+	new_item_node.global_position = global_position
+	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
 	# 2. Try to hand it to the Conveyor
@@ -231,15 +235,12 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding):
 		inventory_changed.emit()
 		
 		# --- ECONOMY: REMOVE FROM BANK ---
-		# Item moved to Belt (In Transit) -> Remove from Global Count
 		var dict = { target_resource.item_drop.display_name: 1 }
 		EconomyManager.remove_resources_from_global(dict)
-		# ---------------------------------
 		
 	else:
 		# Belt was full or refused, delete the temp node
 		new_item_node.queue_free()
-
 # =================================================================
 
 func get_inventory_info() -> Dictionary:
