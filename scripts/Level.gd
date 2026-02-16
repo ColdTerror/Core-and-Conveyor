@@ -63,39 +63,13 @@ var drag_start_pos: Vector2i
 
 @onready var ghost_layer = $GhostLayer
 
-var item_grid := {} # Key: Vector2i (grid pos), Value: Node (the item)
+
 
 
 
 @onready var pathfinder = $Pathfinder
 
 
-func spawn_item_at_mouse():
-	if item_scene == null:
-		print("Error: No item_scene assigned in the Inspector!")
-		return
-		
-	# 1. Get positions
-	var mouse_pos = get_global_mouse_position()
-	var grid_pos = object_layer.local_to_map(mouse_pos)
-	var spawn_pos = object_layer.map_to_local(grid_pos)
-	
-	if item_grid.has(grid_pos):
-		print("Cannot spawn: Tile occupied!")
-		return
-	
-	# 2. Create the item instance
-	var new_item = item_scene.instantiate()
-	
-	if new_item.has_method("setup"):
-		new_item.setup(self)
-		
-	# 3. Add it to the scene
-	add_child(new_item)
-	
-	# 4. Set its position to the center of the tile
-	new_item.global_position = spawn_pos
-	
 
 func _ready():
 	generate_simple_map()
@@ -539,56 +513,48 @@ func update_tooltip(grid_pos: Vector2i):
 # MODIFIED: place_tile (Now Handles Conveyor Buildings)
 # ====================================================
 func place_tile(grid_pos: Vector2i, data: TileDataResource):
-	# FIX: Find the actual index of the data we want to place
+	# Find the actual index of the data we want to place
 	var correct_index = tile_library.find(data)
-	if correct_index == -1: return # Safety check
-
-	# Use correct_index instead of current_tile_index
+	if correct_index == -1: return
+	
 	var atlas_coords = Vector2i(correct_index % ATLAS_COLUMNS, correct_index / ATLAS_COLUMNS)
 	
 	# --- CONVEYOR LOGIC (Spawn Building) ---
 	if data.is_conveyor:
-		# 1. Validation
 		if not conveyor_scene:
-			print("Error: No Conveyor Scene assigned in Level!")
+			print("Error: No Conveyor Scene not assigned!")
 			return
 		if not can_place_object(grid_pos):
 			return
-		if building_manager.occupied_tiles.has(grid_pos):
-			return # Already has a building
 			
-		# 2. Spawn Logic
+		# Spawn the belt building
 		var belt = conveyor_scene.instantiate()
 		object_layer.add_child(belt)
 		
-		# 3. Setup Building (Using Building.gd base functions)
+		# Setup and register
 		belt.place_at(grid_pos, object_layer)
 		belt.setup(self, data.conveyor_direction)
 		
-		# 4. Register with Manager (So it's treated as a building)
 		building_manager.occupied_tiles[grid_pos] = belt
 		building_manager.buildings.append(belt)
-		return # Stop, don't paint a tile
+		return
 	# ---------------------------------------
 
-	# Normal Terrain / Trees logic
+	# Normal tile placement (terrain/resources)
 	if not data.is_object:
+		# Terrain (grass, water, sand)
 		terrain_layer.set_cell(grid_pos, 0, atlas_coords)
 	else:
+		# Objects (trees, rocks)
 		if can_place_object(grid_pos):
-			var final_coords = atlas_coords
-			if data.atlas_coords_full != Vector2i(-1, -1):
-				final_coords = data.atlas_coords_full
-
+			var final_coords = data.atlas_coords_full if data.atlas_coords_full != Vector2i(-1, -1) else atlas_coords
 			object_layer.set_cell(grid_pos, 0, final_coords)
 			
-			var tile_info = {
+			# Only store resource objects in active_grid_objects
+			active_grid_objects[grid_pos] = {
 				"health": data.total_resources,
 				"data": data
 			}
-			# Note: We don't save 'direction' here anymore because the belt is a Node
-			
-			active_grid_objects[grid_pos] = tile_info
 
 func can_place_object(grid_pos: Vector2i) -> bool:
 	# 1. Check Terrain (Water check)
@@ -714,31 +680,23 @@ func _on_tower_fired(start_pos, target_node, item_data, final_damage, speed, ang
 		
 
 func print_active_objects():
-	print("--- CURRENT ACTIVE GRID OBJECTS ---")
+	print("--- CURRENT ACTIVE GRID OBJECTS (Resources Only) ---")
 	if active_grid_objects.is_empty():
 		print("Grid is empty.")
-		return
-		
-	for grid_pos in active_grid_objects:
-		var info = active_grid_objects[grid_pos]
-		var data = info["data"]
-		
-		# Build a readable string for this specific tile
-		var output = "Pos: %s | Name: %s | HP: %d" % [grid_pos, data.display_name, info["health"]]
-		
-		# If it's a conveyor, add the direction info
-		if data.is_conveyor:
-			output += " | Dir: %s" % str(data.conveyor_direction)
-			
-		print(output)
-	print("------------------------------------")
-	print("--- CURRENT ACTIVE ITEM OBJECTS ---")
-	# Key: Vector2i (grid pos), Value: Node (the item)
-	if item_grid.is_empty():
-		print("Grid is empty.")
 	else:
-		for grid_pos in item_grid:
-			var info = item_grid[grid_pos]
-			
-			print(grid_pos)
+		for grid_pos in active_grid_objects:
+			var info = active_grid_objects[grid_pos]
+			var data = info["data"]
+			print("Pos: %s | Name: %s | HP: %d" % [grid_pos, data.display_name, info["health"]])
+	
+	print("--- BUILDINGS (Including Belts) ---")
+	if building_manager.occupied_tiles.is_empty():
+		print("No buildings.")
+	else:
+		for grid_pos in building_manager.occupied_tiles:
+			var building = building_manager.occupied_tiles[grid_pos]
+			var name = building.get_class() if building else "Unknown"
+			print("Pos: %s | Type: %s" % [grid_pos, name])
+
+
 	print("------------------------------------")

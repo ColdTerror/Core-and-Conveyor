@@ -8,6 +8,7 @@ size = Vector2(32, 32)
 
 [node name="Conveyer" type="Node2D" unique_id=2033791368]
 script = ExtResource("1_34v7p")
+cost_wood = 5
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=657515564]
 texture = ExtResource("1_yfprp")

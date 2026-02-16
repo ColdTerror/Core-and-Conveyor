@@ -30,10 +30,16 @@ func setup(level_instance: Node2D, dir: Vector2i):
 
 # Called when this node is removed from the scene tree
 func _exit_tree():
-	# Clean up orphaned items to prevent memory leaks
+	# Clean up held item
 	if held_item and is_instance_valid(held_item):
 		held_item.queue_free()
 		held_item = null
+	
+	# Unregister from BuildingManager
+	if level_ref and level_ref.building_manager:
+		var my_grid = level_ref.object_layer.local_to_map(global_position)
+		level_ref.building_manager.occupied_tiles.erase(my_grid)
+		level_ref.building_manager.buildings.erase(self)
 
 # ============================================================
 # ITEM ACCEPTANCE (INPUT)
