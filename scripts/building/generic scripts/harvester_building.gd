@@ -28,8 +28,7 @@ var show_range_overlay := false:
 const TILE_SIZE = 32
 
 func _ready():
-	super() # Make sure this calls Building._ready()
-	
+	super()
 	# 1. Register Self
 	EconomyManager.register_source(self)
 
@@ -39,7 +38,6 @@ func _exit_tree():
 
 # 3. Implement Consumption Logic
 func consume_resources(remaining_bill: Dictionary):
-	# Harvesters only hold ONE type of resource, so check is simple
 	if not target_resource or not target_resource.item_drop: return
 	
 	var res_name = target_resource.item_drop.display_name
@@ -67,18 +65,12 @@ func setup(level_instance: Node2D):
 # --- DRAWING THE RANGE ---
 func _draw():
 	if show_range_overlay and level_ref:
-		# 1. Get the building's Top-Left Tile
 		var center_tile = level_ref.object_layer.local_to_map(global_position)
 		var top_left_tile = center_tile - (size / 2)
-		
-		# 2. Calculate Drawing Start Point
 		var range_top_left = top_left_tile - Vector2i(scan_radius, scan_radius)
-		
-		# 3. Calculate Total Dimensions
 		var total_width = size.x + (scan_radius * 2)
 		var total_height = size.y + (scan_radius * 2)
 		
-		# 4. Convert Grid -> Local Pixels
 		var world_pos = level_ref.object_layer.map_to_local(range_top_left)
 		world_pos -= Vector2(TILE_SIZE, TILE_SIZE) / 2.0
 		
@@ -159,7 +151,6 @@ func _find_nearest_target() -> Vector2i:
 	for x in range(start_x, end_x + 1):
 		for y in range(start_y, end_y + 1):
 			var check_pos = Vector2i(x, y)
-			
 			if _is_valid_target(check_pos):
 				var dist = center_tile.distance_squared_to(check_pos)
 				if dist < min_dist:
@@ -185,7 +176,7 @@ func _draw_beam(grid_pos: Vector2i):
 	beam_line.add_point(target_local)
 
 # =================================================================
-# NEW: OUTPUT LOGIC (Updated for ConveyorBuilding Nodes)
+# NEW: OUTPUT LOGIC (Unified with Processor/Stockpile)
 # =================================================================
 
 func _try_output_item():
@@ -201,7 +192,6 @@ func _try_output_item():
 			if occupied_tiles.has(target_pos): continue
 			
 			# Check BuildingManager for neighbors
-			# (We no longer use level_ref.item_grid or active_grid_objects for output)
 			var manager = level_ref.building_manager
 			
 			if manager.occupied_tiles.has(target_pos):
@@ -209,14 +199,17 @@ func _try_output_item():
 				
 				# Is it a Conveyor?
 				if neighbor is ConveyorBuilding:
-					# Optional: Check if conveyor direction matches our push?
-					# For Harvesters, we usually just side-load onto it regardless.
+					# --- UPDATED LOGIC ---
+					# Try to spawn. This function now returns TRUE if successful (belt accepted it)
+					# or FALSE if failed (belt full).
+					if _spawn_item_into_conveyor(neighbor):
+						return # Success! Stop trying other belts this tick.
 					
-					_spawn_item_into_conveyor(neighbor)
-					return # Only output 1 item per tick
+					# If false, we continue the loop to check the next neighbor
 
-func _spawn_item_into_conveyor(conveyor: ConveyorBuilding):
-	if not generic_item_scene or not target_resource.item_drop: return
+# Now returns BOOL (True = Success, False = Failed)
+func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
+	if not generic_item_scene or not target_resource.item_drop: return false
 	
 	# 1. Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
@@ -238,9 +231,13 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding):
 		var dict = { target_resource.item_drop.display_name: 1 }
 		EconomyManager.remove_resources_from_global(dict)
 		
+		return true # RETURN SUCCESS
+		
 	else:
 		# Belt was full or refused, delete the temp node
 		new_item_node.queue_free()
+		return false # RETURN FAILURE
+
 # =================================================================
 
 func get_inventory_info() -> Dictionary:
