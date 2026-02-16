@@ -134,6 +134,14 @@ func _process(delta):
 		# Target is 16 pixels in front of center (the handoff point)
 		target_pos = global_position + (Vector2(direction) * 16.0)
 		
+		# Check if neighbor can still accept BEFORE moving
+		if not _can_push_to_neighbor():
+			# Neighbor filled up! Dock back to center instead of wobbling
+			held_item.global_position = global_position  # Snap to center
+			is_moving_to_edge = false  # Return to Phase 1
+			return
+			
+			
 		# Move item toward edge
 		var move_step = speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
@@ -147,6 +155,7 @@ func _process(delta):
 			else:
 				# Failed! Neighbor filled up while we were moving
 				# Go back to Phase 1 (wait at center) and start cooldown
+				held_item.global_position = global_position
 				is_moving_to_edge = false
 				
 # ============================================================
