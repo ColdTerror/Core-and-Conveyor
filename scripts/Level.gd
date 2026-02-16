@@ -1,9 +1,8 @@
-# Level.gd - Rise to Ruins Style Generation
+# Level.gd 
 extends Node2D
 
 @onready var terrain_layer: TileMapLayer = $TerrainLayer
 @onready var object_layer: TileMapLayer = $ObjectLayer
-@onready var highlight: Sprite2D = $SelectionHighlight
 @onready var tooltip := $"CanvasLayer/Popup_Layer/Tooltip"
 @onready var tooltip_label := $"CanvasLayer/Popup_Layer/Tooltip/Label"
 
@@ -11,7 +10,7 @@ extends Node2D
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
 
 # Mode State
-enum InteractionMode { NONE, PLACE_TILE, PLACE_BUILDING }
+enum InteractionMode { NONE, PLACE_BUILDING }
 var current_mode = InteractionMode.NONE
 
 
@@ -31,16 +30,12 @@ const TERRAIN_SAND := 2
 const RES_TREE := 3
 const RES_STONE := 4
 
-var current_tile_index := 0
+
 var active_grid_objects := {}
 
 
-# Dragging Variables
-var is_dragging_line: bool = false
-var drag_start_pos: Vector2i
-# Configure this to match your library! 
-# Assuming your library has 4 conveyor items in order: Right, Down, Left, Up
-@export var conveyor_start_index: int = 6
+
+
 
 
 @export_group("Scenes")
@@ -61,8 +56,6 @@ var drag_start_pos: Vector2i
 
 @onready var building_menu = $CanvasLayer/Popup_Layer/BuildingMenu 
 
-@onready var ghost_layer = $GhostLayer
-
 
 
 
@@ -70,6 +63,7 @@ var drag_start_pos: Vector2i
 @onready var pathfinder = $Pathfinder
 
 
+	
 
 func _ready():
 	generate_simple_map()
@@ -97,36 +91,12 @@ func _ready():
 
 # 1. DEFINE WHAT GOES ON THE BAR
 func _setup_hotbar_items():
-	# A. Add Conveyor Button
-	# We use the Right Conveyor (Index 6) as the default "icon" and data
-	# Ensure your tile_library has the conveyor at conveyor_start_index!
-	if tile_library.size() > conveyor_start_index:
-		var conv_data = tile_library[conveyor_start_index]
-		
-		# 1. Get the main texture from the TileMapLayer
-		var source = object_layer.tile_set.get_source(0)
-		var base_texture = source.texture
-		
-		# 2. Create a crop (AtlasTexture)
-		var atlas_tex = AtlasTexture.new()
-		atlas_tex.atlas = base_texture
-		
-		# Calculate the rectangle to crop
-		# Prefer full coords, fallback to calculated
-		var coords = conv_data.atlas_coords_full
-		if coords == Vector2i(-1, -1):
-			var idx = conveyor_start_index
-			coords = Vector2i(idx % ATLAS_COLUMNS, idx / ATLAS_COLUMNS)
-			
-		atlas_tex.region = Rect2(Vector2(coords) * tile_size_px, tile_size_px)
-		
-		# 3. Add button
-		hotbar.add_button("Belt", atlas_tex, conveyor_start_index, false)
+
 	
 	# B. Add Building Buttons
 	# We instantiate briefly to get the icon/cost, or you can use a separate Resource system.
 	# For now, we trust the packed scenes are assigned.
-	
+	_add_building_to_bar("Belt", conveyor_scene)
 	_add_building_to_bar("Hut", lumberjack_scene)
 	_add_building_to_bar("Sawmill", sawmill_scene)
 	_add_building_to_bar("Stockpile", stockpile_scene)
@@ -148,20 +118,13 @@ func _add_building_to_bar(name: String, packed_scene: PackedScene):
 func _on_hotbar_item_selected(data, is_building):
 	# Reset states
 	building_manager.cancel_placement()
-	current_tile_index = 0
-	is_dragging_line = false
-	$GhostLayer.queue_redraw()
-	highlight.visible = false
+	
 	
 	if is_building:
-		# Data is a PackedScene
 		current_mode = InteractionMode.PLACE_BUILDING
 		building_manager.start_placing(data)
-	else:
-		# Data is an Integer (Tile Index)
-		current_mode = InteractionMode.PLACE_TILE
-		current_tile_index = data # This sets us to the "Right" conveyor
-		# Note: The player can still use 'R' to rotate because 'place_tile' checks current_tile_index
+	# DELETE THE ELSE BLOCK - no more tile mode for conveyors
+
 # =========================
 # Resource state change
 # =========================
@@ -216,163 +179,7 @@ func _process(_delta):
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
 	update_tooltip(grid_pos)
-	
-	if is_dragging_line: 
-		highlight.visible = false
-	else: 
-		# CHANGE: Only show the ghost tile if we are actually placing tiles
-		if current_mode == InteractionMode.PLACE_TILE:
-			highlight.visible = true
-			update_highlight(grid_pos)
-		else:
-			# Hide it when selecting buildings or doing nothing
-			highlight.visible = false
 
-	# Only allow Drag Logic if we are in TILE mode
-	if current_mode == InteractionMode.PLACE_TILE:
-		if Input.is_action_just_pressed("start_end_drag"):
-			var current_data = tile_library[current_tile_index]
-			if current_data.is_conveyor:
-				is_dragging_line = true
-				drag_start_pos = grid_pos
-				highlight.visible = false
-		
-		if is_dragging_line: $GhostLayer.queue_redraw()
-
-		if Input.is_action_just_released("start_end_drag"):
-			if is_dragging_line:
-				_commit_drag_line(grid_pos)
-				is_dragging_line = false
-				highlight.visible = true
-				$GhostLayer.queue_redraw()
-
-# ============================================================================
-# Conveyer Drag Drop 
-# ============================================================================
-func draw_drag_line(canvas_item: CanvasItem):
-	if is_dragging_line:
-		var current_grid = terrain_layer.local_to_map(get_global_mouse_position())
-		var points = _get_straight_line(drag_start_pos, current_grid)
-		
-		# 1. Determine WHICH data to draw
-		var data_to_draw: TileDataResource
-		
-		if drag_start_pos == current_grid:
-			# If we haven't moved, show the currently selected tile (respects 'R' key)
-			data_to_draw = tile_library[current_tile_index]
-		else:
-			# If dragging, calculate the correct direction
-			var dir_index = _get_drag_direction_index(drag_start_pos, current_grid)
-			var idx = conveyor_start_index + dir_index
-			if idx < tile_library.size():
-				data_to_draw = tile_library[idx]
-			else:
-				return # Safety
-
-		# 2. Get the Texture from the TileSet (Assuming Source 0 is your main atlas)
-		var source = object_layer.tile_set.get_source(0)
-		var texture = source.texture
-		
-		# 3. Calculate the Source Rect (Where on the sheet is this sprite?)
-		# Prefer the explicit full coord, fallback to calculated if needed
-		var coords = data_to_draw.atlas_coords_full
-		if coords == Vector2i(-1, -1):
-			var found_idx = tile_library.find(data_to_draw)
-			coords = Vector2i(found_idx % ATLAS_COLUMNS, found_idx / ATLAS_COLUMNS)
-			
-		var src_rect = Rect2(Vector2(coords) * tile_size_px, tile_size_px)
-
-		# 4. Draw the Ghosts
-		for pt in points:
-			var world_pos = terrain_layer.map_to_local(pt)
-			var draw_pos = world_pos - (tile_size_px / 2.0)
-			
-			# --- NEW: Check Validity ---
-			var is_valid = can_place_object(pt)
-			
-			var draw_color = Color(1, 1, 1, 0.6) # Normal (White Ghost)
-			var bg_color = Color(0.2, 0.6, 1.0, 0.2) # Blue BG (Valid)
-			
-			if not is_valid:
-				draw_color = Color(1, 0, 0, 0.6) # Red Ghost (Blocked)
-				bg_color = Color(1, 0, 0, 0.2) # Red BG (Blocked)
-			# ---------------------------
-			
-			# Draw Background Box
-			canvas_item.draw_rect(Rect2(draw_pos, tile_size_px), bg_color, true)
-			
-			# Draw the Conveyor Sprite
-			canvas_item.draw_texture_rect_region(texture, Rect2(draw_pos, tile_size_px), src_rect, draw_color)
-			
-# --- DRAG HELPERS ---
-
-func _commit_drag_line(end_pos: Vector2i):
-	# FIX: Check if this was just a single click (No drag occurred)
-	if drag_start_pos == end_pos:
-		# If we didn't move, use the tile we currently have selected 
-		# (This respects the rotation you set with 'R')
-		place_tile(end_pos, tile_library[current_tile_index])
-		return
-	
-	var points = _get_straight_line(drag_start_pos, end_pos)
-	var dir_index = _get_drag_direction_index(drag_start_pos, end_pos)
-	
-	# Determine which tile resource to use based on direction
-	# Assuming Library Order: [6=Right, 7=Down, 8=Left, 9=Up]
-	# Adjust 'conveyor_start_index' in variables to match your setup!
-	var correct_resource_index = conveyor_start_index + dir_index
-	
-	if correct_resource_index >= tile_library.size():
-		print("Error: Conveyor index out of bounds")
-		return
-
-	var data = tile_library[correct_resource_index]
-
-	# Place the tiles
-	for pt in points:
-		place_tile(pt, data)
-
-# Returns 0=Right, 1=Up, 2=Left, 3=Down
-func _get_drag_direction_index(start: Vector2i, end: Vector2i) -> int:
-	var diff = end - start
-	
-	# If start == end, default to Right (0)
-	if diff == Vector2i.ZERO: return 0
-	
-	if abs(diff.x) >= abs(diff.y):
-		# Horizontal
-		return 0 if diff.x > 0 else 2 # 0=Right, 2=Left
-	else:
-		# Vertical
-		# Y is negative going UP in Godot (0,0 is top-left)
-		return 3 if diff.y > 0 else 1 # 3=Down, 1=Up
-
-func _get_straight_line(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
-	var points: Array[Vector2i] = []
-	var diff = end - start
-	var final_end = end
-	
-	# Axis Lock
-	if abs(diff.x) >= abs(diff.y):
-		final_end.y = start.y
-	else:
-		final_end.x = start.x
-		
-	# Walk
-	var current = start
-	var step = Vector2i.ZERO
-	if final_end.x != start.x: step.x = sign(final_end.x - start.x)
-	if final_end.y != start.y: step.y = sign(final_end.y - start.y)
-	
-	# Safety loop
-	var safe = 0
-	while safe < 100:
-		points.append(current)
-		if current == final_end: break
-		current += step
-		safe += 1
-		
-	return points
 # ============================================================================
 # MAP GENERATION - RISE TO RUINS STYLE
 # ============================================================================
@@ -513,49 +320,29 @@ func update_tooltip(grid_pos: Vector2i):
 # MODIFIED: place_tile (Now Handles Conveyor Buildings)
 # ====================================================
 func place_tile(grid_pos: Vector2i, data: TileDataResource):
-	# Find the actual index of the data we want to place
 	var correct_index = tile_library.find(data)
 	if correct_index == -1: return
 	
 	var atlas_coords = Vector2i(correct_index % ATLAS_COLUMNS, correct_index / ATLAS_COLUMNS)
 	
+	# DELETE THIS ENTIRE SECTION:
 	# --- CONVEYOR LOGIC (Spawn Building) ---
-	if data.is_conveyor:
-		if not conveyor_scene:
-			print("Error: No Conveyor Scene not assigned!")
-			return
-		if not can_place_object(grid_pos):
-			return
-			
-		# Spawn the belt building
-		var belt = conveyor_scene.instantiate()
-		object_layer.add_child(belt)
-		
-		# Setup and register
-		belt.place_at(grid_pos, object_layer)
-		belt.setup(self, data.conveyor_direction)
-		
-		building_manager.occupied_tiles[grid_pos] = belt
-		building_manager.buildings.append(belt)
-		return
+	# if data.is_conveyor:
+	#     ... all the belt spawning code ...
 	# ---------------------------------------
 
 	# Normal tile placement (terrain/resources)
 	if not data.is_object:
-		# Terrain (grass, water, sand)
 		terrain_layer.set_cell(grid_pos, 0, atlas_coords)
 	else:
-		# Objects (trees, rocks)
 		if can_place_object(grid_pos):
 			var final_coords = data.atlas_coords_full if data.atlas_coords_full != Vector2i(-1, -1) else atlas_coords
 			object_layer.set_cell(grid_pos, 0, final_coords)
 			
-			# Only store resource objects in active_grid_objects
 			active_grid_objects[grid_pos] = {
 				"health": data.total_resources,
 				"data": data
 			}
-
 func can_place_object(grid_pos: Vector2i) -> bool:
 	# 1. Check Terrain (Water check)
 	var terrain_atlas = terrain_layer.get_cell_atlas_coords(grid_pos)
@@ -577,10 +364,6 @@ func can_place_object(grid_pos: Vector2i) -> bool:
 	return true
 
 
-func update_highlight(grid_pos: Vector2i):
-	highlight.global_position = terrain_layer.map_to_local(grid_pos)
-	var atlas_pos = Vector2i(current_tile_index % ATLAS_COLUMNS, current_tile_index / ATLAS_COLUMNS)
-	highlight.region_rect = Rect2(Vector2(atlas_pos) * tile_size_px, tile_size_px)
 
 
 	
@@ -588,13 +371,11 @@ func _unhandled_input(event):
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 
-	# 1. Rotation (Always allowed)
+	# 1. Rotation - UPDATE TO:
 	if event.is_action_pressed("rotate_tile"):
-		var current_data = tile_library[current_tile_index]
-		if current_data.is_conveyor:
-			var start = conveyor_start_index
-			current_tile_index = start + ((current_tile_index - start + 1) % 4)
-		return # Stop here
+		if current_mode == InteractionMode.PLACE_BUILDING:
+			building_manager.rotate_ghost()
+		return
 
 	# 2. BUILDING MODE (Delegated to Manager)
 	# We check this FIRST. If we are placing a building, we send Presses, Releases, 
@@ -613,14 +394,9 @@ func _unhandled_input(event):
 	# Only listen for explicit "Presses" for these modes
 	if event.is_action_pressed("ui_left"):
 		
-		# MODE 2: Placing Tiles (Belts)
-		if current_mode == InteractionMode.PLACE_TILE:
-			# Belt logic is handled in _process via dragging, so we pass here.
-			# If you had single-click tile placement, put it here.
-			pass 
-
-		# MODE 3: Selection / Interaction (Clicking existing stuff)
-		elif current_mode == InteractionMode.NONE:
+		
+		# MODE: Selection / Interaction (Clicking existing stuff)
+		if current_mode == InteractionMode.NONE:
 			_handle_selection_click()
 			if has_node("WaveManager"):
 				$WaveManager.deselect_enemy()
@@ -630,8 +406,6 @@ func _unhandled_input(event):
 		# Common Cancel
 		building_manager.cancel_placement()
 		current_mode = InteractionMode.NONE
-		is_dragging_line = false
-		$GhostLayer.queue_redraw()
 		
 		# Specific Right Click (Harvest)
 		#if event.is_action_pressed("ui_right"):
@@ -678,25 +452,3 @@ func _on_tower_fired(start_pos, target_node, item_data, final_damage, speed, ang
 	if proj.has_method("setup"):
 		proj.setup(start_pos, dir, speed, final_damage, item_data.texture)
 		
-
-func print_active_objects():
-	print("--- CURRENT ACTIVE GRID OBJECTS (Resources Only) ---")
-	if active_grid_objects.is_empty():
-		print("Grid is empty.")
-	else:
-		for grid_pos in active_grid_objects:
-			var info = active_grid_objects[grid_pos]
-			var data = info["data"]
-			print("Pos: %s | Name: %s | HP: %d" % [grid_pos, data.display_name, info["health"]])
-	
-	print("--- BUILDINGS (Including Belts) ---")
-	if building_manager.occupied_tiles.is_empty():
-		print("No buildings.")
-	else:
-		for grid_pos in building_manager.occupied_tiles:
-			var building = building_manager.occupied_tiles[grid_pos]
-			var name = building.get_class() if building else "Unknown"
-			print("Pos: %s | Type: %s" % [grid_pos, name])
-
-
-	print("------------------------------------")

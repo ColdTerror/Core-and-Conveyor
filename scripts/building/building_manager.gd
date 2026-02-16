@@ -40,7 +40,10 @@ func start_placing(scene: PackedScene):
 		add_child(ghost_building)
 	
 	# Inject Level immediately so Ghost can see the grid
-	if ghost_building.has_method("setup") and level_ref:
+	if ghost_building is ConveyorBuilding:
+		# Give it a default direction for the ghost preview
+		ghost_building.setup(level_ref, Vector2i.RIGHT)
+	elif ghost_building.has_method("setup"):
 		ghost_building.setup(level_ref)
 
 	ghost_building.set_ghost(true)
@@ -133,7 +136,6 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if not placing_building or ghost_building == null:
 		return false
 
-	# If specific_pos is passed (from Drag), use it. Otherwise use Mouse.
 	var grid_pos = specific_pos
 	if grid_pos == Vector2i(-1, -1):
 		grid_pos = _get_mouse_grid()
@@ -155,13 +157,30 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	ghost_building.place_at(grid_pos, object_layer)
 	
 	ghost_building.visible = true
-	ghost_building.modulate = Color(1, 1, 1, 1) # Reset any transparency
+	ghost_building.modulate = Color(1, 1, 1, 1)
 	
-	# Re-inject level just to be safe
-	if ghost_building.has_method("setup"):
-		ghost_building.setup(level_ref)
+	# NEW: Setup Conveyor Direction
+	if ghost_building is ConveyorBuilding:
+		# Calculate direction based on drag if applicable
+		var direction = Vector2i.RIGHT  # Default
 		
-	# Connect Signals (Towers)
+		if is_dragging and drag_ghosts.size() > 1:
+			# Get direction from drag line
+			var start = drag_start
+			var end = grid_pos
+			var diff = end - start
+			
+			if abs(diff.x) >= abs(diff.y):
+				direction = Vector2i.RIGHT if diff.x > 0 else Vector2i.LEFT
+			else:
+				direction = Vector2i.DOWN if diff.y > 0 else Vector2i.UP
+		
+		ghost_building.setup(level_ref, direction)
+	elif ghost_building.has_method("setup"):
+		ghost_building.setup(level_ref)
+	# ----------------
+		
+	# Connect Signals
 	if ghost_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
 		ghost_building.fired_projectile.connect(level_ref._on_tower_fired)
 		
@@ -176,25 +195,14 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		var footprint = ghost_building.get_footprint(grid_pos)
 		
 		if ghost_building.is_solid_obstacle:
-			# Solid (Stockpile)
 			for tile in footprint:
 				pathfinder.set_obstacle(tile, true)
 		else:
-			# Weighted (Wall)
 			for tile in footprint:
-				print_debug("Path cost " + str(ghost_building.path_cost))
 				pathfinder.set_weighted_obstacle(tile, ghost_building.path_cost)
 				
-				
-	# Important: We placed the ghost, so we clear the variable.
-	# But we set placing_building = true so the Level knows we are still in "Build Mode"
-	# and triggers start_placing() again if needed (or we handle respawning the ghost).
 	ghost_building = null
-	
-	# If this was a single click placement, we might want to respawn the ghost immediately
-	# so the player can place another one. For now, we return true to signal success.
-	return true 
-
+	return true
 
 # -------------------------------
 # DRAG LOGIC IMPLEMENTATION
@@ -270,6 +278,29 @@ func _commit_drag_line():
 	# 3. Restore the main cursor for the next placement
 	start_placing(original_scene)
 
+# Add this function
+func rotate_ghost():
+	if not ghost_building:
+		return
+		
+	if ghost_building is ConveyorBuilding:
+		# Cycle through directions: RIGHT -> DOWN -> LEFT -> UP -> RIGHT
+		var current_dir = ghost_building.direction
+		var new_dir = Vector2i.ZERO
+		
+		if current_dir == Vector2i.RIGHT:
+			new_dir = Vector2i.DOWN
+		elif current_dir == Vector2i.DOWN:
+			new_dir = Vector2i.LEFT
+		elif current_dir == Vector2i.LEFT:
+			new_dir = Vector2i.UP
+		else:  # UP
+			new_dir = Vector2i.RIGHT
+		
+		# Update the ghost with new direction
+		ghost_building.direction = new_dir
+		ghost_building.rotation = Vector2(new_dir).angle()
+	# Add other rotatable building types here in the future
 
 # -------------------------------
 # INTERNAL HELPERS

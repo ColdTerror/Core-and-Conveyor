@@ -12,7 +12,6 @@
 [ext_resource type="Script" uid="uid://c800uxnceihnq" path="res://scripts/camera_controller.gd" id="9_8iemx"]
 [ext_resource type="Resource" uid="uid://ib2rubjj10i2" path="res://resources/tiles/6_Conveyer_Right.tres" id="9_wc255"]
 [ext_resource type="Resource" uid="uid://bwxxvg7jiksgl" path="res://resources/tiles/7_Conveyer_Up.tres" id="10_arp2o"]
-[ext_resource type="Texture2D" uid="uid://ccb3pqwas4kud" path="res://assets/Tiles.png" id="11_t1rx8"]
 [ext_resource type="Resource" uid="uid://ijwrlheyckd8" path="res://resources/tiles/8_Conveyer_Left.tres" id="11_ux5qa"]
 [ext_resource type="Resource" uid="uid://dhst2ng5e26ob" path="res://resources/tiles/9_Conveyer_Down.tres" id="12_82cfe"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="13_arp2o"]
@@ -29,7 +28,6 @@
 [ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/building_menu.tscn" id="21_wu01b"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/test_enemy.tscn" id="27_cmcjb"]
-[ext_resource type="Script" uid="uid://nb12wvb8i6eh" path="res://scripts/ghost_layer.gd" id="28_556r4"]
 [ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/pathfinder.gd" id="29_7agi7"]
 [ext_resource type="PackedScene" uid="uid://mc4h1u2qxbyd" path="res://scenes/ui/enemy_info_popup.tscn" id="29_w3o6u"]
 [ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/wave_manager.tscn" id="32_2e2fo"]
@@ -80,20 +78,10 @@ tile_set = ExtResource("2_w8frs")
 [node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
 tile_set = ExtResource("2_w8frs")
 
-[node name="SelectionHighlight" type="Sprite2D" parent="." unique_id=587936511]
-modulate = Color(1, 1, 1, 0.60784316)
-texture = ExtResource("11_t1rx8")
-region_enabled = true
-region_rect = Rect2(0, 0, 16, 16)
-
 [node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "hover_popup")]
 script = ExtResource("15_gunhw")
 object_layer = NodePath("../ObjectLayer")
 hover_popup = NodePath("../CanvasLayer/Popup_Layer/BuildingHoverPopup")
-
-[node name="GhostLayer" type="Node2D" parent="." unique_id=1770065455]
-z_index = 100
-script = ExtResource("28_556r4")
 
 [node name="Pathfinder" type="Node2D" parent="." unique_id=1266074560]
 script = ExtResource("29_7agi7")
@@ -169,49 +157,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Generate Map" type="Button" parent="CanvasLayer/Debug_Layer" unique_id=1749926711]
-visible = false
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -119.0
-offset_bottom = 31.0
-grow_horizontal = 0
-text = "Generate Map"
-
-[node name="Print Objects" type="Button" parent="CanvasLayer/Debug_Layer" unique_id=471860525]
-visible = false
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -119.0
-offset_top = -15.5
-offset_bottom = 15.5
-grow_horizontal = 0
-grow_vertical = 2
-text = "Print Objects"
-
-[node name="Spawn Item" type="Button" parent="CanvasLayer/Debug_Layer" unique_id=292236248]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -59.5
-offset_top = -15.5
-offset_right = 59.5
-offset_bottom = 15.5
-grow_horizontal = 2
-grow_vertical = 2
-text = "Spawn Item
-"
-
 [node name="Hud_Layer" type="Control" parent="CanvasLayer" unique_id=1589356399]
 layout_mode = 3
 anchors_preset = 15
@@ -227,7 +172,3 @@ mouse_filter = 2
 
 [node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 instance=ExtResource("21_h6wmr")]
 layout_mode = 1
-
-[connection signal="pressed" from="CanvasLayer/Debug_Layer/Generate Map" to="." method="generate_simple_map"]
-[connection signal="pressed" from="CanvasLayer/Debug_Layer/Print Objects" to="." method="print_active_objects"]
-[connection signal="pressed" from="CanvasLayer/Debug_Layer/Spawn Item" to="." method="spawn_item_at_mouse"]
