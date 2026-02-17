@@ -147,7 +147,6 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	# Check Economy
 	var cost = ghost_building.get_build_cost()
 	if not EconomyManager.can_afford(cost):
-		print("Cannot afford building! Needed: ", cost)
 		return false
 
 	# Pay the Cost
@@ -200,25 +199,24 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 func _update_drag_line(current_grid: Vector2i):
 	var points = _get_straight_line(drag_start, current_grid)
 	
-	# Calculate direction from drag for conveyors
-	var drag_direction = Vector2i.RIGHT  # Default
+	# 1. Calculate Direction (Conveyors only)
+	var drag_direction = Vector2i.RIGHT 
 	if ghost_building is ConveyorBuilding and points.size() > 1:
-		var diff = points[-1] - points[0]  # Last point - first point
+		var diff = points[-1] - points[0] 
 		if abs(diff.x) >= abs(diff.y):
 			drag_direction = Vector2i.RIGHT if diff.x > 0 else Vector2i.LEFT
 		else:
 			drag_direction = Vector2i.DOWN if diff.y > 0 else Vector2i.UP
 	
-	# Sync Ghost Count
+	# 2. Sync Ghost Count (Create/Delete visual nodes)
 	while drag_ghosts.size() < points.size():
 		var new_ghost = ghost_building.duplicate()
 		new_ghost.visible = true
 		
-		# *** Apply direction to the duplicated ghost ***
+		# Apply initial direction
 		if new_ghost is ConveyorBuilding:
 			new_ghost.direction = drag_direction
 			new_ghost.rotation = Vector2(drag_direction).angle()
-		# ***
 		
 		if level_ref and level_ref.has_node("GhostLayer"):
 			level_ref.get_node("GhostLayer").add_child(new_ghost)
@@ -230,27 +228,43 @@ func _update_drag_line(current_grid: Vector2i):
 		var g = drag_ghosts.pop_back()
 		g.queue_free()
 	
-	# Update Position & Color
+	# 3. GET BASE COST
+	var base_cost = ghost_building.get_build_cost() # e.g. {"Wood": 5}
+	
+	# 4. Update Position & Color Loop
 	for i in range(points.size()):
 		var pt = points[i]
 		var g = drag_ghosts[i]
 		
-		# *** Update direction for all existing ghosts too ***
+		# Update Direction
 		if g is ConveyorBuilding:
 			g.direction = drag_direction
 			g.rotation = Vector2(drag_direction).angle()
-		# ***
 		
-		# Set Position
+		# Update Position
 		if object_layer:
 			g.global_position = object_layer.map_to_local(pt)
 		
-		# Set Color (Valid vs Invalid)
-		var valid = _can_place_building(g, pt)
+		# --- VALIDATION LOGIC ---
+		var is_valid = true
+		
+		# A. Physical Check (Obstacles)
+		if not _can_place_building(g, pt):
+			is_valid = false
+			
+		# B. Economic Check (Affordability)
+		# Calculate cost for THIS item plus all previous items in the line
+		if is_valid:
+			var cumulative_cost = _calculate_cumulative_cost(base_cost, i + 1)
+			if not EconomyManager.can_afford(cumulative_cost):
+				is_valid = false
+		
+		# Apply Visuals
 		if g.has_method("set_valid_placement"):
-			g.set_valid_placement(valid)
+			g.set_valid_placement(is_valid)
 		else:
-			g.modulate = Color(0, 1, 0, 0.5) if valid else Color(1, 0, 0, 0.5)
+			g.modulate = Color(0, 1, 0, 0.5) if is_valid else Color(1, 0, 0, 0.5)
+
 func _commit_drag_line():
 	# Store the original scene to respawn logic later
 	if drag_ghosts.size() == 0: return
@@ -405,3 +419,9 @@ func _get_straight_line(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
 		safe += 1
 		
 	return points
+
+func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Dictionary:
+	var total = {}
+	for resource_name in base_cost:
+		total[resource_name] = base_cost[resource_name] * quantity
+	return total

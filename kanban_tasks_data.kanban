@@ -11,7 +11,8 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b"
+				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
+				"e400713b-8f41-4cd0-9197-a3013d1de847"
 			]
 		},
 		{
@@ -46,6 +47,13 @@
 		{
 			"uuid": "1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52",
 			"title": "pathfinding tries to go through diagonals as if the adjacent walls arent there",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e400713b-8f41-4cd0-9197-a3013d1de847",
+			"title": "walls have cost",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
