@@ -11,6 +11,7 @@ script = ExtResource("1_vc0d4")
 attack_range = 256.0
 building_name = "Bow Tower"
 size = Vector2i(2, 2)
+icon = ExtResource("2_sa4vh")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156622]
 scale = Vector2(0.5, 0.5)
