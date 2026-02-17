@@ -202,6 +202,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 				pathfinder.set_weighted_obstacle(tile, ghost_building.path_cost)
 				
 	ghost_building = null
+	
 	return true
 
 # -------------------------------
@@ -349,7 +350,6 @@ func cancel_placement():
 	if ghost_building:
 		ghost_building.queue_free()
 		ghost_building = null
-		print("Placement cancelled.")
 	
 	_clear_drag_ghosts()
 	is_dragging = false
