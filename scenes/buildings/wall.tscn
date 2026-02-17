@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c0fjlwuepy3iy"]
 
 [ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="1_a3mu7"]
-[ext_resource type="Script" uid="uid://by5vvpdqu647v" path="res://scripts/wall.gd" id="1_gxk2j"]
+[ext_resource type="Script" path="res://scripts/wall.gd" id="1_gxk2j"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_gxk2j"]
 atlas = ExtResource("1_a3mu7")
@@ -20,7 +20,7 @@ path_cost = 50.0
 is_draggable = true
 building_name = "Wall"
 icon = SubResource("AtlasTexture_gxk2j")
-cost_wood = 0
+cost_wood = 5
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413850]
 texture = ExtResource("1_a3mu7")
