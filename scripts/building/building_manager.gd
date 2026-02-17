@@ -83,9 +83,10 @@ func handle_input(event, current_grid_pos: Vector2i) -> bool:
 
 	# 4. HANDLE RELEASE (Commit Drag)
 	if event.is_action_released("ui_left") and is_dragging:
-		is_dragging = false
+		
 		ghost_building.visible = true # Show cursor again
 		_commit_drag_line()
+		is_dragging = false
 		_clear_drag_ghosts()
 		return false # Stay in mode to place more walls
 
@@ -161,23 +162,10 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	
 	# NEW: Setup Conveyor Direction
 	if ghost_building is ConveyorBuilding:
-		# Calculate direction based on drag if applicable
-		var direction = Vector2i.RIGHT  # Default
-		
-		if is_dragging and drag_ghosts.size() > 1:
-			# Get direction from drag line
-			var start = drag_start
-			var end = grid_pos
-			var diff = end - start
-			
-			if abs(diff.x) >= abs(diff.y):
-				direction = Vector2i.RIGHT if diff.x > 0 else Vector2i.LEFT
-			else:
-				direction = Vector2i.DOWN if diff.y > 0 else Vector2i.UP
-		
-		ghost_building.setup(level_ref, direction)
+		# The ghost already has the correct direction from _update_drag_line or rotate_ghost
+		ghost_building.setup(level_ref, ghost_building.direction)
 	elif ghost_building.has_method("setup"):
-		ghost_building.setup(level_ref)
+			ghost_building.setup(level_ref)
 	# ----------------
 		
 	# Connect Signals
@@ -212,10 +200,26 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 func _update_drag_line(current_grid: Vector2i):
 	var points = _get_straight_line(drag_start, current_grid)
 	
+	# Calculate direction from drag for conveyors
+	var drag_direction = Vector2i.RIGHT  # Default
+	if ghost_building is ConveyorBuilding and points.size() > 1:
+		var diff = points[-1] - points[0]  # Last point - first point
+		if abs(diff.x) >= abs(diff.y):
+			drag_direction = Vector2i.RIGHT if diff.x > 0 else Vector2i.LEFT
+		else:
+			drag_direction = Vector2i.DOWN if diff.y > 0 else Vector2i.UP
+	
 	# Sync Ghost Count
 	while drag_ghosts.size() < points.size():
 		var new_ghost = ghost_building.duplicate()
 		new_ghost.visible = true
+		
+		# *** Apply direction to the duplicated ghost ***
+		if new_ghost is ConveyorBuilding:
+			new_ghost.direction = drag_direction
+			new_ghost.rotation = Vector2(drag_direction).angle()
+		# ***
+		
 		if level_ref and level_ref.has_node("GhostLayer"):
 			level_ref.get_node("GhostLayer").add_child(new_ghost)
 		else:
@@ -231,6 +235,12 @@ func _update_drag_line(current_grid: Vector2i):
 		var pt = points[i]
 		var g = drag_ghosts[i]
 		
+		# *** Update direction for all existing ghosts too ***
+		if g is ConveyorBuilding:
+			g.direction = drag_direction
+			g.rotation = Vector2(drag_direction).angle()
+		# ***
+		
 		# Set Position
 		if object_layer:
 			g.global_position = object_layer.map_to_local(pt)
@@ -241,7 +251,6 @@ func _update_drag_line(current_grid: Vector2i):
 			g.set_valid_placement(valid)
 		else:
 			g.modulate = Color(0, 1, 0, 0.5) if valid else Color(1, 0, 0, 0.5)
-
 func _commit_drag_line():
 	# Store the original scene to respawn logic later
 	if drag_ghosts.size() == 0: return
