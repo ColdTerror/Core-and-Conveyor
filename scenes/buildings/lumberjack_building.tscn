@@ -5,6 +5,10 @@
 [ext_resource type="Resource" uid="uid://cwk72joli5ujg" path="res://resources/tiles/3_Forest.tres" id="2_kh24c"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="3_nikr4"]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_tf3du"]
+atlas = ExtResource("1_0p6bf")
+region = Rect2(128, 0, 128, 128)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
 size = Vector2(128, 128)
 
@@ -14,13 +18,13 @@ target_resource = ExtResource("2_kh24c")
 generic_item_scene = ExtResource("3_nikr4")
 building_name = "Lumberjack"
 size = Vector2i(4, 4)
-icon = ExtResource("1_0p6bf")
+icon = SubResource("AtlasTexture_tf3du")
 cost_wood = 50
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
 texture = ExtResource("1_0p6bf")
 region_enabled = true
-region_rect = Rect2(128, 128, 128, 128)
+region_rect = Rect2(128, 0, 128, 128)
 
 [node name="Area2D" type="Area2D" parent="." unique_id=803807135]
 

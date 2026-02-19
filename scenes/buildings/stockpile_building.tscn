@@ -4,6 +4,10 @@
 [ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/building/generic scripts/stockpile_building.gd" id="1_sqy8c"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="2_shrhu"]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_shrhu"]
+atlas = ExtResource("1_5oplf")
+region = Rect2(0, 0, 128, 128)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sqy8c"]
 size = Vector2(128, 128)
 
@@ -11,7 +15,7 @@ size = Vector2(128, 128)
 script = ExtResource("1_sqy8c")
 generic_item_scene = ExtResource("2_shrhu")
 size = Vector2i(4, 4)
-icon = ExtResource("1_5oplf")
+icon = SubResource("AtlasTexture_shrhu")
 cost_wood = 25
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1701586786]
