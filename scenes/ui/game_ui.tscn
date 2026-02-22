@@ -19,3 +19,13 @@ offset_bottom = 40.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer" unique_id=1342127144]
 layout_mode = 2
+
+[node name="WaveProgressBar" type="ProgressBar" parent="." unique_id=1040969919]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 27.0
+grow_horizontal = 0

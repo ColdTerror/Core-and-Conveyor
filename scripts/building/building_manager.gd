@@ -127,7 +127,7 @@ func _on_building_destroyed(b: Building):
 		var assets = b.get_economy_assets()
 		
 		if not assets.is_empty():
-			EconomyManager.remove_resources(assets)
+			EconomyManager.remove_resources_from_global(assets)
 	# ------------------
 
 		

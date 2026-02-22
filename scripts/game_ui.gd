@@ -3,8 +3,10 @@ extends Control
 
 @onready var container = $PanelContainer/HBoxContainer
 
-# A dictionary to keep track of the labels we create
-# Key: String (e.g. "Wood"), Value: Label Node
+# --- NEW: WAVE UI REFERENCES ---
+@export var wave_manager: WaveManager # Drag your WaveManager node here in the Inspector!
+@onready var wave_progress_bar = $WaveProgressBar # Adjust path if you put it inside a container
+
 var resource_labels: Dictionary = {}
 
 func _ready():
@@ -19,17 +21,40 @@ func update_labels():
 	for resource_name in EconomyManager.global_inventory:
 		var amount = EconomyManager.global_inventory[resource_name]
 		
-		# Optional: Skip drawing the label if we have 0 of that item
-		# (Remove this if statement if you want it to show "Arrows: 0")
-		#if amount <= 0 and not resource_labels.has(resource_name):
-		#	continue 
-		
 		# If we don't have a label for this item yet, create one!
 		if not resource_labels.has(resource_name):
 			var new_label = Label.new()
-			# You can add custom fonts/themes to new_label here if you want
 			container.add_child(new_label)
 			resource_labels[resource_name] = new_label
 			
 		# Update the text of the existing label
 		resource_labels[resource_name].text = "  %s: %d  " % [resource_name, amount]
+
+# --- NEW: WAVE TIMER LOGIC ---
+func _process(_delta):
+	# Don't run if we haven't linked the manager or the progress bar
+	if not wave_manager or not wave_progress_bar: 
+		return
+		
+	# Optional: If you added a Label as a child of the ProgressBar, grab it here
+	var text_label = wave_progress_bar.get_node_or_null("Label")
+		
+	if wave_manager.is_wave_active:
+		# Wave is happening right now! Keep the bar full.
+		wave_progress_bar.max_value = 1.0
+		wave_progress_bar.value = 1.0
+		
+		if text_label:
+			text_label.text = "Wave %d Active! Enemies: %d" % [wave_manager.current_wave, wave_manager.enemies_alive]
+			
+	else:
+		# Cooldown phase: counting down to the next wave
+		var time_left = wave_manager.wave_timer.time_left
+		var total_time = wave_manager.wave_timer.wait_time
+		
+		# Update the bar (Fills up as time gets closer to 0)
+		wave_progress_bar.max_value = total_time
+		wave_progress_bar.value = total_time - time_left 
+		
+		if text_label:
+			text_label.text = "Next Wave in: %.1fs" % time_left
