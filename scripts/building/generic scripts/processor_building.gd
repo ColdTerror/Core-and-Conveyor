@@ -76,7 +76,7 @@ func _check_can_start_work():
 	# Conditions to start:
 	# 1. Have enough ingredients?
 	# 2. Have space for output?
-	if input_inventory >= active_recipe.input_count and output_inventory < buffer_limit:
+	if input_inventory >= active_recipe.input_count and (output_inventory + active_recipe.output_count) < buffer_limit:
 		# Consume Input
 		input_inventory -= active_recipe.input_count
 		inventory_changed.emit()

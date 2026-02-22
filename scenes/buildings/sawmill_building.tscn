@@ -9,7 +9,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5rwt6"]
 atlas = ExtResource("4_l8ny5")
-region = Rect2(128, 128, 128, 128)
+region = Rect2(256, 0, 128, 128)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
 size = Vector2(128, 128)
@@ -23,11 +23,9 @@ size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_5rwt6")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
-modulate = Color(1, 0, 0, 1)
-self_modulate = Color(1, 0, 0, 1)
 texture = ExtResource("4_l8ny5")
 region_enabled = true
-region_rect = Rect2(128, 128, 128, 128)
+region_rect = Rect2(256, 0, 128, 128)
 
 [node name="Area2D" type="Area2D" parent="." unique_id=803807135]
 

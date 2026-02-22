@@ -1,7 +1,15 @@
 [gd_scene format=3 uid="uid://u8dr3txp3net"]
 
 [ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/building/generic scripts/tower_building.gd" id="1_vc0d4"]
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="2_sa4vh"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_sa4vh"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fp6y0"]
+atlas = ExtResource("2_sa4vh")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nr8e2"]
+atlas = ExtResource("2_sa4vh")
+region = Rect2(384, 0, 64, 64)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sa4vh"]
 size = Vector2(64, 64)
@@ -11,11 +19,10 @@ script = ExtResource("1_vc0d4")
 attack_range = 256.0
 building_name = "Bow Tower"
 size = Vector2i(2, 2)
-icon = ExtResource("2_sa4vh")
+icon = SubResource("AtlasTexture_fp6y0")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156622]
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("2_sa4vh")
+texture = SubResource("AtlasTexture_nr8e2")
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1304513059]
 
