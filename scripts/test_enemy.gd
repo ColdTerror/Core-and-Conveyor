@@ -25,7 +25,8 @@ var find_target_timer: float = .5
 var attack_cooldown: float = 0.0
 
 
-signal enemy_clicked(enemy: Enemy) # REPLACES hovered/unhovered
+signal enemy_clicked(enemy: Enemy) 
+signal died(enemy_instance: Enemy) 
 
 
 func _ready():
@@ -280,6 +281,7 @@ func take_damage(damage: int):
 		
 func die():
 	print_debug("enemy died")
+	died.emit(self)
 	queue_free()
 	
 # --- THE CLICK LOGIC ---

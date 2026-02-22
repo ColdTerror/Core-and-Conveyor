@@ -99,6 +99,9 @@ func _get_best_spawn_position() -> Vector2:
 func start_next_wave():
 	if is_wave_active: return
 	
+	# Pause the wave countdown while the wave is actually happening
+	wave_timer.stop() 
+	
 	current_wave += 1
 	enemies_to_spawn = round(initial_enemy_count * pow(difficulty_multiplier, current_wave - 1))
 	enemies_alive = enemies_to_spawn
@@ -110,14 +113,30 @@ func start_next_wave():
 	spawn_timer.start()
 
 func _on_spawn_tick():
+	# Safety check
 	if enemies_to_spawn <= 0:
 		spawn_timer.stop()
-		wave_timer.stop()
 		return
 		
+	# Spawn the enemy
 	var spawn_pos = _get_best_spawn_position()
 	_spawn_unit(spawn_pos)
 	enemies_to_spawn -= 1
+	
+	# Stop the timer EXACTLY when the last enemy spawns (no extra tick needed)
+	if enemies_to_spawn <= 0:
+		spawn_timer.stop()
+		
+		# Edge Case: If the player's towers 1-shot the final enemy 
+		# the exact frame it spawned, we trigger completion here.
+		if enemies_alive <= 0:
+			_wave_complete()
+
+func _on_enemy_died(_enemy_instance):
+	print("enemy died in wave")
+	enemies_alive -= 1
+	if enemies_alive <= 0 and enemies_to_spawn <= 0:
+		_wave_complete()
 
 func _spawn_unit(pos: Vector2):
 	if not enemy_scene: return
@@ -149,11 +168,6 @@ func deselect_enemy():
 		selected_enemy = null
 		if enemy_popup:
 			enemy_popup.hide_info()
-
-func _on_enemy_died(_enemy_instance):
-	enemies_alive -= 1
-	if enemies_alive <= 0 and enemies_to_spawn <= 0:
-		_wave_complete()
 
 func _wave_complete():
 	is_wave_active = false

@@ -201,12 +201,17 @@ func _update_drag_line(current_grid: Vector2i):
 	
 	# 1. Calculate Direction (Conveyors only)
 	var drag_direction = Vector2i.RIGHT 
-	if ghost_building is ConveyorBuilding and points.size() > 1:
-		var diff = points[-1] - points[0] 
-		if abs(diff.x) >= abs(diff.y):
-			drag_direction = Vector2i.RIGHT if diff.x > 0 else Vector2i.LEFT
-		else:
-			drag_direction = Vector2i.DOWN if diff.y > 0 else Vector2i.UP
+	if ghost_building is ConveyorBuilding:
+		# Default to whatever direction you manually rotated it to!
+		drag_direction = ghost_building.direction 
+		
+		# If you dragged your mouse, THEN override the direction
+		if points.size() > 1:
+			var diff = points[-1] - points[0] 
+			if abs(diff.x) >= abs(diff.y):
+				drag_direction = Vector2i.RIGHT if diff.x > 0 else Vector2i.LEFT
+			else:
+				drag_direction = Vector2i.DOWN if diff.y > 0 else Vector2i.UP
 	
 	# 2. Sync Ghost Count (Create/Delete visual nodes)
 	while drag_ghosts.size() < points.size():
