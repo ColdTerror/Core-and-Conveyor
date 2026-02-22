@@ -1,14 +1,17 @@
 # EconomyManager.gd
 extends Node
 
-# Global resources
-var wood: int = 100 
-var stone: int = 0
+# --- DYNAMIC INVENTORY ---
+# We use a Dictionary to track everything by its string name.
+# You can define your starting resources here.
+var global_inventory: Dictionary = {
+	"Wood": 100,
+	"Stone": 0
+}
 
 signal resources_changed
 
-# --- NEW: TRACKING SOURCES ---
-# A list of all buildings (Stockpiles, Harvesters) that hold items
+# --- TRACKING SOURCES ---
 var active_sources: Array[Building] = []
 
 func register_source(b: Building):
@@ -21,27 +24,29 @@ func unregister_source(b: Building):
 # -----------------------------
 
 func add_resources(resource_name: String, amount: int):
-	match resource_name:
-		"Wood": wood += amount
-		"Stone": stone += amount
+	# .get(name, 0) safely returns 0 if the item doesn't exist yet, 
+	# preventing crashes when you add a brand new item like "Planks"
+	global_inventory[resource_name] = global_inventory.get(resource_name, 0) + amount
 	resources_changed.emit()
 
 func can_afford(cost: Dictionary) -> bool:
-	for resource in cost:
-		var amount_needed = cost[resource]
-		match resource:
-			"Wood": if wood < amount_needed: return false
-			"Stone": if stone < amount_needed: return false
+	for resource_name in cost:
+		var amount_needed = cost[resource_name]
+		var amount_we_have = global_inventory.get(resource_name, 0)
+		
+		if amount_we_have < amount_needed: 
+			return false
+			
 	return true
 
-# --- UPDATED: SPEND LOGIC ---
 func spend_resources(cost: Dictionary):
 	# 1. Deduct from Global Numbers
-	for resource in cost:
-		var amount = cost[resource]
-		match resource:
-			"Wood": wood -= amount
-			"Stone": stone -= amount
+	for resource_name in cost:
+		var amount = cost[resource_name]
+		var current = global_inventory.get(resource_name, 0)
+		
+		# max(0, ...) ensures we never accidentally go into negative numbers
+		global_inventory[resource_name] = max(0, current - amount)
 	
 	resources_changed.emit()
 	
@@ -49,28 +54,20 @@ func spend_resources(cost: Dictionary):
 	_pull_items_from_sources(cost)
 
 func _pull_items_from_sources(cost: Dictionary):
-	# We clone the cost so we can modify it as we pay
 	var remaining_bill = cost.duplicate()
 	
 	for source in active_sources:
-		# If the bill is paid, stop looking
 		if remaining_bill.is_empty(): break
 		
-		# Ask the building to pay what it can
-		# This modifies 'remaining_bill' directly
 		if source.has_method("consume_resources"):
 			source.consume_resources(remaining_bill)
 
-# ----------------------------
-
-# --- NEW HELPER ---
 # Used when an item moves from a Building -> Belt.
-# We treat belt items as "In Transit" (not spendable), so we just lower the number.
 func remove_resources_from_global(cost: Dictionary):
-	for resource in cost:
-		var amount = cost[resource]
-		match resource:
-			"Wood": wood = max(0, wood - amount)
-			"Stone": stone = max(0, stone - amount)
+	for resource_name in cost:
+		var amount = cost[resource_name]
+		var current = global_inventory.get(resource_name, 0)
+		
+		global_inventory[resource_name] = max(0, current - amount)
 	
 	resources_changed.emit()

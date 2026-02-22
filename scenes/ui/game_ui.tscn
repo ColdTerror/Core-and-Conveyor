@@ -19,15 +19,3 @@ offset_bottom = 40.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer" unique_id=1342127144]
 layout_mode = 2
-
-[node name="WoodLabel" type="Label" parent="PanelContainer/HBoxContainer" unique_id=287466111]
-layout_mode = 2
-text = "Wood: 0"
-
-[node name="VSeparator" type="VSeparator" parent="PanelContainer/HBoxContainer" unique_id=1029600265]
-custom_minimum_size = Vector2(10, 40)
-layout_mode = 2
-
-[node name="StoneLabel" type="Label" parent="PanelContainer/HBoxContainer" unique_id=1319614910]
-layout_mode = 2
-text = "Stone: 0"
