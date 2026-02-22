@@ -66,15 +66,10 @@ func cycle_output_mode():
 # NEW: OUTPUT LOGIC (Node-Based)
 # =================================================================
 func _try_output_item():
-	# 1. Check if we actually have the selected item
-	var item_res = _find_item_by_name(selected_output_name)
-	if not item_res or inventory.get(item_res, 0) <= 0:
-		return # Inventory empty for this type
-		
-	# 2. Iterate through all tiles this building occupies
 	if not level_ref: return
 	var manager = level_ref.building_manager
 
+	# Loop through all tiles we occupy
 	for my_tile in occupied_tiles:
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
@@ -90,17 +85,23 @@ func _try_output_item():
 				
 				# Is it a Conveyor?
 				if neighbor is ConveyorBuilding:
-					# Try to push the specific item resource we selected
-					# If successful, return. If not, continue to next neighbor
-					if _spawn_item_into_conveyor(neighbor, item_res):
-						return # Successfully outputted, stop here
-					# If it failed, loop continues to try next neighbor
+					# Only output if the belt is pointing exactly AWAY from us
+					if neighbor.direction == offset:
+						# Try to spawn. This function returns TRUE if successful
+						if _spawn_item_into_conveyor(neighbor):
+							return # Success! Stop trying other belts this tick.
 
-func _spawn_item_into_conveyor(conveyor: ConveyorBuilding, item_res: ItemResource) -> bool:
+func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
+	# --- MOVED FROM _try_output_item ---
+	# 1. Check if we actually have the selected item
+	var item_res = _find_item_by_name(selected_output_name)
+	if not item_res or inventory.get(item_res, 0) <= 0:
+		return false # Inventory empty for this type
+	# -----------------------------------
+	
 	if not generic_item_scene: return false
 	
-	
-	# 1. Create the Visual Node
+	# 2. Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	new_item_node.item_data = item_res
@@ -109,7 +110,7 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding, item_res: ItemResourc
 	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	# 2. Try to hand it to the Conveyor
+	# 3. Try to hand it to the Conveyor
 	if conveyor.accept_item_node(new_item_node):
 		
 		# A. Inventory Logic
@@ -125,6 +126,7 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding, item_res: ItemResourc
 	else:
 		new_item_node.queue_free()
 		return false # Failed, try next conveyor
+
 # =================================================================
 
 # --------------------------------------------------

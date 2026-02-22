@@ -180,9 +180,11 @@ func _draw_beam(grid_pos: Vector2i):
 # =================================================================
 
 func _try_output_item():
-	# Loop through all tiles we occupy (e.g. 2x2 grid)
+	if not level_ref: return
+	var manager = level_ref.building_manager
+
+	# Loop through all tiles we occupy
 	for my_tile in occupied_tiles:
-		# Try all 4 directions
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
 		for offset in push_directions:
@@ -192,21 +194,16 @@ func _try_output_item():
 			if occupied_tiles.has(target_pos): continue
 			
 			# Check BuildingManager for neighbors
-			var manager = level_ref.building_manager
-			
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
 				# Is it a Conveyor?
 				if neighbor is ConveyorBuilding:
-					# --- UPDATED LOGIC ---
-					# Try to spawn. This function now returns TRUE if successful (belt accepted it)
-					# or FALSE if failed (belt full).
-					if _spawn_item_into_conveyor(neighbor):
-						return # Success! Stop trying other belts this tick.
-					
-					# If false, we continue the loop to check the next neighbor
-
+					# Only output if the belt is pointing exactly AWAY from us
+					if neighbor.direction == offset:
+						# Try to spawn. This function returns TRUE if successful
+						if _spawn_item_into_conveyor(neighbor):
+							return # Success! Stop trying other belts this tick.
 # Now returns BOOL (True = Success, False = Failed)
 func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 	if not generic_item_scene or not target_resource.item_drop: return false

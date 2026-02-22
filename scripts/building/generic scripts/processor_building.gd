@@ -114,7 +114,7 @@ func _finish_work():
 func _try_output_item():
 	if not level_ref: return
 	var manager = level_ref.building_manager
-	
+
 	# Loop through all tiles we occupy
 	for my_tile in occupied_tiles:
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
@@ -131,12 +131,11 @@ func _try_output_item():
 				
 				# Is it a Conveyor?
 				if neighbor is ConveyorBuilding:
-					# Try to output to this conveyor
-					# If successful, return. If not, continue to next neighbor
-					if _spawn_item_into_conveyor(neighbor):
-						return # Successfully outputted, stop here
-					# If it failed, loop continues to try next neighbor
-
+					# Only output if the belt is pointing exactly AWAY from us
+					if neighbor.direction == offset:
+						# Try to spawn. This function returns TRUE if successful
+						if _spawn_item_into_conveyor(neighbor):
+							return # Success! Stop trying other belts this tick.
 func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 	if not generic_item_scene or not active_recipe: return false
 	
