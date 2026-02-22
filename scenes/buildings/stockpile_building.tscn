@@ -14,6 +14,7 @@ size = Vector2(128, 128)
 [node name="StockpileBuilding" type="Node2D" unique_id=1914910995 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_sqy8c")
 generic_item_scene = ExtResource("2_shrhu")
+building_name = "Stockpile"
 size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_shrhu")
 cost_wood = 25

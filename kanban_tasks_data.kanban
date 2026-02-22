@@ -12,7 +12,7 @@
 			"title": "Todo",
 			"tasks": [
 				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
-				"e400713b-8f41-4cd0-9197-a3013d1de847"
+				"eb64d933-d5d9-4062-ac65-6ade36f217d7"
 			]
 		},
 		{
@@ -25,7 +25,8 @@
 			"title": "Done",
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
-				"1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52"
+				"1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52",
+				"e400713b-8f41-4cd0-9197-a3013d1de847"
 			]
 		}
 	],
@@ -54,6 +55,13 @@
 		{
 			"uuid": "e400713b-8f41-4cd0-9197-a3013d1de847",
 			"title": "walls have cost",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "eb64d933-d5d9-4062-ac65-6ade36f217d7",
+			"title": "fix enemies blocking eachother from reaching their path nodes deadlocking them",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

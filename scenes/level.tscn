@@ -24,6 +24,7 @@
 [ext_resource type="PackedScene" uid="uid://cg13cd0e8r5ne" path="res://scenes/buildings/towers/projectile.tscn" id="18_cmcjb"]
 [ext_resource type="PackedScene" uid="uid://c0fjlwuepy3iy" path="res://scenes/buildings/wall.tscn" id="18_kih21"]
 [ext_resource type="PackedScene" uid="uid://dtgqlytnlxmmy" path="res://scenes/buildings/conveyer.tscn" id="19_gur6y"]
+[ext_resource type="PackedScene" uid="uid://bscvnmiqn3de6" path="res://scenes/buildings/router_building.tscn" id="20_2e2fo"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
 [ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/building_menu.tscn" id="21_wu01b"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
@@ -48,6 +49,7 @@ sawmill_scene = ExtResource("16_pqd0y")
 bow_tower_scene = ExtResource("17_xy2fk")
 wall_scene = ExtResource("18_kih21")
 conveyor_scene = ExtResource("19_gur6y")
+router_scene = ExtResource("20_2e2fo")
 projectile_scene = ExtResource("18_cmcjb")
 
 [node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "enemy_popup") instance=ExtResource("32_2e2fo")]

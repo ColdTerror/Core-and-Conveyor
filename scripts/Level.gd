@@ -47,6 +47,7 @@ var active_grid_objects := {}
 @export var wall_scene: PackedScene
 # --- NEW EXPORT ---
 @export var conveyor_scene: PackedScene 
+@export var router_scene: PackedScene 
 # ------------------
 
 @export var projectile_scene: PackedScene
@@ -97,6 +98,7 @@ func _setup_hotbar_items():
 	# We instantiate briefly to get the icon/cost, or you can use a separate Resource system.
 	# For now, we trust the packed scenes are assigned.
 	_add_building_to_bar("Belt", conveyor_scene)
+	_add_building_to_bar("Router", router_scene)
 	_add_building_to_bar("Hut", lumberjack_scene)
 	_add_building_to_bar("Sawmill", sawmill_scene)
 	_add_building_to_bar("Stockpile", stockpile_scene)
