@@ -7,10 +7,13 @@ class_name BuildingManager
 @export var corruption_layer: TileMapLayer
 
 # ---TRACKERS ---
-# Key: Vector2i (Grid Coord), Value: int (Number of buildings protecting it)
+# Key: Vector2i (Grid Coord), Value: int (Number of buildings in range)
 var safe_tiles: Dictionary = {}
+var buildable_tiles: Dictionary = {} 
 
-var buildable_tiles: Dictionary = {} # <--- NEW
+# --- VISUALIZER STATES ---
+var show_build_grid: bool = false
+var show_safe_grid: bool = false
 
 var buildings: Array[Building] = []
 var occupied_tiles := {} # Key: Vector2i, Value: Building
@@ -110,57 +113,60 @@ func _process(delta):
 		queue_redraw()
 
 # -------------------------------
-# VISUAL OVERLAYS (Auras)
+# VISUAL OVERLAYS (Grid-Based)
 # -------------------------------
 func _draw():
-	if not placing_building: 
+	# If we aren't placing a building AND both toggles are off, don't draw anything
+	if not placing_building and not show_build_grid and not show_safe_grid:
 		return
 
-	var tile_size = 32.0 # Adjust if your tiles are 16x16 or 64x64
+	var tile_size = 32.0 
+	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
 	
-	# Colors (R, G, B, Alpha)
-	var build_color_fill = Color(0.2, 1.0, 0.2, 0.05) # Very faint green fill
-	var build_color_line = Color(0.2, 1.0, 0.2, 0.4)  # Solid green outline
-	
-	var safe_color_fill = Color(0.2, 0.5, 1.0, 0.05)  # Very faint blue fill
-	var safe_color_line = Color(0.2, 0.5, 1.0, 0.4)   # Solid blue outline
+	# 1. DRAW GLOBAL BUILD ZONES (F1 Hotkey)
+	if show_build_grid:
+		var build_color = Color(0.2, 1.0, 0.2, 0.15) # Faint green
+		for tile in buildable_tiles.keys():
+			var local_pos = object_layer.map_to_local(tile) - half_offset
+			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), build_color)
 
-	# 1. DRAW ESTABLISHED BUILDINGS
-	for b in buildings:
-		var local_pos = to_local(b.global_position)
-		
-		# Draw Corruption/Safe Range (Blue)
-		if b.corruption_range > 0:
-			var safe_radius = b.corruption_range * tile_size
-			draw_circle(local_pos, safe_radius, safe_color_fill)
-			draw_arc(local_pos, safe_radius, 0, TAU, 32, safe_color_line, 2.0)
+	# 2. DRAW GLOBAL SAFE ZONES (F2 Hotkey)
+	if show_safe_grid:
+		var safe_color = Color(0.2, 0.5, 1.0, 0.15) # Faint blue
+		for tile in safe_tiles.keys():
+			var local_pos = object_layer.map_to_local(tile) - half_offset
+			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), safe_color)
+
+	# 3. DRAW GHOST PREVIEWS (When Placing)
+	if placing_building:
+		var ghosts_to_draw = []
+		if is_dragging and drag_ghosts.size() > 0:
+			ghosts_to_draw = drag_ghosts
+		elif ghost_building:
+			ghosts_to_draw = [ghost_building]
+
+		var preview_build = Color(0.5, 1.0, 0.5, 0.4) # Brighter green
+		var preview_safe = Color(0.5, 0.8, 1.0, 0.4)  # Brighter blue
+
+		for g in ghosts_to_draw:
+			if not is_instance_valid(g): continue
 			
-		# Draw Build Range (Green)
-		if b.build_range > 0:
-			var build_radius = b.build_range * tile_size
-			draw_circle(local_pos, build_radius, build_color_fill)
-			draw_arc(local_pos, build_radius, 0, TAU, 32, build_color_line, 2.0)
-
-	# 2. DRAW THE GHOST(S) - To preview what you are about to claim
-	var ghosts_to_draw = []
-	if is_dragging and drag_ghosts.size() > 0:
-		ghosts_to_draw = drag_ghosts
-	elif ghost_building:
-		ghosts_to_draw = [ghost_building]
-
-	# Brighter colors for the preview
-	var preview_build_line = Color(0.5, 1.0, 0.5, 0.8)
-	var preview_safe_line = Color(0.5, 0.8, 1.0, 0.8)
-
-	for g in ghosts_to_draw:
-		if not is_instance_valid(g): continue
-		var local_pos = to_local(g.global_position)
-		
-		if "corruption_range" in g and g.corruption_range > 0:
-			draw_arc(local_pos, g.corruption_range * tile_size, 0, TAU, 32, preview_safe_line, 2.0)
+			var origin = object_layer.local_to_map(g.global_position)
 			
-		if "build_range" in g and g.build_range > 0:
-			draw_arc(local_pos, g.build_range * tile_size, 0, TAU, 32, preview_build_line, 2.0)
+			# Preview the exact tiles this building will make Safe
+			if "corruption_range" in g and g.corruption_range > 0:
+				var s_tiles = _get_tiles_in_radius(origin, g, g.corruption_range)
+				for t in s_tiles:
+					var pos = object_layer.map_to_local(t) - half_offset
+					draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_safe)
+					
+			# Preview the exact tiles this building will make Buildable
+			if "build_range" in g and g.build_range > 0:
+				var b_tiles = _get_tiles_in_radius(origin, g, g.build_range)
+				for t in b_tiles:
+					var pos = object_layer.map_to_local(t) - half_offset
+					draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_build)
+
 
 func _on_building_destroyed(b: Building):
 	if b in buildings:
@@ -487,6 +493,16 @@ func _register_building(building: Building):
 	building.unhovered.connect(_on_building_unhovered)
 
 func _unhandled_input(event):
+	# --- NEW: HOTKEYS FOR OVERLAYS ---
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_F1:
+			show_build_grid = not show_build_grid
+			queue_redraw()
+		elif event.keycode == KEY_F2:
+			show_safe_grid = not show_safe_grid
+			queue_redraw()
+	# ---------------------------------
+	
 	# Cancel logic
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 		if ghost_building != null:
@@ -555,16 +571,46 @@ func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Diction
 # CORRUPTION / SAFE ZONE LOGIC
 # ==========================================
 
-func _get_tiles_in_radius(center: Vector2i, radius: float) -> Array[Vector2i]:
+func _get_tiles_in_radius(origin: Vector2i, building: Building, radius: float) -> Array[Vector2i]:
 	var tiles: Array[Vector2i] = []
-	var r_int = ceil(radius)
+	var tile_size = 32.0 # Adjust this if your tiles are 16x16 or 64x64
 	
-	for x in range(-r_int, r_int + 1):
-		for y in range(-r_int, r_int + 1):
-			var offset = Vector2i(x, y)
-			# Only include tiles within the circle
-			if Vector2(offset).length() <= radius:
-				tiles.append(center + offset)
+	# 1. Get building size (default to 1x1 for belts/small props if missing)
+	var b_size = building.size if "size" in building else Vector2i(1, 1)
+	
+	# 2. Find the EXACT pixel boundaries of the visual building
+	var center_pos = building.global_position
+	var half_w = (b_size.x * tile_size) / 2.0
+	var half_h = (b_size.y * tile_size) / 2.0
+	
+	var rect_x_min = center_pos.x - half_w
+	var rect_x_max = center_pos.x + half_w
+	var rect_y_min = center_pos.y - half_h
+	var rect_y_max = center_pos.y + half_h
+	
+	# 3. Create a generous search box around the origin tile
+	var r_int = ceil(radius)
+	var search_radius = r_int + max(b_size.x, b_size.y)
+	
+	var max_dist_px = radius * tile_size
+	
+	# 4. Check every tile in the search box
+	for x in range(origin.x - search_radius, origin.x + search_radius + 1):
+		for y in range(origin.y - search_radius, origin.y + search_radius + 1):
+			var tile_pos = Vector2i(x, y)
+			
+			# Get the exact physical center of the tile we are testing
+			var tile_center_px = object_layer.map_to_local(tile_pos)
+			
+			# Math: Measure distance from the tile's center to the building's outer edge
+			var dx = max(0.0, max(rect_x_min - tile_center_px.x, tile_center_px.x - rect_x_max))
+			var dy = max(0.0, max(rect_y_min - tile_center_px.y, tile_center_px.y - rect_y_max))
+			
+			var dist_px = Vector2(dx, dy).length()
+			
+			# If the tile is within the radius, add it!
+			if dist_px <= max_dist_px:
+				tiles.append(tile_pos)
 				
 	return tiles
 
@@ -574,7 +620,7 @@ func _add_safe_zone(building: Building):
 	
 	# Get the center tile of the building
 	var origin = object_layer.local_to_map(building.global_position)
-	var tiles = _get_tiles_in_radius(origin, building.corruption_range)
+	var tiles = _get_tiles_in_radius(origin, building, building.corruption_range)
 	
 	for tile in tiles:
 		# Add +1 to the protection ledger
@@ -589,7 +635,7 @@ func _remove_safe_zone(building: Building):
 		return
 	
 	var origin = object_layer.local_to_map(building.global_position)
-	var tiles = _get_tiles_in_radius(origin, building.corruption_range)
+	var tiles = _get_tiles_in_radius(origin, building, building.corruption_range)
 	
 	for tile in tiles:
 		if safe_tiles.has(tile):
@@ -604,7 +650,7 @@ func _add_build_zone(building: Building):
 	if not "build_range" in building or building.build_range <= 0: return
 	
 	var origin = object_layer.local_to_map(building.global_position)
-	var tiles = _get_tiles_in_radius(origin, building.build_range)
+	var tiles = _get_tiles_in_radius(origin, building, building.build_range)
 	
 	for tile in tiles:
 		buildable_tiles[tile] = buildable_tiles.get(tile, 0) + 1
@@ -613,7 +659,7 @@ func _remove_build_zone(building: Building):
 	if not "build_range" in building or building.build_range <= 0: return
 	
 	var origin = object_layer.local_to_map(building.global_position)
-	var tiles = _get_tiles_in_radius(origin, building.build_range)
+	var tiles = _get_tiles_in_radius(origin, building, building.build_range)
 	
 	for tile in tiles:
 		if buildable_tiles.has(tile):
