@@ -43,8 +43,7 @@ func _on_mouse_exited():
 
 # --- GAME OVER LOGIC ---
 func take_damage(amount: int):
-	# Override the base take_damage to add Game Over logic
-	health -= amount
+	super(amount)
 	
 	# Optional: Flash red or play an alarm sound here!
 	

@@ -88,7 +88,7 @@ func handle_input(event, current_grid_pos: Vector2i) -> bool:
 		_commit_drag_line()
 		is_dragging = false
 		_clear_drag_ghosts()
-		return false # Stay in mode to place more walls
+		return false #Keep placing belts
 
 	return false
 # ---------------------------------------
@@ -97,8 +97,62 @@ func _process(delta):
 	for b in buildings:
 		b.building_tick(delta)
 	
-	# Note: We handled ghost position in handle_input, so we don't strictly need it here
-	# unless you want it to update even when mouse doesn't move.
+
+	if placing_building:
+		queue_redraw()
+
+# -------------------------------
+# VISUAL OVERLAYS (Auras)
+# -------------------------------
+func _draw():
+	if not placing_building: 
+		return
+
+	var tile_size = 32.0 # Adjust if your tiles are 16x16 or 64x64
+	
+	# Colors (R, G, B, Alpha)
+	var build_color_fill = Color(0.2, 1.0, 0.2, 0.05) # Very faint green fill
+	var build_color_line = Color(0.2, 1.0, 0.2, 0.4)  # Solid green outline
+	
+	var safe_color_fill = Color(0.2, 0.5, 1.0, 0.05)  # Very faint blue fill
+	var safe_color_line = Color(0.2, 0.5, 1.0, 0.4)   # Solid blue outline
+
+	# 1. DRAW ESTABLISHED BUILDINGS
+	for b in buildings:
+		var local_pos = to_local(b.global_position)
+		
+		# Draw Corruption/Safe Range (Blue)
+		if b.corruption_range > 0:
+			var safe_radius = b.corruption_range * tile_size
+			draw_circle(local_pos, safe_radius, safe_color_fill)
+			draw_arc(local_pos, safe_radius, 0, TAU, 32, safe_color_line, 2.0)
+			
+		# Draw Build Range (Green)
+		if b.build_range > 0:
+			var build_radius = b.build_range * tile_size
+			draw_circle(local_pos, build_radius, build_color_fill)
+			draw_arc(local_pos, build_radius, 0, TAU, 32, build_color_line, 2.0)
+
+	# 2. DRAW THE GHOST(S) - To preview what you are about to claim
+	var ghosts_to_draw = []
+	if is_dragging and drag_ghosts.size() > 0:
+		ghosts_to_draw = drag_ghosts
+	elif ghost_building:
+		ghosts_to_draw = [ghost_building]
+
+	# Brighter colors for the preview
+	var preview_build_line = Color(0.5, 1.0, 0.5, 0.8)
+	var preview_safe_line = Color(0.5, 0.8, 1.0, 0.8)
+
+	for g in ghosts_to_draw:
+		if not is_instance_valid(g): continue
+		var local_pos = to_local(g.global_position)
+		
+		if "corruption_range" in g and g.corruption_range > 0:
+			draw_arc(local_pos, g.corruption_range * tile_size, 0, TAU, 32, preview_safe_line, 2.0)
+			
+		if "build_range" in g and g.build_range > 0:
+			draw_arc(local_pos, g.build_range * tile_size, 0, TAU, 32, preview_build_line, 2.0)
 
 func _on_building_destroyed(b: Building):
 	if b in buildings:
@@ -190,6 +244,10 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 				
 	ghost_building = null
 	
+	if not is_dragging:
+		placing_building = false
+		queue_redraw()
+	
 	return true
 
 # -------------------------------
@@ -235,6 +293,24 @@ func _update_drag_line(current_grid: Vector2i):
 	
 	# 3. GET BASE COST
 	var base_cost = ghost_building.get_build_cost() # e.g. {"Wood": 5}
+	
+	# --- NEW: REVERSE BUILD ORDER IF DRAGGING INWARD ---
+	# Check if the player is dragging from outside the base INTO the base.
+	if points.size() > 1 and buildings.size() > 0:
+		var start_touches_base = false
+		var end_touches_base = false
+		
+		# Quick distance check for the start and end of the line
+		for b in buildings:
+			var b_grid = object_layer.local_to_map(b.global_position)
+			if points[0].distance_to(b_grid) <= b.build_range: start_touches_base = true
+			if points[-1].distance_to(b_grid) <= b.build_range: end_touches_base = true
+			
+		# If the end is safe but the start isn't, flip the line!
+		if end_touches_base and not start_touches_base:
+			points.reverse()
+			drag_ghosts.reverse()
+	# ---------------------------------------------------
 	
 	# --- NEW: Track the valid grid positions in this drag line ---
 	var current_drag_network: Array[Vector2i] = []
@@ -416,6 +492,8 @@ func cancel_placement():
 	_clear_drag_ghosts()
 	is_dragging = false
 	placing_building = false
+	
+	queue_redraw()
 
 func _clear_drag_ghosts():
 	for g in drag_ghosts:

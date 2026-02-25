@@ -12,7 +12,8 @@
 			"title": "Todo",
 			"tasks": [
 				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
-				"eb64d933-d5d9-4062-ac65-6ade36f217d7"
+				"eb64d933-d5d9-4062-ac65-6ade36f217d7",
+				"bbfd5575-4c86-42ed-bdda-a731b5169e77"
 			]
 		},
 		{
@@ -72,6 +73,13 @@
 			"uuid": "65699c96-b59c-4d0a-9150-fec4103c3c8b",
 			"title": "add lose condition (core building that if destroyed ends the game)",
 			"description": "added core building, need to integrate building range into building manager and a game over screen",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "bbfd5575-4c86-42ed-bdda-a731b5169e77",
+			"title": "corruption ",
+			"description": "make corruption spawn randomly on map and spread and enemies only spawn on corrupted tiles, and corruption obeys the corruption range of buildings",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
