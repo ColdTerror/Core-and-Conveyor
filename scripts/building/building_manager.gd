@@ -236,33 +236,36 @@ func _update_drag_line(current_grid: Vector2i):
 	# 3. GET BASE COST
 	var base_cost = ghost_building.get_build_cost() # e.g. {"Wood": 5}
 	
+	# --- NEW: Track the valid grid positions in this drag line ---
+	var current_drag_network: Array[Vector2i] = []
+	
 	# 4. Update Position & Color Loop
 	for i in range(points.size()):
 		var pt = points[i]
 		var g = drag_ghosts[i]
 		
-		# Update Direction
 		if g is ConveyorBuilding:
 			g.direction = drag_direction
 			g.rotation = Vector2(drag_direction).angle()
 		
-		# Update Position
 		if object_layer:
 			g.global_position = object_layer.map_to_local(pt)
 		
-		# --- VALIDATION LOGIC ---
 		var is_valid = true
 		
-		# A. Physical Check (Obstacles)
-		if not _can_place_building(g, pt):
+		# A. Physical & Expansion Check (Pass in our temporary network!)
+		if not _can_place_building(g, pt, current_drag_network):
 			is_valid = false
 			
-		# B. Economic Check (Affordability)
-		# Calculate cost for THIS item plus all previous items in the line
+		# B. Economic Check 
 		if is_valid:
 			var cumulative_cost = _calculate_cumulative_cost(base_cost, i + 1)
 			if not EconomyManager.can_afford(cumulative_cost):
 				is_valid = false
+		
+		# --- NEW: If this ghost is valid, add it to the network for the next ghosts to use ---
+		if is_valid:
+			current_drag_network.append(pt)
 		
 		# Apply Visuals
 		if g.has_method("set_valid_placement"):
@@ -345,42 +348,46 @@ func _get_mouse_grid() -> Vector2i:
 	if not object_layer: return Vector2i.ZERO
 	return object_layer.local_to_map(object_layer.to_local(mouse_global))
 
-func _can_place_building(building: Building, origin: Vector2i) -> bool:
+# Added 'temp_network' to the parameters
+func _can_place_building(building: Building, origin: Vector2i, temp_network: Array[Vector2i] = []) -> bool:
 	if not object_layer: return false
 	
 	var footprint = building.get_footprint(origin)
 	
 	# --- 1. THE EXPANSION CHECK ---
-	# If we have no buildings yet, allow the very first placement (The Core)
-	if buildings.size() > 0:
+	if buildings.size() > 0 or temp_network.size() > 0:
 		var touches_range = false
 		
-		# Check every tile in the ghost's footprint
 		for tile in footprint:
-			# Check against every established building on the map
+			# Check against established buildings
 			for established_building in buildings:
-				# Get the grid position of the established building
 				var established_grid = object_layer.local_to_map(established_building.global_position)
-				
-				# Math: Is this specific tile within the established building's radius?
 				if tile.distance_to(established_grid) <= established_building.build_range:
 					touches_range = true
-					break # We found a match for this tile! Stop checking other buildings.
+					break 
 					
-			if touches_range:
-				break # We only need ONE tile to touch the range! Stop checking the footprint.
-				
-		# If none of the tiles touched any building's range, deny placement
+			if touches_range: break 
+			
+			# --- NEW: Check against the temporary drag line! ---
+			for temp_grid in temp_network:
+				# We use the currently dragged building's range
+				if tile.distance_to(temp_grid) <= building.build_range:
+					touches_range = true
+					break
+			# ---------------------------------------------------
+			
+			if touches_range: break
+			
 		if not touches_range:
 			return false
 	# ------------------------------
 
-	# 2. Check TileMap obstacles (Water, Rocks, Trees)
+	# 2. Check TileMap obstacles
 	for tile in footprint:
 		if object_layer.get_cell_source_id(tile) != -1:
 			return false
 
-	# 3. Check occupied tiles (Other Buildings)
+	# 3. Check occupied tiles
 	for tile in footprint:
 		if occupied_tiles.has(tile):
 			return false
