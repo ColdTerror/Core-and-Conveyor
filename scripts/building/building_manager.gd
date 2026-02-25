@@ -634,8 +634,7 @@ func _remove_safe_zone(building: Building):
 	if not "corruption_range" in building or building.corruption_range <= 0: 
 		return
 	
-	var origin = object_layer.local_to_map(building.global_position)
-	var tiles = _get_tiles_in_radius(origin, building, building.corruption_range)
+	var tiles = _get_tiles_in_radius(building.grid_origin, building, building.corruption_range)
 	
 	for tile in tiles:
 		if safe_tiles.has(tile):
@@ -658,8 +657,7 @@ func _add_build_zone(building: Building):
 func _remove_build_zone(building: Building):
 	if not "build_range" in building or building.build_range <= 0: return
 	
-	var origin = object_layer.local_to_map(building.global_position)
-	var tiles = _get_tiles_in_radius(origin, building, building.build_range)
+	var tiles = _get_tiles_in_radius(building.grid_origin, building, building.build_range)
 	
 	for tile in tiles:
 		if buildable_tiles.has(tile):

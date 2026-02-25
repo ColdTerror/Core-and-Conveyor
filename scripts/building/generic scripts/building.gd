@@ -41,7 +41,7 @@ var occupied_tiles: Array[Vector2i] = []
 @export var build_range: float = 5.0
 @export var corruption_range: float = 6.0
 
-
+var grid_origin: Vector2i = Vector2i.ZERO
 
 # --- Ready ---
 func _ready():
@@ -130,6 +130,7 @@ func get_access_points(pathfinder_node: Pathfinder) -> Array[Vector2]:
 	
 # --- Placement ---
 func place_at(origin: Vector2i, object_layer: TileMapLayer):
+	grid_origin = origin
 	occupied_tiles = get_footprint(origin)
 
 	var tile_size := Vector2(object_layer.tile_set.tile_size)
