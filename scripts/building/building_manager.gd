@@ -4,6 +4,14 @@ class_name BuildingManager
 @export var object_layer: TileMapLayer
 @export var hover_popup: Control
 
+@export var corruption_layer: TileMapLayer
+
+# ---TRACKERS ---
+# Key: Vector2i (Grid Coord), Value: int (Number of buildings protecting it)
+var safe_tiles: Dictionary = {}
+
+var buildable_tiles: Dictionary = {} # <--- NEW
+
 var buildings: Array[Building] = []
 var occupied_tiles := {} # Key: Vector2i, Value: Building
 
@@ -162,6 +170,9 @@ func _on_building_destroyed(b: Building):
 		if occupied_tiles.has(tile):
 			occupied_tiles.erase(tile)
 	
+	_remove_safe_zone(b)
+	_remove_build_zone(b)
+	
 	# Free up the Pathfinder Tiles
 	# We iterate through the tiles the building used to occupy
 	if pathfinder:
@@ -173,7 +184,6 @@ func _on_building_destroyed(b: Building):
 			# This ensures Walls don't leave behind invisible "slow zones"
 			pathfinder.set_weighted_obstacle(tile, 1.0)
 
-	# --- 4. THE FIX ---
 	# We call the translator function. 
 	# - If it's a Tower, it returns {} (Safe).
 	# - If it's a Stockpile, it returns {"Wood": 50} (Safe).
@@ -230,6 +240,8 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	buildings.append(ghost_building)
 	_register_building(ghost_building)
 	_register_occupied_tiles(ghost_building)
+	_add_safe_zone(ghost_building)
+	_add_build_zone(ghost_building)
 	
 	# Update Pathfinder
 	if pathfinder:
@@ -435,22 +447,18 @@ func _can_place_building(building: Building, origin: Vector2i, temp_network: Arr
 		var touches_range = false
 		
 		for tile in footprint:
-			# Check against established buildings
-			for established_building in buildings:
-				var established_grid = object_layer.local_to_map(established_building.global_position)
-				if tile.distance_to(established_grid) <= established_building.build_range:
-					touches_range = true
-					break 
-					
-			if touches_range: break 
 			
-			# --- NEW: Check against the temporary drag line! ---
+			# 1A. Check the Established Base (O(1) Dictionary Lookup! Instant!)
+			if buildable_tiles.has(tile):
+				touches_range = true
+				break 
+				
+			# 1B. Check against the temporary drag line
+			# (We still do math here because these aren't actually built yet)
 			for temp_grid in temp_network:
-				# We use the currently dragged building's range
 				if tile.distance_to(temp_grid) <= building.build_range:
 					touches_range = true
 					break
-			# ---------------------------------------------------
 			
 			if touches_range: break
 			
@@ -542,3 +550,73 @@ func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Diction
 	for resource_name in base_cost:
 		total[resource_name] = base_cost[resource_name] * quantity
 	return total
+	
+# ==========================================
+# CORRUPTION / SAFE ZONE LOGIC
+# ==========================================
+
+func _get_tiles_in_radius(center: Vector2i, radius: float) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	var r_int = ceil(radius)
+	
+	for x in range(-r_int, r_int + 1):
+		for y in range(-r_int, r_int + 1):
+			var offset = Vector2i(x, y)
+			# Only include tiles within the circle
+			if Vector2(offset).length() <= radius:
+				tiles.append(center + offset)
+				
+	return tiles
+
+func _add_safe_zone(building: Building):
+	if not "corruption_range" in building or building.corruption_range <= 0: 
+		return
+	
+	# Get the center tile of the building
+	var origin = object_layer.local_to_map(building.global_position)
+	var tiles = _get_tiles_in_radius(origin, building.corruption_range)
+	
+	for tile in tiles:
+		# Add +1 to the protection ledger
+		safe_tiles[tile] = safe_tiles.get(tile, 0) + 1
+		
+		# Instantly purge corruption if it exists here!
+		if corruption_layer and corruption_layer.get_cell_source_id(tile) != -1:
+			corruption_layer.set_cell(tile, -1)
+
+func _remove_safe_zone(building: Building):
+	if not "corruption_range" in building or building.corruption_range <= 0: 
+		return
+	
+	var origin = object_layer.local_to_map(building.global_position)
+	var tiles = _get_tiles_in_radius(origin, building.corruption_range)
+	
+	for tile in tiles:
+		if safe_tiles.has(tile):
+			# Subtract 1 from the protection ledger
+			safe_tiles[tile] -= 1
+			
+			# If 0 buildings are protecting it now, remove it entirely
+			if safe_tiles[tile] <= 0:
+				safe_tiles.erase(tile)
+
+func _add_build_zone(building: Building):
+	if not "build_range" in building or building.build_range <= 0: return
+	
+	var origin = object_layer.local_to_map(building.global_position)
+	var tiles = _get_tiles_in_radius(origin, building.build_range)
+	
+	for tile in tiles:
+		buildable_tiles[tile] = buildable_tiles.get(tile, 0) + 1
+
+func _remove_build_zone(building: Building):
+	if not "build_range" in building or building.build_range <= 0: return
+	
+	var origin = object_layer.local_to_map(building.global_position)
+	var tiles = _get_tiles_in_radius(origin, building.build_range)
+	
+	for tile in tiles:
+		if buildable_tiles.has(tile):
+			buildable_tiles[tile] -= 1
+			if buildable_tiles[tile] <= 0:
+				buildable_tiles.erase(tile)
