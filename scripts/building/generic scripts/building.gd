@@ -36,6 +36,12 @@ var occupied_tiles: Array[Vector2i] = []
 @export var cost_wood: int = 10
 @export var cost_stone: int = 0
 
+@export_group("Ranges")
+# How far this building allows other buildings to be placed from it
+@export var build_range: float = 5.0
+@export var corruption_range: float = 5.0
+
+
 
 # --- Ready ---
 func _ready():

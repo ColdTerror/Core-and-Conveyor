@@ -348,18 +348,45 @@ func _get_mouse_grid() -> Vector2i:
 func _can_place_building(building: Building, origin: Vector2i) -> bool:
 	if not object_layer: return false
 	
-	# 1. Check TileMap obstacles
-	for tile in building.get_footprint(origin):
+	var footprint = building.get_footprint(origin)
+	
+	# --- 1. THE EXPANSION CHECK ---
+	# If we have no buildings yet, allow the very first placement (The Core)
+	if buildings.size() > 0:
+		var touches_range = false
+		
+		# Check every tile in the ghost's footprint
+		for tile in footprint:
+			# Check against every established building on the map
+			for established_building in buildings:
+				# Get the grid position of the established building
+				var established_grid = object_layer.local_to_map(established_building.global_position)
+				
+				# Math: Is this specific tile within the established building's radius?
+				if tile.distance_to(established_grid) <= established_building.build_range:
+					touches_range = true
+					break # We found a match for this tile! Stop checking other buildings.
+					
+			if touches_range:
+				break # We only need ONE tile to touch the range! Stop checking the footprint.
+				
+		# If none of the tiles touched any building's range, deny placement
+		if not touches_range:
+			return false
+	# ------------------------------
+
+	# 2. Check TileMap obstacles (Water, Rocks, Trees)
+	for tile in footprint:
 		if object_layer.get_cell_source_id(tile) != -1:
 			return false
 
-	# 2. Check occupied tiles
-	for tile in building.get_footprint(origin):
+	# 3. Check occupied tiles (Other Buildings)
+	for tile in footprint:
 		if occupied_tiles.has(tile):
 			return false
 
 	return true
-
+	
 func _register_occupied_tiles(building: Building):
 	for tile in building.occupied_tiles:
 		occupied_tiles[tile] = building

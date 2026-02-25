@@ -1,9 +1,6 @@
 extends Building
 class_name CoreBuilding
 
-@export_group("Core Settings")
-@export var build_radius: int = 15        # How far out the player can build
-@export var safe_radius: int = 20         # How far out corruption is pushed back
 
 # Visuals
 var show_radii := false:
@@ -15,7 +12,7 @@ func _ready():
 	super()
 	
 	# Add to a group so enemies and managers can easily find it
-	#add_to_group("Core")
+	add_to_group("Core")
 	#add_to_group("PriorityTarget")
 
 # --- DRAWING THE RANGES (Debug / Placement) ---
@@ -26,10 +23,10 @@ func _draw():
 	var center_pos = Vector2.ZERO # Local center
 	
 	# Draw Build Radius (Green)
-	draw_arc(center_pos, build_radius * tile_size, 0, TAU, 64, Color(0.2, 1.0, 0.2, 0.5), 2.0)
+	draw_arc(center_pos, build_range * tile_size, 0, TAU, 64, Color(0.2, 1.0, 0.2, 0.5), 2.0)
 	
 	# Draw Safe Zone / Corruption Resistance (Blue)
-	draw_arc(center_pos, safe_radius * tile_size, 0, TAU, 64, Color(0.2, 0.5, 1.0, 0.3), 2.0)
+	draw_arc(center_pos, corruption_range * tile_size, 0, TAU, 64, Color(0.2, 0.5, 1.0, 0.3), 2.0)
 
 # --- VISIBILITY OVERRIDES ---
 func set_ghost(enabled: bool):
