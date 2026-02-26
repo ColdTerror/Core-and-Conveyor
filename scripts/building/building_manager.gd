@@ -249,6 +249,15 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	_add_safe_zone(ghost_building)
 	_add_build_zone(ghost_building)
 	
+	# --- NEW: TRIGGER CORRUPTION ---
+	if ghost_building is CoreBuilding:
+		if level_ref and level_ref.has_node("CorruptionManager"):
+			var corruption_manager = level_ref.get_node("CorruptionManager")
+			var core_grid = object_layer.local_to_map(ghost_building.global_position)
+			
+			corruption_manager.start_outbreak(core_grid)
+	# ------------------------------
+	
 	# Update Pathfinder
 	if pathfinder:
 		var footprint = ghost_building.get_footprint(grid_pos)

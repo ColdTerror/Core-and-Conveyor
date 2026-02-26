@@ -33,6 +33,7 @@
 [ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/pathfinder.gd" id="29_7agi7"]
 [ext_resource type="PackedScene" uid="uid://mc4h1u2qxbyd" path="res://scenes/ui/enemy_info_popup.tscn" id="29_w3o6u"]
 [ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/wave_manager.tscn" id="32_2e2fo"]
+[ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/corruption_manager.gd" id="34_v3why"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
 content_margin_left = 8.0
@@ -86,6 +87,14 @@ tile_set = ExtResource("2_w8frs")
 script = ExtResource("15_gunhw")
 object_layer = NodePath("../ObjectLayer")
 hover_popup = NodePath("../CanvasLayer/Popup_Layer/BuildingHoverPopup")
+
+[node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager")]
+script = ExtResource("34_v3why")
+corruption_layer = NodePath("../CorruptionLayer")
+terrain_layer = NodePath("../TerrainLayer")
+object_layer = NodePath("../ObjectLayer")
+building_manager = NodePath("../BuildingManager")
+corruption_atlas = Vector2i(2, 1)
 
 [node name="Pathfinder" type="Node2D" parent="." unique_id=1266074560]
 script = ExtResource("29_7agi7")
