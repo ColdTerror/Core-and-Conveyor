@@ -59,7 +59,8 @@ func _ready():
 	wave_timer.timeout.connect(start_next_wave)
 	add_child(wave_timer)
 	
-	wave_timer.start()
+	#corruption manager starts it when corruption first spawns
+	#wave_timer.start()
 
 # --- EDITOR DRAWING ---
 func _draw():

@@ -6,6 +6,8 @@ class_name CorruptionManager
 @export var terrain_layer: TileMapLayer  # The floor (grass, sand)
 @export var object_layer: TileMapLayer   # Obstacles (water, rocks)
 @export var building_manager: BuildingManager
+@export var wave_manager: WaveManager
+
 
 @export_group("Settings")
 @export var spread_interval: float = 1.0  # How often the corruption ticks
@@ -39,6 +41,7 @@ func start_outbreak(core_pos: Vector2i):
 	
 	is_active = true
 	spread_timer.start()
+	wave_manager.wave_timer.start()
 	print("Corruption Outbreak Detected at: ", seed_pos)
 
 # --- SPREAD LOGIC ---
