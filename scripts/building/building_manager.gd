@@ -4,6 +4,7 @@ class_name BuildingManager
 @export var object_layer: TileMapLayer
 @export var hover_popup: Control
 
+@export var terrain_layer: TileMapLayer
 @export var corruption_layer: TileMapLayer
 
 # ---TRACKERS ---
@@ -145,8 +146,8 @@ func _draw():
 		elif ghost_building:
 			ghosts_to_draw = [ghost_building]
 
-		var preview_build = Color(0.5, 1.0, 0.5, 0.4) # Brighter green
-		var preview_safe = Color(0.5, 0.8, 1.0, 0.4)  # Brighter blue
+		var preview_build = Color(0.5, 1.0, 0.5, 0.2) # Brighter green
+		var preview_safe = Color(0.5, 0.8, 1.0, 0.2)  # Brighter blue
 
 		for g in ghosts_to_draw:
 			if not is_instance_valid(g): continue
@@ -451,7 +452,7 @@ func _get_mouse_grid() -> Vector2i:
 	if not object_layer: return Vector2i.ZERO
 	return object_layer.local_to_map(object_layer.to_local(mouse_global))
 
-# Added 'temp_network' to the parameters
+
 func _can_place_building(building: Building, origin: Vector2i, temp_network: Array[Vector2i] = []) -> bool:
 	if not object_layer: return false
 	
@@ -481,12 +482,30 @@ func _can_place_building(building: Building, origin: Vector2i, temp_network: Arr
 			return false
 	# ------------------------------
 
-	# 2. Check TileMap obstacles
+	# 2. Check for Corruption
 	for tile in footprint:
-		if object_layer.get_cell_source_id(tile) != -1:
+		if corruption_layer and corruption_layer.get_cell_source_id(tile) != -1:
+			return false # Cannot build on purple fog!
+
+	# 3. Check Terrain (Floor exists and is Buildable)
+	for tile in footprint:
+		if terrain_layer:
+			var tile_data = terrain_layer.get_cell_tile_data(tile)
+			
+			# A. Is there even a floor tile here?
+			if tile_data == null:
+				return false 
+				
+			# B. Is it marked as 'buildable' in the TileSet Custom Data?
+			if tile_data.get_custom_data("buildable") == false:
+				return false # It's water, lava, or a void!
+
+	# 4. Check Object Layer (Trees, Rocks)
+	for tile in footprint:
+		if object_layer and object_layer.get_cell_source_id(tile) != -1:
 			return false
 
-	# 3. Check occupied tiles
+	# 5. Check Occupied Tiles (Other Buildings)
 	for tile in footprint:
 		if occupied_tiles.has(tile):
 			return false

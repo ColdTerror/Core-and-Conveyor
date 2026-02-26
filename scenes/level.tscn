@@ -83,10 +83,12 @@ tile_set = ExtResource("2_w8frs")
 [node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
 tile_set = ExtResource("2_w8frs")
 
-[node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "hover_popup")]
+[node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "hover_popup", "terrain_layer", "corruption_layer")]
 script = ExtResource("15_gunhw")
 object_layer = NodePath("../ObjectLayer")
 hover_popup = NodePath("../CanvasLayer/Popup_Layer/BuildingHoverPopup")
+terrain_layer = NodePath("../TerrainLayer")
+corruption_layer = NodePath("../CorruptionLayer")
 
 [node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager")]
 script = ExtResource("34_v3why")
