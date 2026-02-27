@@ -13,15 +13,13 @@
 			"tasks": [
 				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
 				"eb64d933-d5d9-4062-ac65-6ade36f217d7",
-				"bbfd5575-4c86-42ed-bdda-a731b5169e77"
+				"989c7dc8-10d5-4853-bb84-85b6502bc2c1"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": [
-				"65699c96-b59c-4d0a-9150-fec4103c3c8b"
-			]
+			"tasks": []
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -29,7 +27,9 @@
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52",
-				"e400713b-8f41-4cd0-9197-a3013d1de847"
+				"e400713b-8f41-4cd0-9197-a3013d1de847",
+				"65699c96-b59c-4d0a-9150-fec4103c3c8b",
+				"bbfd5575-4c86-42ed-bdda-a731b5169e77"
 			]
 		}
 	],
@@ -80,6 +80,13 @@
 			"uuid": "bbfd5575-4c86-42ed-bdda-a731b5169e77",
 			"title": "corruption ",
 			"description": "make corruption spawn randomly on map and spread and enemies only spawn on corrupted tiles, and corruption obeys the corruption range of buildings",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "989c7dc8-10d5-4853-bb84-85b6502bc2c1",
+			"title": "switching recipes doesnt void resources",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

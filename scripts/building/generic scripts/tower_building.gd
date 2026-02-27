@@ -20,8 +20,8 @@ var attack_cooldown: float = 0.0
 var current_target: Node2D = null
 var level_ref: Node2D
 
-# Signal: Position, Target, ItemData, FinalDamage, Speed, SpreadOffset
-signal fired_projectile(start_pos, target_node, item_data, final_damage, speed, angle_offset)
+# Signal: Source, Position, Target, ItemData, FinalDamage, Speed, SpreadOffset
+signal fired_projectile(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset)
 
 # --- VISUALIZATION VARIABLES ---
 var show_range_overlay := false:
@@ -134,6 +134,7 @@ func _shoot():
 			angle_offset = - (spread_rad / 2.0) + (i * step)
 		
 		fired_projectile.emit(
+			self,
 			global_position, 
 			current_target, 
 			ammo_data, 

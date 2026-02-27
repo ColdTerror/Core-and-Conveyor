@@ -28,6 +28,7 @@ var attack_cooldown: float = 0.0
 signal enemy_clicked(enemy: Enemy) 
 signal died(enemy_instance: Enemy) 
 
+var is_target_locked: bool = false # <--- NEW: Prevents ping-ponging
 
 func _ready():
 	pathfinder = get_tree().root.find_child("Pathfinder", true, false)
@@ -185,6 +186,7 @@ func _reset_target():
 	current_target = null
 	current_path = []
 	path_update_timer = 0.0
+	is_target_locked = false
 	_find_target()
 
 func _find_target():
@@ -273,11 +275,22 @@ func _draw():
 		draw_polyline(local_points, Color.CYAN, 2.0)
 		
 
-func take_damage(damage: int):
+func take_damage(damage: int, source: Node2D = null): # <--- Added 'source'
 	health -= damage
 	
-	if (health <= 0):
+	if health <= 0:
 		die()
+		return # Stop processing if dead
+		
+	# --- NEW: REVENGE AGGRO LOGIC ---
+	# If we got shot by a building, and we aren't already locked onto a defender
+	if source and not is_target_locked:
+		current_target = source
+		is_target_locked = true
+		
+		# Force the enemy to instantly turn around and attack the tower!
+		_recalculate_path() 
+	# --------------------------------
 		
 func die():
 	print_debug("enemy died")

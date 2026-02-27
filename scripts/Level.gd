@@ -431,7 +431,7 @@ func _handle_selection_click():
 
 
 # This function listens for the Tower's signal
-func _on_tower_fired(start_pos, target_node, item_data, final_damage, speed, angle_offset):
+func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset):
 	if not projectile_scene:
 		print("Error: Projectile Scene not assigned in Level Inspector")
 		return
@@ -455,5 +455,5 @@ func _on_tower_fired(start_pos, target_node, item_data, final_damage, speed, ang
 	# Configure it
 	# Note: We assume your Projectile.gd has a 'setup' function
 	if proj.has_method("setup"):
-		proj.setup(start_pos, dir, speed, final_damage, item_data.texture)
+		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower)
 		
