@@ -28,7 +28,8 @@ var attack_cooldown: float = 0.0
 signal enemy_clicked(enemy: Enemy) 
 signal died(enemy_instance: Enemy) 
 
-var is_target_locked: bool = false # <--- NEW: Prevents ping-ponging
+var is_target_locked: bool = false
+
 
 func _ready():
 	pathfinder = get_tree().root.find_child("Pathfinder", true, false)
