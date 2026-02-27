@@ -20,6 +20,9 @@ var attack_cooldown: float = 0.0
 var current_target: Node2D = null
 var level_ref: Node2D
 
+# Cached range tiles - used by both visualization and targeting
+var _cached_range_tiles: Dictionary = {}
+
 # Signal: Source, Position, Target, ItemData, FinalDamage, Speed, SpreadOffset
 signal fired_projectile(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset)
 
@@ -27,7 +30,11 @@ signal fired_projectile(source_tower, start_pos, target_node, item_data, final_d
 var show_range_overlay := false:
 	set(value):
 		show_range_overlay = value
-		queue_redraw() # Forces _draw() to run again
+		queue_redraw()
+
+func _ready():
+	super()
+	_cached_range_tiles = _get_local_range_tiles()
 
 func setup(level_instance: Node2D):
 	level_ref = level_instance
@@ -38,26 +45,22 @@ func setup(level_instance: Node2D):
 # ============================================================
 
 func _draw():
-	# Only draw if the flag is true
 	if not show_range_overlay:
 		return
 		
-	var tiles = _get_local_range_tiles()
+	var tiles = _cached_range_tiles
 	var tile_size = 32.0
 	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
 	
-	# Colors (Matching the style of the green/blue ranges, but in Attack Red)
-	var fill_color = Color(1.0, 0.2, 0.2, 0.15)  # Faint red fill
-	var border_color = Color(1.0, 0.2, 0.2, 0.8) # Solid red border
+	var fill_color = Color(1.0, 0.2, 0.2, 0.15)
+	var border_color = Color(1.0, 0.2, 0.2, 0.8)
 	var b_width = 2.0
 	
-	# 1. Draw Transparent Fill
 	for t in tiles.keys():
 		var center_px = tiles[t]
 		var top_left_px = center_px - half_offset
 		draw_rect(Rect2(top_left_px, Vector2(tile_size, tile_size)), fill_color)
 		
-	# 2. Draw Crisp Border
 	for t in tiles.keys():
 		var center_px = tiles[t]
 		var pos = center_px - half_offset
@@ -67,25 +70,21 @@ func _draw():
 		var bl = pos + Vector2(0, tile_size)
 		var br = pos + Vector2(tile_size, tile_size)
 		
-		# If there is no neighbor in a direction, draw a line on that edge!
 		if not tiles.has(t + Vector2i.UP): draw_line(tl, tr, border_color, b_width)
 		if not tiles.has(t + Vector2i.DOWN): draw_line(bl, br, border_color, b_width)
 		if not tiles.has(t + Vector2i.LEFT): draw_line(tl, bl, border_color, b_width)
 		if not tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, border_color, b_width)
 
 
-# --- NEW: Helper function to calculate a local grid map ---
 func _get_local_range_tiles() -> Dictionary:
 	var tiles = {}
 	var tile_size = 32.0 
 	
-	# Fallback to 1x1 if size isn't declared in the Building base class
 	var b_size = size if "size" in self else Vector2i(1, 1) 
 	
 	var half_w = (b_size.x * tile_size) / 2.0
 	var half_h = (b_size.y * tile_size) / 2.0
 	
-	# In local space, the building is perfectly centered at (0,0)
 	var rect_x_min = -half_w
 	var rect_x_max = half_w
 	var rect_y_min = -half_h
@@ -99,7 +98,6 @@ func _get_local_range_tiles() -> Dictionary:
 			var tile_center_x = x * tile_size
 			var tile_center_y = y * tile_size
 			
-			# Align the grid perfectly based on if the building is even or odd sized
 			if int(b_size.x) % 2 == 0: tile_center_x += tile_size / 2.0
 			if int(b_size.y) % 2 == 0: tile_center_y += tile_size / 2.0
 			
@@ -109,10 +107,10 @@ func _get_local_range_tiles() -> Dictionary:
 			var dist_px = Vector2(dx, dy).length()
 			
 			if dist_px <= max_dist_px:
-				# Store the grid coordinate as the Key, and the local pixel as the Value!
 				tiles[Vector2i(x, y)] = Vector2(tile_center_x, tile_center_y)
 				
 	return tiles
+
 
 # Override Base Building functions to toggle range
 func set_ghost(enabled: bool):
@@ -128,6 +126,23 @@ func _on_mouse_exited():
 	super._on_mouse_exited()
 	if has_node("Area2D") and $Area2D.monitoring:
 		show_range_overlay = false
+
+
+# ============================================================
+#  TARGETING HELPERS
+# ============================================================
+
+func _get_enemy_tile(enemy: Node2D) -> Vector2i:
+	var local_pos = enemy.global_position - global_position
+	var tile_size = 32.0
+	var b_size = size if "size" in self else Vector2i(1, 1)
+	var offset_x = (tile_size / 2.0) if int(b_size.x) % 2 == 0 else 0.0
+	var offset_y = (tile_size / 2.0) if int(b_size.y) % 2 == 0 else 0.0
+	return Vector2i(
+		floor((local_pos.x - offset_x) / tile_size + 0.5),
+		floor((local_pos.y - offset_y) / tile_size + 0.5)
+	)
+
 
 # ============================================================
 # ============================================================
@@ -167,21 +182,20 @@ func _try_find_target():
 func _is_valid_target(target) -> bool:
 	if not is_instance_valid(target): return false
 	if target.is_queued_for_deletion(): return false
-	if global_position.distance_to(target.global_position) > attack_range: return false
-	return true
+	return _cached_range_tiles.has(_get_enemy_tile(target))
 
 func _find_nearest_enemy() -> Node2D:
 	if not level_ref: return null
 	
 	var nearest: Node2D = null
-	var min_dist = attack_range
-	var enemies = get_tree().get_nodes_in_group("Enemies") # Ensure your Enemy.gd adds itself to "Enemies" group!
+	var min_dist = INF
 	
-	for enemy in enemies:
-		var dist = global_position.distance_to(enemy.global_position)
-		if dist < min_dist:
-			min_dist = dist
-			nearest = enemy
+	for enemy in get_tree().get_nodes_in_group("Enemies"):
+		if _cached_range_tiles.has(_get_enemy_tile(enemy)):
+			var dist = global_position.distance_to(enemy.global_position)
+			if dist < min_dist:
+				min_dist = dist
+				nearest = enemy
 	return nearest
 
 # --- 3. FIRING LOGIC ---
