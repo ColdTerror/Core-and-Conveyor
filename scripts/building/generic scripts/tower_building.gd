@@ -32,29 +32,95 @@ var show_range_overlay := false:
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
+
 # ============================================================
-#  RANGE VISUALIZATION (New Code)
+#  RANGE VISUALIZATION (Grid-Based)
 # ============================================================
 
 func _draw():
 	# Only draw if the flag is true
-	if show_range_overlay:
-		# 1. Draw Transparent Fill
-		draw_circle(Vector2.ZERO, attack_range, Color(1, 0, 0, 0.1))
+	if not show_range_overlay:
+		return
 		
-		# 2. Draw Outline (High quality arc)
-		# position, radius, start_angle, end_angle, point_count, color, width, antialiased
-		draw_arc(Vector2.ZERO, attack_range, 0, TAU, 64, Color(1, 0, 0, 0.5), 2.0, true)
+	var tiles = _get_local_range_tiles()
+	var tile_size = 32.0
+	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
+	
+	# Colors (Matching the style of the green/blue ranges, but in Attack Red)
+	var fill_color = Color(1.0, 0.2, 0.2, 0.15)  # Faint red fill
+	var border_color = Color(1.0, 0.2, 0.2, 0.8) # Solid red border
+	var b_width = 2.0
+	
+	# 1. Draw Transparent Fill
+	for t in tiles.keys():
+		var center_px = tiles[t]
+		var top_left_px = center_px - half_offset
+		draw_rect(Rect2(top_left_px, Vector2(tile_size, tile_size)), fill_color)
+		
+	# 2. Draw Crisp Border
+	for t in tiles.keys():
+		var center_px = tiles[t]
+		var pos = center_px - half_offset
+		
+		var tl = pos
+		var tr = pos + Vector2(tile_size, 0)
+		var bl = pos + Vector2(0, tile_size)
+		var br = pos + Vector2(tile_size, tile_size)
+		
+		# If there is no neighbor in a direction, draw a line on that edge!
+		if not tiles.has(t + Vector2i.UP): draw_line(tl, tr, border_color, b_width)
+		if not tiles.has(t + Vector2i.DOWN): draw_line(bl, br, border_color, b_width)
+		if not tiles.has(t + Vector2i.LEFT): draw_line(tl, bl, border_color, b_width)
+		if not tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, border_color, b_width)
+
+
+# --- NEW: Helper function to calculate a local grid map ---
+func _get_local_range_tiles() -> Dictionary:
+	var tiles = {}
+	var tile_size = 32.0 
+	
+	# Fallback to 1x1 if size isn't declared in the Building base class
+	var b_size = size if "size" in self else Vector2i(1, 1) 
+	
+	var half_w = (b_size.x * tile_size) / 2.0
+	var half_h = (b_size.y * tile_size) / 2.0
+	
+	# In local space, the building is perfectly centered at (0,0)
+	var rect_x_min = -half_w
+	var rect_x_max = half_w
+	var rect_y_min = -half_h
+	var rect_y_max = half_h
+	
+	var max_dist_px = attack_range
+	var search_radius = ceil(attack_range / tile_size) + max(b_size.x, b_size.y)
+	
+	for x in range(-search_radius, search_radius + 1):
+		for y in range(-search_radius, search_radius + 1):
+			var tile_center_x = x * tile_size
+			var tile_center_y = y * tile_size
+			
+			# Align the grid perfectly based on if the building is even or odd sized
+			if int(b_size.x) % 2 == 0: tile_center_x += tile_size / 2.0
+			if int(b_size.y) % 2 == 0: tile_center_y += tile_size / 2.0
+			
+			var dx = max(0.0, max(rect_x_min - tile_center_x, tile_center_x - rect_x_max))
+			var dy = max(0.0, max(rect_y_min - tile_center_y, tile_center_y - rect_y_max))
+			
+			var dist_px = Vector2(dx, dy).length()
+			
+			if dist_px <= max_dist_px:
+				# Store the grid coordinate as the Key, and the local pixel as the Value!
+				tiles[Vector2i(x, y)] = Vector2(tile_center_x, tile_center_y)
+				
+	return tiles
 
 # Override Base Building functions to toggle range
 func set_ghost(enabled: bool):
 	super.set_ghost(enabled)
-	# Always show range when dragging the ghost
 	show_range_overlay = enabled 
 
 func _on_mouse_entered():
 	super._on_mouse_entered()
-	# Only show if placed (monitoring is usually false for ghosts)
 	if has_node("Area2D") and $Area2D.monitoring:
 		show_range_overlay = true
 
@@ -63,6 +129,7 @@ func _on_mouse_exited():
 	if has_node("Area2D") and $Area2D.monitoring:
 		show_range_overlay = false
 
+# ============================================================
 # ============================================================
 
 # --- 1. FILTERED INPUT ---

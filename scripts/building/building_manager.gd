@@ -116,6 +116,9 @@ func _process(delta):
 # -------------------------------
 # VISUAL OVERLAYS (Grid-Based)
 # -------------------------------
+# -------------------------------
+# VISUAL OVERLAYS (Grid-Based)
+# -------------------------------
 func _draw():
 	# If we aren't placing a building AND both toggles are off, don't draw anything
 	if not placing_building and not show_build_grid and not show_safe_grid:
@@ -123,20 +126,45 @@ func _draw():
 
 	var tile_size = 32.0 
 	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
+	var b_width = 2.0 # Line width for all borders
 	
 	# 1. DRAW GLOBAL BUILD ZONES (F1 Hotkey)
 	if show_build_grid:
-		var build_color = Color(0.2, 1.0, 0.2, 0.15) # Faint green
+		var build_color = Color(0.2, 1.0, 0.2, 0.15) # Faint green fill
+		var build_border_color = Color(0.2, 1.0, 0.2, 0.8) # Solid green border
+		
 		for tile in buildable_tiles.keys():
 			var local_pos = object_layer.map_to_local(tile) - half_offset
 			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), build_color)
+			
+			var tl = local_pos
+			var tr = local_pos + Vector2(tile_size, 0)
+			var bl = local_pos + Vector2(0, tile_size)
+			var br = local_pos + Vector2(tile_size, tile_size)
+			
+			if not buildable_tiles.has(tile + Vector2i.UP): draw_line(tl, tr, build_border_color, b_width)
+			if not buildable_tiles.has(tile + Vector2i.DOWN): draw_line(bl, br, build_border_color, b_width)
+			if not buildable_tiles.has(tile + Vector2i.LEFT): draw_line(tl, bl, build_border_color, b_width)
+			if not buildable_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, build_border_color, b_width)
 
 	# 2. DRAW GLOBAL SAFE ZONES (F2 Hotkey)
 	if show_safe_grid:
-		var safe_color = Color(0.2, 0.5, 1.0, 0.15) # Faint blue
+		var safe_color = Color(0.2, 0.5, 1.0, 0.15) # Faint blue fill
+		var safe_border_color = Color(0.2, 0.5, 1.0, 0.8) # Solid blue border
+		
 		for tile in safe_tiles.keys():
 			var local_pos = object_layer.map_to_local(tile) - half_offset
 			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), safe_color)
+			
+			var tl = local_pos
+			var tr = local_pos + Vector2(tile_size, 0)
+			var bl = local_pos + Vector2(0, tile_size)
+			var br = local_pos + Vector2(tile_size, tile_size)
+			
+			if not safe_tiles.has(tile + Vector2i.UP): draw_line(tl, tr, safe_border_color, b_width)
+			if not safe_tiles.has(tile + Vector2i.DOWN): draw_line(bl, br, safe_border_color, b_width)
+			if not safe_tiles.has(tile + Vector2i.LEFT): draw_line(tl, bl, safe_border_color, b_width)
+			if not safe_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, safe_border_color, b_width)
 
 	# 3. DRAW GHOST PREVIEWS (When Placing)
 	if placing_building:
@@ -146,14 +174,13 @@ func _draw():
 		elif ghost_building:
 			ghosts_to_draw = [ghost_building]
 
-		var preview_build = Color(0.5, 1.0, 0.5, 0.15) # Brighter green
-		var preview_safe = Color(0.5, 0.8, 1.0, 0.15)  # Brighter blue
+		var preview_build = Color(0.5, 1.0, 0.5, 0.15) # Brighter green fill
+		var preview_safe = Color(0.5, 0.8, 1.0, 0.15)  # Brighter blue fill
 
-		# --- THE FIX: Use dictionaries to collect unique tiles ---
 		var unique_safe_tiles = {}
 		var unique_build_tiles = {}
 
-		# 1. Gather all the tiles without drawing them yet
+		# A. Gather all the tiles without drawing them yet
 		for g in ghosts_to_draw:
 			if not is_instance_valid(g): continue
 			
@@ -162,14 +189,14 @@ func _draw():
 			if "corruption_range" in g and g.corruption_range > 0:
 				var s_tiles = _get_tiles_in_radius(origin, g, g.corruption_range)
 				for t in s_tiles:
-					unique_safe_tiles[t] = true # Adding to dictionary prevents duplicates
+					unique_safe_tiles[t] = true 
 					
 			if "build_range" in g and g.build_range > 0:
 				var b_tiles = _get_tiles_in_radius(origin, g, g.build_range)
 				for t in b_tiles:
 					unique_build_tiles[t] = true
 
-		# 2. Now, draw every collected tile exactly ONCE!
+		# B. Draw every collected tile fill exactly ONCE!
 		for t in unique_safe_tiles.keys():
 			var pos = object_layer.map_to_local(t) - half_offset
 			draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_safe)
@@ -178,7 +205,33 @@ func _draw():
 			var pos = object_layer.map_to_local(t) - half_offset
 			draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_build)
 
+		# C. Draw crisp, color-coded borders around the outer edges
+		var build_border_color = Color(0.2, 1.0, 0.2, 0.8) 
+		for t in unique_build_tiles.keys():
+			var pos = object_layer.map_to_local(t) - half_offset
+			var tl = pos                                      
+			var tr = pos + Vector2(tile_size, 0)              
+			var bl = pos + Vector2(0, tile_size)              
+			var br = pos + Vector2(tile_size, tile_size)      
+			
+			if not unique_build_tiles.has(t + Vector2i.UP): draw_line(tl, tr, build_border_color, b_width)
+			if not unique_build_tiles.has(t + Vector2i.DOWN): draw_line(bl, br, build_border_color, b_width)
+			if not unique_build_tiles.has(t + Vector2i.LEFT): draw_line(tl, bl, build_border_color, b_width)
+			if not unique_build_tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, build_border_color, b_width)
 
+		var safe_border_color = Color(0.2, 0.5, 1.0, 0.8) 
+		for t in unique_safe_tiles.keys():
+			var pos = object_layer.map_to_local(t) - half_offset
+			var tl = pos
+			var tr = pos + Vector2(tile_size, 0)
+			var bl = pos + Vector2(0, tile_size)
+			var br = pos + Vector2(tile_size, tile_size)
+			
+			if not unique_safe_tiles.has(t + Vector2i.UP): draw_line(tl, tr, safe_border_color, b_width)
+			if not unique_safe_tiles.has(t + Vector2i.DOWN): draw_line(bl, br, safe_border_color, b_width)
+			if not unique_safe_tiles.has(t + Vector2i.LEFT): draw_line(tl, bl, safe_border_color, b_width)
+			if not unique_safe_tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, safe_border_color, b_width)
+	
 func _on_building_destroyed(b: Building):
 	if b in buildings:
 		buildings.erase(b)
