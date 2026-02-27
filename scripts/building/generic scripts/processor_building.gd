@@ -213,6 +213,12 @@ func cycle_recipe():
 	if recipes.size() <= 1: return
 	
 	if is_working or input_inventory > 0 or output_inventory > 0:
+		# --- ECONOMY FIX: Void the existing items before clearing buffers ---
+		var lost_assets = get_economy_assets()
+		if not lost_assets.is_empty():
+			EconomyManager.remove_resources_from_global(lost_assets)
+		# ------------------------------------------------------------------
+		
 		input_inventory = 0
 		output_inventory = 0
 		is_working = false

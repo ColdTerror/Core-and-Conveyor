@@ -13,13 +13,15 @@
 			"tasks": [
 				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
 				"eb64d933-d5d9-4062-ac65-6ade36f217d7",
-				"989c7dc8-10d5-4853-bb84-85b6502bc2c1"
+				"77ae9adb-542f-4a3c-885c-addbf78016fd"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"2a68a7f6-b47a-40d7-9462-b9f4b108e18d"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -29,7 +31,9 @@
 				"1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52",
 				"e400713b-8f41-4cd0-9197-a3013d1de847",
 				"65699c96-b59c-4d0a-9150-fec4103c3c8b",
-				"bbfd5575-4c86-42ed-bdda-a731b5169e77"
+				"bbfd5575-4c86-42ed-bdda-a731b5169e77",
+				"989c7dc8-10d5-4853-bb84-85b6502bc2c1",
+				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860"
 			]
 		}
 	],
@@ -87,6 +91,27 @@
 			"uuid": "989c7dc8-10d5-4853-bb84-85b6502bc2c1",
 			"title": "switching recipes doesnt void resources",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
+			"title": "stop multiple draws on same tile for ranges",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "77ae9adb-542f-4a3c-885c-addbf78016fd",
+			"title": "delete buildings",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "2a68a7f6-b47a-40d7-9462-b9f4b108e18d",
+			"title": "rotate existing belts",
+			"description": "when placing belts check if a belt already exists in that spot, if it does change the rotation but dont charge resources",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

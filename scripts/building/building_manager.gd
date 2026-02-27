@@ -146,27 +146,37 @@ func _draw():
 		elif ghost_building:
 			ghosts_to_draw = [ghost_building]
 
-		var preview_build = Color(0.5, 1.0, 0.5, 0.2) # Brighter green
-		var preview_safe = Color(0.5, 0.8, 1.0, 0.2)  # Brighter blue
+		var preview_build = Color(0.5, 1.0, 0.5, 0.15) # Brighter green
+		var preview_safe = Color(0.5, 0.8, 1.0, 0.15)  # Brighter blue
 
+		# --- THE FIX: Use dictionaries to collect unique tiles ---
+		var unique_safe_tiles = {}
+		var unique_build_tiles = {}
+
+		# 1. Gather all the tiles without drawing them yet
 		for g in ghosts_to_draw:
 			if not is_instance_valid(g): continue
 			
 			var origin = object_layer.local_to_map(g.global_position)
 			
-			# Preview the exact tiles this building will make Safe
 			if "corruption_range" in g and g.corruption_range > 0:
 				var s_tiles = _get_tiles_in_radius(origin, g, g.corruption_range)
 				for t in s_tiles:
-					var pos = object_layer.map_to_local(t) - half_offset
-					draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_safe)
+					unique_safe_tiles[t] = true # Adding to dictionary prevents duplicates
 					
-			# Preview the exact tiles this building will make Buildable
 			if "build_range" in g and g.build_range > 0:
 				var b_tiles = _get_tiles_in_radius(origin, g, g.build_range)
 				for t in b_tiles:
-					var pos = object_layer.map_to_local(t) - half_offset
-					draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_build)
+					unique_build_tiles[t] = true
+
+		# 2. Now, draw every collected tile exactly ONCE!
+		for t in unique_safe_tiles.keys():
+			var pos = object_layer.map_to_local(t) - half_offset
+			draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_safe)
+			
+		for t in unique_build_tiles.keys():
+			var pos = object_layer.map_to_local(t) - half_offset
+			draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_build)
 
 
 func _on_building_destroyed(b: Building):
