@@ -12,7 +12,6 @@
 			"title": "Todo",
 			"tasks": [
 				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
-				"77ae9adb-542f-4a3c-885c-addbf78016fd",
 				"2a68a7f6-b47a-40d7-9462-b9f4b108e18d"
 			]
 		},
@@ -20,7 +19,8 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"eb64d933-d5d9-4062-ac65-6ade36f217d7"
+				"eb64d933-d5d9-4062-ac65-6ade36f217d7",
+				"77ae9adb-542f-4a3c-885c-addbf78016fd"
 			]
 		},
 		{
@@ -105,7 +105,7 @@
 		{
 			"uuid": "77ae9adb-542f-4a3c-885c-addbf78016fd",
 			"title": "delete buildings",
-			"description": "",
+			"description": "when buildings die remove resources",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},

@@ -237,7 +237,19 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 
 # =================================================================
 
+# =================================================================
+# ECONOMY ASSETS (Called when destroyed)
+# =================================================================
+func get_economy_assets() -> Dictionary:
+	var assets = {}
+	if target_resource and target_resource.item_drop and stored_amount > 0:
+		assets[target_resource.item_drop.display_name] = stored_amount
+	return assets
+
+
 func get_inventory_info() -> Dictionary:
 	if target_resource and stored_amount > 0:
 		return { target_resource: stored_amount }
 	return {}
+	
+	

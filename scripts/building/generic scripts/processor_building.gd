@@ -226,3 +226,4 @@ func cycle_recipe():
 	current_recipe_index = (current_recipe_index + 1) % recipes.size()
 	print("Switched to recipe: " + active_recipe.recipe_name)
 	inventory_changed.emit()
+	

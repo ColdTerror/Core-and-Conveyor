@@ -179,7 +179,8 @@ func get_economy_assets() -> Dictionary:
 		if item is ItemResource:
 			assets[item.display_name] = inventory[item]
 	return assets
-	
+
+
 # 3. Implement Consumption Logic
 func consume_resources(remaining_bill: Dictionary):
 	var needed_items = remaining_bill.keys()
