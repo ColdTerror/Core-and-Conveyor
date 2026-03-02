@@ -114,7 +114,6 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="BuildingMenu" parent="CanvasLayer/Popup_Layer" unique_id=1200069952 instance=ExtResource("21_wu01b")]
-visible = false
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0

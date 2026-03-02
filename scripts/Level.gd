@@ -426,8 +426,6 @@ func _handle_selection_click():
 		# Open the menu for this building
 		building_menu.open_menu(building)
 		
-		# Optional: Close the hover popup so it doesn't overlap
-		hover_popup.hide()
 
 
 # This function listens for the Tower's signal
