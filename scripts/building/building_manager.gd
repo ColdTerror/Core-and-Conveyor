@@ -31,6 +31,8 @@ var level_ref: Node2D
 
 var pathfinder: Pathfinder
 
+signal building_selected(building: Building)
+
 # -------------------------------
 # PUBLIC API
 # -------------------------------
@@ -113,9 +115,7 @@ func _process(delta):
 	if placing_building:
 		queue_redraw()
 
-# -------------------------------
-# VISUAL OVERLAYS (Grid-Based)
-# -------------------------------
+
 # -------------------------------
 # VISUAL OVERLAYS (Grid-Based)
 # -------------------------------
@@ -264,7 +264,11 @@ func _on_building_destroyed(b: Building):
 			EconomyManager.remove_resources_from_global(assets)
 	# ------------------
 
-		
+
+func select_building_at(grid_pos: Vector2i):
+	if occupied_tiles.has(grid_pos):
+		var building = occupied_tiles[grid_pos]
+		building_selected.emit(building)
 
 # --- UPDATED: Accepts optional grid position for Dragging ---
 func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:

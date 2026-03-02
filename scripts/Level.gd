@@ -58,14 +58,7 @@ var active_grid_objects := {}
 
 @onready var building_menu = $CanvasLayer/Popup_Layer/BuildingMenu 
 
-
-
-
-
 @onready var pathfinder = $Pathfinder
-
-
-	
 
 func _ready():
 	generate_simple_map()
@@ -85,6 +78,8 @@ func _ready():
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	building_manager.pathfinder = pathfinder
+	
+	building_manager.building_selected.connect(building_menu.open_menu)
 	
 
 # =========================
@@ -402,7 +397,9 @@ func _unhandled_input(event):
 		
 		# MODE: Selection / Interaction (Clicking existing stuff)
 		if current_mode == InteractionMode.NONE:
-			_handle_selection_click()
+			# Level doesn't care if a building is there, it just tells the manager to check!
+			building_manager.select_building_at(grid_pos)
+			
 			if has_node("WaveManager"):
 				$WaveManager.deselect_enemy()
 
@@ -416,15 +413,7 @@ func _unhandled_input(event):
 		#if event.is_action_pressed("ui_right"):
 		#	handle_harvest_input(grid_pos)
 
-func _handle_selection_click():
-	var grid_pos = terrain_layer.local_to_map(get_global_mouse_position())
-	
-	# Check if there is a building at this tile
-	if building_manager.occupied_tiles.has(grid_pos):
-		var building = building_manager.occupied_tiles[grid_pos]
-		
-		# Open the menu for this building
-		building_menu.open_menu(building)
+
 		
 
 

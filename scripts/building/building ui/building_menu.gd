@@ -6,6 +6,8 @@ extends PanelContainer
 
 var current_building: Building = null
 
+signal menu_closed
+
 func _ready():
 	hide()
 	
@@ -89,3 +91,4 @@ func _on_switch_pressed():
 func close_menu():
 	current_building = null
 	hide()
+	menu_closed.emit()
