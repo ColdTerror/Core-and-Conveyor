@@ -10,7 +10,7 @@ extends Node2D
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
 
 # Mode State
-enum InteractionMode { NONE, PLACE_BUILDING }
+enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT}
 var current_mode = InteractionMode.NONE
 
 
@@ -32,10 +32,6 @@ const RES_STONE := 4
 
 
 var active_grid_objects := {}
-
-
-
-
 
 
 @export_group("Scenes")
@@ -376,6 +372,12 @@ func _unhandled_input(event):
 		if current_mode == InteractionMode.PLACE_BUILDING:
 			building_manager.rotate_ghost()
 		return
+	
+	#Change into deconstruct mode
+	if event.is_action_pressed("deconstruct_hotkey"): # (Map this in Project Settings -> Input Map)
+		building_manager.cancel_placement()
+		current_mode = InteractionMode.DECONSTRUCT
+		print("Entered Deconstruct Mode")
 
 	# 2. BUILDING MODE (Delegated to Manager)
 	# We check this FIRST. If we are placing a building, we send Presses, Releases, 
@@ -390,10 +392,25 @@ func _unhandled_input(event):
 				current_mode = InteractionMode.NONE
 			return # Don't let building clicks trigger other logic below
 
+	# --- NEW: DECONSTRUCT MODE ---
+	if current_mode == InteractionMode.DECONSTRUCT:
+		# Let the player click and drag to delete multiple things quickly
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			building_manager.deconstruct_building_at(grid_pos)
+			
+		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			building_manager.deconstruct_building_at(grid_pos)
+			
+		# Right click or Escape to cancel deconstruct mode
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+			current_mode = InteractionMode.NONE
+			print("Exited Deconstruct Mode")
+			
+		return # Stop processing other clicks
+
 	# 3. TILE MODE & SELECTION (Standard Clicks)
 	# Only listen for explicit "Presses" for these modes
 	if event.is_action_pressed("ui_left"):
-		
 		
 		# MODE: Selection / Interaction (Clicking existing stuff)
 		if current_mode == InteractionMode.NONE:
@@ -409,9 +426,6 @@ func _unhandled_input(event):
 		building_manager.cancel_placement()
 		current_mode = InteractionMode.NONE
 		
-		# Specific Right Click (Harvest)
-		#if event.is_action_pressed("ui_right"):
-		#	handle_harvest_input(grid_pos)
 
 
 		

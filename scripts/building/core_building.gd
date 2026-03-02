@@ -25,6 +25,9 @@ func take_damage(amount: int):
 	if health <= 0:
 		_trigger_game_over()
 
+func die():
+	_trigger_game_over()
+	
 func _trigger_game_over():
 	print("CORE DESTROYED! GAME OVER!")
 	core_destroyed.emit()

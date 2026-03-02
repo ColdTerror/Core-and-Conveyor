@@ -759,3 +759,14 @@ func _remove_build_zone(building: Building):
 			buildable_tiles[tile] -= 1
 			if buildable_tiles[tile] <= 0:
 				buildable_tiles.erase(tile)
+				
+				
+func deconstruct_building_at(grid_pos: Vector2i):
+	if occupied_tiles.has(grid_pos):
+		var building = occupied_tiles[grid_pos]
+
+		print("Deconstructed: ", building.building_name)
+		
+		# Calling die() will trigger the 'destroyed' signal you already set up, 
+		# which tells the BuildingManager to clean up the occupied_tiles dictionary!
+		building.die()
