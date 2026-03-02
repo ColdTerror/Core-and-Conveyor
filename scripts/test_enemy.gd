@@ -14,6 +14,11 @@ var health: int = max_health
 @export var attack_range: float = 40.0 
 @export var projectile_scene: PackedScene 
 
+# --- NEW: SEPARATION CONFIG ---
+@export_subgroup("Swarm Movement")
+@export var separation_radius: float = 24.0 # How close before they push
+@export var separation_force: float = 30.0  # How hard they push apart
+
 # --- STATE ---
 var pathfinder: Pathfinder 
 var current_target: Node2D
@@ -30,6 +35,8 @@ signal died(enemy_instance: Enemy)
 
 var is_target_locked: bool = false
 
+var separation_update_timer: float = 0.0
+var cached_separation: Vector2 = Vector2.ZERO
 
 func _ready():
 	pathfinder = get_tree().root.find_child("Pathfinder", true, false)
@@ -41,6 +48,8 @@ func _ready():
 	
 	# 2. Connect the built-in click detector
 	input_event.connect(_on_input_event)
+	
+	separation_update_timer = randf_range(0.0, 0.1)
 	
 func _physics_process(delta):
 	if health <= 0: return
@@ -57,11 +66,14 @@ func _physics_process(delta):
 
 	if dist <= required_dist:
 		# --- IN RANGE ---
-		velocity = Vector2.ZERO
+		# Instead of completely stopping, let them keep pushing each other!
+		var separation = _calculate_separation()
+		velocity = separation * movement_speed
+		move_and_slide()
 		
 		# Ranged LOS Check
 		if combat_type == 1 and not _has_line_of_sight(current_target):
-			_process_movement(delta) # No LOS? Keep moving to find angle
+			_process_movement(delta) 
 		else:
 			_try_attack(current_target)
 	else:
@@ -101,12 +113,53 @@ func _process_movement(delta):
 		if global_position.distance_to(next_point) < 5.0:
 			current_path.remove_at(0)
 
-	# 3. Execute
+	# 3. Apply Separation Force (Swarm Behavior)
 	if move_dir != Vector2.ZERO:
-		_execute_movement(move_dir)
+		var separation = _calculate_separation()
+		
+		# Blend the pathfinding direction with the separation push
+		# We normalize it again so they don't move faster when clustered
+		var final_dir = (move_dir + separation).normalized()
+		
+		_execute_movement(final_dir)
 	else:
 		velocity = Vector2.ZERO
 
+func _calculate_separation() -> Vector2:
+	separation_update_timer -= get_physics_process_delta_time()
+	if separation_update_timer <= 0.0:
+		separation_update_timer = 0.1  # recalculate 10 times per second instead of 60
+		cached_separation = _do_separation_calculation()
+	return cached_separation
+	
+func _do_separation_calculation() -> Vector2:
+	var separation_vector = Vector2.ZERO
+	var neighbors = 0
+	
+	# Only check against other units in the Enemies group
+	var all_enemies = get_tree().get_nodes_in_group("Enemies")
+	
+	for other in all_enemies:
+		if other == self or not is_instance_valid(other): 
+			continue
+			
+		var dist = global_position.distance_to(other.global_position)
+		
+		if dist < separation_radius and dist > 0.1:
+			# Calculate push direction (from them to us)
+			var push_dir = other.global_position.direction_to(global_position)
+			
+			# The closer they are, the stronger the push!
+			var push_strength = 1.0 - (dist / separation_radius)
+			separation_vector += push_dir * push_strength
+			neighbors += 1
+			
+	if neighbors > 0:
+		# Average the push forces and scale by the configured force weight
+		separation_vector = (separation_vector / neighbors) * (separation_force / movement_speed)
+		
+	return separation_vector
+	
 func _execute_movement(dir: Vector2):
 	velocity = dir * movement_speed
 	move_and_slide()
