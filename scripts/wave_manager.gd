@@ -136,6 +136,8 @@ func _on_spawn_tick():
 func _on_enemy_died(_enemy_instance):
 	print("enemy died in wave")
 	enemies_alive -= 1
+	
+	
 	if enemies_alive <= 0 and enemies_to_spawn <= 0:
 		_wave_complete()
 
