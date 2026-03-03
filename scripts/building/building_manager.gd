@@ -798,6 +798,13 @@ func deconstruct_building_at(grid_pos: Vector2i):
 	if occupied_tiles.has(grid_pos):
 		var building = occupied_tiles[grid_pos]
 
+		# --- NEW: Block Core Deletion ---
+		if building is CoreBuilding:
+			print("Cannot deconstruct the Core!")
+			# Optional: Play an error sound or show a floating text warning here
+			return # Stop the function immediately!
+		# --------------------------------
+		
 		print("Deconstructed: ", building.building_name)
 		
 		# Calling die() will trigger the 'destroyed' signal you already set up, 

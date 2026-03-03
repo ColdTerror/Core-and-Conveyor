@@ -175,6 +175,35 @@ func _process(_delta):
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
 	update_tooltip(grid_pos)
+	
+	queue_redraw()
+
+# ============================================================================
+# VISUAL OVERLAYS
+# ============================================================================
+func _draw():
+	# Only draw the red highlight if we are actually in Deconstruct Mode!
+	if current_mode == InteractionMode.DECONSTRUCT:
+		
+		# 1. Get the mouse position and snap it to the grid
+		var mouse_pos = get_global_mouse_position()
+		var grid_pos = terrain_layer.local_to_map(mouse_pos)
+		
+		# 2. Convert that grid coordinate back into a centered pixel position
+		var local_pos = terrain_layer.map_to_local(grid_pos)
+		
+		var tile_size = 32.0 
+		var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
+		var top_left = local_pos - half_offset
+		
+		# 3. Define the square
+		var rect = Rect2(top_left, Vector2(tile_size, tile_size))
+		
+		# 4. Draw a transparent red fill (color, filled = true)
+		draw_rect(rect, Color(1.0, 0.2, 0.2, 0.3), true)
+		
+		# 5. Draw a crisp, solid red border (color, filled = false, line_width = 2.0)
+		draw_rect(rect, Color(1.0, 0.2, 0.2, 0.8), false, 2.0)
 
 # ============================================================================
 # MAP GENERATION - RISE TO RUINS STYLE
