@@ -282,6 +282,31 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if not _can_place_building(ghost_building, grid_pos):
 		return false
 		
+	# ==========================================================
+	# NEW: INTERCEPT CONVEYOR BUILD-OVER (FREE ROTATION)
+	# ==========================================================
+	if occupied_tiles.has(grid_pos):
+		var existing_building = occupied_tiles[grid_pos]
+		if existing_building is ConveyorBuilding and ghost_building is ConveyorBuilding:
+			
+			# Only update if the direction is actually different
+			if existing_building.direction != ghost_building.direction:
+				existing_building.direction = ghost_building.direction
+				existing_building.rotation = Vector2(ghost_building.direction).angle()
+				existing_building.setup(level_ref, ghost_building.direction) # Re-init the belt
+			
+			# ✅ ALWAYS free the ghost on a rotation-only placement
+			ghost_building.queue_free()
+			ghost_building = null
+	
+			# Mimic the cleanup of a normal placement if we just clicked (not dragged)
+			if not is_dragging:
+				placing_building = false
+				queue_redraw()
+				
+			return true # Placement "succeeded" without charging money!
+	# ==========================================================
+	
 	# Check Economy
 	var cost = ghost_building.get_build_cost()
 	if not EconomyManager.can_afford(cost):
@@ -575,6 +600,14 @@ func _can_place_building(building: Building, origin: Vector2i, temp_network: Arr
 	# 5. Check Occupied Tiles (Other Buildings)
 	for tile in footprint:
 		if occupied_tiles.has(tile):
+			var existing_building = occupied_tiles[tile]
+			
+			# --- NEW: ALLOW BELT BUILD-OVER ---
+			# If both the ghost and the existing building are conveyors, allow it!
+			if existing_building is ConveyorBuilding and building is ConveyorBuilding:
+				continue 
+			# ----------------------------------
+			
 			return false
 
 	return true
