@@ -382,13 +382,19 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	return true
 
 
-func update_placement_cost_ui(valid_count: int = 1):
+func update_placement_cost_ui(valid_count: int = 1, is_location_valid: bool = true):
 	if not is_instance_valid(ghost_building): return
 	
-	# Multiply the base cost by our exact valid count!
+	# Start by assuming we can place it if the location is physically valid
+	var can_place = is_location_valid 
+	
+	# If we are dragging, but EVERY tile is blocked, force it to be Red and show the base cost
+	if is_dragging and valid_count == 0:
+		can_place = false
+		valid_count = 1
+		
 	var base_cost = ghost_building.get_build_cost()
 	var total_cost = {}
-	var can_afford = true
 	
 	for res in base_cost:
 		var total_needed = base_cost[res] * valid_count
@@ -397,10 +403,10 @@ func update_placement_cost_ui(valid_count: int = 1):
 		# Check against the economy
 		var have = EconomyManager.global_inventory.get(res, 0)
 		if have < total_needed:
-			can_afford = false
+			can_place = false # We are broke!
 			
-	# Tell the UI!
-	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_afford)
+	# Tell the UI! (We use 'can_place' now instead of just 'can_afford')
+	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place)
 # -------------------------------
 # DRAG LOGIC IMPLEMENTATION
 # -------------------------------
@@ -574,7 +580,8 @@ func _update_ghost_position_to(grid_pos: Vector2i):
 	var valid = _can_place_building(ghost_building, grid_pos)
 	ghost_building.set_valid_placement(valid)
 	
-	update_placement_cost_ui()
+	# --- FIXED: Pass the physical validity check to the UI! ---
+	update_placement_cost_ui(1, valid)
 
 func _get_mouse_grid() -> Vector2i:
 	var mouse_global = get_global_mouse_position()
