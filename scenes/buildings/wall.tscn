@@ -12,6 +12,12 @@ region = Rect2(64, 0, 32, 32)
 script = ExtResource("3_gpfny")
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
+[sub_resource type="Resource" id="Resource_gpfny"]
+script = ExtResource("3_gpfny")
+item_name = "Plank"
+amount = 1
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_r6sg1"]
 size = Vector2(32, 32)
 
@@ -25,7 +31,7 @@ path_cost = 50.0
 is_draggable = true
 building_name = "Wall"
 icon = SubResource("AtlasTexture_gxk2j")
-build_costs = Array[ExtResource("3_gpfny")]([SubResource("Resource_2ksci")])
+build_costs = Array[ExtResource("3_gpfny")]([SubResource("Resource_2ksci"), SubResource("Resource_gpfny")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413850]
 texture = ExtResource("1_a3mu7")

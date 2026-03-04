@@ -378,6 +378,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if not is_dragging:
 		placing_building = false
 		queue_redraw()
+		placement_ended.emit()
 	
 	return true
 
@@ -691,7 +692,7 @@ func cancel_placement():
 	
 	queue_redraw()
 	
-	update_placement_cost_ui()
+	placement_ended.emit()
 
 func _clear_drag_ghosts():
 	for g in drag_ghosts:
