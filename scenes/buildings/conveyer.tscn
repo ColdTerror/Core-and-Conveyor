@@ -2,10 +2,15 @@
 
 [ext_resource type="Script" uid="uid://b42i3e20qg8yw" path="res://scripts/building/conveyer_building.gd" id="1_34v7p"]
 [ext_resource type="Texture2D" uid="uid://ccb3pqwas4kud" path="res://assets/Tiles.png" id="1_yfprp"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_vllef"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_34v7p"]
 atlas = ExtResource("1_yfprp")
 region = Rect2(0, 64, 32, 32)
+
+[sub_resource type="Resource" id="Resource_1pix4"]
+script = ExtResource("3_vllef")
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_34v7p"]
 size = Vector2(32, 32)
@@ -15,7 +20,7 @@ script = ExtResource("1_34v7p")
 is_draggable = true
 building_name = "Conveyer"
 icon = SubResource("AtlasTexture_34v7p")
-cost_wood = 0
+build_costs = Array[ExtResource("3_vllef")]([SubResource("Resource_1pix4")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=657515564]
 texture = ExtResource("1_yfprp")

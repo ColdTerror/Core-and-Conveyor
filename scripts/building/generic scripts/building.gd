@@ -33,8 +33,8 @@ var health := max_health
 var occupied_tiles: Array[Vector2i] = []
 
 @export_group("Economy")
-@export var cost_wood: int = 10
-@export var cost_stone: int = 0
+# We export a dictionary. We can give it a default value of just Wood so new buildings aren't free!
+@export var build_costs: Array[CostData] = []
 
 @export_group("Ranges")
 # How far this building allows other buildings to be placed from it
@@ -174,12 +174,15 @@ func get_inventory_info() -> Dictionary:
 
 # --- Economy stuff ---
 
+
 # Helper to bundle costs into a dictionary for the Manager
 func get_build_cost() -> Dictionary:
-	var cost = {}
-	if cost_wood > 0: cost["Wood"] = cost_wood
-	if cost_stone > 0: cost["Stone"] = cost_stone
-	return cost
+	var cost_dict = {}
+	
+	for cost in build_costs:
+		cost_dict[cost.item_name] = cost.amount
+		
+	return cost_dict
 	
 # --- Item Stuff ---
 

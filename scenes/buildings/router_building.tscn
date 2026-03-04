@@ -2,10 +2,15 @@
 
 [ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_v5q08"]
 [ext_resource type="Script" uid="uid://duvfi011ype5f" path="res://scripts/building/router_building.gd" id="1_y4pf7"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_hdl5s"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_y4pf7"]
 atlas = ExtResource("1_v5q08")
 region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="Resource" id="Resource_axnho"]
+script = ExtResource("3_hdl5s")
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y4pf7"]
 size = Vector2(32, 32)
@@ -14,7 +19,7 @@ size = Vector2(32, 32)
 script = ExtResource("1_y4pf7")
 building_name = "Router"
 icon = SubResource("AtlasTexture_y4pf7")
-cost_wood = 0
+build_costs = Array[ExtResource("3_hdl5s")]([SubResource("Resource_axnho")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1421611039]
 texture = ExtResource("1_v5q08")

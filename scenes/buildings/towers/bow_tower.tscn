@@ -2,10 +2,16 @@
 
 [ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/building/generic scripts/tower_building.gd" id="1_vc0d4"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_sa4vh"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_fp6y0"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fp6y0"]
 atlas = ExtResource("2_sa4vh")
 region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="Resource" id="Resource_nr8e2"]
+script = ExtResource("3_fp6y0")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nr8e2"]
 atlas = ExtResource("2_sa4vh")
@@ -20,6 +26,7 @@ attack_range = 256.0
 building_name = "Bow Tower"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_fp6y0")
+build_costs = Array[ExtResource("3_fp6y0")]([SubResource("Resource_nr8e2")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156622]
 texture = SubResource("AtlasTexture_nr8e2")

@@ -3,10 +3,16 @@
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="1_5oplf"]
 [ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/building/generic scripts/stockpile_building.gd" id="1_sqy8c"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="2_shrhu"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="4_x32ns"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_shrhu"]
 atlas = ExtResource("1_5oplf")
 region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="Resource" id="Resource_e6hxc"]
+script = ExtResource("4_x32ns")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sqy8c"]
 size = Vector2(128, 128)
@@ -17,7 +23,7 @@ generic_item_scene = ExtResource("2_shrhu")
 building_name = "Stockpile"
 size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_shrhu")
-cost_wood = 25
+build_costs = Array[ExtResource("4_x32ns")]([SubResource("Resource_e6hxc")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1701586786]
 texture = ExtResource("1_5oplf")

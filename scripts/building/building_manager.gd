@@ -382,22 +382,16 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	return true
 
 
-func update_placement_cost_ui():
+func update_placement_cost_ui(valid_count: int = 1):
 	if not is_instance_valid(ghost_building): return
 	
-	# 1. Figure out how many buildings we are trying to place.
-	var drag_count = 1 
-	if is_dragging and drag_ghosts.size() > 0:
-		drag_count = drag_ghosts.size()
-
-		
-	# 2. Multiply the base cost by the drag count
+	# Multiply the base cost by our exact valid count!
 	var base_cost = ghost_building.get_build_cost()
 	var total_cost = {}
 	var can_afford = true
 	
 	for res in base_cost:
-		var total_needed = base_cost[res] * drag_count
+		var total_needed = base_cost[res] * valid_count
 		total_cost[res] = total_needed
 		
 		# Check against the economy
@@ -405,9 +399,8 @@ func update_placement_cost_ui():
 		if have < total_needed:
 			can_afford = false
 			
-	# 3. Tell the UI!
+	# Tell the UI!
 	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_afford)
-
 # -------------------------------
 # DRAG LOGIC IMPLEMENTATION
 # -------------------------------
@@ -493,7 +486,8 @@ func _update_drag_line(current_grid: Vector2i):
 			
 		# B. Economic Check 
 		if is_valid:
-			var cumulative_cost = _calculate_cumulative_cost(base_cost, i + 1)
+			# --- FIXED: Only count the buildings that have survived the physical check! ---
+			var cumulative_cost = _calculate_cumulative_cost(base_cost, current_drag_network.size() + 1)
 			if not EconomyManager.can_afford(cumulative_cost):
 				is_valid = false
 		
@@ -506,8 +500,9 @@ func _update_drag_line(current_grid: Vector2i):
 			g.set_valid_placement(is_valid)
 		else:
 			g.modulate = Color(0, 1, 0, 0.5) if is_valid else Color(1, 0, 0, 0.5)
-			
-	update_placement_cost_ui()
+
+	# --- FIXED: Tell the UI exactly how many valid buildings are in the network! ---
+	update_placement_cost_ui(current_drag_network.size())
 
 func _commit_drag_line():
 	# Store the original scene to respawn logic later
