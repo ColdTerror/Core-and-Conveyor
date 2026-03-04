@@ -11,7 +11,12 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b"
+				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
+				"b075d7b3-8f26-4f48-ab59-141562ce210a",
+				"81929686-bad2-4264-875d-86979a42d8a7",
+				"dc7fd2f6-3733-4f42-83f8-9b705b3ea43a",
+				"02c305a5-9bc2-46bd-bb0d-77e2b3a33307",
+				"425a3e9f-c43d-4ed5-9698-58e65b16a025"
 			]
 		},
 		{
@@ -127,6 +132,41 @@
 		{
 			"uuid": "4f83222c-1472-4e66-9ef0-8c9167cb149b",
 			"title": "show attack ranges with f3",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b075d7b3-8f26-4f48-ab59-141562ce210a",
+			"title": "place router ontop of existing belts",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "81929686-bad2-4264-875d-86979a42d8a7",
+			"title": "if enemies are still alive at sunrise continue showing enemy alive ui instead of next day ui",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "dc7fd2f6-3733-4f42-83f8-9b705b3ea43a",
+			"title": "active enemy ui sometimes shows negative?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "02c305a5-9bc2-46bd-bb0d-77e2b3a33307",
+			"title": "corruption doesnt take over object tiles",
+			"description": "we want the resource to be taken over by the resource",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "425a3e9f-c43d-4ed5-9698-58e65b16a025",
+			"title": "router only outputs to perpdenciular belts",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

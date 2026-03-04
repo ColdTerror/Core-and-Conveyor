@@ -101,7 +101,6 @@ script = ExtResource("29_7agi7")
 [node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
-real_minutes_per_day = 0.5
 
 [node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
 color = Color(1, 1, 1, 0)
@@ -171,9 +170,10 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HotBar_UI" parent="CanvasLayer/Hud_Layer" unique_id=1026067039 instance=ExtResource("23_5k0ak")]
+[node name="HotBar_UI" parent="CanvasLayer/Hud_Layer" unique_id=1026067039 node_paths=PackedStringArray("building_manager") instance=ExtResource("23_5k0ak")]
 layout_mode = 1
 mouse_filter = 2
+building_manager = NodePath("../../../BuildingManager")
 
 [node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 node_paths=PackedStringArray("wave_manager", "time_manager", "building_manager") groups=["GameUI"] instance=ExtResource("21_h6wmr")]
 layout_mode = 1

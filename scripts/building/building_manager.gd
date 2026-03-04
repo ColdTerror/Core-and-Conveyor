@@ -62,7 +62,7 @@ func start_placing(scene: PackedScene):
 	
 	# Inject Level immediately so Ghost can see the grid
 	if ghost_building is ConveyorBuilding:
-		# Give it a default direction for the ghost preview
+		# Give it a default direction for the ghost previews
 		ghost_building.setup(level_ref, Vector2i.RIGHT)
 	elif ghost_building.has_method("setup"):
 		ghost_building.setup(level_ref)
@@ -74,7 +74,9 @@ func start_placing(scene: PackedScene):
 	is_dragging = false
 	_clear_drag_ghosts()
 	
-	update_placement_cost_ui()
+	# --- FIXED: Force an immediate position and validity check! ---
+	var initial_grid_pos = _get_mouse_grid()
+	_update_ghost_position_to(initial_grid_pos)
 
 # --- NEW: INPUT HANDLER FOR LEVEL.GD ---
 # This manages the Drag Logic vs Instant Click logic
@@ -282,11 +284,6 @@ func select_building_at(grid_pos: Vector2i):
 # --- UPDATED: Accepts optional grid position for Dragging ---
 func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if not placing_building or ghost_building == null:
-		return false
-
-	if not is_core_placed and not (ghost_building is CoreBuilding):
-		print("You must place the Core first!")
-		# It acts exactly like a blocked tile!
 		return false
 	
 	var grid_pos = specific_pos
@@ -624,6 +621,14 @@ func _get_mouse_grid() -> Vector2i:
 
 func _can_place_building(building: Building, origin: Vector2i, temp_network: Array[Vector2i] = []) -> bool:
 	if not object_layer: return false
+	
+	# ==========================================
+	# --- NEW: UNIVERSAL CORE BLOCKADE ---
+	# ==========================================
+	if not is_core_placed and not (building is CoreBuilding):
+		print_debug("Place core first")
+		return false
+	# ==========================================
 	
 	var footprint = building.get_footprint(origin)
 	
