@@ -1,4 +1,4 @@
-@tool # <--- THIS IS CRITICAL FOR EDITOR DRAWING
+@tool
 extends Node2D
 class_name WaveManager
 
@@ -6,8 +6,9 @@ class_name WaveManager
 @export var level_ref: Node2D
 @export var corruption_layer: TileMapLayer 
 @export var enemy_scene: PackedScene
+@export var time_manager: TimeManager # <--- DRAG YOUR TIME MANAGER HERE!
 
-# --- SPAWN SETTINGS (Visible in Editor) ---
+# --- SPAWN SETTINGS ---
 @export_group("Spawn Settings")
 @export var show_debug_draw: bool = true:
 	set(value):
@@ -24,9 +25,8 @@ class_name WaveManager
 		fallback_spawn_radius = value
 		queue_redraw()
 
-# --- WAVE SETTINGS ---
-@export_group("Wave Settings")
-@export var time_between_waves: float = 20.0
+# --- WAVE PACING ---
+@export_group("Wave Pacing")
 @export var initial_enemy_count: int = 4
 @export var difficulty_multiplier: float = 1.2 
 
@@ -36,144 +36,148 @@ var selected_enemy: Enemy = null
 
 # --- STATE ---
 var current_wave: int = 0
+var night_enemies_total: int = 0
 var enemies_to_spawn: int = 0
-var enemies_alive: int = 0
+var active_enemies: int = 0
 var is_wave_active: bool = false
-var spawn_timer: Timer
-var wave_timer: Timer
+var spawn_accumulator: float = 0.0
 
-signal wave_started(wave_num: int)
+# Added 'night_type' so your UI can announce Blood Moons!
+signal wave_started(wave_num: int, night_type: String) 
 signal wave_ended(wave_num: int)
+signal wave_stats_updated(to_spawn: int, active: int)
 
 func _ready():
-	# Tool scripts run _ready in the editor too, so we prevent logic from running there
 	if Engine.is_editor_hint(): return
 	
-	spawn_timer = Timer.new()
-	spawn_timer.wait_time = 1.5 
-	spawn_timer.timeout.connect(_on_spawn_tick)
-	add_child(spawn_timer)
-	
-	wave_timer = Timer.new()
-	wave_timer.wait_time = time_between_waves
-	wave_timer.timeout.connect(start_next_wave)
-	add_child(wave_timer)
-	
-	#corruption manager starts it when corruption first spawns
-	#wave_timer.start()
+	# Listen to the global clock!
+	if time_manager:
+		time_manager.night_started.connect(_on_night_started)
+		time_manager.day_started.connect(_on_day_started)
 
 # --- EDITOR DRAWING ---
 func _draw():
 	if not show_debug_draw: return
-	
-	# Only draw this circle if we are NOT using corruption 
-	# (or just always draw it as a backup reference)
-	var col = Color(1, 0, 0, 0.3) # Red transparent
-	
-	# Draw the Circle
+	var col = Color(1, 0, 0, 0.3)
 	draw_circle(fallback_spawn_center, fallback_spawn_radius, Color(1, 0, 0, 0.1))
 	draw_arc(fallback_spawn_center, fallback_spawn_radius, 0, TAU, 64, Color(1, 0, 0, 0.8), 2.0)
-	
-	# Draw a cross at the center
 	draw_line(fallback_spawn_center - Vector2(20, 0), fallback_spawn_center + Vector2(20, 0), col, 2.0)
 	draw_line(fallback_spawn_center - Vector2(0, 20), fallback_spawn_center + Vector2(0, 20), col, 2.0)
 
+# --- NIGHT EVENT LOGIC ---
 
-# --- LOGIC ---
-
-func _get_best_spawn_position() -> Vector2:
-	# 1. Try Corruption
-	if corruption_layer:
-		var used_cells = corruption_layer.get_used_cells()
-		if not used_cells.is_empty():
-			var random_tile = used_cells.pick_random()
-			return corruption_layer.map_to_local(random_tile)
-	
-	# 2. Fallback to our exported Circle
-	var angle = randf() * TAU
-	# Spawn exactly ON the line, or inside? 
-	# Usually ON the line is better for "Siege" feel.
-	return fallback_spawn_center + Vector2(cos(angle), sin(angle)) * fallback_spawn_radius
-
-# --- UNCHANGED LOGIC BELOW ---
-
-func start_next_wave():
-	if is_wave_active: return
-	
-	# Pause the wave countdown while the wave is actually happening
-	wave_timer.stop() 
-	
-	current_wave += 1
-	enemies_to_spawn = round(initial_enemy_count * pow(difficulty_multiplier, current_wave - 1))
-	enemies_alive = enemies_to_spawn
+func _on_night_started(day_num: int):
+	current_wave = day_num
 	is_wave_active = true
+	spawn_accumulator = 0.0
 	
-	print("Wave %d Started! Incoming: %d enemies" % [current_wave, enemies_to_spawn])
-	wave_started.emit(current_wave)
+	# 1. Roll the Night Type
+	var roll = randf()
+	var night_type = "Normal"
+	var multiplier = 1.0
 	
-	spawn_timer.start()
+	if roll < 0.15:     # 15% Chance of peace
+		night_type = "Full Moon"
+		multiplier = 0.0
+	elif roll > 0.85:   # 15% Chance of chaos
+		night_type = "Blood Moon"
+		multiplier = 2.0
+		
+	# 2. Calculate the horde size
+	var base_enemies = initial_enemy_count * pow(difficulty_multiplier, current_wave - 1)
+	night_enemies_total = round(base_enemies * multiplier)
+	enemies_to_spawn = night_enemies_total
+	
+	print("Night %d [%s]: %d enemies inbound." % [current_wave, night_type, enemies_to_spawn])
+	
+	wave_started.emit(current_wave, night_type)
+	wave_stats_updated.emit(enemies_to_spawn, active_enemies)
 
-func _on_spawn_tick():
-	# Safety check
-	if enemies_to_spawn <= 0:
-		spawn_timer.stop()
+func _on_day_started(day_num: int):
+	is_wave_active = false
+	print("Sunrise! Night %d survived." % current_wave)
+	wave_ended.emit(current_wave)
+	# Note: Any enemies still alive stay on the map for the player to clean up!
+
+# --- CONTINUOUS CURVE SPAWNING ---
+
+func _process(delta: float):
+	if Engine.is_editor_hint(): return
+	
+	# If it's daytime, or we ran out of enemies to spawn, do nothing
+	if not is_wave_active or enemies_to_spawn <= 0: 
 		return
-		
-	# Spawn the enemy
-	var spawn_pos = _get_best_spawn_position()
-	_spawn_unit(spawn_pos)
+
+	# 1. Map current time to an X coordinate between -1.0 and 1.0
+	var time = time_manager.current_time
+	var x: float = 0.0
+	if time >= 18.0:
+		x = (time - 24.0) / 6.0 # Maps 18:00 to -1.0, Midnight to 0.0
+	elif time < 6.0:
+		x = time / 6.0          # Maps Midnight to 0.0, 06:00 to 1.0
+	else:
+		return 
+
+	# 2. The Bell Curve (Parabola)
+	# curve is 0.0 at sunset, peaks at 1.0 exactly at midnight, drops to 0.0 at sunrise
+	var curve = 1.0 - (x * x)
+
+	# 3. Calculate dynamic spawn rate
+	# To ensure exactly 'night_enemies_total' spawn under this curve, the peak rate at midnight 
+	# must be exactly 1.5x the average rate.
+	var night_duration_sec = (time_manager.real_minutes_per_day * 60.0) / 2.0
+	var peak_rate = (1.5 * night_enemies_total) / night_duration_sec
+	var current_spawn_rate = peak_rate * curve
+
+	# 4. Accumulate and Spawn
+	spawn_accumulator += current_spawn_rate * delta
+	
+	while spawn_accumulator >= 1.0 and enemies_to_spawn > 0:
+		spawn_accumulator -= 1.0
+		_do_spawn()
+
+# --- SPAWN AND DEATH HANDLERS ---
+
+func _do_spawn():
 	enemies_to_spawn -= 1
+	active_enemies += 1
 	
-	# Stop the timer EXACTLY when the last enemy spawns (no extra tick needed)
-	if enemies_to_spawn <= 0:
-		spawn_timer.stop()
-		
-		# Edge Case: If the player's towers 1-shot the final enemy 
-		# the exact frame it spawned, we trigger completion here.
-		if enemies_alive <= 0:
-			_wave_complete()
-
-func _on_enemy_died(_enemy_instance):
-	print("enemy died in wave")
-	enemies_alive -= 1
+	var spawn_pos = _get_best_spawn_position()
 	
-	
-	if enemies_alive <= 0 and enemies_to_spawn <= 0:
-		_wave_complete()
-
-func _spawn_unit(pos: Vector2):
 	if not enemy_scene: return
-	
 	var enemy = enemy_scene.instantiate()
 	
-	# Safety check for level_ref
-	if level_ref:
-		level_ref.add_child(enemy)
-	else:
-		get_parent().add_child(enemy) # Fallback
+	if level_ref: level_ref.add_child(enemy)
+	else: get_parent().add_child(enemy)
 		
-	enemy.global_position = pos
-	
-	print("spawned enemy")
+	enemy.global_position = spawn_pos
 	
 	if enemy.has_signal("died"):
 		enemy.died.connect(_on_enemy_died)
-	if enemy.has_signal("enemy_clicked"): # Fixed signal name
+	if enemy.has_signal("enemy_clicked"): 
 		enemy.enemy_clicked.connect(_on_enemy_clicked)
+		
+	wave_stats_updated.emit(enemies_to_spawn, active_enemies)
 
+func _on_enemy_died(_enemy_instance):
+	active_enemies -= 1
+	wave_stats_updated.emit(enemies_to_spawn, active_enemies)
+
+func _get_best_spawn_position() -> Vector2:
+	if corruption_layer:
+		var used_cells = corruption_layer.get_used_cells()
+		if not used_cells.is_empty():
+			return corruption_layer.map_to_local(used_cells.pick_random())
+			
+	var angle = randf() * TAU
+	return fallback_spawn_center + Vector2(cos(angle), sin(angle)) * fallback_spawn_radius
+
+# --- UI CLICKS ---
 func _on_enemy_clicked(enemy):
 	selected_enemy = enemy
-	if enemy_popup:
-		enemy_popup.show_info(enemy)
+	if enemy_popup: enemy_popup.show_info(enemy)
 
 func deselect_enemy():
 	if selected_enemy:
 		selected_enemy = null
-		if enemy_popup:
-			enemy_popup.hide_info()
-
-func _wave_complete():
-	is_wave_active = false
-	print("Wave %d Complete!" % current_wave)
-	wave_ended.emit(current_wave)
-	wave_timer.start()
+		if enemy_popup: enemy_popup.hide_info()

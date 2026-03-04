@@ -56,12 +56,13 @@ router_scene = ExtResource("20_2e2fo")
 core_scene = ExtResource("21_gur6y")
 projectile_scene = ExtResource("18_cmcjb")
 
-[node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "enemy_popup") instance=ExtResource("32_2e2fo")]
+[node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "time_manager", "enemy_popup") instance=ExtResource("32_2e2fo")]
 level_ref = NodePath("..")
 corruption_layer = NodePath("../CorruptionLayer")
 enemy_scene = ExtResource("27_cmcjb")
+time_manager = NodePath("../TimeManager")
+show_debug_draw = false
 fallback_spawn_radius = 100.0
-time_between_waves = 30.0
 enemy_popup = NodePath("../CanvasLayer/Popup_Layer/EnemyInfoPopup")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
