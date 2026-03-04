@@ -36,6 +36,10 @@ signal building_selected(building: Building)
 signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool)
 signal placement_ended # Fires when we cancel or finish placing
 
+# --- NEW: CORE TRACKING ---
+signal core_placed_event
+var is_core_placed: bool = false
+
 # -------------------------------
 # PUBLIC API
 # -------------------------------
@@ -280,6 +284,11 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if not placing_building or ghost_building == null:
 		return false
 
+	if not is_core_placed and not (ghost_building is CoreBuilding):
+		print("You must place the Core first!")
+		# It acts exactly like a blocked tile!
+		return false
+	
 	var grid_pos = specific_pos
 	if grid_pos == Vector2i(-1, -1):
 		grid_pos = _get_mouse_grid()
@@ -347,18 +356,24 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	_add_safe_zone(ghost_building)
 	_add_build_zone(ghost_building)
 	
-	# --- NEW: TRIGGER CORRUPTION ---
+	# --- NEW: TRIGGER CORRUPTION AND UNLOCK GAME ---
 	if ghost_building is CoreBuilding:
+		
+		# 1. Unlock the building manager!
+		is_core_placed = true
+		core_placed_event.emit() 
+		
+		# 2. Trigger Corruption
 		if level_ref and level_ref.has_node("CorruptionManager"):
 			var corruption_manager = level_ref.get_node("CorruptionManager")
 			var core_grid = object_layer.local_to_map(ghost_building.global_position)
-			
 			corruption_manager.start_outbreak(core_grid)
-		# Start the Clock!
-			if level_ref.has_node("TimeManager"):
-				var time_manager = level_ref.get_node("TimeManager")
-				time_manager.is_time_running = true
-				print("Core placed! The clock is ticking...")
+			
+		# 3. Start the Clock!
+		if level_ref.has_node("TimeManager"):
+			var time_manager = level_ref.get_node("TimeManager")
+			time_manager.is_time_running = true
+			print("Core placed! The clock is ticking...")
 	# ------------------------------
 	
 	
@@ -383,22 +398,22 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	return true
 
 
-func update_placement_cost_ui(valid_count: int = 1, is_location_valid: bool = true):
+func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool = true):
 	if not is_instance_valid(ghost_building): return
 	
-	# Start by assuming we can place it if the location is physically valid
 	var can_place = is_location_valid 
+	var display_count = chargeable_count
 	
-	# If we are dragging, but EVERY tile is blocked, force it to be Red and show the base cost
-	if is_dragging and valid_count == 0:
+	# If every single tile is physically blocked, show the cost of 1 base building in red.
+	if not is_location_valid:
 		can_place = false
-		valid_count = 1
+		display_count = 1
 		
 	var base_cost = ghost_building.get_build_cost()
 	var total_cost = {}
 	
 	for res in base_cost:
-		var total_needed = base_cost[res] * valid_count
+		var total_needed = base_cost[res] * display_count
 		total_cost[res] = total_needed
 		
 		# Check against the economy
@@ -406,8 +421,9 @@ func update_placement_cost_ui(valid_count: int = 1, is_location_valid: bool = tr
 		if have < total_needed:
 			can_place = false # We are broke!
 			
-	# Tell the UI! (We use 'can_place' now instead of just 'can_afford')
+	# Tell the UI! 
 	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place)
+
 # -------------------------------
 # DRAG LOGIC IMPLEMENTATION
 # -------------------------------
@@ -470,8 +486,9 @@ func _update_drag_line(current_grid: Vector2i):
 			drag_ghosts.reverse()
 	# ---------------------------------------------------
 	
-	# --- NEW: Track the valid grid positions in this drag line ---
+	# --- NEW: Track the valid grid positions and the actual BILL ---
 	var current_drag_network: Array[Vector2i] = []
+	var chargeable_count: int = 0 
 	
 	# 4. Update Position & Color Loop
 	for i in range(points.size()):
@@ -486,30 +503,38 @@ func _update_drag_line(current_grid: Vector2i):
 			g.global_position = object_layer.map_to_local(pt)
 		
 		var is_valid = true
+		var is_free_overwrite = false 
 		
-		# A. Physical & Expansion Check (Pass in our temporary network!)
+		# A. Physical & Expansion Check 
 		if not _can_place_building(g, pt, current_drag_network):
 			is_valid = false
 			
+		# --- NEW: Check if this is a free rotation overwrite! ---
+		if is_valid and occupied_tiles.has(pt):
+			if occupied_tiles[pt] is ConveyorBuilding and g is ConveyorBuilding:
+				is_free_overwrite = true
+				
 		# B. Economic Check 
-		if is_valid:
-			# --- FIXED: Only count the buildings that have survived the physical check! ---
-			var cumulative_cost = _calculate_cumulative_cost(base_cost, current_drag_network.size() + 1)
+		if is_valid and not is_free_overwrite:
+			var cumulative_cost = _calculate_cumulative_cost(base_cost, chargeable_count + 1)
 			if not EconomyManager.can_afford(cumulative_cost):
 				is_valid = false
 		
-		# --- NEW: If this ghost is valid, add it to the network for the next ghosts to use ---
+		# --- NEW: Only charge money if it's not a free overwrite ---
 		if is_valid:
 			current_drag_network.append(pt)
-		
+			if not is_free_overwrite:
+				chargeable_count += 1
+		 
 		# Apply Visuals
 		if g.has_method("set_valid_placement"):
 			g.set_valid_placement(is_valid)
 		else:
 			g.modulate = Color(0, 1, 0, 0.5) if is_valid else Color(1, 0, 0, 0.5)
 
-	# --- FIXED: Tell the UI exactly how many valid buildings are in the network! ---
-	update_placement_cost_ui(current_drag_network.size())
+	# --- FIXED: Tell UI to charge for new belts, but stay green if overwriting! ---
+	var is_location_valid = current_drag_network.size() > 0
+	update_placement_cost_ui(chargeable_count, is_location_valid)
 
 func _commit_drag_line():
 	# Store the original scene to respawn logic later
@@ -579,10 +604,17 @@ func rotate_ghost():
 func _update_ghost_position_to(grid_pos: Vector2i):
 	ghost_building.place_at(grid_pos, object_layer)
 	var valid = _can_place_building(ghost_building, grid_pos)
+	
+	# --- NEW: Free Rotation Check ---
+	var is_free = false
+	if valid and occupied_tiles.has(grid_pos):
+		if occupied_tiles[grid_pos] is ConveyorBuilding and ghost_building is ConveyorBuilding:
+			is_free = true
+			
 	ghost_building.set_valid_placement(valid)
 	
-	# --- FIXED: Pass the physical validity check to the UI! ---
-	update_placement_cost_ui(1, valid)
+	# --- FIXED: Pass 0 if free, 1 if normal! ---
+	update_placement_cost_ui(0 if is_free else 1, valid)
 
 func _get_mouse_grid() -> Vector2i:
 	var mouse_global = get_global_mouse_position()
