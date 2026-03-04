@@ -41,7 +41,6 @@ func start_outbreak(core_pos: Vector2i):
 	
 	is_active = true
 	spread_timer.start()
-	wave_manager.wave_timer.start()
 	print("Corruption Outbreak Detected at: ", seed_pos)
 
 # --- SPREAD LOGIC ---

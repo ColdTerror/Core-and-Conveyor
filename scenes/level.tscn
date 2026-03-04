@@ -195,9 +195,10 @@ mouse_filter = 2
 layout_mode = 1
 mouse_filter = 2
 
-[node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 node_paths=PackedStringArray("wave_manager") groups=["GameUI"] instance=ExtResource("21_h6wmr")]
+[node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 node_paths=PackedStringArray("wave_manager", "time_manager") groups=["GameUI"] instance=ExtResource("21_h6wmr")]
 layout_mode = 1
 wave_manager = NodePath("../../../WaveManager")
+time_manager = NodePath("../../../TimeManager")
 
 [node name="GameOverPanel" type="PanelContainer" parent="CanvasLayer" unique_id=124325744]
 process_mode = 3

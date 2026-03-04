@@ -17,12 +17,19 @@ signal night_started(day_number: int)
 @export var sunset_hour: int = 18
 
 # --- STATE ---
+var is_time_running: bool = false
 var current_day: int = 1
 var current_time: float = 6.0 # Start at 6 AM
 var current_hour: int = 6
 var is_night: bool = false
 
 func _process(delta: float):
+	
+	_update_lighting()
+	
+	if not is_time_running:
+		return
+		
 	# 1. Calculate how fast time should pass
 	var game_hours_per_real_second = 24.0 / (real_minutes_per_day * 60.0)
 	current_time += game_hours_per_real_second * delta
@@ -40,8 +47,7 @@ func _process(delta: float):
 		hour_passed.emit(current_hour)
 		_check_day_night_triggers()
 
-	# 4. Smoothly update the lighting every frame
-	_update_lighting()
+	
 
 func _check_day_night_triggers():
 	if current_hour == sunrise_hour and is_night:

@@ -349,7 +349,13 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 			var core_grid = object_layer.local_to_map(ghost_building.global_position)
 			
 			corruption_manager.start_outbreak(core_grid)
+		# Start the Clock!
+			if level_ref.has_node("TimeManager"):
+				var time_manager = level_ref.get_node("TimeManager")
+				time_manager.is_time_running = true
+				print("Core placed! The clock is ticking...")
 	# ------------------------------
+	
 	
 	# Update Pathfinder
 	if pathfinder:

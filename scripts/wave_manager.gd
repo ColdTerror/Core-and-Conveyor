@@ -83,6 +83,11 @@ func _on_night_started(day_num: int):
 		night_type = "Blood Moon"
 		multiplier = 2.0
 		
+	else:
+		# --- NEW: Organic Variance for Normal Nights ---
+		# Multiplier will be a random decimal between 0.8 (-20%) and 1.2 (+20%)
+		multiplier = randf_range(0.8, 1.2)
+		
 	# 2. Calculate the horde size
 	var base_enemies = initial_enemy_count * pow(difficulty_multiplier, current_wave - 1)
 	night_enemies_total = round(base_enemies * multiplier)
@@ -172,6 +177,18 @@ func _get_best_spawn_position() -> Vector2:
 	var angle = randf() * TAU
 	return fallback_spawn_center + Vector2(cos(angle), sin(angle)) * fallback_spawn_radius
 
+# --- NEW: UI HELPER ---
+func get_estimated_enemies() -> int:
+	if not time_manager: return 0
+	
+	# The upcoming night is always equal to the current day number
+	var upcoming_wave = time_manager.current_day 
+	
+	# Do the exact same base math we do at sunset!
+	var base_enemies = initial_enemy_count * pow(difficulty_multiplier, upcoming_wave - 1)
+	
+	return round(base_enemies)
+	
 # --- UI CLICKS ---
 func _on_enemy_clicked(enemy):
 	selected_enemy = enemy

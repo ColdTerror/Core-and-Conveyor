@@ -2,11 +2,12 @@ extends Control
 # game_ui.gd
 
 @onready var container = $PanelContainer/HBoxContainer
+@onready var dateLabel = $VBoxContainer/DateLabel
 @onready var waveLabel = $VBoxContainer/WaveLabel
 
 # --- NEW: WAVE UI REFERENCES ---
 @export var wave_manager: WaveManager # Drag your WaveManager node here in the Inspector!
-@onready var wave_progress_bar = $VBoxContainer/WaveProgressBar # Adjust path if you put it inside a container
+@export var time_manager: TimeManager
 
 # --- NEW: GAME OVER REFERENCES ---
 @onready var game_over_panel = $"../../GameOverPanel"
@@ -70,35 +71,39 @@ func update_labels():
 		# Update the text of the existing label
 		resource_labels[resource_name].text = "  %s: %d  " % [resource_name, amount]
 
-# --- NEW: WAVE TIMER LOGIC ---
+
+# --- NEW: WAVE & TIMER LOGIC ---
 func _process(_delta):
-	# Don't run if we haven't linked the manager or the progress bar
-	if not wave_manager or not wave_progress_bar: 
-		return
+	# 1. UPDATE THE CLOCK (DateLabel)
+	if time_manager and dateLabel:
+		# Convert the float time (e.g. 14.5) to Hours and Minutes (14:30)
+		var time = time_manager.current_time
+		var hours = int(time)
+		var minutes = int((time - hours) * 60.0)
 		
+		# "%02d" ensures single digits get a leading zero (e.g., 9 becomes 09)
+		var time_string = "%02d:%02d" % [hours, minutes]
 		
-	if wave_manager.is_wave_active:
-		# Wave is happening right now! Keep the bar full.
-		wave_progress_bar.max_value = 1.0
-		wave_progress_bar.value = 1.0
-		
-		
-	else:
-		# Cooldown phase: counting down to the next wave
-		var time_left = wave_manager.wave_timer.time_left
-		var total_time = wave_manager.wave_timer.wait_time
-		
-		# Update the bar (Fills up as time gets closer to 0)
-		wave_progress_bar.max_value = total_time
-		wave_progress_bar.value = total_time - time_left 
-		
-	if waveLabel:
-			# --- NEW: Calculate the active enemies on the fly! ---
-			var active_on_map = wave_manager.enemies_alive - wave_manager.enemies_to_spawn
+		dateLabel.text = "Day %d | %s" % [time_manager.current_day, time_string]
+
+
+	# 2. UPDATE THE COMBAT STATS (WaveLabel)
+	if wave_manager and waveLabel:
+		if wave_manager.is_wave_active:
+			# Wave is happening! Show the exact numbers
+			var active_on_map = wave_manager.active_enemies
 			
-			waveLabel.text = "Wave %d | Queue: %d | Active: %d" % [
+			waveLabel.text = "Night %d | Queue: %d | Active: %d" % [
 				wave_manager.current_wave, 
 				wave_manager.enemies_to_spawn, 
 				active_on_map
 			]
-		
+			waveLabel.modulate = Color(1.0, 0.4, 0.4) # Tint text red to indicate danger!
+			
+		else:
+			# Daytime! 
+			var forecast = wave_manager.get_estimated_enemies()
+			
+			# Using a "~" adds a nice touch of "this is an estimate!"
+			waveLabel.text = "Enemies Spawning Tonight: ~%d" % forecast
+			waveLabel.modulate = Color.WHITE # Back to normal text color

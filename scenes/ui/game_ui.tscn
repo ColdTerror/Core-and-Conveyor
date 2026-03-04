@@ -30,9 +30,12 @@ offset_left = -100.0
 offset_bottom = 40.0
 grow_horizontal = 0
 
-[node name="WaveProgressBar" type="ProgressBar" parent="VBoxContainer" unique_id=1040969919]
-custom_minimum_size = Vector2(100, 0)
+[node name="DateLabel" type="Label" parent="VBoxContainer" unique_id=1726186642]
 layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="WaveLabel" type="Label" parent="VBoxContainer" unique_id=1398919961]
 layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
