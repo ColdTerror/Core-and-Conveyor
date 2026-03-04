@@ -1,13 +1,17 @@
 extends Control
 # game_ui.gd
 
-@onready var container = $PanelContainer/HBoxContainer
+@onready var inventoryContainer = $InventoryPanel/HBoxContainer
 @onready var dateLabel = $VBoxContainer/DateLabel
 @onready var waveLabel = $VBoxContainer/WaveLabel
+
+@onready var costPanel = $CostPanel
+@onready var costLabel = $CostPanel/CostLabel
 
 # --- NEW: WAVE UI REFERENCES ---
 @export var wave_manager: WaveManager # Drag your WaveManager node here in the Inspector!
 @export var time_manager: TimeManager
+@export var building_manager: BuildingManager
 
 # --- NEW: GAME OVER REFERENCES ---
 @onready var game_over_panel = $"../../GameOverPanel"
@@ -29,6 +33,30 @@ func _ready():
 		restart_button.pressed.connect(_on_restart_pressed)
 	if exit_button: 
 		exit_button.pressed.connect(_on_exit_pressed)
+	if building_manager:
+		building_manager.placement_cost_updated.connect(_on_placement_cost_updated)
+		building_manager.placement_ended.connect(_on_placement_ended)
+
+func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_afford: bool):
+	costPanel.show()
+	
+	var text = "[ %s ]\n" % b_name
+	
+	for res in total_cost:
+		var needed = total_cost[res]
+		var have = EconomyManager.global_inventory.get(res, 0)
+		text += "%s: %d / %d\n" % [res, have, needed]
+		
+	costLabel.text = text
+	
+	# Tint green if good, red if broke!
+	if can_afford:
+		costLabel.modulate = Color(0.4, 1.0, 0.4) 
+	else:
+		costLabel.modulate = Color(1.0, 0.4, 0.4)
+
+func _on_placement_ended():
+	costPanel.hide()
 
 # --- GAME OVER LOGIC ---
 func _on_core_destroyed():
@@ -65,7 +93,7 @@ func update_labels():
 		# If we don't have a label for this item yet, create one!
 		if not resource_labels.has(resource_name):
 			var new_label = Label.new()
-			container.add_child(new_label)
+			inventoryContainer.add_child(new_label)
 			resource_labels[resource_name] = new_label
 			
 		# Update the text of the existing label

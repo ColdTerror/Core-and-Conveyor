@@ -36,12 +36,6 @@
 [ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/wave_manager.tscn" id="32_2e2fo"]
 [ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/corruption_manager.gd" id="34_v3why"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7c3h"]
-content_margin_left = 8.0
-content_margin_top = 4.0
-content_margin_right = 8.0
-content_margin_bottom = 4.0
-
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
 tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_arp2o"), ExtResource("9_wc255"), ExtResource("10_arp2o"), ExtResource("11_ux5qa"), ExtResource("12_82cfe")])
@@ -148,20 +142,6 @@ grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
 
-[node name="Tooltip" type="PanelContainer" parent="CanvasLayer/Popup_Layer" unique_id=63814202]
-visible = false
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-size_flags_horizontal = 4
-size_flags_vertical = 4
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_w7c3h")
-
-[node name="Label" type="Label" parent="CanvasLayer/Popup_Layer/Tooltip" unique_id=1661542650]
-layout_mode = 2
-size_flags_horizontal = 4
-
 [node name="EnemyInfoPopup" parent="CanvasLayer/Popup_Layer" unique_id=1317129203 instance=ExtResource("29_w3o6u")]
 visible = false
 layout_mode = 1
@@ -195,13 +175,15 @@ mouse_filter = 2
 layout_mode = 1
 mouse_filter = 2
 
-[node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 node_paths=PackedStringArray("wave_manager", "time_manager") groups=["GameUI"] instance=ExtResource("21_h6wmr")]
+[node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 node_paths=PackedStringArray("wave_manager", "time_manager", "building_manager") groups=["GameUI"] instance=ExtResource("21_h6wmr")]
 layout_mode = 1
 wave_manager = NodePath("../../../WaveManager")
 time_manager = NodePath("../../../TimeManager")
+building_manager = NodePath("../../../BuildingManager")
 
 [node name="GameOverPanel" type="PanelContainer" parent="CanvasLayer" unique_id=124325744]
 process_mode = 3
+visible = false
 modulate = Color(0.5385206, 0.5385206, 0.5385206, 1)
 self_modulate = Color(0.5370987, 0.5370987, 0.5370987, 1)
 anchors_preset = 15

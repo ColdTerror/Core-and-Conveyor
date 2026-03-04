@@ -33,6 +33,9 @@ var pathfinder: Pathfinder
 
 signal building_selected(building: Building)
 
+signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool)
+signal placement_ended # Fires when we cancel or finish placing
+
 # -------------------------------
 # PUBLIC API
 # -------------------------------
@@ -66,6 +69,8 @@ func start_placing(scene: PackedScene):
 	# Reset drag state
 	is_dragging = false
 	_clear_drag_ghosts()
+	
+	update_placement_cost_ui()
 
 # --- NEW: INPUT HANDLER FOR LEVEL.GD ---
 # This manages the Drag Logic vs Instant Click logic
@@ -376,6 +381,33 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	
 	return true
 
+
+func update_placement_cost_ui():
+	if not is_instance_valid(ghost_building): return
+	
+	# 1. Figure out how many buildings we are trying to place.
+	var drag_count = 1 
+	if is_dragging and drag_ghosts.size() > 0:
+		drag_count = drag_ghosts.size()
+
+		
+	# 2. Multiply the base cost by the drag count
+	var base_cost = ghost_building.get_build_cost()
+	var total_cost = {}
+	var can_afford = true
+	
+	for res in base_cost:
+		var total_needed = base_cost[res] * drag_count
+		total_cost[res] = total_needed
+		
+		# Check against the economy
+		var have = EconomyManager.global_inventory.get(res, 0)
+		if have < total_needed:
+			can_afford = false
+			
+	# 3. Tell the UI!
+	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_afford)
+
 # -------------------------------
 # DRAG LOGIC IMPLEMENTATION
 # -------------------------------
@@ -474,6 +506,8 @@ func _update_drag_line(current_grid: Vector2i):
 			g.set_valid_placement(is_valid)
 		else:
 			g.modulate = Color(0, 1, 0, 0.5) if is_valid else Color(1, 0, 0, 0.5)
+			
+	update_placement_cost_ui()
 
 func _commit_drag_line():
 	# Store the original scene to respawn logic later
@@ -544,6 +578,8 @@ func _update_ghost_position_to(grid_pos: Vector2i):
 	ghost_building.place_at(grid_pos, object_layer)
 	var valid = _can_place_building(ghost_building, grid_pos)
 	ghost_building.set_valid_placement(valid)
+	
+	update_placement_cost_ui()
 
 func _get_mouse_grid() -> Vector2i:
 	var mouse_global = get_global_mouse_position()
@@ -652,6 +688,8 @@ func cancel_placement():
 	placing_building = false
 	
 	queue_redraw()
+	
+	update_placement_cost_ui()
 
 func _clear_drag_ghosts():
 	for g in drag_ghosts:

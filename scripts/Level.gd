@@ -3,8 +3,7 @@ extends Node2D
 
 @onready var terrain_layer: TileMapLayer = $TerrainLayer
 @onready var object_layer: TileMapLayer = $ObjectLayer
-@onready var tooltip := $"CanvasLayer/Popup_Layer/Tooltip"
-@onready var tooltip_label := $"CanvasLayer/Popup_Layer/Tooltip/Label"
+
 
 @onready var hover_popup := $CanvasLayer/Popup_Layer/BuildingHoverPopup
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
@@ -174,7 +173,6 @@ func _process(_delta):
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
-	update_tooltip(grid_pos)
 	
 	queue_redraw()
 
@@ -317,28 +315,6 @@ func clear_starting_zone():
 
 # --- Keep your existing UI/Interaction logic below ---
 
-func update_tooltip(grid_pos: Vector2i):
-	tooltip.visible = false
-	
-	# 1. Check for Objects (Trees, Rocks, Buildings) using your dictionary
-	if active_grid_objects.has(grid_pos):
-		var info = active_grid_objects[grid_pos]
-		var data = info["data"]
-		
-		tooltip_label.text = "%s\nHP: %d/%d" % [data.display_name, info["health"], data.total_resources]
-		tooltip.visible = true
-		tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
-		return
-
-	# 2. Fallback: Check for Terrain (Grass/Water/Sand)
-	# Since terrain isn't in active_grid_objects, we keep the old math logic here
-	var terr_atlas = terrain_layer.get_cell_atlas_coords(grid_pos)
-	if terr_atlas != Vector2i(-1, -1):
-		var index = terr_atlas.y * ATLAS_COLUMNS + terr_atlas.x
-		if index < tile_library.size():
-			tooltip_label.text = tile_library[index].display_name
-			tooltip.visible = true
-			tooltip.global_position = get_viewport().get_mouse_position() + Vector2(16, 16)
 
 
 # ====================================================
