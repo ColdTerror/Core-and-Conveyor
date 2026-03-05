@@ -294,28 +294,34 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		return false
 		
 	# ==========================================================
-	# NEW: INTERCEPT CONVEYOR BUILD-OVER (FREE ROTATION)
+	# NEW: INTERCEPT CONVEYOR BUILD-OVER (FREE ROTATION VS UPGRADE)
 	# ==========================================================
 	if occupied_tiles.has(grid_pos):
 		var existing_building = occupied_tiles[grid_pos]
 		if existing_building is ConveyorBuilding and ghost_building is ConveyorBuilding:
 			
-			# Only update if the direction is actually different
-			if existing_building.direction != ghost_building.direction:
-				existing_building.direction = ghost_building.direction
-				existing_building.rotation = Vector2(ghost_building.direction).angle()
-				existing_building.setup(level_ref, ghost_building.direction) # Re-init the belt
-			
-			# ✅ ALWAYS free the ghost on a rotation-only placement
-			ghost_building.queue_free()
-			ghost_building = null
-	
-			# Mimic the cleanup of a normal placement if we just clicked (not dragged)
-			if not is_dragging:
-				placing_building = false
-				queue_redraw()
+			# CASE A: Same building type! (Belt on Belt). Do Free Rotation.
+			if existing_building.building_name == ghost_building.building_name:
+				if existing_building.direction != ghost_building.direction:
+					existing_building.direction = ghost_building.direction
+					existing_building.rotation = Vector2(ghost_building.direction).angle()
+					existing_building.setup(level_ref, ghost_building.direction)
 				
-			return true # Placement "succeeded" without charging money!
+				ghost_building.queue_free()
+				ghost_building = null
+		
+				if not is_dragging:
+					placing_building = false
+					queue_redraw()
+					placement_ended.emit()
+					
+				return true 
+				
+			# CASE B: Different type! (Router on Belt). Upgrade it!
+			else:
+				# Destroy the old belt first, then let the rest of the function run 
+				# to charge the player and place the Router!
+				deconstruct_building_at(grid_pos)
 	# ==========================================================
 	
 	# Check Economy
@@ -506,10 +512,12 @@ func _update_drag_line(current_grid: Vector2i):
 		if not _can_place_building(g, pt, current_drag_network):
 			is_valid = false
 			
-		# --- NEW: Check if this is a free rotation overwrite! ---
+		# --- FIXED: Check if this is a free rotation overwrite (names must match!) ---
 		if is_valid and occupied_tiles.has(pt):
-			if occupied_tiles[pt] is ConveyorBuilding and g is ConveyorBuilding:
-				is_free_overwrite = true
+			var existing = occupied_tiles[pt]
+			if existing is ConveyorBuilding and g is ConveyorBuilding:
+				if existing.building_name == g.building_name:
+					is_free_overwrite = true
 				
 		# B. Economic Check 
 		if is_valid and not is_free_overwrite:
@@ -602,11 +610,13 @@ func _update_ghost_position_to(grid_pos: Vector2i):
 	ghost_building.place_at(grid_pos, object_layer)
 	var valid = _can_place_building(ghost_building, grid_pos)
 	
-	# --- NEW: Free Rotation Check ---
+	# --- FIXED: Only free if they are the EXACT SAME building! ---
 	var is_free = false
 	if valid and occupied_tiles.has(grid_pos):
-		if occupied_tiles[grid_pos] is ConveyorBuilding and ghost_building is ConveyorBuilding:
-			is_free = true
+		var existing = occupied_tiles[grid_pos]
+		if existing is ConveyorBuilding and ghost_building is ConveyorBuilding:
+			if existing.building_name == ghost_building.building_name:
+				is_free = true
 			
 	ghost_building.set_valid_placement(valid)
 	
