@@ -222,9 +222,13 @@ func take_damage(amount: int):
 		die()
 
 func die():
+	if is_ghost:
+		queue_free()
+		return
 	# We need to tell the pathfinder this tile is open again!
 	# (We will add a signal for this later, for now just free it)
 	destroyed.emit(self)
+	occupied_tiles.clear()
 	queue_free()
 	
 # --- NEW VIRTUAL FUNCTION ---

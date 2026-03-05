@@ -125,6 +125,7 @@ func _process(delta):
 
 	if placing_building:
 		queue_redraw()
+	
 
 
 # -------------------------------
@@ -248,7 +249,7 @@ func _on_building_destroyed(b: Building):
 		buildings.erase(b)
 	
 	for tile in b.occupied_tiles:
-		if occupied_tiles.has(tile):
+		if occupied_tiles.has(tile) and occupied_tiles[tile] == b:  # ONLY erase if it's still THIS building
 			occupied_tiles.erase(tile)
 	
 	_remove_safe_zone(b)
@@ -274,6 +275,7 @@ func _on_building_destroyed(b: Building):
 		if not assets.is_empty():
 			EconomyManager.remove_resources_from_global(assets)
 	# ------------------
+	
 
 
 func select_building_at(grid_pos: Vector2i):
@@ -290,9 +292,6 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if grid_pos == Vector2i(-1, -1):
 		grid_pos = _get_mouse_grid()
 
-	if not _can_place_building(ghost_building, grid_pos):
-		return false
-		
 	# ==========================================================
 	# NEW: INTERCEPT CONVEYOR BUILD-OVER (FREE ROTATION VS UPGRADE)
 	# ==========================================================
@@ -323,6 +322,9 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 				# to charge the player and place the Router!
 				deconstruct_building_at(grid_pos)
 	# ==========================================================
+	
+	if not _can_place_building(ghost_building, grid_pos):
+		return false
 	
 	# Check Economy
 	var cost = ghost_building.get_build_cost()
@@ -390,7 +392,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		else:
 			for tile in footprint:
 				pathfinder.set_weighted_obstacle(tile, ghost_building.path_cost)
-				
+	
 	ghost_building = null
 	
 	if not is_dragging:

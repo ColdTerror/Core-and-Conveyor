@@ -35,15 +35,6 @@ func _exit_tree():
 		held_item.queue_free()
 		held_item = null
 	
-	if is_ghost:
-		return
-	
-	# Unregister from BuildingManager
-	if level_ref and level_ref.building_manager:
-		var my_grid = level_ref.object_layer.local_to_map(global_position)
-		level_ref.building_manager.occupied_tiles.erase(my_grid)
-		level_ref.building_manager.buildings.erase(self)
-
 # ============================================================
 # ITEM ACCEPTANCE (INPUT)
 # ============================================================
