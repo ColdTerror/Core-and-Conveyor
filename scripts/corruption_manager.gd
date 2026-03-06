@@ -30,11 +30,24 @@ func start_outbreak(core_pos: Vector2i):
 	print_debug("start outbreak")
 	if is_active: return
 	
-	# 1. Pick a spot far away from the core
-	# (In a real game, you might find the opposite corner of the map)
-	var spawn_dir = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
-	var spawn_distance = 40.0 # 40 tiles away
-	var seed_pos = core_pos + Vector2i(spawn_dir * spawn_distance)
+	# --- FIXED: FIND THE ABSOLUTE FURTHEST LAND TILE ---
+	var seed_pos: Vector2i = core_pos
+	var max_dist: float = -1.0
+	
+	# Get every single floor tile currently drawn on the map
+	var all_floor_tiles = terrain_layer.get_used_cells()
+	
+	for tile in all_floor_tiles:
+		var tile_data = terrain_layer.get_cell_tile_data(tile)
+		
+		# ONLY check the distance if the tile is actually buildable land (not water!)
+		if tile_data and tile_data.get_custom_data("buildable") == true:
+			
+			var dist = Vector2(core_pos).distance_squared_to(Vector2(tile))
+			if dist > max_dist:
+				max_dist = dist
+				seed_pos = tile
+	# ----------------------------------------------
 	
 	# 2. Plant the seed
 	_corrupt_tile(seed_pos)
@@ -42,7 +55,7 @@ func start_outbreak(core_pos: Vector2i):
 	is_active = true
 	spread_timer.start()
 	print("Corruption Outbreak Detected at: ", seed_pos)
-
+	
 # --- SPREAD LOGIC ---
 func _on_spread_tick():
 	if active_edges.is_empty(): 
