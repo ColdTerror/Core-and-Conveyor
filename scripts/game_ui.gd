@@ -117,19 +117,25 @@ func _process(_delta):
 
 	# 2. UPDATE THE COMBAT STATS (WaveLabel)
 	if wave_manager and waveLabel:
-		if wave_manager.is_wave_active:
-			# Wave is happening! Show the exact numbers
-			var active_on_map = wave_manager.active_enemies
+		
+		# --- FIXED: SINGLE SOURCE OF TRUTH ---
+		# Physically count the nodes in the scene. Impossible to be negative!
+		var enemies_alive = get_tree().get_nodes_in_group("Enemies").size()
+		
+		# --- FIXED: UI HOLD LOGIC ---
+		# Keep the UI on "Night Mode" if the clock says it's night, 
+		# OR if there are still enemies alive on the map!
+		if wave_manager.is_wave_active or enemies_alive > 0:
 			
 			waveLabel.text = "Night %d | Queue: %d | Active: %d" % [
 				wave_manager.current_wave, 
 				wave_manager.enemies_to_spawn, 
-				active_on_map
+				enemies_alive # <--- Using our foolproof node count!
 			]
 			waveLabel.modulate = Color(1.0, 0.4, 0.4) # Tint text red to indicate danger!
 			
 		else:
-			# Daytime! 
+			# Daytime AND map is totally clean! 
 			var forecast = wave_manager.get_estimated_enemies()
 			
 			# Using a "~" adds a nice touch of "this is an estimate!"

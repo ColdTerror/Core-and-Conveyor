@@ -38,14 +38,10 @@ var selected_enemy: Enemy = null
 var current_wave: int = 0
 var night_enemies_total: int = 0
 var enemies_to_spawn: int = 0
-var active_enemies: int = 0
 var is_wave_active: bool = false
 var spawn_accumulator: float = 0.0
 
-# Added 'night_type' so your UI can announce Blood Moons!
-signal wave_started(wave_num: int, night_type: String) 
-signal wave_ended(wave_num: int)
-signal wave_stats_updated(to_spawn: int, active: int)
+
 
 func _ready():
 	if Engine.is_editor_hint(): return
@@ -95,13 +91,20 @@ func _on_night_started(day_num: int):
 	
 	print("Night %d [%s]: %d enemies inbound." % [current_wave, night_type, enemies_to_spawn])
 	
-	wave_started.emit(current_wave, night_type)
-	wave_stats_updated.emit(enemies_to_spawn, active_enemies)
+
 
 func _on_day_started(day_num: int):
+	# --- FIXED: THE DAWN RUSH ---
+	# Due to frame-rate rounding errors, the math curve might leave an enemy 
+	# stuck at 99% spawned when the sun comes up. This forces them out!
+	if enemies_to_spawn > 0:
+		print("Dawn Rush! Forcing %d stragglers to spawn!" % enemies_to_spawn)
+		while enemies_to_spawn > 0:
+			_do_spawn()
+	# ----------------------------
+	
 	is_wave_active = false
 	print("Sunrise! Night %d survived." % current_wave)
-	wave_ended.emit(current_wave)
 	# Note: Any enemies still alive stay on the map for the player to clean up!
 
 # --- CONTINUOUS CURVE SPAWNING ---
@@ -145,12 +148,15 @@ func _process(delta: float):
 
 func _do_spawn():
 	enemies_to_spawn -= 1
-	active_enemies += 1
 	
 	var spawn_pos = _get_best_spawn_position()
 	
 	if not enemy_scene: return
 	var enemy = enemy_scene.instantiate()
+	
+	# --- ADD TO GROUP IMMEDIATELY ---
+	enemy.add_to_group("Enemies") 
+	# -------------------------------------
 	
 	if level_ref: level_ref.add_child(enemy)
 	else: get_parent().add_child(enemy)
@@ -162,11 +168,10 @@ func _do_spawn():
 	if enemy.has_signal("enemy_clicked"): 
 		enemy.enemy_clicked.connect(_on_enemy_clicked)
 		
-	wave_stats_updated.emit(enemies_to_spawn, active_enemies)
+
 
 func _on_enemy_died(_enemy_instance):
-	active_enemies -= 1
-	wave_stats_updated.emit(enemies_to_spawn, active_enemies)
+	pass
 
 func _get_best_spawn_position() -> Vector2:
 	if corruption_layer:
