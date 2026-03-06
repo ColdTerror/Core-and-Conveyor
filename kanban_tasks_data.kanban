@@ -12,8 +12,6 @@
 			"title": "Todo",
 			"tasks": [
 				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
-				"81929686-bad2-4264-875d-86979a42d8a7",
-				"dc7fd2f6-3733-4f42-83f8-9b705b3ea43a",
 				"02c305a5-9bc2-46bd-bb0d-77e2b3a33307"
 			]
 		},
@@ -21,9 +19,8 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"4f83222c-1472-4e66-9ef0-8c9167cb149b",
-				"425a3e9f-c43d-4ed5-9698-58e65b16a025",
-				"b075d7b3-8f26-4f48-ab59-141562ce210a"
+				"81929686-bad2-4264-875d-86979a42d8a7",
+				"dc7fd2f6-3733-4f42-83f8-9b705b3ea43a"
 			]
 		},
 		{
@@ -33,7 +30,9 @@
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52",
 				"e400713b-8f41-4cd0-9197-a3013d1de847",
+				"4f83222c-1472-4e66-9ef0-8c9167cb149b",
 				"77ae9adb-542f-4a3c-885c-addbf78016fd",
+				"b075d7b3-8f26-4f48-ab59-141562ce210a",
 				"65699c96-b59c-4d0a-9150-fec4103c3c8b",
 				"2a68a7f6-b47a-40d7-9462-b9f4b108e18d",
 				"eb64d933-d5d9-4062-ac65-6ade36f217d7",
@@ -132,7 +131,7 @@
 		{
 			"uuid": "4f83222c-1472-4e66-9ef0-8c9167cb149b",
 			"title": "show attack ranges with f3",
-			"description": "",
+			"description": "cache a dict in building manager so the ranges dont overlap, specifically the edges",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
@@ -161,13 +160,6 @@
 			"uuid": "02c305a5-9bc2-46bd-bb0d-77e2b3a33307",
 			"title": "corruption doesnt take over object tiles",
 			"description": "we want the resource to be taken over by the resource",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "425a3e9f-c43d-4ed5-9698-58e65b16a025",
-			"title": "router only outputs to perpdenciular belts",
-			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

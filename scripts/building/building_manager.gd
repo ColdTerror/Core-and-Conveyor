@@ -11,10 +11,12 @@ class_name BuildingManager
 # Key: Vector2i (Grid Coord), Value: int (Number of buildings in range)
 var safe_tiles: Dictionary = {}
 var buildable_tiles: Dictionary = {} 
+var attack_tiles: Dictionary = {}
 
 # --- VISUALIZER STATES ---
 var show_build_grid: bool = false
 var show_safe_grid: bool = false
+var show_attack_grid: bool = false
 
 var buildings: Array[Building] = []
 var occupied_tiles := {} # Key: Vector2i, Value: Building
@@ -133,7 +135,7 @@ func _process(delta):
 # -------------------------------
 func _draw():
 	# If we aren't placing a building AND both toggles are off, don't draw anything
-	if not placing_building and not show_build_grid and not show_safe_grid:
+	if not placing_building and not show_build_grid and not show_safe_grid and not show_attack_grid:
 		return
 
 	var tile_size = 32.0 
@@ -161,12 +163,17 @@ func _draw():
 
 	# 2. DRAW GLOBAL SAFE ZONES (F2 Hotkey)
 	if show_safe_grid:
-		var safe_color = Color(0.2, 0.5, 1.0, 0.15) # Faint blue fill
 		var safe_border_color = Color(0.2, 0.5, 1.0, 0.8) # Solid blue border
 		
 		for tile in safe_tiles.keys():
+			var overlaps = safe_tiles[tile]
+			
+			# Heat Map Math: Start at 0.15 alpha. Add 0.15 for each overlapping resistance zone. Cap at 0.7.
+			var current_alpha = min(0.15 + ((overlaps - 1) * 0.15), 0.7)
+			var fill_color = Color(0.2, 0.5, 1.0, current_alpha)
+			
 			var local_pos = object_layer.map_to_local(tile) - half_offset
-			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), safe_color)
+			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), fill_color)
 			
 			var tl = local_pos
 			var tr = local_pos + Vector2(tile_size, 0)
@@ -177,8 +184,33 @@ func _draw():
 			if not safe_tiles.has(tile + Vector2i.DOWN): draw_line(bl, br, safe_border_color, b_width)
 			if not safe_tiles.has(tile + Vector2i.LEFT): draw_line(tl, bl, safe_border_color, b_width)
 			if not safe_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, safe_border_color, b_width)
-
-	# 3. DRAW GHOST PREVIEWS (When Placing)
+	
+	# 3 DRAW GLOBAL ATTACK ZONES (F3 Hotkey)
+	if show_attack_grid:
+		var attack_border_color = Color(1.0, 0.2, 0.2, 0.8) # Solid red border
+		
+		for tile in attack_tiles.keys():
+			var overlaps = attack_tiles[tile]
+			
+			# Heat Map Math: Start at 0.15 alpha. Add 0.15 for each overlapping tower. Cap it at 0.7 so it doesn't turn black.
+			var current_alpha = min(0.15 + ((overlaps - 1) * 0.15), 0.7)
+			var fill_color = Color(1.0, 0.2, 0.2, current_alpha)
+			
+			var local_pos = object_layer.map_to_local(tile) - half_offset
+			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), fill_color)
+			
+			var tl = local_pos
+			var tr = local_pos + Vector2(tile_size, 0)
+			var bl = local_pos + Vector2(0, tile_size)
+			var br = local_pos + Vector2(tile_size, tile_size)
+			
+			# ONLY draw the border if the neighboring tile is completely empty!
+			if not attack_tiles.has(tile + Vector2i.UP): draw_line(tl, tr, attack_border_color, b_width)
+			if not attack_tiles.has(tile + Vector2i.DOWN): draw_line(bl, br, attack_border_color, b_width)
+			if not attack_tiles.has(tile + Vector2i.LEFT): draw_line(tl, bl, attack_border_color, b_width)
+			if not attack_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, attack_border_color, b_width)
+			
+	# 4. DRAW GHOST PREVIEWS (When Placing)
 	if placing_building:
 		var ghosts_to_draw = []
 		if is_dragging and drag_ghosts.size() > 0:
@@ -254,6 +286,7 @@ func _on_building_destroyed(b: Building):
 	
 	_remove_safe_zone(b)
 	_remove_build_zone(b)
+	_remove_attack_zone(b)
 	
 	# Free up the Pathfinder Tiles
 	# We iterate through the tiles the building used to occupy
@@ -360,6 +393,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	_register_occupied_tiles(ghost_building)
 	_add_safe_zone(ghost_building)
 	_add_build_zone(ghost_building)
+	_add_attack_zone(ghost_building)
 	
 	# --- NEW: TRIGGER CORRUPTION AND UNLOCK GAME ---
 	if ghost_building is CoreBuilding:
@@ -723,6 +757,10 @@ func _unhandled_input(event):
 		elif event.keycode == KEY_F2:
 			show_safe_grid = not show_safe_grid
 			queue_redraw()
+		elif event.keycode == KEY_F3:
+			print("show attack key")
+			show_attack_grid = not show_attack_grid
+			queue_redraw()
 	# ---------------------------------
 	
 	# Cancel logic
@@ -838,6 +876,8 @@ func _get_tiles_in_radius(origin: Vector2i, building: Building, radius: float) -
 				
 	return tiles
 
+#--------------------------------------------------------------------------------#
+#Add/Remove Visual Zones
 func _add_safe_zone(building: Building):
 	if not "corruption_range" in building or building.corruption_range <= 0: 
 		return
@@ -888,8 +928,33 @@ func _remove_build_zone(building: Building):
 			buildable_tiles[tile] -= 1
 			if buildable_tiles[tile] <= 0:
 				buildable_tiles.erase(tile)
-				
-				
+
+func _add_attack_zone(building: Building):
+	# Make sure it's actually a tower with a pre-calculated range!
+	if not "attack_range" in building or not "_cached_range_tiles" in building: return
+	
+	var origin = object_layer.local_to_map(building.global_position)
+	
+	for offset in building._cached_range_tiles.keys():
+		var tile = origin + offset
+		attack_tiles[tile] = attack_tiles.get(tile, 0) + 1
+
+func _remove_attack_zone(building: Building):
+	if not "attack_range" in building or not "_cached_range_tiles" in building: return
+	
+	var origin = building.grid_origin
+	
+	for offset in building._cached_range_tiles.keys():
+		var tile = origin + offset
+		if attack_tiles.has(tile):
+			attack_tiles[tile] -= 1
+			if attack_tiles[tile] <= 0:
+				attack_tiles.erase(tile)
+
+#--------------------------------------------------------------------------------#
+
+
+
 func deconstruct_building_at(grid_pos: Vector2i):
 	if occupied_tiles.has(grid_pos):
 		var building = occupied_tiles[grid_pos]
