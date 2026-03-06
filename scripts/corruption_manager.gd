@@ -90,13 +90,23 @@ func _try_infect_neighbors(center_tile: Vector2i) -> bool:
 			
 		# 3. Is it valid terrain? (Has floor, but no physical obstacles)
 		var has_floor = terrain_layer and terrain_layer.get_cell_source_id(neighbor) != -1
-		var has_obstacle = object_layer and object_layer.get_cell_source_id(neighbor) != -1
 		
-		if has_floor and not has_obstacle:
+		if has_floor:
+			# --- RNG OBSTACLE BREACHING ---
+			var has_obstacle = object_layer and object_layer.get_cell_source_id(neighbor) != -1
+			
+			if has_obstacle:
+				# Roll the dice! A 75% chance to fail the breach.
+				if randf() > 0.25:
+					# We failed to breach this tick, but we return true so the 
+					# tile stays active and tries again next tick!
+					return true 
+			# ------------------------------
+			
+			# If there's no obstacle, OR we hit the lucky 25% chance:
 			has_empty_neighbors = true
-			# Corrupt it and add it to the front line!
 			_corrupt_tile(neighbor)
-			return true # Stop after one successful infection per edge tile to slow it down
+			return true
 			
 	return has_empty_neighbors
 
