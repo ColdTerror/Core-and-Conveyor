@@ -2,8 +2,16 @@ extends Building
 class_name StockpileBuilding
 
 @export var generic_item_scene: PackedScene
-@export var capacity := 50   # Max total items stored
 @export var work_interval: float = 1.0 # Speed of output
+
+
+# --- NEW: INVENTORY MODES ---
+@export var max_mixed_capacity: int = 25
+@export var max_dedicated_capacity: int = 100
+
+var is_dedicated_mode: bool = false
+var dedicated_item_name: String = "" # Remembers what item it locked onto
+# ----------------------------
 
 var inventory: Dictionary = {}  # ItemResource → amount
 var work_timer: float = 0.0
@@ -133,27 +141,43 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 # ITEM INTERFACE (called by Item / Conveyor systems)
 # --------------------------------------------------
 
-# Accept items on ANY tile we occupy
-func accepts_item_at(tile: Vector2i) -> bool:
-	return tile in occupied_tiles
-
 func can_accept_item(item: ItemResource) -> bool:
-	return get_total_items() < capacity
+	var current_total = get_total_items()
+	
+	if is_dedicated_mode:
+		# If empty, we will accept it and lock onto it in the accept_item func
+		if current_total == 0:
+			return true 
+			
+		# Reject if it doesn't match the dedicated type, or if we hit 100
+		if item.display_name != dedicated_item_name: return false
+		if current_total >= max_dedicated_capacity: return false
+		return true
+		
+	else: # Mixed Mode
+		# Accept anything, as long as total is under 50
+		if current_total >= max_mixed_capacity: return false
+		return true
 
 func accept_item(item: ItemResource) -> bool:
 	if not can_accept_item(item):
 		return false
+		
+	# --- NEW: Lock the dedicated mode to this item if we are empty! ---
+	if is_dedicated_mode and get_total_items() == 0:
+		dedicated_item_name = item.display_name
+	# ------------------------------------------------------------------
 		
 	if not item.display_name in available_types:
 		available_types.append(item.display_name)
 
 	inventory[item] = inventory.get(item, 0) + 1
 	
-	# Emit inventory changed signal for ui
-	inventory_changed.emit()
-	
 	# NEW: Update Global Economy
 	EconomyManager.add_resources(item.display_name, 1)
+	
+	# Emit inventory changed signal for ui
+	inventory_changed.emit()
 	
 	return true
 
@@ -208,3 +232,75 @@ func _find_item_by_name(name: String) -> ItemResource:
 		if item is ItemResource and item.display_name == name:
 			return item
 	return null
+	
+# --- UI ACTIONS ---
+# --- UI ACTIONS ---
+func toggle_inventory_mode():
+	is_dedicated_mode = not is_dedicated_mode
+	
+	if is_dedicated_mode:
+		if inventory.size() > 0:
+			# 1. Find the item with the highest count
+			var max_item_ref: ItemResource = null
+			var max_count: int = -1
+			
+			for item in inventory.keys():
+				if inventory[item] > max_count:
+					max_count = inventory[item]
+					max_item_ref = item
+					
+			# 2. Lock onto the winner!
+			dedicated_item_name = max_item_ref.display_name
+			print("Switched to Dedicated. Locked to majority item: ", dedicated_item_name)
+			
+			# 3. Void all the losers
+			var assets_to_remove = {}
+			var items_to_erase = []
+			
+			for item in inventory.keys():
+				if item != max_item_ref:
+					assets_to_remove[item.display_name] = inventory[item]
+					items_to_erase.append(item)
+					
+			# 4. Clean up the economy and local data if anything was voided
+			if not assets_to_remove.is_empty():
+				EconomyManager.remove_resources_from_global(assets_to_remove)
+				
+				for item in items_to_erase:
+					inventory.erase(item)
+					
+				# Reset available types cache to just the winner
+				available_types.clear()
+				available_types.append(dedicated_item_name)
+				
+				# Safety check: If we were trying to output arrows, but arrows just got voided, turn output OFF
+				if selected_output_name != "" and selected_output_name != dedicated_item_name:
+					selected_output_name = ""
+					
+		else:
+			# It's completely empty, wait for the first item
+			dedicated_item_name = ""
+			print("Switched to Dedicated. Waiting for first item...")
+	else:
+		# Switched back to Mixed mode, clear the lock
+		dedicated_item_name = ""
+		print("Switched to Mixed mode.")
+		
+	inventory_changed.emit()
+
+func void_inventory():
+	var assets = get_economy_assets()
+	if not assets.is_empty():
+		# Erase from the global UI
+		EconomyManager.remove_resources_from_global(assets)
+		
+	# Completely clear local data
+	inventory.clear()
+	available_types.clear()
+	selected_output_name = "" # Turn off output
+	
+	# Reset the dedicated lock since it's empty now
+	if is_dedicated_mode:
+		dedicated_item_name = "" 
+	
+	inventory_changed.emit()
