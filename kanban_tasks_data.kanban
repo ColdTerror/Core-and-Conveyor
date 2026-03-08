@@ -18,7 +18,10 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"02c305a5-9bc2-46bd-bb0d-77e2b3a33307"
+				"02c305a5-9bc2-46bd-bb0d-77e2b3a33307",
+				"7775f979-6eae-432b-80a9-9048d818a35a",
+				"85294240-9fd3-47c9-bbff-a341c846a480",
+				"3b2902cf-b8ec-4d7b-b027-044d237b8343"
 			]
 		},
 		{
@@ -160,6 +163,27 @@
 			"uuid": "02c305a5-9bc2-46bd-bb0d-77e2b3a33307",
 			"title": "corruption doesnt take over object tiles",
 			"description": "we want the resource to be taken over by the resource",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "85294240-9fd3-47c9-bbff-a341c846a480",
+			"title": "add void button to stockpile",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "7775f979-6eae-432b-80a9-9048d818a35a",
+			"title": "add inventory mode toggle to stockpile",
+			"description": "one has 25 max per item but as many types of items ,the other would be 100 but only one type of item",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "3b2902cf-b8ec-4d7b-b027-044d237b8343",
+			"title": "add funcs to stockpile",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

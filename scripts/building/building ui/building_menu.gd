@@ -1,8 +1,10 @@
 extends PanelContainer
 
 @onready var title_label = $VBoxContainer/TitleLabel
-@onready var info_label = $VBoxContainer/InfoLabel # We reuse this label for both!
-@onready var switch_button = $VBoxContainer/SwitchButton
+@onready var info_label = $VBoxContainer/InfoLabel 
+@onready var action_container = $VBoxContainer/ActionContainer # The dynamic folder!
+
+@onready var close_button = $VBoxContainer/CloseButton
 
 var current_building: Building = null
 
@@ -10,83 +12,89 @@ signal menu_closed
 
 func _ready():
 	hide()
-	
-	# Connect signals if not already connected in editor
-	if not switch_button.pressed.is_connected(_on_switch_pressed):
-		switch_button.pressed.connect(_on_switch_pressed)
-	
-	if has_node("VBoxContainer/CloseButton"):
-		$VBoxContainer/CloseButton.pressed.connect(close_menu)
+	close_button.pressed.connect(close_menu)
 
 func open_menu(building: Building):
 	current_building = building
-	
-	# 1. Update Title
 	title_label.text = building.building_name
-	
-	# 2. Refresh Context-Specific UI
 	refresh_ui()
-	
 	show()
 
 func refresh_ui():
-	# Reset colors/visibility defaults
+	if not is_instance_valid(current_building): return
+	
+	# 1. Clean up ALL old dynamic buttons
+	for child in action_container.get_children():
+		child.queue_free()
+
 	info_label.modulate = Color.WHITE
 	info_label.visible = true
-	switch_button.visible = true
 
-	# --- CASE A: PROCESSOR (Recipes) ---
+	# 2. Route to the correct UI builder
 	if current_building is ProcessorBuilding:
-		_setup_processor_ui(current_building)
-
-	# --- CASE B: STOCKPILE (Outputs) ---
+		_setup_processor_ui(current_building as ProcessorBuilding)
 	elif current_building is StockpileBuilding:
-		_setup_stockpile_ui(current_building)
-
-	# --- CASE C: GENERIC (Walls, Towers) ---
+		_setup_stockpile_ui(current_building as StockpileBuilding)
 	else:
 		info_label.text = "No configurable options."
-		switch_button.visible = false
+
+# ==========================================================
+# THE MAGIC HELPER: Spawns and wires a button instantly
+# ==========================================================
+func _create_button(btn_text: String, btn_color: Color, action_callable: Callable):
+	var btn = Button.new()
+	btn.text = btn_text
+	btn.modulate = btn_color
+	
+	# Use a Lambda to call the building's function, then instantly refresh the UI!
+	btn.pressed.connect(func():
+		action_callable.call()
+		refresh_ui() 
+	)
+	
+	action_container.add_child(btn)
+# ==========================================================
+
 
 # --- HELPER: Setup UI for Factories ---
 func _setup_processor_ui(b: ProcessorBuilding):
-	switch_button.text = "Switch Recipe" # Update Button Text
-	
 	if b.recipes.size() > 0:
 		info_label.text = "Recipe: %s" % b.active_recipe.recipe_name
-		# Only show switch button if we actually have choices
-		switch_button.visible = (b.recipes.size() > 1)
+		
+		# Only spawn the button if we actually have choices
+		if b.recipes.size() > 1:
+			_create_button("Switch Recipe", Color.WHITE, b.cycle_recipe)
 	else:
 		info_label.text = "No Recipes Configured"
-		switch_button.visible = false
+
 
 # --- HELPER: Setup UI for Stockpiles ---
 func _setup_stockpile_ui(b: StockpileBuilding):
-	switch_button.text = "Cycle Output" # Update Button Text
 	
+	# 1. Setup Info Label
 	if b.selected_output_name == "":
 		info_label.text = "Output: OFF"
-		info_label.modulate = Color(1, 0.5, 0.5) # Red text for "OFF"
+		info_label.modulate = Color(1, 0.5, 0.5) 
 	else:
 		info_label.text = "Output: %s" % b.selected_output_name
-		info_label.modulate = Color(0.5, 1, 0.5) # Green text for Active
+		info_label.modulate = Color(0.5, 1, 0.5) 
 
-# --- ACTION HANDLER ---
-func _on_switch_pressed():
-	if not is_instance_valid(current_building): return
-
-	# 1. Execute logic based on type
-	if current_building is ProcessorBuilding:
-		current_building.cycle_recipe()
+	# 2. Spawn MODE Button
+	if b.has_method("toggle_inventory_mode"):
+		var mode_text = "Mode: Dedicated (100)" if b.is_dedicated_mode else "Mode: Mixed (50)"
+		var mode_color = Color(0.3, 0.8, 1.0) if b.is_dedicated_mode else Color(1.0, 0.8, 0.3)
+		_create_button(mode_text, mode_color, b.toggle_inventory_mode)
 		
-	elif current_building is StockpileBuilding:
-		# Ensure your StockpileBuilding script has this function!
-		if current_building.has_method("cycle_output_mode"):
-			print_debug("switching output")
-			current_building.cycle_output_mode()
+	# 3. Spawn CYCLE OUTPUT Button (Only if > 1 item type exists in inventory!)
+	if b.has_method("cycle_output_mode") and b.has_method("get_economy_assets"):
+		var unique_item_types_count = b.get_economy_assets().keys().size()
+		if unique_item_types_count > 1:
+			_create_button("Cycle Output", Color.WHITE, b.cycle_output_mode)
 			
-	# 2. Update text immediately
-	refresh_ui()
+	# 4. Spawn VOID Button
+	if b.has_method("void_inventory"):
+		_create_button("Void All Items", Color(1.0, 0.3, 0.3), b.void_inventory)
+
 
 func close_menu():
 	current_building = null

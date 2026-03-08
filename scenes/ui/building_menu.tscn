@@ -26,9 +26,8 @@ text = "Plank"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SwitchButton" type="Button" parent="VBoxContainer" unique_id=2064008580]
+[node name="ActionContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=1921854425]
 layout_mode = 2
-text = "Switch"
 
 [node name="HSeparator2" type="HSeparator" parent="VBoxContainer" unique_id=2093598927]
 layout_mode = 2
