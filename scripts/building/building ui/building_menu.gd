@@ -81,7 +81,7 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 
 	# 2. Spawn MODE Button
 	if b.has_method("toggle_inventory_mode"):
-		var mode_text = "Mode: Dedicated (100)" if b.is_dedicated_mode else "Mode: Mixed (50)"
+		var mode_text = "Mode: Dedicated (100)" if b.is_dedicated_mode else "Mode: Mixed (25)"
 		var mode_color = Color(0.3, 0.8, 1.0) if b.is_dedicated_mode else Color(1.0, 0.8, 0.3)
 		_create_button(mode_text, mode_color, b.toggle_inventory_mode)
 		

@@ -125,6 +125,7 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 		inventory[item_res] -= 1
 		if inventory[item_res] <= 0:
 			inventory.erase(item_res)
+			_prune_available_types()
 			
 		# B. Economy Logic
 		EconomyManager.remove_resources_from_global({ item_res.display_name: 1 })
@@ -145,9 +146,11 @@ func can_accept_item(item: ItemResource) -> bool:
 	var current_total = get_total_items()
 	
 	if is_dedicated_mode:
-		# If empty, we will accept it and lock onto it in the accept_item func
-		if current_total == 0:
-			return true 
+		if current_total == 0 and dedicated_item_name == "":
+			return true  # Will lock on accept
+		# Now also check against the name even if empty but name is set
+		if dedicated_item_name != "" and item.display_name != dedicated_item_name:
+			return false
 			
 		# Reject if it doesn't match the dedicated type, or if we hit 100
 		if item.display_name != dedicated_item_name: return false
@@ -225,6 +228,7 @@ func consume_resources(remaining_bill: Dictionary):
 			if remaining_bill[resource_name] <= 0:
 				remaining_bill.erase(resource_name)
 	
+	_prune_available_types()
 	inventory_changed.emit()
 
 func _find_item_by_name(name: String) -> ItemResource:
@@ -304,3 +308,15 @@ func void_inventory():
 		dedicated_item_name = "" 
 	
 	inventory_changed.emit()
+	
+	
+func _prune_available_types():
+	var current_names = []
+	for item in inventory.keys():
+		current_names.append(item.display_name)
+	available_types = current_names
+	
+	# If selected output is no longer available, turn it off
+	if selected_output_name != "" and not selected_output_name in available_types:
+		selected_output_name = ""
+		print("Output auto-disabled: item no longer in inventory")
