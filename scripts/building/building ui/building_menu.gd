@@ -35,6 +35,10 @@ func refresh_ui():
 		_setup_processor_ui(current_building as ProcessorBuilding)
 	elif current_building is StockpileBuilding:
 		_setup_stockpile_ui(current_building as StockpileBuilding)
+	# --- NEW: ROUTE FOR TOWERS ---
+	elif current_building is TowerBuilding:
+		_setup_tower_ui(current_building as TowerBuilding)
+	# -----------------------------
 	else:
 		info_label.text = "No configurable options."
 
@@ -85,16 +89,30 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 		var mode_color = Color(0.3, 0.8, 1.0) if b.is_dedicated_mode else Color(1.0, 0.8, 0.3)
 		_create_button(mode_text, mode_color, b.toggle_inventory_mode)
 		
-	# 3. Spawn CYCLE OUTPUT Button (Only if > 1 item type exists in inventory!)
+	# 3. Spawn CYCLE OUTPUT Button (If ANY items exist in inventory!)
 	if b.has_method("cycle_output_mode") and b.has_method("get_economy_assets"):
 		var unique_item_types_count = b.get_economy_assets().keys().size()
-		if unique_item_types_count > 1:
+		# --- FIXED: Changed from > 1 to > 0 ---
+		if unique_item_types_count > 0: 
 			_create_button("Cycle Output", Color.WHITE, b.cycle_output_mode)
 			
 	# 4. Spawn VOID Button
 	if b.has_method("void_inventory"):
 		_create_button("Void All Items", Color(1.0, 0.3, 0.3), b.void_inventory)
 
+# --- HELPER: Setup UI for Towers ---
+func _setup_tower_ui(b: TowerBuilding):
+	info_label.text = "Priority: %s" % b.targeting_mode
+	
+	# Color code the text so it pops!
+	match b.targeting_mode:
+		"Closest": info_label.modulate = Color(0.8, 0.8, 1.0) # Light Blue
+		"Strongest": info_label.modulate = Color(1.0, 0.4, 0.4) # Red
+		"Weakest": info_label.modulate = Color(0.4, 1.0, 0.4) # Green
+		"Furthest": info_label.modulate = Color(0.8, 0.4, 1.0) # Purple
+
+	# Spawn the dynamic button
+	_create_button("Cycle Targeting", Color.WHITE, b.cycle_targeting_mode)
 
 func close_menu():
 	current_building = null

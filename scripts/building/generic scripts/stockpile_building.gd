@@ -237,7 +237,7 @@ func _find_item_by_name(name: String) -> ItemResource:
 			return item
 	return null
 	
-# --- UI ACTIONS ---
+
 # --- UI ACTIONS ---
 func toggle_inventory_mode():
 	is_dedicated_mode = not is_dedicated_mode

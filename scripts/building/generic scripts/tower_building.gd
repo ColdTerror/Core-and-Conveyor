@@ -20,6 +20,10 @@ var attack_cooldown: float = 0.0
 var current_target: Node2D = null
 var level_ref: Node2D
 
+var targeting_modes: Array[String] = ["Closest", "Strongest", "Weakest", "Furthest"]
+var current_targeting_index: int = 0
+var targeting_mode: String = "Closest"
+
 # Cached range tiles - used by both visualization and targeting
 var _cached_range_tiles: Dictionary = {}
 
@@ -176,27 +180,61 @@ func building_tick(delta: float) -> void:
 			_shoot()
 
 func _try_find_target():
-	if _is_valid_target(current_target): return
-	current_target = _find_nearest_enemy()
+	# If mode is Closest, 'Sticky Targeting' is usually good so it finishes off 
+	# the enemy it started shooting at.
+	if targeting_mode == "Closest":
+		if _is_valid_target(current_target): return 
+		
+	# For Strongest/Weakest, we ALWAYS want to scan the area right before we 
+	# shoot to ensure we are hitting the absolute best target!
+	current_target = _find_best_enemy()
+
+func _find_best_enemy() -> Node2D:
+	if not level_ref: return null
+	
+	var best_enemy: Node2D = null
+	
+	# Setup our starting comparisons based on the mode
+	var best_value = INF if targeting_mode in ["Closest", "Weakest"] else -INF
+	
+	for enemy in get_tree().get_nodes_in_group("Enemies"):
+		if _cached_range_tiles.has(_get_enemy_tile(enemy)):
+			
+			# Mode 1: Closest
+			if targeting_mode == "Closest":
+				var dist = global_position.distance_to(enemy.global_position)
+				if dist < best_value:
+					best_value = dist
+					best_enemy = enemy
+					
+			# Mode 2: Weakest (Lowest HP)
+			elif targeting_mode == "Weakest":
+				if "health" in enemy:
+					if enemy.health < best_value:
+						best_value = enemy.health
+						best_enemy = enemy
+						
+			# Mode 3: Strongest (Highest HP)
+			elif targeting_mode == "Strongest":
+				if "health" in enemy:
+					if enemy.health > best_value:
+						best_value = enemy.health
+						best_enemy = enemy
+			# --- NEW: Mode 4: Furthest ---
+			elif targeting_mode == "Furthest":
+				var dist = global_position.distance_to(enemy.global_position)
+				if dist > best_value:
+					best_value = dist
+					best_enemy = enemy
+			# -----------------------------
+
+	return best_enemy
 
 func _is_valid_target(target) -> bool:
 	if not is_instance_valid(target): return false
 	if target.is_queued_for_deletion(): return false
 	return _cached_range_tiles.has(_get_enemy_tile(target))
 
-func _find_nearest_enemy() -> Node2D:
-	if not level_ref: return null
-	
-	var nearest: Node2D = null
-	var min_dist = INF
-	
-	for enemy in get_tree().get_nodes_in_group("Enemies"):
-		if _cached_range_tiles.has(_get_enemy_tile(enemy)):
-			var dist = global_position.distance_to(enemy.global_position)
-			if dist < min_dist:
-				min_dist = dist
-				nearest = enemy
-	return nearest
 
 # --- 3. FIRING LOGIC ---
 
@@ -234,3 +272,12 @@ func get_inventory_info() -> Dictionary:
 # --- ECONOMY ---
 func get_economy_assets() -> Dictionary:
 	return {}
+	
+func cycle_targeting_mode():
+	current_targeting_index = (current_targeting_index + 1) % targeting_modes.size()
+	targeting_mode = targeting_modes[current_targeting_index]
+	
+	# Clear the current target so the tower immediately snaps to the new priority!
+	current_target = null 
+	
+	print("Tower targeting set to: ", targeting_mode)

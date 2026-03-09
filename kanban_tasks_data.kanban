@@ -17,12 +17,7 @@
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": [
-				"02c305a5-9bc2-46bd-bb0d-77e2b3a33307",
-				"7775f979-6eae-432b-80a9-9048d818a35a",
-				"85294240-9fd3-47c9-bbff-a341c846a480",
-				"3b2902cf-b8ec-4d7b-b027-044d237b8343"
-			]
+			"tasks": []
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -31,7 +26,10 @@
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"dc7fd2f6-3733-4f42-83f8-9b705b3ea43a",
 				"1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52",
+				"85294240-9fd3-47c9-bbff-a341c846a480",
 				"81929686-bad2-4264-875d-86979a42d8a7",
+				"02c305a5-9bc2-46bd-bb0d-77e2b3a33307",
+				"7775f979-6eae-432b-80a9-9048d818a35a",
 				"e400713b-8f41-4cd0-9197-a3013d1de847",
 				"4f83222c-1472-4e66-9ef0-8c9167cb149b",
 				"77ae9adb-542f-4a3c-885c-addbf78016fd",
@@ -177,13 +175,6 @@
 			"uuid": "7775f979-6eae-432b-80a9-9048d818a35a",
 			"title": "add inventory mode toggle to stockpile",
 			"description": "one has 25 max per item but as many types of items ,the other would be 100 but only one type of item",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "3b2902cf-b8ec-4d7b-b027-044d237b8343",
-			"title": "add funcs to stockpile",
-			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
