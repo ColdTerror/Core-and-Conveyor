@@ -207,6 +207,10 @@ func _draw():
 # MAP GENERATION - RISE TO RUINS STYLE
 # ============================================================================
 
+# ============================================================================
+# MAP GENERATION - RISE TO RUINS STYLE
+# ============================================================================
+
 func generate_simple_map():
 	terrain_layer.clear()
 	object_layer.clear()
@@ -221,6 +225,12 @@ func generate_simple_map():
 	var forest_noise = FastNoiseLite.new()
 	forest_noise.seed = randi()
 	forest_noise.frequency = 0.12 # Tight clusters for thick forests
+	
+	# --- NEW: STONE NOISE ---
+	var stone_noise = FastNoiseLite.new()
+	stone_noise.seed = randi() + 1 
+	stone_noise.frequency = 0.06 # Lower frequency = massive, connected chunks
+	# ------------------------
 	
 	var terrain_map := {}
 
@@ -245,13 +255,15 @@ func generate_simple_map():
 				type = TERRAIN_WATER
 			elif elevation < 0.25:
 				type = TERRAIN_SAND
-			elif elevation < 0.7:
+			elif elevation < 0.45:
 				type = TERRAIN_GRASS # Large building area
 			else:
 				type = RES_STONE # High mountain ground
 			
 			terrain_map[grid_pos] = type
 
+	terrain_map = filter_small_clusters(terrain_map, RES_STONE, 10) # min 6 tiles to survive
+	
 	# 3. Apply Terrain to Tilemap
 	for pos in terrain_map:
 		var type = terrain_map[pos]
@@ -265,22 +277,65 @@ func generate_simple_map():
 			var pos = Vector2i(x, y)
 			var t_type = terrain_map[pos]
 			
-			# Get density noise for objects
-			var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
-			
 			# Thick Forests on Grass
 			if t_type == TERRAIN_GRASS:
+				# Get density noise for forests
+				var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
 				if d_val > 0.68: # Higher number = thicker, smaller groves
 					place_resource_at(pos, RES_TREE)
 			
-			# Concentrated Rock Veins on Mountains
+			# --- FIXED: Concentrated Rock Veins on Mountains ---
 			if t_type == RES_STONE:
-				if d_val > 0.55:
+				# Get density noise specifically for stone
+				var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
+				
+				# Lowering this threshold from 0.55 to 0.45 means MORE rocks will spawn,
+				# and the lower frequency means they will clump together in huge solid walls!
+				if s_val > 0.45:
 					place_resource_at(pos, RES_STONE)
+			# ---------------------------------------------------
 
 	clear_starting_zone()
-	print("Rise to Ruins map generated!")
+	print("map generated!")
 
+func filter_small_clusters(map: Dictionary, target_type: int, min_size: int) -> Dictionary:
+	var visited := {}
+	var to_remove := []
+	
+	for pos in map:
+		if map[pos] != target_type or visited.has(pos):
+			continue
+		
+		# Flood fill to find the whole cluster
+		var cluster := []
+		var queue := [pos]
+		
+		while queue.size() > 0:
+			var current = queue.pop_front()
+			if visited.has(current):
+				continue
+			visited[current] = true
+			cluster.append(current)
+			
+			# Check 4 neighbors
+			for neighbor in [
+				current + Vector2i(1, 0),
+				current + Vector2i(-1, 0),
+				current + Vector2i(0, 1),
+				current + Vector2i(0, -1)
+			]:
+				if map.get(neighbor, -1) == target_type and not visited.has(neighbor):
+					queue.append(neighbor)
+		
+		# If cluster is too small, mark all its tiles for removal
+		if cluster.size() < min_size:
+			to_remove.append_array(cluster)
+	
+	# Downgrade removed tiles to grass
+	for pos in to_remove:
+		map[pos] = TERRAIN_GRASS
+	
+	return map
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
