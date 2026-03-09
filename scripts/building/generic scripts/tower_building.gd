@@ -245,6 +245,17 @@ func _shoot():
 	attack_cooldown = 1.0 / fire_rate
 	var final_damage = ammo_data.damage * damage_multiplier
 	
+	# --- FIXED: EDGE SPAWN CALCULATION ---
+	var spawn_pos = global_position
+	
+	# Only offset if the target hasn't been deleted in the last millisecond
+	if is_instance_valid(current_target):
+		var direction_to_enemy = global_position.direction_to(current_target.global_position)
+		# Push the arrow out by half a tile (adjust this if your tower is wider!)
+		var spawn_radius = 16.0 
+		spawn_pos = global_position + (direction_to_enemy * spawn_radius)
+	# -------------------------------------
+	
 	for i in range(projectiles_per_shot):
 		var angle_offset = 0.0
 		if projectiles_per_shot > 1:
@@ -254,13 +265,21 @@ func _shoot():
 		
 		fired_projectile.emit(
 			self,
-			global_position, 
+			spawn_pos, # <--- Tell the Level to spawn it here!
 			current_target, 
 			ammo_data, 
 			final_damage, 
 			ammo_data.projectile_speed, 
 			angle_offset
 		)
+		
+	# --- JUICE: SQUISH RECOIL ---
+	if has_node("Sprite2D"):
+		var tween = create_tween()
+		# Instantly squish down and slightly wide
+		tween.tween_property($Sprite2D, "scale", Vector2(1.1, 0.9), 0.05)
+		# Smoothly pop back to normal
+		tween.tween_property($Sprite2D, "scale", Vector2(1.0, 1.0), 0.15)
 
 # --- UI ---
 func get_inventory_info() -> Dictionary:
