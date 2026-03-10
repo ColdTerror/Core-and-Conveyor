@@ -216,11 +216,11 @@ func generate_simple_map():
 	object_layer.clear()
 	active_grid_objects.clear()
 	
-	# 1. Setup Noises
+	# 1. Setup Base Noises
 	var land_noise = FastNoiseLite.new()
 	land_noise.seed = randi()
-	land_noise.frequency = 0.035 
 	land_noise.noise_type = FastNoiseLite.TYPE_PERLIN
+	land_noise.frequency = 0.035 # Default mainland frequency
 	
 	var forest_noise = FastNoiseLite.new()
 	forest_noise.seed = randi()
@@ -234,15 +234,26 @@ func generate_simple_map():
 	biome_noise.seed = randi() + 2
 	biome_noise.frequency = 0.015 
 	
-	# --- NEW: RIVER NOISE ---
 	var river_noise = FastNoiseLite.new()
 	river_noise.seed = randi() + 3
-	# Lower frequency creates 1 or 2 massive rivers instead of a web of creeks
 	river_noise.frequency = 0.006 
-	# ------------------------
 	
-	if current_map_type == MapGenType.LAKES:
-		land_noise.frequency = 0.05 # Lumpier land for more lakes
+	# --- NEW: MAP TYPE MODIFIERS ---
+	var water_level = 0.16
+	var sand_level = 0.20
+	
+	match current_map_type:
+		MapGenType.LAKES:
+			# Lumpier terrain creates lots of natural bowls and valleys
+			land_noise.frequency = 0.08 
+			# Raise the sea level so those valleys flood and become lakes
+			water_level = 0.24 
+			sand_level = 0.28
+		MapGenType.MAINLAND:
+			pass # Uses default values, but we will skip the river carving!
+		MapGenType.RIVER_DIVIDE:
+			pass # Uses default values
+	# -------------------------------
 	
 	var terrain_map := {}
 
@@ -260,24 +271,24 @@ func generate_simple_map():
 			var elevation = noise_val * falloff
 
 			var type = TERRAIN_WATER
-			if elevation < 0.16:
+			# Use the dynamic variables instead of hardcoded numbers!
+			if elevation < water_level:
 				type = TERRAIN_WATER
-			elif elevation < 0.20:
+			elif elevation < sand_level:
 				type = TERRAIN_SAND
 			else:
 				type = TERRAIN_GRASS 
 				
-				
+			# --- CARVE THE RIVER (Only if the map type allows it!) ---
 			if current_map_type == MapGenType.RIVER_DIVIDE:
-				# --- FIXED: CARVE THE RIVER THROUGH GRASS AND SAND ---
 				if type == TERRAIN_GRASS or type == TERRAIN_SAND:
 					var r_val = abs(river_noise.get_noise_2d(x, y))
 					
-					if r_val < 0.05: # Deep river water slices through everything
+					if r_val < 0.05: 
 						type = TERRAIN_WATER
-					elif r_val < 0.06: # Sandy riverbanks
+					elif r_val < 0.06: 
 						type = TERRAIN_SAND
-				# -----------------------------------------------------
+			# ---------------------------------------------------------
 			
 			terrain_map[grid_pos] = type
 
@@ -292,10 +303,7 @@ func generate_simple_map():
 		for y in range(MAP_HEIGHT):
 			var pos = Vector2i(x, y)
 			
-			# Because we carved the rivers above, trees and rocks will 
-			# AUTOMATICALLY refuse to spawn on the water or sandy banks!
 			if terrain_map[pos] == TERRAIN_GRASS:
-				
 				var biome_val = biome_noise.get_noise_2d(x, y)
 				
 				if biome_val > 0.15:
@@ -308,8 +316,7 @@ func generate_simple_map():
 					if d_val > 0.60: 
 						place_resource_at(pos, RES_TREE)
 
-	print("Map generated!")
-
+	print("Map generated: ", MapGenType.keys()[current_map_type])
 
 
 # ============================================================================
