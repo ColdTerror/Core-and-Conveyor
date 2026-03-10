@@ -211,6 +211,10 @@ func _draw():
 # MAP GENERATION - RISE TO RUINS STYLE
 # ============================================================================
 
+# ============================================================================
+# MAP GENERATION - RISE TO RUINS STYLE
+# ============================================================================
+
 func generate_simple_map():
 	terrain_layer.clear()
 	object_layer.clear()
@@ -219,18 +223,16 @@ func generate_simple_map():
 	# 1. Setup Noises
 	var land_noise = FastNoiseLite.new()
 	land_noise.seed = randi()
-	land_noise.frequency = 0.035 # Lower = Larger landmasses
+	land_noise.frequency = 0.035 
 	land_noise.noise_type = FastNoiseLite.TYPE_PERLIN
 	
 	var forest_noise = FastNoiseLite.new()
 	forest_noise.seed = randi()
-	forest_noise.frequency = 0.12 # Tight clusters for thick forests
+	forest_noise.frequency = 0.12 
 	
-	# --- NEW: STONE NOISE ---
 	var stone_noise = FastNoiseLite.new()
 	stone_noise.seed = randi() + 1 
-	stone_noise.frequency = 0.06 # Lower frequency = massive, connected chunks
-	# ------------------------
+	stone_noise.frequency = 0.06 
 	
 	var terrain_map := {}
 
@@ -239,103 +241,57 @@ func generate_simple_map():
 		for y in range(MAP_HEIGHT):
 			var grid_pos = Vector2i(x, y)
 			
-			# Circular Falloff (Ensures map is an island)
 			var nx = 2.0 * x / MAP_WIDTH - 1.0
 			var ny = 2.0 * y / MAP_HEIGHT - 1.0
 			var dist = sqrt(nx*nx + ny*ny)
 			var falloff = clamp(1.1 - dist * 1.3, 0.0, 1.0)
 			
-			# Get noise and combine with falloff
 			var noise_val = (land_noise.get_noise_2d(x, y) + 1.0) / 2.0
 			var elevation = noise_val * falloff
 
-			# Define "Steps" (Plateaus)
 			var type = TERRAIN_WATER
 			if elevation < 0.18:
 				type = TERRAIN_WATER
 			elif elevation < 0.25:
 				type = TERRAIN_SAND
-			elif elevation < 0.45:
-				type = TERRAIN_GRASS # Large building area
 			else:
-				type = RES_STONE # High mountain ground
+				# Everything else is just buildable grass now!
+				type = TERRAIN_GRASS 
 			
 			terrain_map[grid_pos] = type
 
-	terrain_map = filter_small_clusters(terrain_map, RES_STONE, 10) # min 6 tiles to survive
-	
 	# 3. Apply Terrain to Tilemap
 	for pos in terrain_map:
 		var type = terrain_map[pos]
-		# Note: We use RES_STONE for the mountain ground as well
 		var atlas_coords = Vector2i(type % ATLAS_COLUMNS, type / ATLAS_COLUMNS)
 		terrain_layer.set_cell(pos, 0, atlas_coords)
 
-	# 4. Step Two: Clumped Resources
+	# 4. Step Two: Clumped Resources (Objects on Grass)
 	for x in range(MAP_WIDTH):
 		for y in range(MAP_HEIGHT):
 			var pos = Vector2i(x, y)
-			var t_type = terrain_map[pos]
 			
-			# Thick Forests on Grass
-			if t_type == TERRAIN_GRASS:
-				# Get density noise for forests
-				var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
-				if d_val > 0.68: # Higher number = thicker, smaller groves
-					place_resource_at(pos, RES_TREE)
-			
-			# --- FIXED: Concentrated Rock Veins on Mountains ---
-			if t_type == RES_STONE:
-				# Get density noise specifically for stone
+			if terrain_map[pos] == TERRAIN_GRASS:
+				# 1st Priority: Try to place Stone Veins
 				var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
 				
-				# Lowering this threshold from 0.55 to 0.45 means MORE rocks will spawn,
-				# and the lower frequency means they will clump together in huge solid walls!
-				if s_val > 0.45:
+				# Increase this to ~0.7 to make the stone veins smaller/tighter,
+				# or lower it to ~0.5 to make massive spanning rock walls.
+				if s_val > 0.65: 
 					place_resource_at(pos, RES_STONE)
-			# ---------------------------------------------------
+					continue # If we placed a rock, skip to the next tile!
+					
+				# 2nd Priority: Try to place Forests
+				var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
+				if d_val > 0.68: 
+					place_resource_at(pos, RES_TREE)
 
-	clear_starting_zone()
-	print("map generated!")
+	#clear_starting_zone()
+	print("Map generated!")
 
-func filter_small_clusters(map: Dictionary, target_type: int, min_size: int) -> Dictionary:
-	var visited := {}
-	var to_remove := []
-	
-	for pos in map:
-		if map[pos] != target_type or visited.has(pos):
-			continue
-		
-		# Flood fill to find the whole cluster
-		var cluster := []
-		var queue := [pos]
-		
-		while queue.size() > 0:
-			var current = queue.pop_front()
-			if visited.has(current):
-				continue
-			visited[current] = true
-			cluster.append(current)
-			
-			# Check 4 neighbors
-			for neighbor in [
-				current + Vector2i(1, 0),
-				current + Vector2i(-1, 0),
-				current + Vector2i(0, 1),
-				current + Vector2i(0, -1)
-			]:
-				if map.get(neighbor, -1) == target_type and not visited.has(neighbor):
-					queue.append(neighbor)
-		
-		# If cluster is too small, mark all its tiles for removal
-		if cluster.size() < min_size:
-			to_remove.append_array(cluster)
-	
-	# Downgrade removed tiles to grass
-	for pos in to_remove:
-		map[pos] = TERRAIN_GRASS
-	
-	return map
+
+
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
