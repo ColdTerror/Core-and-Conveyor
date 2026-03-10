@@ -19,8 +19,8 @@ var current_mode = InteractionMode.NONE
 
 const ATLAS_COLUMNS := 3
 const TILE_COUNT := 10
-const MAP_WIDTH := 100
-const MAP_HEIGHT := 100
+const MAP_WIDTH := 200
+const MAP_HEIGHT := 200
 
 # Terrain indices based on your library
 const TERRAIN_GRASS := 0
@@ -207,14 +207,6 @@ func _draw():
 # MAP GENERATION - RISE TO RUINS STYLE
 # ============================================================================
 
-# ============================================================================
-# MAP GENERATION - RISE TO RUINS STYLE
-# ============================================================================
-
-# ============================================================================
-# MAP GENERATION - RISE TO RUINS STYLE
-# ============================================================================
-
 func generate_simple_map():
 	terrain_layer.clear()
 	object_layer.clear()
@@ -233,6 +225,12 @@ func generate_simple_map():
 	var stone_noise = FastNoiseLite.new()
 	stone_noise.seed = randi() + 1 
 	stone_noise.frequency = 0.06 
+
+	# --- NEW: BIOME DIVIDER ---
+	var biome_noise = FastNoiseLite.new()
+	biome_noise.seed = randi() + 2
+	biome_noise.frequency = 0.015 # Extremely low frequency creates massive, continent-sized zones
+	# --------------------------
 	
 	var terrain_map := {}
 
@@ -272,19 +270,24 @@ func generate_simple_map():
 			var pos = Vector2i(x, y)
 			
 			if terrain_map[pos] == TERRAIN_GRASS:
-				# 1st Priority: Try to place Stone Veins
-				var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
 				
-				# Increase this to ~0.7 to make the stone veins smaller/tighter,
-				# or lower it to ~0.5 to make massive spanning rock walls.
-				if s_val > 0.65: 
-					place_resource_at(pos, RES_STONE)
-					continue # If we placed a rock, skip to the next tile!
-					
-				# 2nd Priority: Try to place Forests
-				var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
-				if d_val > 0.68: 
-					place_resource_at(pos, RES_TREE)
+				# 1. Ask the Biome Noise where we are (-1.0 to 1.0)
+				var biome_val = biome_noise.get_noise_2d(x, y)
+				
+				# --- THE MOUNTAIN BIOME ---
+				if biome_val > 0.15:
+					var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
+					if s_val > 0.45: # Very forgiving threshold for massive rock walls
+						place_resource_at(pos, RES_STONE)
+						
+				# --- THE FOREST BIOME ---
+				elif biome_val < -0.15:
+					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
+					if d_val > 0.50: # Tighter threshold for clusters of trees
+						place_resource_at(pos, RES_TREE)
+						
+				# Note: Any biome_val between -0.15 and 0.15 is ignored.
+				# This creates a natural, empty grassy "No Man's Land" border between forests and mountains!
 
 	#clear_starting_zone()
 	print("Map generated!")
