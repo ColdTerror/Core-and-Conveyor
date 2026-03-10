@@ -12,6 +12,9 @@ extends Node2D
 enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT}
 var current_mode = InteractionMode.NONE
 
+enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
+@export var current_map_type: MapGenType = MapGenType.RIVER_DIVIDE
+
 
 @export var tile_size_px: Vector2 = Vector2(32, 32)
 
@@ -238,6 +241,9 @@ func generate_simple_map():
 	river_noise.frequency = 0.006 
 	# ------------------------
 	
+	if current_map_type == MapGenType.LAKES:
+		land_noise.frequency = 0.05 # Lumpier land for more lakes
+	
 	var terrain_map := {}
 
 	# 2. Step One: Create the Island, Plateaus, and Rivers
@@ -261,15 +267,17 @@ func generate_simple_map():
 			else:
 				type = TERRAIN_GRASS 
 				
-			# --- FIXED: CARVE THE RIVER THROUGH GRASS AND SAND ---
-			if type == TERRAIN_GRASS or type == TERRAIN_SAND:
-				var r_val = abs(river_noise.get_noise_2d(x, y))
 				
-				if r_val < 0.05: # Deep river water slices through everything
-					type = TERRAIN_WATER
-				elif r_val < 0.06: # Sandy riverbanks
-					type = TERRAIN_SAND
-			# -----------------------------------------------------
+			if current_map_type == MapGenType.RIVER_DIVIDE:
+				# --- FIXED: CARVE THE RIVER THROUGH GRASS AND SAND ---
+				if type == TERRAIN_GRASS or type == TERRAIN_SAND:
+					var r_val = abs(river_noise.get_noise_2d(x, y))
+					
+					if r_val < 0.05: # Deep river water slices through everything
+						type = TERRAIN_WATER
+					elif r_val < 0.06: # Sandy riverbanks
+						type = TERRAIN_SAND
+				# -----------------------------------------------------
 			
 			terrain_map[grid_pos] = type
 

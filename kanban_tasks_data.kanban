@@ -12,7 +12,8 @@
 			"title": "Todo",
 			"tasks": [
 				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"acdae315-e721-4141-b794-ad3b96f202e1"
 			]
 		},
 		{
@@ -192,6 +193,13 @@
 			"uuid": "d9d6b4ff-91c5-4607-8342-624e66e8bdad",
 			"title": "natural disasters",
 			"description": "have buildings to promote disasters and stop them\n\n\nearthquakes for replenishing stone - drilling rig to incite quakes for more rocks\nacid rain to force mainaince\nfog that stops estimated enemies or make towers miss more?\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "acdae315-e721-4141-b794-ad3b96f202e1",
+			"title": "different map types",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
