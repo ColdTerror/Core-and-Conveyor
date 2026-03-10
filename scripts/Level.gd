@@ -203,6 +203,7 @@ func _draw():
 		# 5. Draw a crisp, solid red border (color, filled = false, line_width = 2.0)
 		draw_rect(rect, Color(1.0, 0.2, 0.2, 0.8), false, 2.0)
 
+
 # ============================================================================
 # MAP GENERATION - RISE TO RUINS STYLE
 # ============================================================================
@@ -225,16 +226,21 @@ func generate_simple_map():
 	var stone_noise = FastNoiseLite.new()
 	stone_noise.seed = randi() + 1 
 	stone_noise.frequency = 0.06 
-
-	# --- NEW: BIOME DIVIDER ---
+	
 	var biome_noise = FastNoiseLite.new()
 	biome_noise.seed = randi() + 2
-	biome_noise.frequency = 0.015 # Extremely low frequency creates massive, continent-sized zones
-	# --------------------------
+	biome_noise.frequency = 0.015 
+	
+	# --- NEW: RIVER NOISE ---
+	var river_noise = FastNoiseLite.new()
+	river_noise.seed = randi() + 3
+	# Lower frequency creates 1 or 2 massive rivers instead of a web of creeks
+	river_noise.frequency = 0.006 
+	# ------------------------
 	
 	var terrain_map := {}
 
-	# 2. Step One: Create the Island and Plateaus
+	# 2. Step One: Create the Island, Plateaus, and Rivers
 	for x in range(MAP_WIDTH):
 		for y in range(MAP_HEIGHT):
 			var grid_pos = Vector2i(x, y)
@@ -248,13 +254,22 @@ func generate_simple_map():
 			var elevation = noise_val * falloff
 
 			var type = TERRAIN_WATER
-			if elevation < 0.18:
+			if elevation < 0.16:
 				type = TERRAIN_WATER
-			elif elevation < 0.25:
+			elif elevation < 0.20:
 				type = TERRAIN_SAND
 			else:
-				# Everything else is just buildable grass now!
 				type = TERRAIN_GRASS 
+				
+			# --- FIXED: CARVE THE RIVER THROUGH GRASS AND SAND ---
+			if type == TERRAIN_GRASS or type == TERRAIN_SAND:
+				var r_val = abs(river_noise.get_noise_2d(x, y))
+				
+				if r_val < 0.05: # Deep river water slices through everything
+					type = TERRAIN_WATER
+				elif r_val < 0.06: # Sandy riverbanks
+					type = TERRAIN_SAND
+			# -----------------------------------------------------
 			
 			terrain_map[grid_pos] = type
 
@@ -269,29 +284,23 @@ func generate_simple_map():
 		for y in range(MAP_HEIGHT):
 			var pos = Vector2i(x, y)
 			
+			# Because we carved the rivers above, trees and rocks will 
+			# AUTOMATICALLY refuse to spawn on the water or sandy banks!
 			if terrain_map[pos] == TERRAIN_GRASS:
 				
-				# 1. Ask the Biome Noise where we are (-1.0 to 1.0)
 				var biome_val = biome_noise.get_noise_2d(x, y)
 				
-				# --- THE MOUNTAIN BIOME ---
 				if biome_val > 0.15:
 					var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if s_val > 0.45: # Very forgiving threshold for massive rock walls
+					if s_val > 0.55: 
 						place_resource_at(pos, RES_STONE)
 						
-				# --- THE FOREST BIOME ---
 				elif biome_val < -0.15:
 					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if d_val > 0.50: # Tighter threshold for clusters of trees
+					if d_val > 0.60: 
 						place_resource_at(pos, RES_TREE)
-						
-				# Note: Any biome_val between -0.15 and 0.15 is ignored.
-				# This creates a natural, empty grassy "No Man's Land" border between forests and mountains!
 
-	#clear_starting_zone()
 	print("Map generated!")
-
 
 
 
@@ -312,22 +321,6 @@ func place_resource_at(grid_pos: Vector2i, resource_index: int):
 		"health": data.total_resources,
 		"data": data
 	}
-
-func clear_starting_zone():
-	var center = Vector2i(MAP_WIDTH / 2, MAP_HEIGHT / 2)
-	var radius = 5
-	
-	for x in range(center.x - radius, center.x + radius):
-		for y in range(center.y - radius, center.y + radius):
-			var pos = Vector2i(x, y)
-			if center.distance_to(pos) < radius:
-				# Ensure ground is grass
-				terrain_layer.set_cell(pos, 0, Vector2i(0,0)) 
-				# Remove trees/rocks
-				object_layer.set_cell(pos, -1)
-				active_grid_objects.erase(pos)
-
-# --- Keep your existing UI/Interaction logic below ---
 
 
 
