@@ -27,27 +27,6 @@ var show_range_overlay := false:
 
 const TILE_SIZE = 32
 
-# Implement Consumption Logic
-func consume_resources(remaining_bill: Dictionary):
-	if not target_resource or not target_resource.item_drop: return
-	
-	var res_name = target_resource.item_drop.display_name
-	
-	if remaining_bill.has(res_name):
-		var amount_needed = remaining_bill[res_name]
-		var amount_we_have = stored_amount
-		
-		var amount_to_take = min(amount_needed, amount_we_have)
-		
-		# A. Remove from Internal Buffer
-		stored_amount -= amount_to_take
-		
-		# B. Update the Bill
-		remaining_bill[res_name] -= amount_to_take
-		if remaining_bill[res_name] <= 0:
-			remaining_bill.erase(res_name)
-			
-		inventory_changed.emit()
 
 # --- SETUP ---
 func setup(level_instance: Node2D):
@@ -221,14 +200,7 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 
 # =================================================================
 
-# =================================================================
-# ECONOMY ASSETS (Called when destroyed)
-# =================================================================
-func get_economy_assets() -> Dictionary:
-	var assets = {}
-	if target_resource and target_resource.item_drop and stored_amount > 0:
-		assets[target_resource.item_drop.display_name] = stored_amount
-	return assets
+
 
 
 func get_inventory_info() -> Dictionary:

@@ -143,44 +143,7 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 		new_item_node.queue_free()
 		return false 
 
-# =================================================================
-# NEW: CONSUMPTION LOGIC (Allows spending from Processor buffers)
-# =================================================================
-func consume_resources(remaining_bill: Dictionary):
-	if not active_recipe: return
-	
-	# Try to pay using Inputs
-	for item in input_inventory.keys():
-		var in_name = item.display_name
-		if remaining_bill.has(in_name):
-			var take = min(remaining_bill[in_name], input_inventory[item])
-			input_inventory[item] -= take
-			remaining_bill[in_name] -= take
-			if remaining_bill[in_name] <= 0: remaining_bill.erase(in_name)
-			
-	# Try to pay using Outputs
-	var out_name = active_recipe.output_item.display_name
-	if remaining_bill.has(out_name):
-		var take = min(remaining_bill[out_name], output_inventory)
-		output_inventory -= take
-		remaining_bill[out_name] -= take
-		if remaining_bill[out_name] <= 0: remaining_bill.erase(out_name)
-			
-	inventory_changed.emit()
 
-func get_economy_assets() -> Dictionary:
-	var assets = {}
-	if active_recipe:
-		for item in input_inventory.keys():
-			if input_inventory[item] > 0:
-				var amount = assets.get(item.display_name, 0)
-				assets[item.display_name] = amount + input_inventory[item]
-				
-		if output_inventory > 0:
-			var amount = assets.get(active_recipe.output_item.display_name, 0)
-			assets[active_recipe.output_item.display_name] = amount + output_inventory
-	return assets
-# =================================================================
 
 # --- UI HELPERS ---
 func get_inventory_info() -> Dictionary:
