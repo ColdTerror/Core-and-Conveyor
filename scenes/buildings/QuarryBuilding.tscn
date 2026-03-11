@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://datlui80eimn3"]
+
+[ext_resource type="Script" uid="uid://f7k820tvfbd6" path="res://scripts/building/generic scripts/harvester_building.gd" id="1_fgkgn"]
+[ext_resource type="Resource" uid="uid://reqe4t0u3m16" path="res://resources/tiles/4_Stone.tres" id="2_im1p0"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_ush8g"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="2_wcq7w"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wcq7w"]
+size = Vector2(128, 128)
+
+[node name="QuarryBuilding" type="Node2D" unique_id=1049048299 groups=["Structure"]]
+script = ExtResource("1_fgkgn")
+target_resource = ExtResource("2_im1p0")
+generic_item_scene = ExtResource("2_wcq7w")
+building_name = "Quarry"
+size = Vector2i(4, 4)
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
+modulate = Color(0.32172796, 0.32172796, 0.32172796, 1)
+self_modulate = Color(0.3328805, 0.33288077, 0.33288056, 1)
+texture = ExtResource("2_ush8g")
+region_enabled = true
+region_rect = Rect2(128, 0, 128, 128)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1711452867]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=603564727]
+shape = SubResource("RectangleShape2D_wcq7w")
+
+[node name="Line2D" type="Line2D" parent="." unique_id=846815626]
+width = 2.0
+default_color = Color(0.8211179, 0, 0.4125038, 1)

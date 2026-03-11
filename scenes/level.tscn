@@ -8,17 +8,13 @@
 [ext_resource type="Resource" uid="uid://bmhgfl07ob50b" path="res://resources/tiles/2_Sand.tres" id="5_64w2a"]
 [ext_resource type="Resource" uid="uid://cwk72joli5ujg" path="res://resources/tiles/3_Forest.tres" id="6_fpun6"]
 [ext_resource type="Resource" uid="uid://reqe4t0u3m16" path="res://resources/tiles/4_Stone.tres" id="7_wc255"]
-[ext_resource type="Resource" uid="uid://bfnvkjk4j5msp" path="res://resources/tiles/5_Buiding.tres" id="8_arp2o"]
 [ext_resource type="Script" uid="uid://c800uxnceihnq" path="res://scripts/camera_controller.gd" id="9_8iemx"]
-[ext_resource type="Resource" uid="uid://ib2rubjj10i2" path="res://resources/tiles/6_Conveyer_Right.tres" id="9_wc255"]
-[ext_resource type="Resource" uid="uid://bwxxvg7jiksgl" path="res://resources/tiles/7_Conveyer_Up.tres" id="10_arp2o"]
-[ext_resource type="Resource" uid="uid://ijwrlheyckd8" path="res://resources/tiles/8_Conveyer_Left.tres" id="11_ux5qa"]
-[ext_resource type="Resource" uid="uid://dhst2ng5e26ob" path="res://resources/tiles/9_Conveyer_Down.tres" id="12_82cfe"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="13_arp2o"]
 [ext_resource type="PackedScene" uid="uid://cs65262rv84b4" path="res://scenes/buildings/stockpile_building.tscn" id="14_ux5qa"]
 [ext_resource type="PackedScene" uid="uid://dupuw0x1fcxf2" path="res://scenes/buildings/lumberjack_building.tscn" id="15_8gofh"]
 [ext_resource type="Script" uid="uid://y8ifotnqs7ch" path="res://scripts/building/building_manager.gd" id="15_gunhw"]
 [ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/buildings/sawmill_building.tscn" id="16_pqd0y"]
+[ext_resource type="PackedScene" uid="uid://datlui80eimn3" path="res://scenes/buildings/QuarryBuilding.tscn" id="17_w3o6u"]
 [ext_resource type="PackedScene" uid="uid://u8dr3txp3net" path="res://scenes/buildings/towers/bow_tower.tscn" id="17_xy2fk"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/building_hover_popup.tscn" id="18_82cfe"]
 [ext_resource type="PackedScene" uid="uid://cg13cd0e8r5ne" path="res://scenes/buildings/towers/projectile.tscn" id="18_cmcjb"]
@@ -39,7 +35,7 @@
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
 current_map_type = 2
-tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_arp2o"), ExtResource("9_wc255"), ExtResource("10_arp2o"), ExtResource("11_ux5qa"), ExtResource("12_82cfe")])
+tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255")])
 item_scene = ExtResource("13_arp2o")
 stockpile_scene = ExtResource("14_ux5qa")
 lumberjack_scene = ExtResource("15_8gofh")
@@ -49,6 +45,7 @@ wall_scene = ExtResource("18_kih21")
 conveyor_scene = ExtResource("19_gur6y")
 router_scene = ExtResource("20_2e2fo")
 core_scene = ExtResource("21_gur6y")
+quarry_scene = ExtResource("17_w3o6u")
 projectile_scene = ExtResource("18_cmcjb")
 
 [node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "time_manager", "enemy_popup") instance=ExtResource("32_2e2fo")]

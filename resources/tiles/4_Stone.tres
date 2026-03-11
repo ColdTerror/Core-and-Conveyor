@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="TileDataResource" format=3 uid="uid://reqe4t0u3m16"]
 
+[ext_resource type="Resource" uid="uid://b2175t1sagf73" path="res://resources/items/raw_resources/stone.tres" id="1_p53t5"]
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="1_yf2e0"]
 
 [resource]
@@ -9,4 +10,5 @@ is_object = true
 atlas_coords_full = Vector2i(1, 1)
 atlas_coords_depleted = Vector2i(1, 1)
 atlas_coords_harvesting = Vector2i(1, 1)
+item_drop = ExtResource("1_p53t5")
 metadata/_custom_type_script = "uid://dnsharo0i5t5i"

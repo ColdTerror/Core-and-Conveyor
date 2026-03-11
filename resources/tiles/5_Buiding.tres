@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="TileDataResource" load_steps=2 format=3 uid="uid://bfnvkjk4j5msp"]
-
-[ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="1_j0qcp"]
-
-[resource]
-script = ExtResource("1_j0qcp")
-display_name = "Building"
-is_object = true
-metadata/_custom_type_script = "uid://dnsharo0i5t5i"
