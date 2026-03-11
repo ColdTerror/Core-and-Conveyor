@@ -7,7 +7,9 @@
 [resource]
 script = ExtResource("3_7x0fj")
 recipe_name = "Wooden Arrow"
-input_item = ExtResource("1_tp8wn")
+inputs = {
+ExtResource("1_tp8wn"): 2
+}
 output_item = ExtResource("2_tp8wn")
 output_count = 5
 metadata/_custom_type_script = "uid://cklg1indprsb3"

@@ -14,7 +14,8 @@ var active_recipe: RecipeResource:
 		return null
 
 # Buffers
-var input_inventory: int = 0
+# CHANGED: Input inventory is now a Dictionary mapping ItemResource -> amount
+var input_inventory: Dictionary = {} 
 var output_inventory: int = 0
 @export var buffer_capacity: int = 10 
 
@@ -23,8 +24,7 @@ var work_timer: float = 0.0
 var is_working: bool = false
 var level_ref: Node2D
 
-signal processing_tick(progress_ratio)
-
+#signal processing_tick(progress_ratio)
 
 # --- SETUP ---
 func setup(level_instance: Node2D):
@@ -36,17 +36,21 @@ func accepts_item_at(_tile: Vector2i) -> bool:
 
 func can_accept_item(item: ItemResource) -> bool:
 	if not active_recipe: return false
-	if item != active_recipe.input_item: return false
-	if input_inventory >= buffer_capacity: return false
+	
+	# 1. Does the recipe actually use this item?
+	if not active_recipe.inputs.has(item): return false 
+	
+	# 2. Is the buffer full for this specific item?
+	var current_stored = input_inventory.get(item, 0)
+	if current_stored >= buffer_capacity: return false
+	
 	return true
 
 func accept_item(item: ItemResource) -> bool:
 	if not can_accept_item(item): return false
 	
-	input_inventory += 1
-	
-	
-	
+	# Add the item to the dictionary, defaulting to 0 if it wasn't there yet
+	input_inventory[item] = input_inventory.get(item, 0) + 1
 	inventory_changed.emit() 
 	return true
 
@@ -64,15 +68,24 @@ func building_tick(delta: float) -> void:
 
 func _check_can_start_work():
 	if not active_recipe: return
+	if output_inventory + active_recipe.output_count > buffer_capacity: return
 
-	if input_inventory >= active_recipe.input_count and (output_inventory + active_recipe.output_count) <= buffer_capacity:
-		input_inventory -= active_recipe.input_count
+	# 1. Check if we have enough of EVERY required item
+	for req_item in active_recipe.inputs:
+		var req_amount = active_recipe.inputs[req_item]
+		var stored_amount = input_inventory.get(req_item, 0)
 		
-		
-		
-		inventory_changed.emit()
-		is_working = true
-		work_timer = active_recipe.craft_time
+		if stored_amount < req_amount:
+			return # Missing an ingredient! Abort!
+
+	# 2. If we made it here, we have everything! Deduct them all.
+	for req_item in active_recipe.inputs:
+		var req_amount = active_recipe.inputs[req_item]
+		input_inventory[req_item] -= req_amount
+
+	inventory_changed.emit()
+	is_working = true
+	work_timer = active_recipe.craft_time
 
 func _process_work(delta: float):
 	if not active_recipe: return
@@ -86,8 +99,6 @@ func _finish_work():
 
 	is_working = false
 	output_inventory += active_recipe.output_count
-	
-	
 	
 	inventory_changed.emit()
 	_check_can_start_work()
@@ -126,9 +137,6 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 	
 	if conveyor.accept_item_node(new_item_node):
 		output_inventory -= 1
-		
-		
-		
 		inventory_changed.emit()
 		return true 
 	else:
@@ -142,12 +150,13 @@ func consume_resources(remaining_bill: Dictionary):
 	if not active_recipe: return
 	
 	# Try to pay using Inputs
-	var in_name = active_recipe.input_item.display_name
-	if remaining_bill.has(in_name):
-		var take = min(remaining_bill[in_name], input_inventory)
-		input_inventory -= take
-		remaining_bill[in_name] -= take
-		if remaining_bill[in_name] <= 0: remaining_bill.erase(in_name)
+	for item in input_inventory.keys():
+		var in_name = item.display_name
+		if remaining_bill.has(in_name):
+			var take = min(remaining_bill[in_name], input_inventory[item])
+			input_inventory[item] -= take
+			remaining_bill[in_name] -= take
+			if remaining_bill[in_name] <= 0: remaining_bill.erase(in_name)
 			
 	# Try to pay using Outputs
 	var out_name = active_recipe.output_item.display_name
@@ -162,10 +171,14 @@ func consume_resources(remaining_bill: Dictionary):
 func get_economy_assets() -> Dictionary:
 	var assets = {}
 	if active_recipe:
-		if input_inventory > 0:
-			assets[active_recipe.input_item.display_name] = input_inventory
+		for item in input_inventory.keys():
+			if input_inventory[item] > 0:
+				var amount = assets.get(item.display_name, 0)
+				assets[item.display_name] = amount + input_inventory[item]
+				
 		if output_inventory > 0:
-			assets[active_recipe.output_item.display_name] = output_inventory
+			var amount = assets.get(active_recipe.output_item.display_name, 0)
+			assets[active_recipe.output_item.display_name] = amount + output_inventory
 	return assets
 # =================================================================
 
@@ -175,8 +188,10 @@ func get_inventory_info() -> Dictionary:
 	if active_recipe:
 		info["Recipe"] = active_recipe.recipe_name 
 		
-		if input_inventory > 0:
-			info[active_recipe.input_item.display_name] = input_inventory
+		for item in input_inventory.keys():
+			if input_inventory[item] > 0:
+				info[item.display_name] = input_inventory[item]
+				
 		if output_inventory > 0:
 			info[active_recipe.output_item.display_name] = output_inventory
 	else:
@@ -192,13 +207,11 @@ func get_progress_ratio() -> float:
 func cycle_recipe():
 	if recipes.size() <= 1: return
 	
-	if is_working or input_inventory > 0 or output_inventory > 0:
-		
-		input_inventory = 0
+	if is_working or not input_inventory.is_empty() or output_inventory > 0:
+		input_inventory.clear()
 		output_inventory = 0
 		is_working = false
 
 	current_recipe_index = (current_recipe_index + 1) % recipes.size()
 	print("Switched to recipe: " + active_recipe.recipe_name)
 	inventory_changed.emit()
-	

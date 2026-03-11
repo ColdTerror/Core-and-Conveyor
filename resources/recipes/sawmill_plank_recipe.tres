@@ -7,6 +7,8 @@
 [resource]
 script = ExtResource("3_itvia")
 recipe_name = "Plank Recipe"
-input_item = ExtResource("1_m61lq")
+inputs = {
+ExtResource("1_m61lq"): 1
+}
 output_item = ExtResource("2_defpu")
 metadata/_custom_type_script = "uid://cklg1indprsb3"

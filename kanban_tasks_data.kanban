@@ -13,7 +13,7 @@
 			"tasks": [
 				"d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"acdae315-e721-4141-b794-ad3b96f202e1"
+				"a0960755-8d63-4f2c-8eb1-af92af6d8ab3"
 			]
 		},
 		{
@@ -32,6 +32,7 @@
 				"1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52",
 				"85294240-9fd3-47c9-bbff-a341c846a480",
 				"81929686-bad2-4264-875d-86979a42d8a7",
+				"acdae315-e721-4141-b794-ad3b96f202e1",
 				"02c305a5-9bc2-46bd-bb0d-77e2b3a33307",
 				"7775f979-6eae-432b-80a9-9048d818a35a",
 				"e400713b-8f41-4cd0-9197-a3013d1de847",
@@ -199,6 +200,13 @@
 		{
 			"uuid": "acdae315-e721-4141-b794-ad3b96f202e1",
 			"title": "different map types",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a0960755-8d63-4f2c-8eb1-af92af6d8ab3",
+			"title": "when rocks are harvested the space isnt freed",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
