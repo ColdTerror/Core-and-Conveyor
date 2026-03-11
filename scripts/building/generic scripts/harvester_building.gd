@@ -27,11 +27,7 @@ var show_range_overlay := false:
 
 const TILE_SIZE = 32
 
-
-
-
-
-# 3. Implement Consumption Logic
+# Implement Consumption Logic
 func consume_resources(remaining_bill: Dictionary):
 	if not target_resource or not target_resource.item_drop: return
 	
@@ -236,8 +232,10 @@ func get_economy_assets() -> Dictionary:
 
 
 func get_inventory_info() -> Dictionary:
-	if target_resource and stored_amount > 0:
-		return { target_resource: stored_amount }
+	# Make sure the tile actually has an item_drop assigned
+	if target_resource and target_resource.item_drop and stored_amount > 0:
+		# Hand the UI the item_drop instead of the target_resource!
+		return { target_resource.item_drop: stored_amount } 
 	return {}
 	
 	

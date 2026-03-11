@@ -119,11 +119,11 @@ func show_inventory(inventory: Dictionary):
 	var is_buffer = false
 	var max_cap = 0
 	
-	# Duck-typing: If the building has a 'max_capacity' variable, we assume 
+	# Duck-typing: If the building has a 'buffer_capacity' variable, we assume 
 	# it is a Harvester or Processor holding unsecured items.
-	if "max_capacity" in current_building:
+	if "buffer_capacity" in current_building:
 		is_buffer = true
-		max_cap = current_building.max_capacity
+		max_cap = current_building.buffer_capacity
 
 	# --- 2. Populate rows ---
 	for key in inventory.keys():

@@ -16,7 +16,7 @@ var active_recipe: RecipeResource:
 # Buffers
 var input_inventory: int = 0
 var output_inventory: int = 0
-@export var buffer_limit: int = 10 
+@export var buffer_capacity: int = 10 
 
 # State
 var work_timer: float = 0.0
@@ -37,7 +37,7 @@ func accepts_item_at(_tile: Vector2i) -> bool:
 func can_accept_item(item: ItemResource) -> bool:
 	if not active_recipe: return false
 	if item != active_recipe.input_item: return false
-	if input_inventory >= buffer_limit: return false
+	if input_inventory >= buffer_capacity: return false
 	return true
 
 func accept_item(item: ItemResource) -> bool:
@@ -65,7 +65,7 @@ func building_tick(delta: float) -> void:
 func _check_can_start_work():
 	if not active_recipe: return
 
-	if input_inventory >= active_recipe.input_count and (output_inventory + active_recipe.output_count) <= buffer_limit:
+	if input_inventory >= active_recipe.input_count and (output_inventory + active_recipe.output_count) <= buffer_capacity:
 		input_inventory -= active_recipe.input_count
 		
 		
