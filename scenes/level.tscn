@@ -18,8 +18,10 @@
 [ext_resource type="PackedScene" uid="uid://u8dr3txp3net" path="res://scenes/buildings/towers/bow_tower.tscn" id="17_xy2fk"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/building_hover_popup.tscn" id="18_82cfe"]
 [ext_resource type="PackedScene" uid="uid://cg13cd0e8r5ne" path="res://scenes/buildings/towers/projectile.tscn" id="18_cmcjb"]
+[ext_resource type="PackedScene" uid="uid://do66a1tmnwe8j" path="res://scenes/buildings/stonemason_building.tscn" id="18_gur6y"]
 [ext_resource type="PackedScene" uid="uid://c0fjlwuepy3iy" path="res://scenes/buildings/wall.tscn" id="18_kih21"]
 [ext_resource type="PackedScene" uid="uid://dtgqlytnlxmmy" path="res://scenes/buildings/conveyer.tscn" id="19_gur6y"]
+[ext_resource type="PackedScene" uid="uid://4cbh1hhyn6y" path="res://scenes/buildings/fletcher_building.tscn" id="19_v3why"]
 [ext_resource type="PackedScene" uid="uid://bscvnmiqn3de6" path="res://scenes/buildings/router_building.tscn" id="20_2e2fo"]
 [ext_resource type="PackedScene" uid="uid://dstw12awamhw8" path="res://scenes/buildings/core_building.tscn" id="21_gur6y"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
@@ -34,7 +36,6 @@
 
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
-current_map_type = 2
 tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255")])
 item_scene = ExtResource("13_arp2o")
 stockpile_scene = ExtResource("14_ux5qa")
@@ -46,6 +47,8 @@ conveyor_scene = ExtResource("19_gur6y")
 router_scene = ExtResource("20_2e2fo")
 core_scene = ExtResource("21_gur6y")
 quarry_scene = ExtResource("17_w3o6u")
+stonemason_scene = ExtResource("18_gur6y")
+fletcher_scene = ExtResource("19_v3why")
 projectile_scene = ExtResource("18_cmcjb")
 
 [node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "time_manager", "enemy_popup") instance=ExtResource("32_2e2fo")]
@@ -99,6 +102,7 @@ script = ExtResource("29_7agi7")
 [node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
+real_minutes_per_day = 1.0
 
 [node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
 color = Color(1, 1, 1, 0)

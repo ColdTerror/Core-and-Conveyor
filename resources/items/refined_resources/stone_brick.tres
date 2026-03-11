@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://cu1uqdh4jf60j"]
+
+[ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_3f20w"]
+[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_sxn6b"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mxpat"]
+atlas = ExtResource("2_sxn6b")
+region = Rect2(48, 0, 32, 32)
+
+[resource]
+script = ExtResource("1_3f20w")
+display_name = "Stone Brick"
+texture = SubResource("AtlasTexture_mxpat")
+description = "Refined Stone"
+metadata/_custom_type_script = "uid://c1ggtlkymktgi"

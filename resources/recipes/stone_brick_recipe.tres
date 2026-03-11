@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RecipeResource" format=3 uid="uid://dqw16gvtd7erw"]
+
+[ext_resource type="Resource" uid="uid://b2175t1sagf73" path="res://resources/items/raw_resources/stone.tres" id="1_3glfa"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="1_e5ee3"]
+[ext_resource type="Resource" uid="uid://cu1uqdh4jf60j" path="res://resources/items/refined_resources/stone_brick.tres" id="2_5nal8"]
+
+[resource]
+script = ExtResource("1_e5ee3")
+recipe_name = "Stone Brick"
+inputs = {
+ExtResource("1_3glfa"): 1
+}
+output_item = ExtResource("2_5nal8")
+metadata/_custom_type_script = "uid://cklg1indprsb3"

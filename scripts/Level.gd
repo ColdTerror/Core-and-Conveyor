@@ -47,6 +47,9 @@ var active_grid_objects := {}
 @export var router_scene: PackedScene 
 @export var core_scene: PackedScene 
 @export var quarry_scene: PackedScene
+@export var stonemason_scene: PackedScene
+@export var fletcher_scene: PackedScene
+
 
 # ------------------
 
@@ -101,6 +104,9 @@ func _setup_hotbar_items():
 	_add_building_to_bar("Wall", wall_scene)
 	_add_building_to_bar("Core", core_scene)
 	_add_building_to_bar("Quarry", quarry_scene)
+	_add_building_to_bar("Stonemason", stonemason_scene)
+	_add_building_to_bar("Fletcher", fletcher_scene)
+	
 	
 
 func _add_building_to_bar(name: String, packed_scene: PackedScene):
