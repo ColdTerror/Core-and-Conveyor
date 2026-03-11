@@ -115,7 +115,17 @@ func show_inventory(inventory: Dictionary):
 	for child in inventory_box.get_children():
 		child.queue_free()
 
-	# Populate rows
+	# --- 1. Determine Building Role (Buffer vs Storage) ---
+	var is_buffer = false
+	var max_cap = 0
+	
+	# Duck-typing: If the building has a 'max_capacity' variable, we assume 
+	# it is a Harvester or Processor holding unsecured items.
+	if "max_capacity" in current_building:
+		is_buffer = true
+		max_cap = current_building.max_capacity
+
+	# --- 2. Populate rows ---
 	for key in inventory.keys():
 		var value = inventory[key] 
 		var display_text = "Unknown"
@@ -127,10 +137,25 @@ func show_inventory(inventory: Dictionary):
 			
 		var row := Label.new()
 		
-		if value is int or value is float:
-			row.text = "%s: %d" % [display_text, value]
+		# --- 3. Apply Terminology and Color Coding! ---
+		if is_buffer and (value is int or value is float):
+			if max_cap > 0 and value >= max_cap:
+				# JAMMED WARNING (Red)
+				row.text = "Buffer FULL [%s]: %d/%d" % [display_text, value, max_cap]
+				row.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3)) 
+			else:
+				# UNSECURED BUFFER (Grey)
+				var cap_str = str(max_cap) if max_cap > 0 else "?"
+				row.text = "Output Buffer [%s]: %d/%s" % [display_text, value, cap_str]
+				row.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7)) 
 		else:
-			row.text = "%s: %s" % [display_text, str(value)]
+			# SECURED STORAGE (Green)
+			if value is int or value is float:
+				row.text = "Secured [%s]: %d" % [display_text, value]
+			else:
+				row.text = "Secured [%s]: %s" % [display_text, str(value)]
+				
+			row.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
 			
 		inventory_box.add_child(row)
 

@@ -27,14 +27,9 @@ var show_range_overlay := false:
 
 const TILE_SIZE = 32
 
-func _ready():
-	super()
-	# 1. Register Self
-	EconomyManager.register_source(self)
 
-func _exit_tree():
-	# 2. Unregister Self
-	EconomyManager.unregister_source(self)
+
+
 
 # 3. Implement Consumption Logic
 func consume_resources(remaining_bill: Dictionary):
@@ -128,10 +123,7 @@ func _perform_harvest():
 		
 		stored_amount += harvest_damage
 		
-		# --- ECONOMY: ADD TO BANK ---
-		if target_resource.item_drop:
-			EconomyManager.add_resources(target_resource.item_drop.display_name, harvest_damage)
-		# ----------------------------
+		
 		
 		inventory_changed.emit()
 
@@ -223,10 +215,6 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 		# Success!
 		stored_amount -= 1
 		inventory_changed.emit()
-		
-		# --- ECONOMY: REMOVE FROM BANK ---
-		var dict = { target_resource.item_drop.display_name: 1 }
-		EconomyManager.remove_resources_from_global(dict)
 		
 		return true # RETURN SUCCESS
 		

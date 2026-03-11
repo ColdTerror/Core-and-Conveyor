@@ -25,16 +25,6 @@ var level_ref: Node2D
 
 signal processing_tick(progress_ratio)
 
-# =================================================================
-# NEW: ECONOMY REGISTRATION
-# =================================================================
-func _ready():
-	super()
-	EconomyManager.register_source(self)
-
-func _exit_tree():
-	EconomyManager.unregister_source(self)
-# =================================================================
 
 # --- SETUP ---
 func setup(level_instance: Node2D):
@@ -55,9 +45,7 @@ func accept_item(item: ItemResource) -> bool:
 	
 	input_inventory += 1
 	
-	# --- ECONOMY FIX: Item arrived from belt into storage ---
-	EconomyManager.add_resources(item.display_name, 1)
-	# --------------------------------------------------------
+	
 	
 	inventory_changed.emit() 
 	return true
@@ -80,10 +68,7 @@ func _check_can_start_work():
 	if input_inventory >= active_recipe.input_count and (output_inventory + active_recipe.output_count) <= buffer_limit:
 		input_inventory -= active_recipe.input_count
 		
-		# --- ECONOMY FIX: Inputs are being destroyed/converted ---
-		var dict = { active_recipe.input_item.display_name: active_recipe.input_count }
-		EconomyManager.remove_resources_from_global(dict)
-		# ---------------------------------------------------------
+		
 		
 		inventory_changed.emit()
 		is_working = true
@@ -102,9 +87,7 @@ func _finish_work():
 	is_working = false
 	output_inventory += active_recipe.output_count
 	
-	# --- ECONOMY FIX: New item has been created! Tell the UI! ---
-	EconomyManager.add_resources(active_recipe.output_item.display_name, active_recipe.output_count)
-	# ------------------------------------------------------------
+	
 	
 	inventory_changed.emit()
 	_check_can_start_work()
@@ -144,10 +127,7 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 	if conveyor.accept_item_node(new_item_node):
 		output_inventory -= 1
 		
-		# --- ECONOMY FIX: Item left storage onto belt ---
-		var dict = { active_recipe.output_item.display_name: 1 }
-		EconomyManager.remove_resources_from_global(dict)
-		# ------------------------------------------------
+		
 		
 		inventory_changed.emit()
 		return true 
@@ -213,11 +193,6 @@ func cycle_recipe():
 	if recipes.size() <= 1: return
 	
 	if is_working or input_inventory > 0 or output_inventory > 0:
-		# --- ECONOMY FIX: Void the existing items before clearing buffers ---
-		var lost_assets = get_economy_assets()
-		if not lost_assets.is_empty():
-			EconomyManager.remove_resources_from_global(lost_assets)
-		# ------------------------------------------------------------------
 		
 		input_inventory = 0
 		output_inventory = 0
