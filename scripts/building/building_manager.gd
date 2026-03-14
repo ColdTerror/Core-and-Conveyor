@@ -1005,8 +1005,12 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	var old_dir = old_building.direction if "direction" in old_building else Vector2i.RIGHT
 	var old_rot = old_building.rotation
 	
+
+	var true_origin = old_building.grid_origin
+
+	
 	# 3. CLEANUP: Force the grid to forget the old building instantly
-	_on_building_destroyed(old_building) # Removes from all dictionaries and grids immediately
+	_on_building_destroyed(old_building)
 	old_building.queue_free() # Safely erases the visual node at the end of the frame
 	
 	# 4. INSTANTIATE: Create the new building
@@ -1016,8 +1020,8 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	# (If it doesn't, just keep the add_child line above this one)
 	level_ref.object_layer.add_child(new_building) 
 	
-	# 5. POSITION: Use the building's own internal logic!
-	new_building.place_at(grid_pos, level_ref.object_layer)
+	# 5. POSITION: Use the building's true origin, not the clicked tile!
+	new_building.place_at(true_origin, level_ref.object_layer)
 	new_building.set_ghost(false)
 	
 	# 6. SETUP: Apply rotation and initialize
