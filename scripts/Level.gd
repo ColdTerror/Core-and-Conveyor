@@ -12,6 +12,8 @@ extends Node2D
 enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE}
 var current_mode = InteractionMode.NONE
 
+var last_hovered_upgrade_tile := Vector2i(-1, -1)
+
 enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
 @export var current_map_type: MapGenType = MapGenType.RIVER_DIVIDE
 
@@ -184,6 +186,18 @@ func _process(_delta):
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
+	# --- NEW: UPGRADE HOVER UI ---
+	if current_mode == InteractionMode.UPGRADE:
+		# Only update the UI if the mouse moved to a NEW tile
+		if grid_pos != last_hovered_upgrade_tile:
+			last_hovered_upgrade_tile = grid_pos
+			building_manager.show_upgrade_preview(grid_pos)
+	else:
+		# If we cancel Upgrade Mode, hide the UI immediately
+		if last_hovered_upgrade_tile != Vector2i(-1, -1):
+			last_hovered_upgrade_tile = Vector2i(-1, -1)
+			building_manager.placement_ended.emit() 
+	# -----------------------------
 	
 	queue_redraw()
 

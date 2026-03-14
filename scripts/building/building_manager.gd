@@ -1055,3 +1055,39 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		
 	print("Successfully Upgraded to: ", new_building.building_name)
 	return true
+	
+# ============================================================================
+# UPGRADE UI PREVIEW
+# ============================================================================
+func show_upgrade_preview(grid_pos: Vector2i):
+	# 1. Is there a building here?
+	if occupied_tiles.has(grid_pos):
+		var b = occupied_tiles[grid_pos]
+		
+		# 2. Does it have an upgrade?
+		if b.upgrades_to:
+			
+			# Parse the cost exactly how you do in upgrade_building_at()
+			var upgrade_cost_dict = {}
+			for cost in b.upgrade_cost:
+				# Depending on how you set up your exports, use the appropriate key mapping
+				var key = cost.item_name if "item_name" in cost else cost
+				var val = cost.amount if "amount" in cost else b.upgrade_cost[cost]
+				upgrade_cost_dict[key] = val
+			
+			# Check Economy
+			var can_afford = true
+			if not upgrade_cost_dict.is_empty():
+				can_afford = EconomyManager.can_afford(upgrade_cost_dict)
+				
+			# 3. Fire the signal to your GameUI!
+			placement_cost_updated.emit("Upgrade " + b.building_name, upgrade_cost_dict, can_afford)
+			return
+		else:
+			# --- NEW: MAX LEVEL LOGIC ---
+			# Pass an empty dictionary and "false" so it knows we can't buy anything
+			placement_cost_updated.emit(b.building_name + " (Max Tier)", {}, false)
+			return
+
+	# 4. If nothing valid is hovered, fire the "hide" signal
+	placement_ended.emit()
