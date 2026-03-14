@@ -37,24 +37,41 @@ func _ready():
 		building_manager.placement_cost_updated.connect(_on_placement_cost_updated)
 		building_manager.placement_ended.connect(_on_placement_ended)
 
-func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_afford: bool):
+func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary = {}):
 	costPanel.show()
 	
 	var text = "[ %s ]\n" % b_name
 	
-	for res in total_cost:
-		var needed = total_cost[res]
-		var have = EconomyManager.global_inventory.get(res, 0)
-		text += "%s: %d / %d\n" % [res, have, needed]
-		
+	# 1. Handle Costs
+	if total_cost.is_empty():
+		if "Max Tier" in b_name:
+			text += "No further upgrades.\n"
+		else:
+			text += "Free to build!\n"
+	else:
+		# Standard cost loop
+		for res in total_cost:
+			var needed = total_cost[res]
+			var have = EconomyManager.global_inventory.get(res, 0)
+			text += "%s: %d / %d\n" % [res, have, needed]
+			
+	# --- 2. THE NEW STAT PREVIEW LOGIC ---
+	if not extra_stats.is_empty():
+		text += "\n-- Upgrades --\n"
+		for stat_name in extra_stats:
+			text += "%s: %s\n" % [stat_name, extra_stats[stat_name]]
+	# -------------------------------------
+			
 	costLabel.text = text
 	
-	# Tint green if good, red if broke!
-	if can_afford:
+	# 3. Tint Logic
+	if total_cost.is_empty() and "Max Tier" in b_name:
+		costLabel.modulate = Color(0.7, 0.7, 0.7) 
+	elif can_afford:
 		costLabel.modulate = Color(0.4, 1.0, 0.4) 
 	else:
 		costLabel.modulate = Color(1.0, 0.4, 0.4)
-
+		
 func _on_placement_ended():
 	costPanel.hide()
 

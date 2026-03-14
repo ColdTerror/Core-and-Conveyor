@@ -463,14 +463,19 @@ func _unhandled_input(event):
 	if current_mode == InteractionMode.UPGRADE:
 		# Click and drag to upgrade multiple things quickly
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			building_manager.upgrade_building_at(grid_pos)
+			if building_manager.upgrade_building_at(grid_pos):
+				last_hovered_upgrade_tile = Vector2i(-1, -1)
 			
 		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			building_manager.upgrade_building_at(grid_pos)
+			if building_manager.upgrade_building_at(grid_pos):
+				last_hovered_upgrade_tile = Vector2i(-1, -1)
 			
 		# Right click or Escape to cancel upgrade mode
 		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
 			current_mode = InteractionMode.NONE
+			if last_hovered_upgrade_tile != Vector2i(-1, -1):
+				last_hovered_upgrade_tile = Vector2i(-1, -1)
+				building_manager.placement_ended.emit() 
 			print("Exited Upgrade Mode")
 			
 		return # Stop processing other clicks

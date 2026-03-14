@@ -35,7 +35,7 @@ var pathfinder: Pathfinder
 
 signal building_selected(building: Building)
 
-signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool)
+signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary)
 signal placement_ended # Fires when we cancel or finish placing
 
 # --- NEW: CORE TRACKING ---
@@ -467,7 +467,7 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 			can_place = false # We are broke!
 			
 	# Tell the UI! 
-	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place)
+	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place, {})
 
 # -------------------------------
 # DRAG LOGIC IMPLEMENTATION
@@ -1080,13 +1080,41 @@ func show_upgrade_preview(grid_pos: Vector2i):
 			if not upgrade_cost_dict.is_empty():
 				can_afford = EconomyManager.can_afford(upgrade_cost_dict)
 				
+			# --- NEW: EXTRACT UPGRADE STATS ---
+			var stats = {}
+			var temp_new = b.upgrades_to.instantiate()
+			
+			# Compare HP (Duck typing checks if they both have max_health)
+			if "max_health" in b and "max_health" in temp_new:
+				if b.max_health != temp_new.max_health:
+					stats["HP"] = "%d -> %d" % [b.max_health, temp_new.max_health]
+			
+			
+			# Compare Attack Range(Towers)
+			if "attack_range" in b and "attack_range" in temp_new:
+				if b.attack_range != temp_new.attack_range:
+					stats["Attack Range"] = "%d -> %d" % [b.attack_range, temp_new.attack_range]
+		
+			# Compare Fire Rate(Towers)
+			if "fire_rate" in b and "fire_rate" in temp_new:
+				if b.fire_rate != temp_new.fire_rate:
+					stats["Fire Rate"] = "%d -> %d" % [b.fire_rate, temp_new.fire_rate]
+			
+			# Compare Damage Mult(Towers)
+			if "damage_multiplier" in b and "damage_multiplier" in temp_new:
+				if b.damage_multiplier != temp_new.damage_multiplier:
+					stats["Damage Multipler"] = "%.1fx -> %.1fx" % [b.damage_multiplier, temp_new.damage_multiplier]
+					
+			temp_new.queue_free() # Clean up the temporary building
+			# ----------------------------------
+		
 			# 3. Fire the signal to your GameUI!
-			placement_cost_updated.emit("Upgrade " + b.building_name, upgrade_cost_dict, can_afford)
+			placement_cost_updated.emit("Upgrade " + b.building_name, upgrade_cost_dict, can_afford, stats)
 			return
 		else:
 			# --- NEW: MAX LEVEL LOGIC ---
 			# Pass an empty dictionary and "false" so it knows we can't buy anything
-			placement_cost_updated.emit(b.building_name + " (Max Tier)", {}, false)
+			placement_cost_updated.emit(b.building_name + " (Max Tier)", {}, false, {})
 			return
 
 	# 4. If nothing valid is hovered, fire the "hide" signal
