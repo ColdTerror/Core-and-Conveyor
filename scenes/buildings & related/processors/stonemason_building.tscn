@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://do66a1tmnwe8j"]
 
-[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/building/generic scripts/processor_building.gd" id="1_y0any"]
+[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/Building Classes/processor_building.gd" id="1_y0any"]
 [ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_6lv13"]
 [ext_resource type="Resource" uid="uid://dqw16gvtd7erw" path="res://resources/recipes/stone_brick_recipe.tres" id="3_gk7jf"]
-[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="6_j51oa"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="6_j51oa"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="7_sekjx"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="8_4evbc"]
 

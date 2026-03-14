@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://cs65262rv84b4"]
 
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="1_5oplf"]
-[ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/building/generic scripts/stockpile_building.gd" id="1_sqy8c"]
-[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/item.tscn" id="2_shrhu"]
+[ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/Building Classes/stockpile_building.gd" id="1_sqy8c"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_shrhu"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="4_x32ns"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_shrhu"]

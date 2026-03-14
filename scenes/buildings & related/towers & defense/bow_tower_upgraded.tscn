@@ -1,34 +1,34 @@
 [gd_scene format=3 uid="uid://b62656lp5pkl2"]
 
-[ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/building/generic scripts/tower_building.gd" id="1_2byyf"]
-[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_lpmmh"]
-[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_pl25i"]
+[ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/Building Classes/tower_building.gd" id="1_sv7ep"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_vmcaq"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_m06hd"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fp6y0"]
-atlas = ExtResource("2_lpmmh")
+atlas = ExtResource("2_vmcaq")
 region = Rect2(384, 0, 64, 64)
 
 [sub_resource type="Resource" id="Resource_nr8e2"]
-script = ExtResource("3_pl25i")
+script = ExtResource("3_m06hd")
 amount = 25
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nr8e2"]
-atlas = ExtResource("2_lpmmh")
+atlas = ExtResource("2_vmcaq")
 region = Rect2(384, 0, 64, 64)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sa4vh"]
 size = Vector2(64, 64)
 
 [node name="BowTowerUpgrade" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
-script = ExtResource("1_2byyf")
+script = ExtResource("1_sv7ep")
 attack_range = 384.0
 fire_rate = 2.0
 damage_multiplier = 1.5
 building_name = "Bow Tower"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_fp6y0")
-build_costs = Array[ExtResource("3_pl25i")]([SubResource("Resource_nr8e2")])
+build_costs = Array[ExtResource("3_m06hd")]([SubResource("Resource_nr8e2")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156622]
 texture = SubResource("AtlasTexture_nr8e2")

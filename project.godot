@@ -21,8 +21,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-EconomyManager="*res://scripts/economy_manager.gd"
-ResourceManager="*res://scripts/resource_manager.gd"
+EconomyManager="*res://scripts/Managers/economy_manager.gd"
+ResourceManager="*res://scripts/Managers/resource_manager.gd"
 
 [display]
 

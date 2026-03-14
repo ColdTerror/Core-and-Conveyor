@@ -121,6 +121,10 @@ func _refresh_stats_ui(b: Building):
 	
 	# Duck typing: Safely check if the building has these specific variables!
 
+	if "crafting_time_multiplier" in b: 
+		var pct = int(b.crafting_time_multiplier * 100)
+		stats.append("Time Multiplier: %d%%" % pct)
+	
 	if "damage_multiplier" in b: 
 		stats.append("Damage Mult: %.1fx" % b.damage_multiplier)
 	if "fire_rate" in b: 

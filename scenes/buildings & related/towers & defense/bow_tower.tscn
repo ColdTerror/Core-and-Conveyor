@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://u8dr3txp3net"]
 
-[ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/building/generic scripts/tower_building.gd" id="1_vc0d4"]
+[ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/Building Classes/tower_building.gd" id="1_vc0d4"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_sa4vh"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_fp6y0"]
-[ext_resource type="PackedScene" uid="uid://b62656lp5pkl2" path="res://scenes/buildings/towers/bow_tower_upgraded.tscn" id="4_nr8e2"]
+[ext_resource type="PackedScene" uid="uid://b62656lp5pkl2" path="res://scenes/buildings & related/towers & defense/bow_tower_upgraded.tscn" id="4_nr8e2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fp6y0"]
 atlas = ExtResource("2_sa4vh")

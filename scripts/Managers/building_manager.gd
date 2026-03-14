@@ -318,9 +318,7 @@ func select_building_at(grid_pos: Vector2i):
 
 # --- UPDATED: Accepts optional grid position for Dragging ---
 func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
-	print_debug('try to confirm')
 	if not placing_building or ghost_building == null:
-		print_debug('fail to confirm')
 		return false
 	
 	var grid_pos = specific_pos
@@ -349,7 +347,6 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 					queue_redraw()
 					placement_ended.emit()
 					
-				print_debug('success confirm')
 				return true 
 				
 			# CASE B: Different type! (Router on Belt). Upgrade it!
@@ -360,13 +357,11 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	# ==========================================================
 	
 	if not _can_place_building(ghost_building, grid_pos):
-		print_debug('fail confirm')
 		return false
 	
 	# Check Economy
 	var cost = ghost_building.get_build_cost()
 	if not EconomyManager.can_afford(cost):
-		print_debug('fail confirm')
 		return false
 
 	# Pay the Cost
@@ -439,7 +434,6 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		queue_redraw()
 		placement_ended.emit()
 	
-	print_debug('success confirm')
 	return true
 
 
@@ -1093,6 +1087,13 @@ func show_upgrade_preview(grid_pos: Vector2i):
 				if b.max_health != temp_new.max_health:
 					stats["HP"] = "%d -> %d" % [b.max_health, temp_new.max_health]
 			
+			# Compare Crafting Multiplier
+			if "crafting_time_multiplier" in b and "crafting_time_multiplier" in temp_new:
+				if b.crafting_time_multiplier != temp_new.crafting_time_multiplier:
+					# Convert the float (1.5) to a clean percentage (150%)
+					var old_pct = int(b.crafting_time_multiplier * 100)
+					var new_pct = int(temp_new.crafting_time_multiplier * 100)
+					stats["Craft Time"] = "%d%% -> %d%%" % [old_pct, new_pct]
 			
 			# Compare Attack Range(Towers)
 			if "attack_range" in b and "attack_range" in temp_new:

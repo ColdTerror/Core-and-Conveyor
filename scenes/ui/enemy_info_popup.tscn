@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://mc4h1u2qxbyd"]
 
-[ext_resource type="Script" uid="uid://cm5rmb1ir4s44" path="res://scripts/enemy_info_popup.gd" id="1_jnqmu"]
+[ext_resource type="Script" uid="uid://cm5rmb1ir4s44" path="res://scripts/UI/enemy_info_popup.gd" id="1_jnqmu"]
 
 [node name="EnemyInfoPopup" type="PanelContainer" unique_id=1317129203]
 offset_right = 40.0

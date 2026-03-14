@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dtgqlytnlxmmy"]
 
-[ext_resource type="Script" uid="uid://b42i3e20qg8yw" path="res://scripts/building/conveyer_building.gd" id="1_34v7p"]
+[ext_resource type="Script" uid="uid://b42i3e20qg8yw" path="res://scripts/Building Classes/conveyer_building.gd" id="1_34v7p"]
 [ext_resource type="Texture2D" uid="uid://ccb3pqwas4kud" path="res://assets/Tiles.png" id="1_yfprp"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_vllef"]
 

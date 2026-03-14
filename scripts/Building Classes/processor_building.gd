@@ -5,6 +5,9 @@ class_name ProcessorBuilding
 @export var recipes: Array[RecipeResource] = [] 
 @export var generic_item_scene: PackedScene 
 
+# NEW: 1.5 = 150% time (Slower). 0.8 = 80% time (Faster).
+@export var crafting_time_multiplier: float = 1.5
+
 # Recipe State
 var current_recipe_index: int = 0
 var active_recipe: RecipeResource:
@@ -85,7 +88,9 @@ func _check_can_start_work():
 
 	inventory_changed.emit()
 	is_working = true
-	work_timer = active_recipe.craft_time
+	
+	# --- UPDATED: Apply the multiplier to the base recipe time! ---
+	work_timer = active_recipe.craft_time * crafting_time_multiplier
 
 func _process_work(delta: float):
 	if not active_recipe: return
@@ -165,7 +170,10 @@ func get_inventory_info() -> Dictionary:
 func get_progress_ratio() -> float:
 	if not is_working or not active_recipe or active_recipe.craft_time == 0:
 		return 0.0
-	return 1.0 - (work_timer / active_recipe.craft_time)
+		
+	# --- UPDATED: Calculate the total modified time to get an accurate percentage ---
+	var total_time = active_recipe.craft_time * crafting_time_multiplier
+	return 1.0 - (work_timer / total_time)
 
 func cycle_recipe():
 	if recipes.size() <= 1: return

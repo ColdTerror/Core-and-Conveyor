@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://3nhjwgrvtktn"]
 
-[ext_resource type="Script" uid="uid://dwh162hf7s20w" path="res://scripts/game_ui.gd" id="1_yubou"]
+[ext_resource type="Script" uid="uid://dwh162hf7s20w" path="res://scripts/UI/game_ui.gd" id="1_yubou"]
 
 [node name="GameUI" type="Control" unique_id=678937411]
 layout_mode = 3

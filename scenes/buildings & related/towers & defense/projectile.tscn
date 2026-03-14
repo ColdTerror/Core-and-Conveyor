@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cg13cd0e8r5ne"]
 
-[ext_resource type="Script" uid="uid://c60uxc0byyjgu" path="res://scripts/building/generic scripts/projectile.gd" id="1_g55b2"]
+[ext_resource type="Script" uid="uid://c60uxc0byyjgu" path="res://scripts/projectile.gd" id="1_g55b2"]
 [ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_g55b2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nl2a8"]
