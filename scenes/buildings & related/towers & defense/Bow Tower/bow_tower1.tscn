@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/Building Classes/tower_building.gd" id="1_vc0d4"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_sa4vh"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_fp6y0"]
-[ext_resource type="PackedScene" uid="uid://b62656lp5pkl2" path="res://scenes/buildings & related/towers & defense/bow_tower_upgraded.tscn" id="4_nr8e2"]
+[ext_resource type="PackedScene" uid="uid://b62656lp5pkl2" path="res://scenes/buildings & related/towers & defense/Bow Tower/bow_tower2.tscn" id="4_nr8e2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fp6y0"]
 atlas = ExtResource("2_sa4vh")
@@ -25,7 +25,7 @@ region = Rect2(384, 0, 64, 64)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sa4vh"]
 size = Vector2(64, 64)
 
-[node name="BowTower" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
+[node name="BowTower1" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_vc0d4")
 attack_range = 256.0
 building_name = "Bow Tower"

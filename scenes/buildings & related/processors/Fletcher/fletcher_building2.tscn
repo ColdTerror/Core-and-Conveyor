@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://ceveeu8g3o52x"]
+
+[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/Building Classes/processor_building.gd" id="1_aexn6"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_ejrgf"]
+[ext_resource type="Resource" uid="uid://cknrujmv6ndsh" path="res://resources/recipes/wooden_arrow.tres" id="3_y1fah"]
+[ext_resource type="Resource" uid="uid://7xlppm4ur3cd" path="res://resources/recipes/stone_arrow.tres" id="4_jtfag"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="5_ywtpx"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="6_x7haa"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="7_odyi1"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5rwt6"]
+atlas = ExtResource("6_x7haa")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="Resource" id="Resource_axv5i"]
+script = ExtResource("7_odyi1")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
+size = Vector2(128, 128)
+
+[node name="Fletcher2" type="Node2D" unique_id=2042910788 groups=["Structure"]]
+script = ExtResource("1_aexn6")
+recipes = Array[ExtResource("2_ejrgf")]([ExtResource("3_y1fah"), ExtResource("4_jtfag")])
+generic_item_scene = ExtResource("5_ywtpx")
+crafting_time_multiplier = 1.0
+building_name = "Fletcher"
+size = Vector2i(4, 4)
+max_health = 150
+icon = SubResource("AtlasTexture_5rwt6")
+build_costs = Array[ExtResource("7_odyi1")]([SubResource("Resource_axv5i")])
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
+modulate = Color(0, 0.7319541, 7.70092e-07, 1)
+self_modulate = Color(0, 0.73333335, 0, 1)
+texture = ExtResource("6_x7haa")
+region_enabled = true
+region_rect = Rect2(128, 0, 128, 128)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=803807135]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1856652810]
+shape = SubResource("RectangleShape2D_0p6bf")
+
+[node name="Line2D" type="Line2D" parent="." unique_id=1388375912]
+width = 2.0
+default_color = Color(0.8211179, 0, 0.4125038, 1)

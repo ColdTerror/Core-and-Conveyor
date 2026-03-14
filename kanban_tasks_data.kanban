@@ -11,7 +11,8 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"86bec14d-3b8e-4692-b910-d2b488b00079"
 			]
 		},
 		{
@@ -205,6 +206,13 @@
 		{
 			"uuid": "a0960755-8d63-4f2c-8eb1-af92af6d8ab3",
 			"title": "when rocks are harvested the space isnt freed",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "86bec14d-3b8e-4692-b910-d2b488b00079",
+			"title": "stockpile mixed doesnt work",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
