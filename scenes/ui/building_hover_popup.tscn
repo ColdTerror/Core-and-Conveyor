@@ -22,6 +22,9 @@ text = "Health"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Stats" type="VBoxContainer" parent="VBoxContainer" unique_id=1700597390]
+layout_mode = 2
+
 [node name="Inventory" type="VBoxContainer" parent="VBoxContainer" unique_id=68541522]
 layout_mode = 2
 

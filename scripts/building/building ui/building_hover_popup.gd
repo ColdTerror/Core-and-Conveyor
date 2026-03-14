@@ -2,6 +2,7 @@ extends PanelContainer
 
 @onready var name_label = $VBoxContainer/Name
 @onready var health_label = $VBoxContainer/Health
+@onready var stats_box = $VBoxContainer/Stats
 @onready var inventory_box = $VBoxContainer/Inventory
 @onready var work_bar = $VBoxContainer/WorkBar
 
@@ -22,16 +23,15 @@ func _process(_delta):
 		work_bar.value = current_building.get_progress_ratio() * 100.0
 
 func show_building_info(b: Building):
-	# 1. Check if we are switching to a NEW building
 	var is_new_target = (current_building != b)
-	
-	# 2. Clean up OLD connections
 	_disconnect_signals()
-	
 	current_building = b
 	
-	# 3. Update Text & Connect Signals (Your existing logic)
-	name_label.text = b.building_name 
+	# --- UPDATED: Show the Name AND Level ---
+	var lvl = b.building_level if "building_level" in b else 1
+	name_label.text = "%s (Lv. %d)" % [b.building_name, lvl]
+	# ----------------------------------------
+	
 	health_label.text = "%d / %d" % [b.health, b.max_health]
 	_update_health_text(b.health, b.max_health)
 	
@@ -41,9 +41,13 @@ func show_building_info(b: Building):
 	if not current_building.inventory_changed.is_connected(_on_inventory_changed):
 		current_building.inventory_changed.connect(_on_inventory_changed)
 	
-	# Handle Inventory / Work Bar...
 	work_bar.visible = (b is ProcessorBuilding)
 	_refresh_inventory_ui()
+	
+	# --- NEW: Generate the Stats ---
+	_refresh_stats_ui(b)
+	# -------------------------------
+	
 	
 	# --- 4. THE FLASH ANIMATION ---
 	# Only play this if we switched targets or the popup was hidden
@@ -107,6 +111,35 @@ func _refresh_inventory_ui():
 		show_inventory(info)
 	else:
 		hide_inventory()
+
+func _refresh_stats_ui(b: Building):
+	# Clear the old stats from the last building we clicked
+	for child in stats_box.get_children():
+		child.queue_free()
+
+	var stats = []
+	
+	# Duck typing: Safely check if the building has these specific variables!
+
+	if "damage_multiplier" in b: 
+		stats.append("Damage Mult: %.1fx" % b.damage_multiplier)
+	if "fire_rate" in b: 
+		stats.append("Fire Rate: %.1f/s" % b.fire_rate)
+	if "attack_range" in b: 
+		var tile_range = int(b.attack_range / 32.0)
+		stats.append("Range: %d Tiles" % tile_range)
+
+
+	# Generate a label for each stat we found
+	for stat_text in stats:
+		var row = Label.new()
+		row.text = stat_text
+		row.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8)) # Nice muted gray
+		
+		# Optional: Make the font a little smaller for stats so it doesn't clutter
+		row.add_theme_font_size_override("font_size", 12) 
+		
+		stats_box.add_child(row)
 
 func show_inventory(inventory: Dictionary):
 	inventory_box.visible = true

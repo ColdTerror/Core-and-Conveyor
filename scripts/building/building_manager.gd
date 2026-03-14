@@ -1093,12 +1093,15 @@ func show_upgrade_preview(grid_pos: Vector2i):
 			# Compare Attack Range(Towers)
 			if "attack_range" in b and "attack_range" in temp_new:
 				if b.attack_range != temp_new.attack_range:
-					stats["Attack Range"] = "%d -> %d" % [b.attack_range, temp_new.attack_range]
+					# Divide by 32.0 and cast to int to get the clean tile count
+					var old_tiles = int(b.attack_range / 32.0)
+					var new_tiles = int(temp_new.attack_range / 32.0)
+					stats["Attack Range"] = "%d -> %d Tiles" % [old_tiles, new_tiles]
 		
 			# Compare Fire Rate(Towers)
 			if "fire_rate" in b and "fire_rate" in temp_new:
 				if b.fire_rate != temp_new.fire_rate:
-					stats["Fire Rate"] = "%d -> %d" % [b.fire_rate, temp_new.fire_rate]
+					stats["Fire Rate"] = "%d -> %d/s" % [b.fire_rate, temp_new.fire_rate]
 			
 			# Compare Damage Mult(Towers)
 			if "damage_multiplier" in b and "damage_multiplier" in temp_new:

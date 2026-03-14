@@ -42,6 +42,7 @@ var occupied_tiles: Array[Vector2i] = []
 @export var corruption_range: float = 6.0
 
 @export_group("Upgrade Settings")
+@export var building_level: int = 1 # 
 ## The scene this building turns into. Leave blank if max tier!
 @export var upgrades_to: PackedScene 
 ## The resources required to upgrade (e.g. {"Wooden Planks": 5, "Raw Stone": 2})
