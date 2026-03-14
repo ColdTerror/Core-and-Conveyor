@@ -68,8 +68,9 @@ func _ready():
 	generate_simple_map()
 	hover_popup.hide()
 	
-	# Connect the new Generic Signal
+	# Connect the new resource signals
 	ResourceManager.resource_state_changed.connect(_on_resource_state_changed)
+	ResourceManager.resource_destroyed.connect(_on_resource_destroyed)
 	
 	# Give the manager a reference to this Level node
 	building_manager.initialize(self)
@@ -160,7 +161,18 @@ func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResour
 			else:
 				object_layer.set_cell(tile, -1) # Remove completely if no stump sprite
 
-
+func _on_resource_destroyed(tile: Vector2i):
+	# 1. Remove it from the logic grid so we can build here now!
+	if active_grid_objects.has(tile):
+		active_grid_objects.erase(tile)
+		
+	# 2. Erase the visual sprite from the TileMap
+	object_layer.erase_cell(tile) # Or object_layer.set_cell(tile, -1)
+	
+	# 3. Free up the pathfinder so enemies and bots can walk here!
+	if building_manager and building_manager.pathfinder:
+		building_manager.pathfinder.set_obstacle(tile, false)
+		building_manager.pathfinder.set_weighted_obstacle(tile, 1.0)
 
 func handle_harvest_input(grid_pos: Vector2i):
 	# 1. Check if something exists here

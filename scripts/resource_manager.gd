@@ -14,6 +14,7 @@ var active_regrowth_tasks := {}
 var mining_cooldowns := {} 
 
 signal resource_state_changed(tile: Vector2i, state: ResourceState, data: TileDataResource)
+signal resource_destroyed(tile: Vector2i)
 
 # ---------------------------------------------------------
 # HARVEST LOGIC
@@ -93,15 +94,18 @@ func _handle_hit(tile: Vector2i, data: TileDataResource):
 	resource_state_changed.emit(tile, ResourceState.HARVESTING, data)
 
 func _handle_depletion(tile: Vector2i, data: TileDataResource, object_info: Dictionary):
-	# Tell Level to show "Stump"
-	resource_state_changed.emit(tile, ResourceState.DEPLETED, data)
-	
 	if data.can_regrow:
+		# It's a tree! Tell Level to show the "Stump" sprite.
+		resource_state_changed.emit(tile, ResourceState.DEPLETED, data)
+		
 		active_regrowth_tasks[tile] = {
 			"timer": data.regrow_time,
 			"data": data,
-			"target_dict": object_info # Store reference so we can heal it later!
+			"target_dict": object_info 
 		}
+	else:
+		# It's gone forever.
+		resource_destroyed.emit(tile)
 
 
 func _finish_regrowth(tile: Vector2i):
