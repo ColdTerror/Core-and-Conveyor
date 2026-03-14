@@ -979,11 +979,11 @@ func deconstruct_building_at(grid_pos: Vector2i):
 		building.die()
 		
 		
+
 # ============================================================================
 # UPGRADE SYSTEM
 # ============================================================================
 func upgrade_building_at(grid_pos: Vector2i) -> bool:
-	print_debug('try to upgrade')
 	if not occupied_tiles.has(grid_pos):
 		return false
 		
@@ -992,24 +992,35 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	if not old_building.upgrades_to:
 		return false
 	
-	# Build the cost dict
+	# 1. Build the cost dict and check affordability
 	var upgrade_cost_dict = {}
 	for cost in old_building.upgrade_cost:
 		upgrade_cost_dict[cost.item_name] = cost.amount
 	
-	# Check affordability upfront, but don't spend yet
 	if not upgrade_cost_dict.is_empty():
 		if not EconomyManager.can_afford(upgrade_cost_dict):
 			return false
 	
+	# 2. Save old state
 	var old_dir = old_building.direction if "direction" in old_building else Vector2i.RIGHT
 	var old_rot = old_building.rotation
 	
-	old_building.die()
+	# 3. CLEANUP: Force the grid to forget the old building instantly
+	_on_building_destroyed(old_building) # Removes from all dictionaries and grids immediately
+	old_building.queue_free() # Safely erases the visual node at the end of the frame
 	
+	# 4. INSTANTIATE: Create the new building
 	var new_building = old_building.upgrades_to.instantiate() as Building
-	add_child(new_building)
 	
+	# If your place_at handles reparenting to the object_layer, you just need this!
+	# (If it doesn't, just keep the add_child line above this one)
+	level_ref.object_layer.add_child(new_building) 
+	
+	# 5. POSITION: Use the building's own internal logic!
+	new_building.place_at(grid_pos, level_ref.object_layer)
+	new_building.set_ghost(false)
+	
+	# 6. SETUP: Apply rotation and initialize
 	if new_building is ConveyorBuilding:
 		new_building.direction = old_dir
 		new_building.rotation = old_rot
@@ -1017,21 +1028,30 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	elif new_building.has_method("setup"):
 		new_building.setup(level_ref)
 	
-	new_building.set_ghost(true)
-	ghost_building = new_building
-	placing_building = true
+	# 7. REGISTRATION: Tell the BuildingManager this exists now
+	buildings.append(new_building)
+	_register_building(new_building)
+	_register_occupied_tiles(new_building)
+	_add_safe_zone(new_building)
+	_add_build_zone(new_building)
+	_add_attack_zone(new_building)
 	
-	var success = confirm_placement(grid_pos)
+	# Connect essential signals
+	if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
+		new_building.fired_projectile.connect(level_ref._on_tower_fired)
+	new_building.destroyed.connect(_on_building_destroyed)
 	
-	if success:
-		print_debug('success upgrade')
-		# Only pay if it actually worked
-		if not upgrade_cost_dict.is_empty():
-			EconomyManager.spend_resources(upgrade_cost_dict)
-	else:
-		print_debug('fail upgrade')
-		new_building.queue_free()
-		ghost_building = null
-		placing_building = false
+	# Update pathfinder (Crucial for walls!)
+	if pathfinder:
+		var footprint = new_building.get_footprint(grid_pos)
+		if new_building.is_solid_obstacle:
+			for tile in footprint: pathfinder.set_obstacle(tile, true)
+		else:
+			for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost)
+	
+	# 8. FINALIZE: Spend the resources ONLY for the upgrade cost
+	if not upgrade_cost_dict.is_empty():
+		EconomyManager.spend_resources(upgrade_cost_dict)
 		
-	return success
+	print("Successfully Upgraded to: ", new_building.building_name)
+	return true

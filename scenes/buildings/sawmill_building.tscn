@@ -17,6 +17,10 @@ script = ExtResource("7_351yf")
 amount = 25
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
+[sub_resource type="Resource" id="Resource_351yf"]
+script = ExtResource("7_351yf")
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
 size = Vector2(128, 128)
 
@@ -29,6 +33,7 @@ size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_5rwt6")
 build_costs = Array[ExtResource("7_351yf")]([SubResource("Resource_axv5i")])
 upgrades_to = ExtResource("7_axv5i")
+upgrade_cost = Array[ExtResource("7_351yf")]([SubResource("Resource_351yf")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
 texture = ExtResource("4_l8ny5")
