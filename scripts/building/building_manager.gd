@@ -318,7 +318,9 @@ func select_building_at(grid_pos: Vector2i):
 
 # --- UPDATED: Accepts optional grid position for Dragging ---
 func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
+	print_debug('try to confirm')
 	if not placing_building or ghost_building == null:
+		print_debug('fail to confirm')
 		return false
 	
 	var grid_pos = specific_pos
@@ -347,6 +349,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 					queue_redraw()
 					placement_ended.emit()
 					
+				print_debug('success confirm')
 				return true 
 				
 			# CASE B: Different type! (Router on Belt). Upgrade it!
@@ -357,11 +360,13 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	# ==========================================================
 	
 	if not _can_place_building(ghost_building, grid_pos):
+		print_debug('fail confirm')
 		return false
 	
 	# Check Economy
 	var cost = ghost_building.get_build_cost()
 	if not EconomyManager.can_afford(cost):
+		print_debug('fail confirm')
 		return false
 
 	# Pay the Cost
@@ -434,6 +439,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		queue_redraw()
 		placement_ended.emit()
 	
+	print_debug('success confirm')
 	return true
 
 
@@ -971,3 +977,61 @@ func deconstruct_building_at(grid_pos: Vector2i):
 		# Calling die() will trigger the 'destroyed' signal you already set up, 
 		# which tells the BuildingManager to clean up the occupied_tiles dictionary!
 		building.die()
+		
+		
+# ============================================================================
+# UPGRADE SYSTEM
+# ============================================================================
+func upgrade_building_at(grid_pos: Vector2i) -> bool:
+	print_debug('try to upgrade')
+	if not occupied_tiles.has(grid_pos):
+		return false
+		
+	var old_building = occupied_tiles[grid_pos]
+	
+	if not old_building.upgrades_to:
+		return false
+	
+	# Build the cost dict
+	var upgrade_cost_dict = {}
+	for cost in old_building.upgrade_cost:
+		upgrade_cost_dict[cost.item_name] = cost.amount
+	
+	# Check affordability upfront, but don't spend yet
+	if not upgrade_cost_dict.is_empty():
+		if not EconomyManager.can_afford(upgrade_cost_dict):
+			return false
+	
+	var old_dir = old_building.direction if "direction" in old_building else Vector2i.RIGHT
+	var old_rot = old_building.rotation
+	
+	old_building.die()
+	
+	var new_building = old_building.upgrades_to.instantiate() as Building
+	add_child(new_building)
+	
+	if new_building is ConveyorBuilding:
+		new_building.direction = old_dir
+		new_building.rotation = old_rot
+		new_building.setup(level_ref, old_dir)
+	elif new_building.has_method("setup"):
+		new_building.setup(level_ref)
+	
+	new_building.set_ghost(true)
+	ghost_building = new_building
+	placing_building = true
+	
+	var success = confirm_placement(grid_pos)
+	
+	if success:
+		print_debug('success upgrade')
+		# Only pay if it actually worked
+		if not upgrade_cost_dict.is_empty():
+			EconomyManager.spend_resources(upgrade_cost_dict)
+	else:
+		print_debug('fail upgrade')
+		new_building.queue_free()
+		ghost_building = null
+		placing_building = false
+		
+	return success

@@ -9,7 +9,7 @@ extends Node2D
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
 
 # Mode State
-enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT}
+enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE}
 var current_mode = InteractionMode.NONE
 
 enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
@@ -191,28 +191,26 @@ func _process(_delta):
 # VISUAL OVERLAYS
 # ============================================================================
 func _draw():
-	# Only draw the red highlight if we are actually in Deconstruct Mode!
+	# DECONSTRUCT (Red)
 	if current_mode == InteractionMode.DECONSTRUCT:
+		_draw_grid_highlight(Color(1.0, 0.2, 0.2, 0.3), Color(1.0, 0.2, 0.2, 0.8))
 		
-		# 1. Get the mouse position and snap it to the grid
-		var mouse_pos = get_global_mouse_position()
-		var grid_pos = terrain_layer.local_to_map(mouse_pos)
-		
-		# 2. Convert that grid coordinate back into a centered pixel position
-		var local_pos = terrain_layer.map_to_local(grid_pos)
-		
-		var tile_size = 32.0 
-		var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
-		var top_left = local_pos - half_offset
-		
-		# 3. Define the square
-		var rect = Rect2(top_left, Vector2(tile_size, tile_size))
-		
-		# 4. Draw a transparent red fill (color, filled = true)
-		draw_rect(rect, Color(1.0, 0.2, 0.2, 0.3), true)
-		
-		# 5. Draw a crisp, solid red border (color, filled = false, line_width = 2.0)
-		draw_rect(rect, Color(1.0, 0.2, 0.2, 0.8), false, 2.0)
+	# UPGRADE (Blue/Cyan)
+	elif current_mode == InteractionMode.UPGRADE:
+		_draw_grid_highlight(Color(0.2, 0.8, 1.0, 0.3), Color(0.2, 0.8, 1.0, 0.8))
+
+# Helper function to keep _draw clean!
+func _draw_grid_highlight(fill_color: Color, outline_color: Color):
+	var mouse_pos = get_global_mouse_position()
+	var grid_pos = terrain_layer.local_to_map(mouse_pos)
+	var local_pos = terrain_layer.map_to_local(grid_pos)
+	
+	var half_offset = Vector2(tile_size_px.x / 2.0, tile_size_px.y / 2.0)
+	var top_left = local_pos - half_offset
+	var rect = Rect2(top_left, tile_size_px)
+	
+	draw_rect(rect, fill_color, true)
+	draw_rect(rect, outline_color, false, 2.0)
 
 
 # ============================================================================
@@ -395,9 +393,6 @@ func can_place_object(grid_pos: Vector2i) -> bool:
 	return true
 
 
-
-
-	
 func _unhandled_input(event):
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
@@ -413,6 +408,13 @@ func _unhandled_input(event):
 		building_manager.cancel_placement()
 		current_mode = InteractionMode.DECONSTRUCT
 		print("Entered Deconstruct Mode")
+		
+	# --- Change into UPGRADE mode ---
+	# (Remember to map "upgrade_hotkey" to 'U' in Project Settings -> Input Map!)
+	if event.is_action_pressed("upgrade_hotkey"): 
+		building_manager.cancel_placement()
+		current_mode = InteractionMode.UPGRADE
+		print("Entered Upgrade Mode")
 
 	# 2. BUILDING MODE (Delegated to Manager)
 	# We check this FIRST. If we are placing a building, we send Presses, Releases, 
@@ -440,6 +442,22 @@ func _unhandled_input(event):
 		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
 			current_mode = InteractionMode.NONE
 			print("Exited Deconstruct Mode")
+			
+		return # Stop processing other clicks
+		
+	# --- UPGRADE MODE LOGIC ---
+	if current_mode == InteractionMode.UPGRADE:
+		# Click and drag to upgrade multiple things quickly
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			building_manager.upgrade_building_at(grid_pos)
+			
+		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			building_manager.upgrade_building_at(grid_pos)
+			
+		# Right click or Escape to cancel upgrade mode
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+			current_mode = InteractionMode.NONE
+			print("Exited Upgrade Mode")
 			
 		return # Stop processing other clicks
 
