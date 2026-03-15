@@ -30,6 +30,7 @@ size = Vector2i(4, 4)
 max_health = 150
 icon = SubResource("AtlasTexture_5rwt6")
 build_costs = Array[ExtResource("7_odyi1")]([SubResource("Resource_axv5i")])
+building_level = 2
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
 modulate = Color(0, 0.7319541, 7.70092e-07, 1)

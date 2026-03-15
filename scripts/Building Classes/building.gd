@@ -26,7 +26,7 @@ var is_ghost: bool = false
 @export var building_name := "Building"
 @export var size := Vector2i(1, 1)
 @export var max_health := 100
-var health := max_health
+var health: int
 
 @export var icon: Texture2D
 
@@ -52,6 +52,7 @@ var grid_origin: Vector2i = Vector2i.ZERO
 
 # --- Ready ---
 func _ready():
+	health = max_health
 	if has_node("Area2D"):
 		$Area2D.mouse_entered.connect(_on_mouse_entered)
 		$Area2D.mouse_exited.connect(_on_mouse_exited)

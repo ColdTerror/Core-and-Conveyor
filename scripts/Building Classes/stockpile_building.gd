@@ -143,23 +143,30 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 # --------------------------------------------------
 
 func can_accept_item(item: ItemResource) -> bool:
-	var current_total = get_total_items()
-	
 	if is_dedicated_mode:
+		var current_total = get_total_items()
+		
 		if current_total == 0 and dedicated_item_name == "":
 			return true  # Will lock on accept
-		# Now also check against the name even if empty but name is set
+			
+		# Reject if it doesn't match the dedicated type
 		if dedicated_item_name != "" and item.display_name != dedicated_item_name:
 			return false
 			
-		# Reject if it doesn't match the dedicated type, or if we hit 100
-		if item.display_name != dedicated_item_name: return false
+		# Reject if we hit the 100 cap for this specific item
 		if current_total >= max_dedicated_capacity: return false
+		
 		return true
 		
-	else: # Mixed Mode
-		# Accept anything, as long as total is under 50
-		if current_total >= max_mixed_capacity: return false
+	else: 
+		# --- MIXED MODE ---
+		# Check the specific amount of the item trying to enter
+		var current_amount_of_this_item = inventory.get(item, 0)
+		
+		# Only reject if THIS specific item type has reached 25
+		if current_amount_of_this_item >= max_mixed_capacity: 
+			return false
+			
 		return true
 
 func accept_item(item: ItemResource) -> bool:
