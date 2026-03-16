@@ -1095,6 +1095,26 @@ func show_upgrade_preview(grid_pos: Vector2i):
 					var new_pct = int(temp_new.crafting_time_multiplier * 100)
 					stats["Craft Time"] = "%d%% -> %d%%" % [old_pct, new_pct]
 			
+			#@export var scan_radius: int = 4
+			#@export var harvest_damage: int = 2
+			#@export var work_interval: float = 1.0
+			
+			# Compare Harvest Range
+			if "scan_radius" in b and "scan_radius" in temp_new:
+				if b.scan_radius != temp_new.scan_radius:
+					stats["Harvest Radius"] = "%d -> %d" % [b.scan_radius, temp_new.scan_radius]
+					
+					
+			# Compare Harvest Amount
+			if "harvest_damage" in b and "harvest_damage" in temp_new:
+				if b.harvest_damage != temp_new.harvest_damage:
+					stats["Harvest Amount"] = "%d -> %d" % [b.harvest_damage, temp_new.harvest_damage]
+					
+			# Compare Harvest Time
+			if "work_interval" in b and "work_interval" in temp_new:
+				if b.work_interval != temp_new.work_interval:
+					stats["Time Per Harvest"] = "%.1fs -> %.1fs" % [b.work_interval, temp_new.work_interval]
+					
 			# Compare Attack Range(Towers)
 			if "attack_range" in b and "attack_range" in temp_new:
 				if b.attack_range != temp_new.attack_range:

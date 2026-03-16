@@ -4,6 +4,7 @@
 [ext_resource type="Resource" uid="uid://reqe4t0u3m16" path="res://resources/tiles/4_Stone.tres" id="2_im1p0"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_ush8g"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_wcq7w"]
+[ext_resource type="PackedScene" uid="uid://esdoasxvtl4i" path="res://scenes/buildings & related/harvesters/Mine/MineBuilding2.tscn" id="5_4xj7m"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cawij"]
 atlas = ExtResource("2_ush8g")
@@ -12,13 +13,14 @@ region = Rect2(640, 0, 96, 128)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wcq7w"]
 size = Vector2(96, 128)
 
-[node name="MineBuilding" type="Node2D" unique_id=1049048299 groups=["Structure"]]
+[node name="MineBuilding1" type="Node2D" unique_id=1049048299 groups=["Structure"]]
 script = ExtResource("1_fgkgn")
 target_resource = ExtResource("2_im1p0")
 generic_item_scene = ExtResource("2_wcq7w")
 building_name = "Quarry"
 size = Vector2i(3, 4)
 icon = SubResource("AtlasTexture_cawij")
+upgrades_to = ExtResource("5_4xj7m")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
 texture = ExtResource("2_ush8g")

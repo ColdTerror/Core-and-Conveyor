@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://dn1v75b4fhbg6"]
+
+[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/Building Classes/processor_building.gd" id="1_k6dcx"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_b0eks"]
+[ext_resource type="Resource" uid="uid://dqw16gvtd7erw" path="res://resources/recipes/stone_brick_recipe.tres" id="3_sv5g1"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="4_a4tlu"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="5_stdop"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="6_qg64t"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5rwt6"]
+atlas = ExtResource("5_stdop")
+region = Rect2(768, 0, 192, 128)
+
+[sub_resource type="Resource" id="Resource_axv5i"]
+script = ExtResource("6_qg64t")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
+size = Vector2(192, 128)
+
+[node name="Stone Mason2" type="Node2D" unique_id=2042910788 groups=["Structure"]]
+script = ExtResource("1_k6dcx")
+recipes = Array[ExtResource("2_b0eks")]([ExtResource("3_sv5g1")])
+generic_item_scene = ExtResource("4_a4tlu")
+crafting_time_multiplier = 1.0
+building_name = "Stone Mason"
+size = Vector2i(6, 4)
+max_health = 150
+icon = SubResource("AtlasTexture_5rwt6")
+build_costs = Array[ExtResource("6_qg64t")]([SubResource("Resource_axv5i")])
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
+texture = ExtResource("5_stdop")
+region_enabled = true
+region_rect = Rect2(768, 0, 192, 128)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=803807135]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1856652810]
+shape = SubResource("RectangleShape2D_0p6bf")
+
+[node name="Line2D" type="Line2D" parent="." unique_id=1388375912]
+width = 2.0
+default_color = Color(0.8211179, 0, 0.4125038, 1)

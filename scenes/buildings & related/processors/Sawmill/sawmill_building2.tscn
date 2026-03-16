@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://b4vs57rx1gmes"]
+
+[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/Building Classes/processor_building.gd" id="1_bsdpn"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_titck"]
+[ext_resource type="Resource" uid="uid://bx2kdsrebhihj" path="res://resources/recipes/sawmill_plank_recipe.tres" id="3_4aj0p"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="4_8dbmq"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="5_nc6i3"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="6_nfim6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5rwt6"]
+atlas = ExtResource("5_nc6i3")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="Resource" id="Resource_axv5i"]
+script = ExtResource("6_nfim6")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_351yf"]
+script = ExtResource("6_nfim6")
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
+size = Vector2(128, 128)
+
+[node name="Sawmill2" type="Node2D" unique_id=2042910788 groups=["Structure"]]
+script = ExtResource("1_bsdpn")
+recipes = Array[ExtResource("2_titck")]([ExtResource("3_4aj0p")])
+generic_item_scene = ExtResource("4_8dbmq")
+crafting_time_multiplier = 1.0
+building_name = "Sawmill"
+size = Vector2i(4, 4)
+max_health = 150
+icon = SubResource("AtlasTexture_5rwt6")
+build_costs = Array[ExtResource("6_nfim6")]([SubResource("Resource_axv5i")])
+building_level = 2
+upgrade_cost = Array[ExtResource("6_nfim6")]([SubResource("Resource_351yf")])
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
+texture = ExtResource("5_nc6i3")
+region_enabled = true
+region_rect = Rect2(256, 0, 128, 128)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=803807135]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1856652810]
+shape = SubResource("RectangleShape2D_0p6bf")
+
+[node name="Line2D" type="Line2D" parent="." unique_id=1388375912]
+width = 2.0
+default_color = Color(0.8211179, 0, 0.4125038, 1)

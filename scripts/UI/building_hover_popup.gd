@@ -121,10 +121,20 @@ func _refresh_stats_ui(b: Building):
 	
 	# Duck typing: Safely check if the building has these specific variables!
 
+	#Processor Buildings
 	if "crafting_time_multiplier" in b: 
 		var pct = int(b.crafting_time_multiplier * 100)
 		stats.append("Time Multiplier: %d%%" % pct)
-	
+
+	#Harvest Building
+	if "scan_radius" in b:
+		stats.append("Harvest Radius: %d" % b.scan_radius)
+	if "harvest_damage" in b:
+		stats.append("Harvest Amount: %d" % b.harvest_damage)
+	if "work_interval" in b:
+		stats.append("Time Per Harvest: %.1fs" % b.work_interval)
+		
+	#Towers
 	if "damage_multiplier" in b: 
 		stats.append("Damage Mult: %.1fx" % b.damage_multiplier)
 	if "fire_rate" in b: 

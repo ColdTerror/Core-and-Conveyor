@@ -5,6 +5,7 @@
 [ext_resource type="Resource" uid="uid://cwk72joli5ujg" path="res://resources/tiles/3_Forest.tres" id="2_kh24c"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="3_nikr4"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="5_e6wq2"]
+[ext_resource type="PackedScene" uid="uid://4bcn3bppi5gc" path="res://scenes/buildings & related/harvesters/Lumberjack/lumberjack_building2.tscn" id="6_w0gcj"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tf3du"]
 atlas = ExtResource("1_0p6bf")
@@ -18,7 +19,7 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
 size = Vector2(128, 128)
 
-[node name="LumberjackBuilding" type="Node2D" unique_id=2042910788 groups=["Structure"]]
+[node name="LumberjackBuilding1" type="Node2D" unique_id=2042910788 groups=["Structure"]]
 script = ExtResource("1_kb7jr")
 target_resource = ExtResource("2_kh24c")
 generic_item_scene = ExtResource("3_nikr4")
@@ -26,6 +27,7 @@ building_name = "Lumberjack"
 size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_tf3du")
 build_costs = Array[ExtResource("5_e6wq2")]([SubResource("Resource_3ltmk")])
+upgrades_to = ExtResource("6_w0gcj")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
 texture = ExtResource("1_0p6bf")
