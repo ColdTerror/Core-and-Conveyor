@@ -18,7 +18,6 @@ target_resource = ExtResource("2_wmxms")
 generic_item_scene = ExtResource("3_cv8an")
 scan_radius = 6
 harvest_damage = 3
-work_interval = 0.9
 building_name = "Quarry"
 size = Vector2i(3, 4)
 max_health = 150

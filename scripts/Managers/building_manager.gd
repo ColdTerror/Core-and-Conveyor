@@ -402,6 +402,21 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		is_core_placed = true
 		core_placed_event.emit() 
 		
+		#Place a worker bot
+		var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
+
+		var spawn_tiles = _get_empty_tiles_around(ghost_building, 1)
+		
+		for tile in spawn_tiles:
+			var new_bot = bot_scene.instantiate()
+			level_ref.object_layer.add_child(new_bot)
+			
+			# Convert the grid tile to a perfect pixel position
+			var local_pos = level_ref.object_layer.map_to_local(tile)
+			new_bot.global_position = level_ref.object_layer.to_global(local_pos)
+			
+			new_bot.setup(level_ref)
+		
 		# 2. Trigger Corruption
 		if level_ref and level_ref.has_node("CorruptionManager"):
 			var corruption_manager = level_ref.get_node("CorruptionManager")
@@ -436,6 +451,38 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	
 	return true
 
+# ==========================================
+# BOT SPAWNING HELPER
+# ==========================================
+func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
+	var valid_tiles: Array[Vector2i] = []
+	var origin = building.grid_origin
+	var search_radius = 1
+	
+	# Keep searching outward until we find enough tiles (or hit a safety limit of 10)
+	while valid_tiles.size() < count and search_radius < 10:
+		for x in range(origin.x - search_radius, origin.x + building.size.x + search_radius):
+			for y in range(origin.y - search_radius, origin.y + building.size.y + search_radius):
+				var check_tile = Vector2i(x, y)
+				
+				# 1. Skip if it's inside the building itself
+				if building.occupied_tiles.has(check_tile): continue
+				
+				# 2. Skip if we already picked this tile
+				if valid_tiles.has(check_tile): continue
+				
+				# 3. Ask the Pathfinder if this tile is physically walkable!
+				if pathfinder and pathfinder.astar.is_in_boundsv(check_tile):
+					if not pathfinder.astar.is_point_solid(check_tile):
+						valid_tiles.append(check_tile)
+						
+						# Stop searching if we have enough!
+						if valid_tiles.size() >= count:
+							return valid_tiles
+							
+		search_radius += 1 # Expand the ring!
+		
+	return valid_tiles
 
 func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool = true):
 	if not is_instance_valid(ghost_building): return
