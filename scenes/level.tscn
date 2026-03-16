@@ -14,7 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://dupuw0x1fcxf2" path="res://scenes/buildings & related/harvesters/lumberjack_building.tscn" id="15_8gofh"]
 [ext_resource type="Script" uid="uid://y8ifotnqs7ch" path="res://scripts/Managers/building_manager.gd" id="15_gunhw"]
 [ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/buildings & related/processors/sawmill_building.tscn" id="16_pqd0y"]
-[ext_resource type="PackedScene" uid="uid://datlui80eimn3" path="res://scenes/buildings & related/harvesters/QuarryBuilding.tscn" id="17_w3o6u"]
+[ext_resource type="PackedScene" uid="uid://datlui80eimn3" path="res://scenes/buildings & related/harvesters/MineBuilding.tscn" id="17_w3o6u"]
 [ext_resource type="PackedScene" uid="uid://u8dr3txp3net" path="res://scenes/buildings & related/towers & defense/Bow Tower/bow_tower1.tscn" id="17_xy2fk"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/building_hover_popup.tscn" id="18_82cfe"]
 [ext_resource type="PackedScene" uid="uid://cg13cd0e8r5ne" path="res://scenes/buildings & related/towers & defense/projectile.tscn" id="18_cmcjb"]
@@ -46,7 +46,7 @@ wall_scene = ExtResource("18_kih21")
 conveyor_scene = ExtResource("19_gur6y")
 router_scene = ExtResource("20_2e2fo")
 core_scene = ExtResource("21_gur6y")
-quarry_scene = ExtResource("17_w3o6u")
+mine_scene = ExtResource("17_w3o6u")
 stonemason_scene = ExtResource("18_gur6y")
 fletcher_scene = ExtResource("19_v3why")
 projectile_scene = ExtResource("18_cmcjb")

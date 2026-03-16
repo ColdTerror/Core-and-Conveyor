@@ -5,22 +5,25 @@
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_ush8g"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_wcq7w"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wcq7w"]
-size = Vector2(128, 128)
+[sub_resource type="AtlasTexture" id="AtlasTexture_cawij"]
+atlas = ExtResource("2_ush8g")
+region = Rect2(640, 0, 96, 128)
 
-[node name="QuarryBuilding" type="Node2D" unique_id=1049048299 groups=["Structure"]]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wcq7w"]
+size = Vector2(96, 128)
+
+[node name="MineBuilding" type="Node2D" unique_id=1049048299 groups=["Structure"]]
 script = ExtResource("1_fgkgn")
 target_resource = ExtResource("2_im1p0")
 generic_item_scene = ExtResource("2_wcq7w")
 building_name = "Quarry"
-size = Vector2i(4, 4)
+size = Vector2i(3, 4)
+icon = SubResource("AtlasTexture_cawij")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
-modulate = Color(0.32172796, 0.32172796, 0.32172796, 1)
-self_modulate = Color(0.3328805, 0.33288077, 0.33288056, 1)
 texture = ExtResource("2_ush8g")
 region_enabled = true
-region_rect = Rect2(128, 0, 128, 128)
+region_rect = Rect2(640, 0, 96, 128)
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1711452867]
 
