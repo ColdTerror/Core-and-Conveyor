@@ -6,7 +6,7 @@ extends PanelContainer
 
 @onready var close_button = $VBoxContainer/CloseButton
 
-var current_building: Building = null
+var current_building: Node2D = null
 
 signal menu_closed
 
@@ -14,9 +14,17 @@ func _ready():
 	hide()
 	close_button.pressed.connect(close_menu)
 
-func open_menu(building: Building):
+func open_menu(building: Node2D):
 	current_building = building
 	title_label.text = building.building_name
+	
+	# --- NEW: LIVE UPDATES ---
+	# Duck typing: Check if this object (Bot or Building) has the signal
+	if current_building.has_signal("inventory_changed"):
+		if not current_building.inventory_changed.is_connected(refresh_ui):
+			current_building.inventory_changed.connect(refresh_ui)
+	# -------------------------
+
 	refresh_ui()
 	show()
 
@@ -38,7 +46,10 @@ func refresh_ui():
 	# --- NEW: ROUTE FOR TOWERS ---
 	elif current_building is TowerBuilding:
 		_setup_tower_ui(current_building as TowerBuilding)
-	# -----------------------------
+	# --- NEW: ROUTE FOR BOTS (Duck Typing!) ---
+	elif current_building.has_method("cycle_priority"):
+		_setup_bot_ui(current_building)
+	# ------------------------------------------
 	else:
 		info_label.text = "No configurable options."
 
@@ -114,7 +125,33 @@ func _setup_tower_ui(b: TowerBuilding):
 	# Spawn the dynamic button
 	_create_button("Cycle Targeting", Color.WHITE, b.cycle_targeting_mode)
 
+# --- HELPER: Setup UI for Worker Bots ---
+func _setup_bot_ui(b: Node2D):
+	# 1. Pull the data we set up in the bot's script
+	var info = b.get_inventory_info()
+	
+	# 2. Display what it's hunting and what's in its pockets
+	info_label.text = "Target: %s\nCarrying: %s" % [info["Target"], info["Carrying"]]
+	
+	# Color code the text based on its target!
+	if info["Target"] == "Wood Only":
+		info_label.modulate = Color(0.6, 1.0, 0.6) # Green
+	elif info["Target"] == "Stone Only":
+		info_label.modulate = Color(0.6, 0.6, 1.0) # Blue
+	else:
+		info_label.modulate = Color(1.0, 1.0, 1.0) # White
+
+	# 3. Spawn the dynamic button
+	_create_button("Cycle Priority", Color(1.0, 0.8, 0.3), b.cycle_priority)
+
 func close_menu():
+	# --- NEW: CLEAN UP SIGNALS ---
+	# We must disconnect so it doesn't try to update a closed menu!
+	if is_instance_valid(current_building) and current_building.has_signal("inventory_changed"):
+		if current_building.inventory_changed.is_connected(refresh_ui):
+			current_building.inventory_changed.disconnect(refresh_ui)
+	# -----------------------------
+	
 	current_building = null
 	hide()
 	menu_closed.emit()

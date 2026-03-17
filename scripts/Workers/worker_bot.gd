@@ -1,6 +1,19 @@
 extends Node2D
 class_name WorkerBot
 
+signal clicked(bot: WorkerBot)
+signal inventory_changed # <--- NEW: Tells the UI to update!
+
+# --- THE DISGUISE (Duck Typing) ---
+# Your UI looks for these variables, so the bot must have them!
+var building_name: String = "Worker Bot"
+var health: int = 100
+var max_health: int = 100
+
+# --- THE PRIORITY SYSTEM ---
+enum TaskPriority { GATHER_ALL, GATHER_WOOD, GATHER_STONE, STOPPED }
+var current_priority: TaskPriority = TaskPriority.GATHER_ALL
+
 enum State { IDLE, MOVING_TO_RESOURCE, HARVESTING, MOVING_TO_CORE, DEPOSITING }
 var current_state: State = State.IDLE
 
@@ -22,6 +35,9 @@ var unreachable_tiles: Array[Vector2i] = []
 func setup(level: Node2D):
 	level_ref = level
 	action_timer.timeout.connect(_on_action_timer_timeout)
+	
+	if has_node("Area2D"):
+		$Area2D.input_event.connect(_on_input_event)
 
 func _process(delta):
 	queue_redraw()
@@ -41,6 +57,11 @@ func _process(delta):
 # ==========================================
 
 func _find_nearest_resource():
+	# --- NEW: Check if we are allowed to work! ---
+	if current_priority == TaskPriority.STOPPED:
+		return # Do absolutely nothing. Just stand there!
+	# ---------------------------------------------
+	
 	if not level_ref or level_ref.active_grid_objects.is_empty():
 		return 
 		
@@ -54,11 +75,25 @@ func _find_nearest_resource():
 			continue
 			
 		var info = level_ref.active_grid_objects[tile]
-		if info["health"] > 0 and info["data"].item_drop:
-			var dist = my_grid_pos.distance_squared_to(tile)
-			if dist < min_dist:
-				min_dist = dist
-				best_tile = tile
+		var item_name = info["data"].item_drop.display_name
+			
+		# --- THE PRIORITY FILTER ---
+		if current_priority == TaskPriority.GATHER_WOOD and item_name != "Wood":
+			continue # Ignore stones
+		if current_priority == TaskPriority.GATHER_STONE and item_name != "Stone":
+			continue # Ignore trees
+		# ---------------------------
+		
+		# --- THE FIX: Stop mixing items! ---
+		# If my hands are full, ONLY look for the exact same item!
+		if carried_amount > 0 and item_name != carried_item_name:
+			continue
+		# -----------------------------------
+			
+		var dist = my_grid_pos.distance_squared_to(tile)
+		if dist < min_dist:
+			min_dist = dist
+			best_tile = tile
 				
 	if best_tile != Vector2i(-1, -1):
 		target_tile = best_tile
@@ -156,7 +191,8 @@ func _on_action_timer_timeout():
 			if harvested_amount > 0:
 				carried_item_name = info["data"].item_drop.display_name
 				carried_amount += harvested_amount
-				print_debug("Bot mined %s" % [carried_item_name])
+				inventory_changed.emit()
+				#print_debug("Bot mined %s" % [carried_item_name])
 			# -----------------------ds
 			
 			# Do we keep chopping, or go home?
@@ -180,6 +216,7 @@ func _on_action_timer_timeout():
 				
 				# Subtract whatever the Core actually took
 				carried_amount -= amount_taken
+				inventory_changed.emit()
 				
 				if carried_amount <= 0:
 					# Pocket empty! Go back to work.
@@ -224,6 +261,57 @@ func _get_standable_adjacent_tile(target_tile: Vector2i) -> Vector2i:
 				
 	return best_stand
 
+
+# ==========================================
+# UI INTERACTION & PRIORITY LOGIC
+# ==========================================
+
+func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int):
+	# Did the player Left-Click the bot?
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		print("Bot Clicked")
+		
+		# CRITICAL: This destroys the click event so it doesn't fall 
+		# through and hit the grass tile underneath the bot!
+		get_viewport().set_input_as_handled() 
+		
+		clicked.emit(self)
+
+func cycle_priority():
+	# Cycle between 0, 1, 2, and 3
+	current_priority = (current_priority + 1) % 4 
+	
+	# --- NEW: HARD STOP LOGIC ---
+	if current_priority == TaskPriority.STOPPED:
+		# Instantly freeze the bot, clear its path, and cancel its axe swings!
+		target_tile = Vector2i(-1, -1)
+		current_path.clear()
+		action_timer.stop()
+		current_state = State.IDLE
+	else:
+		# If changing between gathering modes, just reset if hunting
+		if current_state == State.IDLE or current_state == State.MOVING_TO_RESOURCE:
+			target_tile = Vector2i(-1, -1)
+			current_path.clear()
+			current_state = State.IDLE
+	
+	# Force the UI to visually update immediately!
+	inventory_changed.emit()
+
+# The UI panel will call this to populate its text box!
+func get_inventory_info() -> Dictionary:
+	var p_name = "All"
+	if current_priority == TaskPriority.GATHER_WOOD: p_name = "Wood Only"
+	elif current_priority == TaskPriority.GATHER_STONE: p_name = "Stone Only"
+	# --- NEW: Tell the UI what to print! ---
+	elif current_priority == TaskPriority.STOPPED: p_name = "Halted" 
+	
+	var carrying_text = "Empty"
+	if carried_amount > 0:
+		carrying_text = "%s (%d)" % [carried_item_name, carried_amount]
+	
+	return { "Target": p_name, "Carrying": carrying_text }
+	
 # ==========================================
 # DEBUG VISUALS
 # ==========================================

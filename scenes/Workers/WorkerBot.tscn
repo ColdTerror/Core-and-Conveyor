@@ -3,6 +3,9 @@
 [ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_0ncvu"]
 [ext_resource type="Script" uid="uid://bbwekadk8o8xv" path="res://scripts/Workers/worker_bot.gd" id="1_e4pf7"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_e4pf7"]
+size = Vector2(32, 32)
+
 [node name="WorkerBot" type="Node2D" unique_id=999813474]
 script = ExtResource("1_e4pf7")
 
@@ -11,3 +14,8 @@ scale = Vector2(0.25, 0.25)
 texture = ExtResource("1_0ncvu")
 
 [node name="ActionTimer" type="Timer" parent="." unique_id=1774569527]
+
+[node name="Area2D" type="Area2D" parent="." unique_id=509418448]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=171805855]
+shape = SubResource("RectangleShape2D_e4pf7")

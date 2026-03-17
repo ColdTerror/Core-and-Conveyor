@@ -416,6 +416,8 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 			new_bot.global_position = level_ref.object_layer.to_global(local_pos)
 			
 			new_bot.setup(level_ref)
+			
+			new_bot.clicked.connect(_on_bot_clicked)
 		
 		# 2. Trigger Corruption
 		if level_ref and level_ref.has_node("CorruptionManager"):
@@ -1194,3 +1196,12 @@ func show_upgrade_preview(grid_pos: Vector2i):
 
 	# 4. If nothing valid is hovered, fire the "hide" signal
 	placement_ended.emit()
+	
+
+# ==========================================
+# BOT UI ROUTING
+# ==========================================
+func _on_bot_clicked(bot: Node2D):
+	# Fire the exact same signal we use for actual buildings!
+	# The UI won't know the difference.
+	building_selected.emit(bot)

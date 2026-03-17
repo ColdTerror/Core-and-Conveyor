@@ -12,7 +12,8 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"06a770b7-d73c-4df1-a38a-d5e83fe779a3"
+				"4fed44ef-7e0f-4d36-8c59-660d5f910164",
+				"a151aed0-237e-478b-88b9-e0dd3b182724"
 			]
 		},
 		{
@@ -26,7 +27,9 @@
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"dc7fd2f6-3733-4f42-83f8-9b705b3ea43a",
+				"a08d1a9b-0b18-4f7e-8d12-97a6c3275f60",
 				"6fb67301-aa20-45c3-a8fa-764001ca65f1",
+				"06a770b7-d73c-4df1-a38a-d5e83fe779a3",
 				"86bec14d-3b8e-4692-b910-d2b488b00079",
 				"1cdb80fa-bf30-4d3a-bd25-fef74f2b0e52",
 				"85294240-9fd3-47c9-bbff-a341c846a480",
@@ -222,6 +225,27 @@
 			"uuid": "06a770b7-d73c-4df1-a38a-d5e83fe779a3",
 			"title": "add more stats for harvesting buildings",
 			"description": "scan radius\nharvest damage\nwork interval",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "4fed44ef-7e0f-4d36-8c59-660d5f910164",
+			"title": "update building menu for better bot integration",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a08d1a9b-0b18-4f7e-8d12-97a6c3275f60",
+			"title": "bot ui carrying doesnt work",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a151aed0-237e-478b-88b9-e0dd3b182724",
+			"title": "better button for cycling bot modes, maybe a drop down or something",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
