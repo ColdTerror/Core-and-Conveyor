@@ -157,7 +157,7 @@ func _on_action_timer_timeout():
 				carried_item_name = info["data"].item_drop.display_name
 				carried_amount += harvested_amount
 				print_debug("Bot mined %s" % [carried_item_name])
-			# -----------------------
+			# -----------------------ds
 			
 			# Do we keep chopping, or go home?
 			if carried_amount >= carry_capacity or info["health"] <= 0:
@@ -172,14 +172,25 @@ func _on_action_timer_timeout():
 
 	elif current_state == State.DEPOSITING:
 		if carried_amount > 0:
-			# Give to the global economy!
-			EconomyManager.add_resources(carried_item_name, carried_amount)
-			print_debug("Bot deposited %d %s into the Core!" % [carried_amount, carried_item_name])
+			var core = _get_core_building()
 			
-			carried_amount = 0
-			carried_item_name = ""
-			
-		current_state = State.IDLE # Go find more work!
+			if core and core.has_method("add_item"):
+				# Try to dump the inventory
+				var amount_taken = core.add_item(carried_item_name, carried_amount)
+				
+				# Subtract whatever the Core actually took
+				carried_amount -= amount_taken
+				
+				if carried_amount <= 0:
+					# Pocket empty! Go back to work.
+					carried_item_name = ""
+					current_state = State.IDLE 
+				else:
+					# Pocket still has items? The Core must be full!
+					# Stay in DEPOSITING state and check again in 2 seconds.
+					action_timer.start(2.0)
+			else:
+				current_state = State.IDLE # Core is missing, abort.
 
 # Helper to find the Core Building
 func _get_core_building() -> Building:
