@@ -71,3 +71,14 @@ func _on_core_placed():
 		
 	if core_button:
 		core_button.modulate = Color.WHITE
+		
+# ==========================================
+# UTILITY LOGIC
+# ==========================================
+func remove_button(button_name: String):
+	# Loop through all the buttons inside the HBoxContainer
+	for child in container.get_children():
+		# Check if it's a button and if the text matches
+		if child is Button and child.text == button_name:
+			child.queue_free() # Destroy it!
+			return # Stop searching since we found it

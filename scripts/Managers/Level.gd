@@ -86,6 +86,8 @@ func _ready():
 	
 	building_manager.building_selected.connect(building_menu.open_menu)
 	
+	building_manager.core_placed_event.connect(_on_core_placed)
+	
 
 # =========================
 # Hotbar stuff
@@ -93,11 +95,11 @@ func _ready():
 
 # 1. DEFINE WHAT GOES ON THE BAR
 func _setup_hotbar_items():
+	# --- MODIFIED: Only give the player the Core at the start! ---
+	_add_building_to_bar("Core", core_scene)
 
-	
-	# B. Add Building Buttons
-	# We instantiate briefly to get the icon/cost, or you can use a separate Resource system.
-	# For now, we trust the packed scenes are assigned.
+# --- NEW: Called after the Core is placed ---
+func _add_unlocked_buildings():
 	_add_building_to_bar("Belt", conveyor_scene)
 	_add_building_to_bar("Router", router_scene)
 	_add_building_to_bar("Hut", lumberjack_scene)
@@ -105,11 +107,22 @@ func _setup_hotbar_items():
 	_add_building_to_bar("Stockpile", stockpile_scene)
 	_add_building_to_bar("Bow Tower", bow_tower_scene)
 	_add_building_to_bar("Wall", wall_scene)
-	_add_building_to_bar("Core", core_scene)
 	_add_building_to_bar("Mine", mine_scene)
 	_add_building_to_bar("Stonemason", stonemason_scene)
 	_add_building_to_bar("Fletcher", fletcher_scene)
 	
+
+# =========================
+# CORE PLACEMENT EVENT
+# =========================
+func _on_core_placed():
+	# 1. Remove the Core from the hotbar
+	if hotbar and hotbar.has_method("remove_button"):
+		hotbar.remove_button("Core")
+		
+	
+	# 2. Populate the rest of the hotbar!
+	_add_unlocked_buildings()
 	
 
 func _add_building_to_bar(name: String, packed_scene: PackedScene):

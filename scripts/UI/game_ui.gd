@@ -37,6 +37,9 @@ func _ready():
 		building_manager.placement_cost_updated.connect(_on_placement_cost_updated)
 		building_manager.placement_ended.connect(_on_placement_ended)
 
+
+	
+
 func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary = {}):
 	costPanel.show()
 	
@@ -62,7 +65,7 @@ func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_affo
 			text += "%s: %s\n" % [stat_name, extra_stats[stat_name]]
 	# -------------------------------------
 			
-	costLabel.text = text
+	costLabel.text = text.strip_edges()
 	
 	# 3. Tint Logic
 	if total_cost.is_empty() and "Max Tier" in b_name:
@@ -158,3 +161,8 @@ func _process(_delta):
 			# Using a "~" adds a nice touch of "this is an estimate!"
 			waveLabel.text = "Enemies Spawning Tonight: ~%d" % forecast
 			waveLabel.modulate = Color.WHITE # Back to normal text color
+	
+	#Move the costPanel to follow mouse
+	if costPanel.visible: # (Change $CostUI to whatever your node is named)
+		var mouse_pos = get_viewport().get_mouse_position()
+		costPanel.global_position = mouse_pos + Vector2(25, 25)

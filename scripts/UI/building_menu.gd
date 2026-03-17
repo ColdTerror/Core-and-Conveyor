@@ -13,6 +13,8 @@ signal menu_closed
 func _ready():
 	hide()
 	close_button.pressed.connect(close_menu)
+	
+	info_label.custom_minimum_size = Vector2(225, 50) 
 
 func open_menu(building: Node2D):
 	current_building = building
@@ -47,7 +49,7 @@ func refresh_ui():
 	elif current_building is TowerBuilding:
 		_setup_tower_ui(current_building as TowerBuilding)
 	# --- NEW: ROUTE FOR BOTS (Duck Typing!) ---
-	elif current_building.has_method("cycle_priority"):
+	elif current_building.has_method("set_priority"):
 		_setup_bot_ui(current_building)
 	# ------------------------------------------
 	else:
@@ -127,22 +129,21 @@ func _setup_tower_ui(b: TowerBuilding):
 
 # --- HELPER: Setup UI for Worker Bots ---
 func _setup_bot_ui(b: Node2D):
-	# 1. Pull the data we set up in the bot's script
 	var info = b.get_inventory_info()
-	
-	# 2. Display what it's hunting and what's in its pockets
 	info_label.text = "Target: %s\nCarrying: %s" % [info["Target"], info["Carrying"]]
 	
-	# Color code the text based on its target!
-	if info["Target"] == "Wood Only":
-		info_label.modulate = Color(0.6, 1.0, 0.6) # Green
-	elif info["Target"] == "Stone Only":
-		info_label.modulate = Color(0.6, 0.6, 1.0) # Blue
-	else:
-		info_label.modulate = Color(1.0, 1.0, 1.0) # White
+	if info["Target"] == "Wood Only": info_label.modulate = Color(0.6, 1.0, 0.6)
+	elif info["Target"] == "Stone Only": info_label.modulate = Color(0.6, 0.6, 1.0)
+	elif info["Target"] == "Halted": info_label.modulate = Color(1.0, 0.4, 0.4)
+	else: info_label.modulate = Color(1.0, 1.0, 1.0)
 
-	# 3. Spawn the dynamic button
-	_create_button("Cycle Priority", Color(1.0, 0.8, 0.3), b.cycle_priority)
+	# --- THE FIX: Spawn a dedicated RTS Command Panel! ---
+	# We pass the integer values of your Enum: ALL=0, WOOD=1, STONE=2, STOP=3
+	
+	_create_button("Gather All", Color(1.0, 1.0, 1.0), func(): b.set_priority(0))
+	_create_button("Wood Only", Color(0.6, 1.0, 0.6), func(): b.set_priority(1))
+	_create_button("Stone Only", Color(0.6, 0.6, 1.0), func(): b.set_priority(2))
+	_create_button("Halt Bot", Color(1.0, 0.4, 0.4), func(): b.set_priority(3))
 
 func close_menu():
 	# --- NEW: CLEAN UP SIGNALS ---

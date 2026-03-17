@@ -277,25 +277,24 @@ func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int):
 		
 		clicked.emit(self)
 
-func cycle_priority():
-	# Cycle between 0, 1, 2, and 3
-	current_priority = (current_priority + 1) % 4 
+# --- NEW: DIRECT COMMAND FUNCTION ---
+func set_priority(new_priority: int):
+	# Don't do anything if they click the button we are already doing
+	if current_priority == new_priority: return 
 	
-	# --- NEW: HARD STOP LOGIC ---
+	current_priority = new_priority as TaskPriority
+	
 	if current_priority == TaskPriority.STOPPED:
-		# Instantly freeze the bot, clear its path, and cancel its axe swings!
 		target_tile = Vector2i(-1, -1)
 		current_path.clear()
 		action_timer.stop()
 		current_state = State.IDLE
 	else:
-		# If changing between gathering modes, just reset if hunting
 		if current_state == State.IDLE or current_state == State.MOVING_TO_RESOURCE:
 			target_tile = Vector2i(-1, -1)
 			current_path.clear()
 			current_state = State.IDLE
-	
-	# Force the UI to visually update immediately!
+			
 	inventory_changed.emit()
 
 # The UI panel will call this to populate its text box!
