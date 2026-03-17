@@ -73,8 +73,16 @@ func _find_nearest_resource():
 		# --- NEW: Skip trees we already know we can't reach! ---
 		if unreachable_tiles.has(tile):
 			continue
+		
+		
 			
 		var info = level_ref.active_grid_objects[tile]
+		
+		# --- THE FIX: Ignore dead trees and rocks! ---
+		if info["health"] <= 0:
+			continue
+		# ---------------------------------------------
+		
 		var item_name = info["data"].item_drop.display_name
 			
 		# --- THE PRIORITY FILTER ---
@@ -195,11 +203,18 @@ func _on_action_timer_timeout():
 				#print_debug("Bot mined %s" % [carried_item_name])
 			# -----------------------ds
 			
-			# Do we keep chopping, or go home?
-			if carried_amount >= carry_capacity or info["health"] <= 0:
-				_find_core()
+			# --- THE LOGIC FIX ---
+			if carried_amount >= carry_capacity:
+				_find_core() # Pockets are full, go home!
+			elif info["health"] <= 0:
+				# Tree is dead! Do we have anything to drop off?
+				if carried_amount > 0:
+					_find_core() 
+				else:
+					current_state = State.IDLE # Pockets are empty! Find a new tree right now!
 			else:
-				action_timer.start(harvest_time) 
+				action_timer.start(harvest_time) # Keep chopping!
+			# ---------------------
 		else:
 			if carried_amount > 0:
 				_find_core()
@@ -228,6 +243,9 @@ func _on_action_timer_timeout():
 					action_timer.start(2.0)
 			else:
 				current_state = State.IDLE # Core is missing, abort.
+		else:
+			# If a bot somehow ends up at the Core empty-handed, send it back to work!
+			current_state = State.IDLE
 
 # Helper to find the Core Building
 func _get_core_building() -> Building:
@@ -283,6 +301,18 @@ func set_priority(new_priority: int):
 	if current_priority == new_priority: return 
 	
 	current_priority = new_priority as TaskPriority
+	
+	# --- Contraband Check (Voiding wrong items) ---
+	if carried_amount > 0:
+		if current_priority == TaskPriority.GATHER_WOOD and carried_item_name != "Wood":
+			print("Bot voided %d %s to switch to Wood!" % [carried_amount, carried_item_name])
+			carried_amount = 0
+			carried_item_name = ""
+		elif current_priority == TaskPriority.GATHER_STONE and carried_item_name != "Stone":
+			print("Bot voided %d %s to switch to Stone!" % [carried_amount, carried_item_name])
+			carried_amount = 0
+			carried_item_name = ""
+			
 	
 	if current_priority == TaskPriority.STOPPED:
 		target_tile = Vector2i(-1, -1)
