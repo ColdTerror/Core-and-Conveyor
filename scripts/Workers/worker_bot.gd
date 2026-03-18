@@ -14,7 +14,7 @@ var max_health: int = 100
 enum TaskPriority { GATHER_ALL, GATHER_WOOD, GATHER_STONE, STOPPED }
 var current_priority: TaskPriority = TaskPriority.GATHER_ALL
 
-enum State { IDLE, MOVING_TO_RESOURCE, HARVESTING, MOVING_TO_CORE, DEPOSITING }
+enum State { IDLE, MOVING_TO_RESOURCE, HARVESTING, MOVING_TO_INVENTORY, DEPOSITING }
 var current_state: State = State.IDLE
 
 @export var speed: float = 75.0
@@ -23,6 +23,7 @@ var current_state: State = State.IDLE
 
 var carried_item_name: String = ""
 var carried_amount: int = 0
+var carried_item_res: Resource = null
 
 var level_ref: Node2D
 var target_tile: Vector2i = Vector2i(-1, -1)
@@ -31,6 +32,8 @@ var current_path: Array[Vector2] = []
 @onready var action_timer = $ActionTimer
 
 var unreachable_tiles: Array[Vector2i] = []
+
+var full_storages_ignored: Array[Node2D] = []
 
 func setup(level: Node2D):
 	level_ref = level
@@ -49,7 +52,7 @@ func _process(delta):
 		State.MOVING_TO_RESOURCE:
 			_move_along_path(delta, State.HARVESTING)
 			
-		State.MOVING_TO_CORE:
+		State.MOVING_TO_INVENTORY:
 			_move_along_path(delta, State.DEPOSITING)
 
 # ==========================================
@@ -57,10 +60,16 @@ func _process(delta):
 # ==========================================
 
 func _find_nearest_resource():
-	# --- NEW: Check if we are allowed to work! ---
 	if current_priority == TaskPriority.STOPPED:
 		return # Do absolutely nothing. Just stand there!
-	# ---------------------------------------------
+	
+	if carried_amount >= carry_capacity:
+		# If we are here, our pockets are full but storages were busy.
+		# Clear the blacklist memory and try to find a drop-off again!
+		full_storages_ignored.clear()
+		_find_nearest_storage()
+		return
+
 	
 	if not level_ref or level_ref.active_grid_objects.is_empty():
 		return 
@@ -111,14 +120,51 @@ func _find_nearest_resource():
 		pass # No reachable resources left!
 		
 		
-func _find_core():
-	var core = _get_core_building()
-	if core:
-		# Pathfind to the tile right next to the core
-		_request_path(core.grid_origin) 
-		current_state = State.MOVING_TO_CORE
+# ==========================================
+# UNIVERSAL STORAGE SEARCH
+# ==========================================
+func _find_nearest_storage():
+	if not level_ref or not level_ref.building_manager: return
+	
+	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
+	var best_tile = Vector2i(-1, -1)
+	var min_dist = INF
+	
+	# Scan EVERY building on the map
+	for b in level_ref.building_manager.buildings:
+		
+		# 1. Does it accept items?
+		if not (b.has_method("add_item") or b.has_method("add_bot_item")): continue
+		
+		# 2. Is it full? (Check our temporary memory blacklist!)
+		if b in full_storages_ignored: continue
+		
+		# 3. Is it a Stockpile with a strict filter? 
+		if "is_dedicated_mode" in b and "selected_output_name" in b:
+			# If it's dedicated, and the output is set, and it doesn't match what we are holding: skip it!
+			if b.is_dedicated_mode and b.selected_output_name != "" and b.selected_output_name != carried_item_name:
+				continue 
+		
+		# 4. It's a valid storage! How close is it?
+		if b.occupied_tiles.size() > 0:
+			var b_tile = b.occupied_tiles[0]
+			var dist = my_pos.distance_squared_to(b_tile)
+			if dist < min_dist:
+				min_dist = dist
+				best_tile = b_tile
+				
+	# Apply the best tile
+	if best_tile != Vector2i(-1, -1):
+		target_tile = best_tile
+		_request_path(best_tile, true)
+		
+		# (Note: If you have a specific state name for this, use it. 
+		# Otherwise, keep using your existing return-home state!)
+		current_state = State.MOVING_TO_INVENTORY 
 	else:
-		current_state = State.IDLE # Core is dead or missing!
+		# EVERY storage on the entire map is full! 
+		# Stand completely still and wait for the player to build more.
+		current_state = State.IDLE
 
 # ==========================================
 # 2. LEGS: MOVEMENT
@@ -197,7 +243,8 @@ func _on_action_timer_timeout():
 			
 			# If we got anything, add it to our pockets!
 			if harvested_amount > 0:
-				carried_item_name = info["data"].item_drop.display_name
+				carried_item_res = info["data"].item_drop # <--- NEW: Save the Resource!
+				carried_item_name = carried_item_res.display_name
 				carried_amount += harvested_amount
 				inventory_changed.emit()
 				#print_debug("Bot mined %s" % [carried_item_name])
@@ -205,11 +252,11 @@ func _on_action_timer_timeout():
 			
 			# --- THE LOGIC FIX ---
 			if carried_amount >= carry_capacity:
-				_find_core() # Pockets are full, go home!
+				_find_nearest_storage() # Pockets are full, go home!
 			elif info["health"] <= 0:
 				# Tree is dead! Do we have anything to drop off?
 				if carried_amount > 0:
-					_find_core() 
+					_find_nearest_storage() 
 				else:
 					current_state = State.IDLE # Pockets are empty! Find a new tree right now!
 			else:
@@ -217,42 +264,45 @@ func _on_action_timer_timeout():
 			# ---------------------
 		else:
 			if carried_amount > 0:
-				_find_core()
+				_find_nearest_storage()
 			else:
 				current_state = State.IDLE
 
 	elif current_state == State.DEPOSITING:
 		if carried_amount > 0:
-			var core = _get_core_building()
-			
-			if core and core.has_method("add_item"):
-				# Try to dump the inventory
-				var amount_taken = core.add_item(carried_item_name, carried_amount)
+			var storage = null
+			if level_ref.building_manager.occupied_tiles.has(target_tile):
+				storage = level_ref.building_manager.occupied_tiles[target_tile]
 				
-				# Subtract whatever the Core actually took
+			if storage:
+				var amount_taken = 0
+				
+				# --- THE ROUTER ---
+				# If it's a Stockpile, give it the Resource!
+				if storage.has_method("add_bot_item"):
+					amount_taken = storage.add_bot_item(carried_item_res, carried_amount)
+				# If it's the Core, give it the String!
+				elif storage.has_method("add_item"):
+					amount_taken = storage.add_item(carried_item_name, carried_amount)
+				# ------------------
+					
 				carried_amount -= amount_taken
 				inventory_changed.emit()
 				
 				if carried_amount <= 0:
-					# Pocket empty! Go back to work.
 					carried_item_name = ""
+					carried_item_res = null # <--- Clear the resource
+					full_storages_ignored.clear() 
 					current_state = State.IDLE 
 				else:
-					# Pocket still has items? The Core must be full!
-					# Stay in DEPOSITING state and check again in 2 seconds.
-					action_timer.start(2.0)
+					full_storages_ignored.append(storage)
+					_find_nearest_storage()
 			else:
-				current_state = State.IDLE # Core is missing, abort.
+				current_state = State.IDLE
 		else:
-			# If a bot somehow ends up at the Core empty-handed, send it back to work!
+			# If a bot somehow ends up empty-handed here, send it back to work!
 			current_state = State.IDLE
 
-# Helper to find the Core Building
-func _get_core_building() -> Building:
-	for b in level_ref.building_manager.buildings:
-		if b is CoreBuilding: # Assuming you named the class CoreBuilding!
-			return b
-	return null
 	
 	
 # ==========================================
@@ -308,10 +358,12 @@ func set_priority(new_priority: int):
 			print("Bot voided %d %s to switch to Wood!" % [carried_amount, carried_item_name])
 			carried_amount = 0
 			carried_item_name = ""
+			carried_item_res = null
 		elif current_priority == TaskPriority.GATHER_STONE and carried_item_name != "Stone":
 			print("Bot voided %d %s to switch to Stone!" % [carried_amount, carried_item_name])
 			carried_amount = 0
 			carried_item_name = ""
+			carried_item_res = null
 			
 	
 	if current_priority == TaskPriority.STOPPED:

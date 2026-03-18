@@ -11,7 +11,9 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"ebc8f5b9-1eeb-4182-a0e0-89f60e6259af",
+				"21f73bb1-e46a-47b4-9615-d452549e607c"
 			]
 		},
 		{
@@ -245,6 +247,20 @@
 		{
 			"uuid": "a151aed0-237e-478b-88b9-e0dd3b182724",
 			"title": "better button for cycling bot modes, maybe a drop down or something",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "ebc8f5b9-1eeb-4182-a0e0-89f60e6259af",
+			"title": "bots build buildings",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "21f73bb1-e46a-47b4-9615-d452549e607c",
+			"title": "update core to item resource",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

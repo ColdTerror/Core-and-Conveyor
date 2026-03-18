@@ -191,6 +191,44 @@ func accept_item(item: ItemResource) -> bool:
 	
 	return true
 
+# ==========================================
+# BOT INTERACTION (Bulk Delivery)
+# ==========================================
+func add_bot_item(item_res: ItemResource, amount: int) -> int:
+	var current_total = get_total_items()
+	var space_left = 0
+
+	if is_dedicated_mode:
+		# 1. Lock onto the item if we are empty!
+		if current_total == 0 and dedicated_item_name == "":
+			dedicated_item_name = item_res.display_name
+			
+		# 2. Reject if it's the wrong item
+		if dedicated_item_name != "" and item_res.display_name != dedicated_item_name:
+			return 0 
+			
+		space_left = max_dedicated_capacity - current_total
+	else:
+		# MIXED MODE: Check specific item cap
+		var current_amount = inventory.get(item_res, 0)
+		space_left = max_mixed_capacity - current_amount
+
+	# 3. Reject if full
+	if space_left <= 0:
+		return 0
+
+	# 4. Take the items!
+	var amount_to_take = min(amount, space_left)
+
+	if not item_res.display_name in available_types:
+		available_types.append(item_res.display_name)
+
+	inventory[item_res] = inventory.get(item_res, 0) + amount_to_take
+	EconomyManager.add_resources(item_res.display_name, amount_to_take)
+	
+	inventory_changed.emit()
+	return amount_to_take
+
 # --------------------------------------------------
 # HELPERS
 # --------------------------------------------------
