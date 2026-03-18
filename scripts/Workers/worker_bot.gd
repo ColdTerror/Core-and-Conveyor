@@ -32,6 +32,7 @@ var current_path: Array[Vector2] = []
 
 var unreachable_tiles: Array[Vector2i] = []
 var full_storages_ignored: Array[Node2D] = []
+var unreachable_storages: Array[Node2D] = [] # NEW: Pathfinding blacklist for storages
 
 func setup(level: Node2D):
 	level_ref = level
@@ -116,34 +117,47 @@ func _find_nearest_storage():
 	if not level_ref or not level_ref.building_manager: return
 	
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
-	var best_tile = Vector2i(-1, -1)
-	var min_dist = INF
-	
+
+	# Build a sorted list of candidates, then try each until one paths successfully.
+	var candidates: Array = []
+
 	for b in level_ref.building_manager.buildings:
-		
 		if not (b.has_method("add_item") or b.has_method("add_bot_item")): continue
-		
 		if b in full_storages_ignored: continue
-		
+		if b in unreachable_storages: continue  # NEW: skip known blocked storages
+
 		if "is_dedicated_mode" in b and "selected_output_name" in b:
 			if b.is_dedicated_mode and b.selected_output_name != "" and b.selected_output_name != carried_item_name:
 				continue
-		
+
 		if b.occupied_tiles.size() > 0:
 			var b_tile = b.occupied_tiles[0]
 			var dist = my_pos.distance_squared_to(b_tile)
-			if dist < min_dist:
-				min_dist = dist
-				best_tile = b_tile
-				
-	if best_tile != Vector2i(-1, -1):
-		target_tile = best_tile
-		_request_path(best_tile, true)
-		current_state = State.MOVING_TO_INVENTORY
-	else:
-		# All storages are full — wait patiently
-		current_state = State.WAITING_FOR_STORAGE
-		action_timer.start(10.0)
+			candidates.append({ "building": b, "tile": b_tile, "dist": dist })
+
+	# Sort closest first
+	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
+
+	# Try each candidate until one has a valid path
+	for candidate in candidates:
+		var b_tile = candidate["tile"]
+		var b_node = candidate["building"]
+
+		_request_path(b_tile, true)
+
+		if not current_path.is_empty():
+			# Valid path found!
+			target_tile = b_tile
+			current_state = State.MOVING_TO_INVENTORY
+			return
+		else:
+			# Path failed — blacklist this storage until we reset
+			print("Bot: Storage at %s is unreachable, blacklisting." % b_tile)
+			unreachable_storages.append(b_node)
+
+	# Every storage is either full, filtered, or unreachable
+	current_state = State.WAITING_FOR_STORAGE
+	action_timer.start(10.0)
 
 
 # ==========================================
@@ -254,6 +268,7 @@ func _on_action_timer_timeout():
 					carried_item_name = ""
 					carried_item_res = null
 					full_storages_ignored.clear()
+					unreachable_storages.clear() # NEW: Walls may have changed, reset on success
 					current_state = State.IDLE
 				else:
 					full_storages_ignored.append(storage)
@@ -264,7 +279,9 @@ func _on_action_timer_timeout():
 			current_state = State.IDLE
 
 	elif current_state == State.WAITING_FOR_STORAGE:
+		# Timer expired — wipe all blacklists and try again fresh
 		full_storages_ignored.clear()
+		unreachable_storages.clear() # NEW: Maybe a wall was removed!
 		current_state = State.IDLE
 
 
