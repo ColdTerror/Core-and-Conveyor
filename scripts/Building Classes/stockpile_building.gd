@@ -30,7 +30,7 @@ func _ready():
 	super() # Run building class ready as well
 	building_name = "Stockpile"
 	size = Vector2i(4, 4)
-	health = max_health
+	health = max_health - 10
 	EconomyManager.register_source(self)
 
 func _exit_tree():

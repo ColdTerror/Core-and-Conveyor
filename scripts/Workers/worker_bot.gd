@@ -10,15 +10,15 @@ var health: int = 100
 var max_health: int = 100
 
 # --- THE PRIORITY SYSTEM ---
-enum TaskPriority { GATHER_WOOD, GATHER_STONE, STOPPED }
+enum TaskPriority { GATHER_WOOD, GATHER_STONE, REPAIR, STOPPED }
 var current_priority: TaskPriority = TaskPriority.GATHER_WOOD
 
-enum State { IDLE, MOVING_TO_RESOURCE, HARVESTING, MOVING_TO_INVENTORY, DEPOSITING, WAITING_FOR_STORAGE }
+enum State { IDLE, MOVING_TO_RESOURCE, HARVESTING, MOVING_TO_INVENTORY, DEPOSITING, ON_STANDBY, MOVING_TO_REPAIR, REPAIRING}
 var current_state: State = State.IDLE
 
 @export var speed: float = 75.0
 @export var carry_capacity: int = 5
-@export var harvest_time: float = 0.5
+@export var harvest_time: float = 1
 
 var carried_item_name: String = ""
 var carried_amount: int = 0
@@ -46,13 +46,18 @@ func _process(delta):
 	
 	match current_state:
 		State.IDLE:
-			_find_nearest_resource()
+			if current_priority == TaskPriority.REPAIR:
+				_find_damaged_building()
+			else:
+				_find_nearest_resource()
 			
 		State.MOVING_TO_RESOURCE:
 			_move_along_path(delta, State.HARVESTING)
 			
 		State.MOVING_TO_INVENTORY:
 			_move_along_path(delta, State.DEPOSITING)
+		State.MOVING_TO_REPAIR:
+			_move_along_path(delta, State.REPAIRING)
 
 # ==========================================
 # 1. BRAIN: DECISION MAKING
@@ -156,9 +161,45 @@ func _find_nearest_storage():
 			unreachable_storages.append(b_node)
 
 	# Every storage is either full, filtered, or unreachable
-	current_state = State.WAITING_FOR_STORAGE
-	action_timer.start(10.0)
+	current_state = State.ON_STANDBY
+	action_timer.start(5.0)
 
+# ==========================================
+# REPAIR SEARCH
+# ==========================================
+func _find_damaged_building():
+	if current_priority == TaskPriority.STOPPED: return
+	if not level_ref or not level_ref.building_manager: return
+
+	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
+	var best_tile = Vector2i(-1, -1)
+	var min_dist = INF
+
+	for b in level_ref.building_manager.buildings:
+		# 1. Duck-type: Does this object even have health?
+		if "health" in b and "max_health" in b:
+			# 2. Is it damaged?
+			if b.health < b.max_health:
+				if b.occupied_tiles.size() > 0:
+					var b_tile = b.occupied_tiles[0]
+					var dist = my_pos.distance_squared_to(b_tile)
+					if dist < min_dist:
+						min_dist = dist
+						best_tile = b_tile
+
+	if best_tile != Vector2i(-1, -1):
+		target_tile = best_tile
+		_request_path(best_tile, true) # Treat as building for pathing
+		
+		# Prevent telepathy bug!
+		if not current_path.is_empty():
+			current_state = State.MOVING_TO_REPAIR
+		else:
+			current_state = State.IDLE 
+	else:
+		# Base is completely healthy! Wait 2 seconds and check again.
+		current_state = State.ON_STANDBY
+		action_timer.start(5.0)
 
 # ==========================================
 # 2. LEGS: MOVEMENT
@@ -218,6 +259,8 @@ func _start_action():
 		action_timer.start(harvest_time)
 	elif current_state == State.DEPOSITING:
 		action_timer.start(0.5)
+	elif current_state == State.REPAIRING:
+		action_timer.start(1.0)
 
 func _on_action_timer_timeout():
 	if current_state == State.HARVESTING:
@@ -278,7 +321,40 @@ func _on_action_timer_timeout():
 		else:
 			current_state = State.IDLE
 
-	elif current_state == State.WAITING_FOR_STORAGE:
+	# ==========================================
+	# THE REPAIR LOGIC
+	# ==========================================
+	elif current_state == State.REPAIRING:
+		var building = null
+		if level_ref.building_manager.occupied_tiles.has(target_tile):
+			building = level_ref.building_manager.occupied_tiles[target_tile]
+			
+		# Make sure it still exists and has health variables
+		if building and "health" in building and "max_health" in building:
+			if building.health < building.max_health:
+				
+				# Heal it by 5 HP per swing (Adjust this number to balance your game!)
+				building.health += 5 
+				
+				# Cap it so we don't accidentally give a wall 105/100 HP
+				if building.health > building.max_health:
+					building.health = building.max_health
+					
+				# (Optional) If your building script has a function to update its health bar, call it here!
+				if building.has_method("update_health_ui"):
+					building.update_health_ui()
+					
+				# Are we done repairing?
+				if building.health >= building.max_health:
+					current_state = State.IDLE # Find the next broken building!
+				else:
+					action_timer.start(0.5) # Keep hammering!
+			else:
+				current_state = State.IDLE # It's fully healed
+		else:
+			current_state = State.IDLE # Building was destroyed before we could fix it
+	
+	elif current_state == State.ON_STANDBY:
 		# Timer expired — wipe all blacklists and try again fresh
 		full_storages_ignored.clear()
 		unreachable_storages.clear() # NEW: Maybe a wall was removed!
@@ -352,6 +428,7 @@ func set_priority(new_priority: int):
 func get_inventory_info() -> Dictionary:
 	var p_name = "Wood Only"
 	if current_priority == TaskPriority.GATHER_STONE: p_name = "Stone Only"
+	elif current_priority == TaskPriority.REPAIR: p_name = "Repair Duty"
 	elif current_priority == TaskPriority.STOPPED: p_name = "Halted"
 	
 	var carrying_text = "Empty"
@@ -384,3 +461,33 @@ func _draw():
 			var target_local_to_bot = to_local(target_global)
 			var rect = Rect2(target_local_to_bot - Vector2(16, 16), Vector2(32, 32))
 			draw_rect(rect, Color(1.0, 0.2, 0.2, 0.8), false, 2.0)
+	
+	# --- NEW: Action Progress Bar ---
+	# 1. Define the states where the bot is standing still and actively working
+	var active_states = [State.HARVESTING, State.DEPOSITING, State.REPAIRING, State.ON_STANDBY]
+	
+	# 2. Only draw the bar if we are in a working state AND the timer is ticking
+	if current_state in active_states and not action_timer.is_stopped() and action_timer.wait_time > 0:
+		
+		# Calculate how far along the timer is (0.0 to 1.0)
+		var progress = 1.0 - (action_timer.time_left / action_timer.wait_time)
+		
+		# Setup dimensions
+		var bar_width = 24.0
+		var bar_height = 4.0
+		var bar_pos = Vector2(-bar_width / 2.0, -24.0) 
+		
+		var bg_rect = Rect2(bar_pos, Vector2(bar_width, bar_height))
+		var fg_rect = Rect2(bar_pos, Vector2(bar_width * progress, bar_height))
+		
+		# Color-code the bar
+		var fill_color = Color(0.2, 0.8, 0.2) # Default Green (Harvesting/Depositing)
+		if current_state == State.REPAIRING:
+			fill_color = Color(0.2, 0.6, 1.0) # Blue for Repairs
+		elif current_state == State.ON_STANDBY:
+			fill_color = Color(1.0, 0.8, 0.2) # Yellow for the wait penalty
+			
+		# Draw the rectangles
+		draw_rect(bg_rect, Color(0.1, 0.1, 0.1, 0.8), true)
+		draw_rect(fg_rect, fill_color, true)
+		draw_rect(bg_rect, Color(0.0, 0.0, 0.0, 1.0), false, 1.0)

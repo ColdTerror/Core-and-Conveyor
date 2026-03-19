@@ -7,6 +7,7 @@
 script = ExtResource("1_yf2e0")
 display_name = "Stone"
 is_object = true
+mining_time = 0.0
 atlas_coords_full = Vector2i(1, 1)
 atlas_coords_depleted = Vector2i(1, 4)
 atlas_coords_harvesting = Vector2i(2, 1)

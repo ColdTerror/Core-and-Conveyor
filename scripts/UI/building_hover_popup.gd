@@ -132,7 +132,7 @@ func _refresh_stats_ui(b: Building):
 	if "harvest_damage" in b:
 		stats.append("Harvest Amount: %d" % b.harvest_damage)
 	if "work_interval" in b:
-		stats.append("Time Per Harvest: %.1fs" % b.work_interval)
+		stats.append("Work Interval: %.1fs" % b.work_interval)
 		
 	#Towers
 	if "damage_multiplier" in b: 
