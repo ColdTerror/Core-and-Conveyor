@@ -41,6 +41,8 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 	return true
 
 func _process(delta):
+	if is_delivering: return
+	
 	if held_item == null: return
 	if not is_instance_valid(held_item):
 		held_item = null
@@ -97,9 +99,24 @@ func _try_route():
 				
 				# Try to give the building 1 item. If it returns > 0, it took it!
 				if neighbor.add_item(held_item.item_data, 1) > 0:
-					held_item.queue_free()
-					_finish_routing(check_idx)
+					
+					# --- THE FIX: Animate instead of teleporting ---
+					is_delivering = true # Lock the router!
+					
+					# Slide it in the direction of the offset we are currently checking
+					var slide_target = global_position + (Vector2(offset) * 16.0)
+					var tween = create_tween()
+					tween.tween_property(held_item, "global_position", slide_target, 0.2)
+					
+					# Wait for the animation to finish before cleaning up
+					tween.tween_callback(func():
+						if is_instance_valid(held_item):
+							held_item.queue_free()
+						is_delivering = false # Unlock the router
+						_finish_routing(check_idx) # Clear the held_item and update the index
+					)
 					return
+					# -----------------------------------------------
 
 func _finish_routing(index_used: int):
 	held_item = null

@@ -13,6 +13,8 @@ var level_ref: Node2D  # Reference to the level/world node
 
 # State tracking for two-phase movement system
 var is_moving_to_edge: bool = false  # false = moving to center, true = moving to edge
+var push_cooldown: float = 0.0
+var is_delivering: bool = false
 
 # ============================================================
 # SETUP & CLEANUP
@@ -87,12 +89,13 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 		
 	return true  # Success!
 
+
 # ============================================================
 # MOVEMENT LOOP (runs every frame)
 # ============================================================
 
 func _process(delta):
-	
+	if is_delivering: return
 	
 	# Early exit: Nothing to move if belt is empty
 	if held_item == null: 
@@ -102,14 +105,18 @@ func _process(delta):
 	if not is_instance_valid(held_item):
 		held_item = null
 		return
-	
+		
+	# --- HANDLE COOLDOWN ---
+	if push_cooldown > 0:
+		push_cooldown -= delta
+		return # Stop calculating movement while we wait!
+
 	var target_pos = Vector2.ZERO
 	
 	# ========================================
 	# PHASE 1: Moving to Center
 	# ========================================
 	if not is_moving_to_edge:
-		# Target is the belt's center point
 		target_pos = global_position
 		
 		# Move item toward center
@@ -117,47 +124,59 @@ func _process(delta):
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
 		# Check if we've reached the center
-		var distance_to_center = held_item.global_position.distance_to(target_pos)
-		if distance_to_center < 1.0:
-			# We're at center - settle here and wait
-			held_item.global_position = target_pos  # Snap to exact center to stop micro-movements
+		if held_item.global_position.distance_to(target_pos) < 1.0:
+			held_item.global_position = target_pos # Snap to exact center
 			
-			if  _can_push_to_neighbor():
-				# Path is clear! Switch to Phase 2
-				is_moving_to_edge = true
-			# Otherwise: Stay at center, don't move
+			var neighbor = _get_neighbor()
+			
+			# CASE A: Neighbor is a Belt. Do the normal 2-phase edge handoff.
+			if neighbor and neighbor is ConveyorBuilding:
+				if _can_push_to_neighbor():
+					is_moving_to_edge = true 
+					
+			# CASE B: Neighbor is a Building. Push directly from the center!
+			elif neighbor and neighbor.has_method("add_item") and "item_data" in held_item:
+				if neighbor.add_item(held_item.item_data, 1) > 0:
+					# Success! Lock the belt so the item behind it waits.
+					is_delivering = true 
+					
+					var slide_target = global_position + (Vector2(direction) * 16.0)
+					var tween = create_tween()
+					tween.tween_property(held_item, "global_position", slide_target, 0.2)
+					
+					# --- NEW: Clean up ONLY when the animation finishes ---
+					tween.tween_callback(func():
+						if is_instance_valid(held_item):
+							held_item.queue_free()
+						held_item = null # Now the belt is actually empty!
+						is_delivering = false # Unlock the belt!
+					)
+					# ------------------------------------------------------
+				else:
+					# The building is full! 
+					push_cooldown = 0.5
 	
 	# ========================================
-	# PHASE 2: Moving to Edge (Handoff)
+	# PHASE 2: Moving to Edge (Only used for Belt-to-Belt)
 	# ========================================
 	else:
-		# Target is 16 pixels in front of center (the handoff point)
 		target_pos = global_position + (Vector2(direction) * 16.0)
 		
-		# Check if neighbor can still accept BEFORE moving
 		if not _can_push_to_neighbor():
-			# Neighbor filled up! Dock back to center instead of wobbling
-			held_item.global_position = global_position  # Snap to center
-			is_moving_to_edge = false  # Return to Phase 1
+			# Belt ahead filled up while we were moving. Sit at edge and wait.
+			push_cooldown = 0.5 
 			return
 			
-			
-		# Move item toward edge
 		var move_step = speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
-		# Have we reached the edge?
 		if held_item.global_position.distance_to(target_pos) < 1.0:
-			# Try to actually transfer the item
 			if _push_to_neighbor():
-				# Success! Item is gone, we're done
-				pass
+				pass # Success! Item is gone.
 			else:
-				# Failed! Neighbor filled up while we were moving
-				# Go back to Phase 1 (wait at center) and start cooldown
-				held_item.global_position = global_position
-				is_moving_to_edge = false
-				
+				push_cooldown = 0.5
+
+	
 # ============================================================
 # NEIGHBOR INTERACTION
 # ============================================================
