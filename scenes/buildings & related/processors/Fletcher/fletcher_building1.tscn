@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/Building Classes/processor_building.gd" id="1_d4rl3"]
 [ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_xjdq3"]
-[ext_resource type="Resource" uid="uid://cknrujmv6ndsh" path="res://resources/recipes/wooden_arrow.tres" id="3_13whr"]
-[ext_resource type="Resource" uid="uid://7xlppm4ur3cd" path="res://resources/recipes/stone_arrow.tres" id="4_g2ddr"]
+[ext_resource type="Resource" uid="uid://cknrujmv6ndsh" path="res://resources/recipes/wooden_arrow_recipe.tres" id="3_13whr"]
+[ext_resource type="Resource" uid="uid://7xlppm4ur3cd" path="res://resources/recipes/stone_arrow_recipe.tres" id="4_g2ddr"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="5_gcivg"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="6_xjuo4"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="7_hb67s"]

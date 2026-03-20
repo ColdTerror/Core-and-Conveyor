@@ -12,14 +12,16 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"ebc8f5b9-1eeb-4182-a0e0-89f60e6259af",
-				"21f73bb1-e46a-47b4-9615-d452549e607c"
+				"ebc8f5b9-1eeb-4182-a0e0-89f60e6259af"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"21f73bb1-e46a-47b4-9615-d452549e607c",
+				"0abadcad-e0f6-44b8-a505-117875b56d8b"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -29,6 +31,7 @@
 				"dc7fd2f6-3733-4f42-83f8-9b705b3ea43a",
 				"a151aed0-237e-478b-88b9-e0dd3b182724",
 				"a08d1a9b-0b18-4f7e-8d12-97a6c3275f60",
+				"a2a3cab3-86ff-4a77-b4dd-e38904469588",
 				"6fb67301-aa20-45c3-a8fa-764001ca65f1",
 				"4fed44ef-7e0f-4d36-8c59-660d5f910164",
 				"06a770b7-d73c-4df1-a38a-d5e83fe779a3",
@@ -261,6 +264,20 @@
 		{
 			"uuid": "21f73bb1-e46a-47b4-9615-d452549e607c",
 			"title": "update core to item resource",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a2a3cab3-86ff-4a77-b4dd-e38904469588",
+			"title": "update tower and processor to remove can accept item",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "0abadcad-e0f6-44b8-a505-117875b56d8b",
+			"title": "conveyer and router broke",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

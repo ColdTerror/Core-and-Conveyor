@@ -37,25 +37,25 @@ func setup(level_instance: Node2D):
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return true
 
-func can_accept_item(item: ItemResource) -> bool:
-	if not active_recipe: return false
+func add_item(item_res: ItemResource, amount: int = 1) -> int:
+	# 1. Filter: Reject if no recipe or wrong item
+	if not active_recipe: return 0
+	if not active_recipe.inputs.has(item_res): return 0 
 	
-	# 1. Does the recipe actually use this item?
-	if not active_recipe.inputs.has(item): return false 
+	# 2. Capacity: Is the buffer full for this specific item?
+	var current_stored = input_inventory.get(item_res, 0)
+	var space_left = buffer_capacity - current_stored
 	
-	# 2. Is the buffer full for this specific item?
-	var current_stored = input_inventory.get(item, 0)
-	if current_stored >= buffer_capacity: return false
+	if space_left <= 0: return 0
 	
-	return true
-
-func accept_item(item: ItemResource) -> bool:
-	if not can_accept_item(item): return false
+	# 3. Math: Take the items!
+	var amount_to_take = min(amount, space_left)
 	
-	# Add the item to the dictionary, defaulting to 0 if it wasn't there yet
-	input_inventory[item] = input_inventory.get(item, 0) + 1
+	input_inventory[item_res] = current_stored + amount_to_take
 	inventory_changed.emit() 
-	return true
+	
+	return amount_to_take
+	
 
 # --- MAIN LOOP ---
 func building_tick(delta: float) -> void:

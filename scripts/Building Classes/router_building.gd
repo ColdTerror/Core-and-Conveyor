@@ -93,12 +93,13 @@ func _try_route():
 						return
 						
 			# CASE C: Output to Factory/Stockpile
-			elif neighbor.has_method("accept_item") and "item_data" in held_item:
-				if neighbor.can_accept_item(held_item.item_data):
-					if neighbor.accept_item(held_item.item_data):
-						held_item.queue_free()
-						_finish_routing(check_idx)
-						return
+			elif neighbor.has_method("add_item") and "item_data" in held_item:
+				
+				# Try to give the building 1 item. If it returns > 0, it took it!
+				if neighbor.add_item(held_item.item_data, 1) > 0:
+					held_item.queue_free()
+					_finish_routing(check_idx)
+					return
 
 func _finish_routing(index_used: int):
 	held_item = null

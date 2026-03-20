@@ -156,17 +156,28 @@ func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 func accepts_item_at(tile: Vector2i) -> bool:
 	return tile in occupied_tiles
 
-func can_accept_item(item: ItemResource) -> bool:
-	if not item.is_ammo: return false
-	if item.ammo_type != required_ammo_type: return false
-	if ammo_inventory.size() >= ammo_capacity: return false
-	return true
-
-func accept_item(item: ItemResource) -> bool:
-	if not can_accept_item(item): return false
-	ammo_inventory.append(item)
+# --- THE "SOFT CAP" ADD ITEM LOGIC ---
+func add_item(item_res: ItemResource, amount: int = 1) -> int:
+	# 1. Filter: Reject if it's not the right ammo
+	if not item_res.is_ammo: return 0
+	if item_res.ammo_type != required_ammo_type: return 0
+	
+	# 2. Capacity Check: Are we already completely full?
+	if ammo_inventory.size() >= ammo_capacity: 
+		return 0 # Reject it!
+		
+	# 3. Soft Cap: If we have ANY space left, we will take EXACTLY 1 physical item!
+	# (Even if that item contains 5 shots and pushes us over 20)
+	var stack_sz = item_res.stack_size if "stack_size" in item_res else 1
+	
+	# Load all the shots from that single item into the magazine
+	for i in range(stack_sz):
+		ammo_inventory.append(item_res)
+		
 	inventory_changed.emit()
-	return true
+	
+	# We successfully took 1 physical item out of the bot's hands or off the belt!
+	return 1
 
 # --- 2. COMBAT LOOP ---
 
