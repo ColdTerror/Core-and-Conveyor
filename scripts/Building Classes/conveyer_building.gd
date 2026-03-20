@@ -177,11 +177,9 @@ func _can_push_to_neighbor() -> bool:
 		return neighbor.held_item == null or neighbor.is_moving_to_edge
 	
 	# --- CASE 2: Neighbor is a Building (Stockpile/Factory) ---
-	if neighbor.has_method("can_accept_item") and "item_data" in held_item:
-		# Ask the building if it can accept this specific item type
-		return neighbor.can_accept_item(held_item.item_data)
+	if neighbor.has_method("add_item") and "item_data" in held_item:
+		return true # Assume we can push. If it's full, the push will just fail later!
 	
-	# Unknown neighbor type or missing methods
 	return false
 
 # Action: Actually transfer the item to the neighbor
@@ -200,10 +198,10 @@ func _push_to_neighbor() -> bool:
 			return true
 	
 	# --- CASE 2: Push to a Building (Stockpile/Factory) ---
-	elif neighbor.has_method("accept_item") and "item_data" in held_item:
-		if neighbor.accept_item(held_item.item_data):
-			# Building consumed the item (added to inventory)
-			# We need to destroy the visual node
+	elif neighbor.has_method("add_item") and "item_data" in held_item:
+		# Try to give it 1 item. If it returns > 0, it successfully took it!
+		if neighbor.add_item(held_item.item_data, 1) > 0:
+			# Building consumed the item, destroy the visual node on the belt
 			held_item.queue_free()
 			held_item = null
 			return true

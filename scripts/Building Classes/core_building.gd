@@ -32,7 +32,10 @@ func _exit_tree():
 # ==========================================
 
 # Bots (and later Conveyors) will call this to drop things off
-func add_item(item_name: String, amount: int) -> int:
+func add_item(item_res: ItemResource, amount: int) -> int:
+	# Extract the string immediately so the rest of the Core logic doesn't break!
+	var item_name = item_res.display_name 
+	
 	var current_amount = inventory.get(item_name, 0)
 	var space_left = max_capacity_per_item - current_amount
 	

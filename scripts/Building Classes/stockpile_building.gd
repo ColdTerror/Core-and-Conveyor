@@ -142,59 +142,7 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 # ITEM INTERFACE (called by Item / Conveyor systems)
 # --------------------------------------------------
 
-func can_accept_item(item: ItemResource) -> bool:
-	if is_dedicated_mode:
-		var current_total = get_total_items()
-		
-		if current_total == 0 and dedicated_item_name == "":
-			return true  # Will lock on accept
-			
-		# Reject if it doesn't match the dedicated type
-		if dedicated_item_name != "" and item.display_name != dedicated_item_name:
-			return false
-			
-		# Reject if we hit the 100 cap for this specific item
-		if current_total >= max_dedicated_capacity: return false
-		
-		return true
-		
-	else: 
-		# --- MIXED MODE ---
-		# Check the specific amount of the item trying to enter
-		var current_amount_of_this_item = inventory.get(item, 0)
-		
-		# Only reject if THIS specific item type has reached 25
-		if current_amount_of_this_item >= max_mixed_capacity: 
-			return false
-			
-		return true
-
-func accept_item(item: ItemResource) -> bool:
-	if not can_accept_item(item):
-		return false
-		
-	# --- NEW: Lock the dedicated mode to this item if we are empty! ---
-	if is_dedicated_mode and get_total_items() == 0:
-		dedicated_item_name = item.display_name
-	# ------------------------------------------------------------------
-		
-	if not item.display_name in available_types:
-		available_types.append(item.display_name)
-
-	inventory[item] = inventory.get(item, 0) + 1
-	
-	# NEW: Update Global Economy
-	EconomyManager.add_resources(item.display_name, 1)
-	
-	# Emit inventory changed signal for ui
-	inventory_changed.emit()
-	
-	return true
-
-# ==========================================
-# BOT INTERACTION (Bulk Delivery)
-# ==========================================
-func add_bot_item(item_res: ItemResource, amount: int) -> int:
+func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	var current_total = get_total_items()
 	var space_left = 0
 

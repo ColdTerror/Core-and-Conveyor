@@ -127,7 +127,7 @@ func _find_nearest_storage():
 	var candidates: Array = []
 
 	for b in level_ref.building_manager.buildings:
-		if not (b.has_method("add_item") or b.has_method("add_bot_item")): continue
+		if not b.has_method("add_item"): continue
 		if b in full_storages_ignored: continue
 		if b in unreachable_storages: continue  # NEW: skip known blocked storages
 
@@ -296,14 +296,8 @@ func _on_action_timer_timeout():
 			if level_ref.building_manager.occupied_tiles.has(target_tile):
 				storage = level_ref.building_manager.occupied_tiles[target_tile]
 				
-			if storage:
-				var amount_taken = 0
-				
-				if storage.has_method("add_bot_item"):
-					amount_taken = storage.add_bot_item(carried_item_res, carried_amount)
-				elif storage.has_method("add_item"):
-					amount_taken = storage.add_item(carried_item_name, carried_amount)
-					
+			if storage and storage.has_method("add_item"):
+				var amount_taken = storage.add_item(carried_item_res, carried_amount)
 				carried_amount -= amount_taken
 				inventory_changed.emit()
 				
