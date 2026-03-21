@@ -88,6 +88,9 @@ func _find_nearest_resource():
 	if not level_ref or level_ref.active_grid_objects.is_empty():
 		return
 		
+	# --- NEW: Drop our old claim before searching for a new one! ---
+	_clear_reservation() 
+		
 	var my_grid_pos = level_ref.object_layer.local_to_map(global_position)
 	var best_tile = Vector2i(-1, -1)
 	var min_dist = INF
@@ -100,6 +103,12 @@ func _find_nearest_resource():
 		
 		if info["health"] <= 0:
 			continue
+			
+		# --- NEW: THE "DIBS" CHECK ---
+		# If someone else has claimed this tile, and that someone is still alive, skip it!
+		if info.has("reserved_by") and is_instance_valid(info["reserved_by"]) and info["reserved_by"] != self:
+			continue 
+		# -----------------------------
 		
 		var item_name = info["data"].item_drop.display_name
 		
@@ -120,6 +129,11 @@ func _find_nearest_resource():
 				
 	if best_tile != Vector2i(-1, -1):
 		target_tile = best_tile
+		
+		# --- NEW: CLAIM THE TILE ---
+		level_ref.active_grid_objects[best_tile]["reserved_by"] = self
+		# ---------------------------
+		
 		current_state = State.MOVING_TO_RESOURCE
 		_request_path(target_tile, false)
 	else:
@@ -127,12 +141,13 @@ func _find_nearest_resource():
 			_find_nearest_storage()
 		else:
 			current_state = State.IDLE
-
 		
 # ==========================================
 # UNIVERSAL STORAGE SEARCH
 # ==========================================
 func _find_nearest_storage():
+	_clear_reservation()
+	
 	if not level_ref or not level_ref.building_manager: return
 	
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
@@ -186,6 +201,7 @@ func _find_nearest_storage():
 # REPAIR SEARCH
 # ==========================================
 func _find_damaged_building():
+	_clear_reservation()
 	if current_priority == TaskPriority.STOPPED: return
 	if not level_ref or not level_ref.building_manager: return
 
@@ -222,6 +238,7 @@ func _find_damaged_building():
 		action_timer.start(5.0)
 
 func _find_construction_site():
+	_clear_reservation()
 	if not level_ref or not level_ref.building_manager: return
 
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
@@ -593,6 +610,7 @@ func set_priority(new_priority: int):
 	if current_priority == new_priority: return
 	
 	current_priority = new_priority as TaskPriority
+	_clear_reservation()
 	
 	# Void contraband items when switching priorities
 	if carried_amount > 0:
@@ -633,7 +651,19 @@ func get_inventory_info() -> Dictionary:
 	
 	return { "Target": p_name, "Carrying": carrying_text }
 
-	
+
+# ==========================================
+# RESERVATION SYSTEM
+# ==========================================
+func _clear_reservation():
+	# If we currently have a target, and it's a natural resource (not a building)...
+	if target_tile != Vector2i(-1, -1) and level_ref and level_ref.active_grid_objects.has(target_tile):
+		var info = level_ref.active_grid_objects[target_tile]
+		
+		# If we are the ones who claimed it, remove our claim!
+		if info.has("reserved_by") and info["reserved_by"] == self:
+			info["reserved_by"] = null
+
 # ==========================================
 # DEBUG VISUALS
 # ==========================================
