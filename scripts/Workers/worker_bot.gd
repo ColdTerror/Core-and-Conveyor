@@ -104,6 +104,12 @@ func _find_nearest_resource():
 		if info["health"] <= 0:
 			continue
 			
+		# --- THE UPGRADED TURF CHECK ---
+		# If 1 or more Harvesters claim this tile, leave it for the machines!
+		if info.get("harvester_claim_count", 0) > 0:
+			continue
+		# -------------------------------
+		
 		# --- NEW: THE "DIBS" CHECK ---
 		# If someone else has claimed this tile, and that someone is still alive, skip it!
 		if info.has("reserved_by") and is_instance_valid(info["reserved_by"]) and info["reserved_by"] != self:

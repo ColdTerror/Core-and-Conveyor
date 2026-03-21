@@ -31,7 +31,12 @@ const TILE_SIZE = 32
 # --- SETUP ---
 func setup(level_instance: Node2D):
 	level_ref = level_instance
+	_claim_territory()
 
+func _exit_tree():
+	_clear_target_reservation() # Let go of whatever tree we were shooting at
+	_unclaim_territory()        # Take down the invisible fence
+	
 # --- DRAWING THE RANGE ---
 func _draw():
 	if show_range_overlay and level_ref:
@@ -90,17 +95,21 @@ func building_tick(delta: float) -> void:
 
 func _perform_harvest():
 	if not _is_valid_target(current_target):
+		_clear_target_reservation() # Let go of our old target if it died!
 		current_target = _find_nearest_target()
+		
+		# Claim the new target so overlapping buildings don't steal it!
+		if current_target != Vector2i.MAX:
+			level_ref.active_grid_objects[current_target]["reserved_by"] = self
 	
 	if current_target != Vector2i.MAX:
 		var info = level_ref.active_grid_objects[current_target]
-		ResourceManager.request_harvest(current_target, info, harvest_damage)
+		var actual_harvested = ResourceManager.request_harvest(current_target, info, harvest_damage)
 		
-		stored_amount += harvest_damage
-		
-		
-		
-		inventory_changed.emit()
+		# (Optional safety measure: only add if we actually broke something)
+		if actual_harvested > 0:
+			stored_amount += harvest_damage
+			inventory_changed.emit()
 
 # --- TARGET FINDING ---
 func _find_nearest_target() -> Vector2i:
@@ -129,9 +138,16 @@ func _find_nearest_target() -> Vector2i:
 func _is_valid_target(pos: Vector2i) -> bool:
 	if pos == Vector2i.MAX: return false
 	if not level_ref.active_grid_objects.has(pos): return false
+	
 	var info = level_ref.active_grid_objects[pos]
 	if info["health"] <= 0: return false
 	if info["data"] != target_resource: return false
+	
+	# --- NEW: OVERLAP CHECK ---
+	# If another bot OR another harvester is already swinging at this tree, ignore it!
+	if info.has("reserved_by") and is_instance_valid(info["reserved_by"]) and info["reserved_by"] != self:
+		return false
+		
 	return true
 
 func _draw_beam(grid_pos: Vector2i):
@@ -202,6 +218,55 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 
 
 
+# ==========================================
+# TERRITORY & DIBS SYSTEM
+# ==========================================
+func _claim_territory():
+	if not level_ref or not level_ref.object_layer: return
+	
+	var center_tile = level_ref.object_layer.local_to_map(global_position)
+	var top_left_tile = center_tile - (size / 2)
+	
+	var start_x = top_left_tile.x - scan_radius
+	var end_x = top_left_tile.x + size.x + scan_radius - 1
+	var start_y = top_left_tile.y - scan_radius
+	var end_y = top_left_tile.y + size.y + scan_radius - 1
+	
+	for x in range(start_x, end_x + 1):
+		for y in range(start_y, end_y + 1):
+			var tile = Vector2i(x, y)
+			if level_ref.active_grid_objects.has(tile):
+				var info = level_ref.active_grid_objects[tile]
+				# Put up the invisible fence for the bots!
+				info["harvester_claim_count"] = info.get("harvester_claim_count", 0) + 1
+
+func _unclaim_territory():
+	if not level_ref or not level_ref.object_layer: return
+	
+	var center_tile = level_ref.object_layer.local_to_map(global_position)
+	var top_left_tile = center_tile - (size / 2)
+	
+	var start_x = top_left_tile.x - scan_radius
+	var end_x = top_left_tile.x + size.x + scan_radius - 1
+	var start_y = top_left_tile.y - scan_radius
+	var end_y = top_left_tile.y + size.y + scan_radius - 1
+	
+	for x in range(start_x, end_x + 1):
+		for y in range(start_y, end_y + 1):
+			var tile = Vector2i(x, y)
+			if level_ref.active_grid_objects.has(tile):
+				var info = level_ref.active_grid_objects[tile]
+				# Take down the fence when destroyed
+				if info.has("harvester_claim_count"):
+					info["harvester_claim_count"] -= 1
+					if info["harvester_claim_count"] <= 0:
+						info.erase("harvester_claim_count")
+
+func _clear_target_reservation():
+	if current_target != Vector2i.MAX and level_ref and level_ref.active_grid_objects.has(current_target):
+		var info = level_ref.active_grid_objects[current_target]
+		if info.has("reserved_by") and info["reserved_by"] == self:
+			info["reserved_by"] = null
 
 func get_inventory_info() -> Dictionary:
 	# Make sure the tile actually has an item_drop assigned
