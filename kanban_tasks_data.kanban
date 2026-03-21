@@ -12,13 +12,16 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"ebc8f5b9-1eeb-4182-a0e0-89f60e6259af"
+				"3ddfea80-edff-4c17-9872-276060b45d0c",
+				"637bf67c-ad83-465d-8b8a-b922cd42e3c8"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"ebc8f5b9-1eeb-4182-a0e0-89f60e6259af"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -256,7 +259,7 @@
 		{
 			"uuid": "ebc8f5b9-1eeb-4182-a0e0-89f60e6259af",
 			"title": "bots build buildings",
-			"description": "",
+			"description": "construction site sprite off center\nworker bot still trys to work on freed construction site\n",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
@@ -277,6 +280,20 @@
 		{
 			"uuid": "0abadcad-e0f6-44b8-a505-117875b56d8b",
 			"title": "conveyer and router broke",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "3ddfea80-edff-4c17-9872-276060b45d0c",
+			"title": "bot only checks top left to deposit",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "637bf67c-ad83-465d-8b8a-b922cd42e3c8",
+			"title": "bot thinks it can deposit in construction site since it has add_item",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

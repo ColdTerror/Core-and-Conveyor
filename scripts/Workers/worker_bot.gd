@@ -10,10 +10,10 @@ var health: int = 100
 var max_health: int = 100
 
 # --- THE PRIORITY SYSTEM ---
-enum TaskPriority { GATHER_WOOD, GATHER_STONE, REPAIR, STOPPED }
+enum TaskPriority { GATHER_WOOD, GATHER_STONE, REPAIR, BUILD, STOPPED }
 var current_priority: TaskPriority = TaskPriority.GATHER_WOOD
 
-enum State { IDLE, MOVING_TO_RESOURCE, HARVESTING, MOVING_TO_INVENTORY, DEPOSITING, ON_STANDBY, MOVING_TO_REPAIR, REPAIRING}
+enum State { IDLE, MOVING_TO_RESOURCE, HARVESTING, MOVING_TO_INVENTORY, DEPOSITING, ON_STANDBY, MOVING_TO_REPAIR, REPAIRING, MOVING_TO_BUILD, BUILDING }
 var current_state: State = State.IDLE
 
 @export var speed: float = 75.0
@@ -48,6 +48,8 @@ func _process(delta):
 		State.IDLE:
 			if current_priority == TaskPriority.REPAIR:
 				_find_damaged_building()
+			elif current_priority == TaskPriority.BUILD:
+				_find_construction_site()
 			else:
 				_find_nearest_resource()
 			
@@ -58,6 +60,8 @@ func _process(delta):
 			_move_along_path(delta, State.DEPOSITING)
 		State.MOVING_TO_REPAIR:
 			_move_along_path(delta, State.REPAIRING)
+		State.MOVING_TO_BUILD:
+			_move_along_path(delta, State.BUILDING)
 
 # ==========================================
 # 1. BRAIN: DECISION MAKING
@@ -127,6 +131,8 @@ func _find_nearest_storage():
 	var candidates: Array = []
 
 	for b in level_ref.building_manager.buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion():
+			continue
 		if not b.has_method("add_item"): continue
 		if b in full_storages_ignored: continue
 		if b in unreachable_storages: continue  # NEW: skip known blocked storages
@@ -176,6 +182,8 @@ func _find_damaged_building():
 	var min_dist = INF
 
 	for b in level_ref.building_manager.buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion():
+			continue
 		# 1. Duck-type: Does this object even have health?
 		if "health" in b and "max_health" in b:
 			# 2. Is it damaged?
@@ -201,6 +209,37 @@ func _find_damaged_building():
 		current_state = State.ON_STANDBY
 		action_timer.start(5.0)
 
+func _find_construction_site():
+	if not level_ref or not level_ref.building_manager: return
+
+	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
+	var best_tile = Vector2i(-1, -1)
+	var min_dist = INF
+
+	for b in level_ref.building_manager.buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion():
+			continue
+		# Duck-type: Is this a Construction Site? Is it ready to be hammered?
+		if b is ConstructionSite and b.is_ready_to_build:
+			if b.occupied_tiles.size() > 0:
+				var b_tile = b.occupied_tiles[0]
+				var dist = my_pos.distance_squared_to(b_tile)
+				if dist < min_dist:
+					min_dist = dist
+					best_tile = b_tile
+
+	if best_tile != Vector2i(-1, -1):
+		target_tile = best_tile
+		_request_path(best_tile, true)
+		if not current_path.is_empty():
+			current_state = State.MOVING_TO_BUILD
+		else:
+			current_state = State.IDLE 
+	else:
+		# No sites are ready to be built.
+		current_state = State.ON_STANDBY
+		action_timer.start(2.0)
+		
 # ==========================================
 # 2. LEGS: MOVEMENT
 # ==========================================
@@ -261,6 +300,8 @@ func _start_action():
 		action_timer.start(0.5)
 	elif current_state == State.REPAIRING:
 		action_timer.start(1.0)
+	elif current_state == State.BUILDING:
+		action_timer.start(0.5)
 
 func _on_action_timer_timeout():
 	if current_state == State.HARVESTING:
@@ -315,9 +356,7 @@ func _on_action_timer_timeout():
 		else:
 			current_state = State.IDLE
 
-	# ==========================================
-	# THE REPAIR LOGIC
-	# ==========================================
+
 	elif current_state == State.REPAIRING:
 		var building = null
 		if level_ref.building_manager.occupied_tiles.has(target_tile):
@@ -348,6 +387,25 @@ func _on_action_timer_timeout():
 		else:
 			current_state = State.IDLE # Building was destroyed before we could fix it
 	
+	# (Inside your action timer, right next to the REPAIRING block)
+	elif current_state == State.BUILDING:
+		var building = null
+		if level_ref.building_manager.occupied_tiles.has(target_tile):
+			building = level_ref.building_manager.occupied_tiles[target_tile]
+			
+		# Make sure it's a blueprint and it still exists
+		if building and building is ConstructionSite:
+			# Hit it with the hammer for 10 progress!
+			building.add_build_progress(10)
+			
+			# If the building swapped itself out, the old reference is queued for deletion
+			if not is_instance_valid(building) or building.is_queued_for_deletion():
+				current_state = State.IDLE # It finished building!
+			else:
+				action_timer.start(0.5) # Keep hammering!
+		else:
+			current_state = State.IDLE
+			
 	elif current_state == State.ON_STANDBY:
 		# Timer expired — wipe all blacklists and try again fresh
 		full_storages_ignored.clear()

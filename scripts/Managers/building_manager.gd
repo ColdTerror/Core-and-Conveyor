@@ -7,6 +7,9 @@ class_name BuildingManager
 @export var terrain_layer: TileMapLayer
 @export var corruption_layer: TileMapLayer
 
+@export var construction_site_scene: PackedScene 
+
+
 # ---TRACKERS ---
 # Key: Vector2i (Grid Coord), Value: int (Number of buildings in range)
 var safe_tiles: Dictionary = {}
@@ -82,8 +85,12 @@ func start_placing(scene: PackedScene):
 
 # --- NEW: INPUT HANDLER FOR LEVEL.GD ---
 # This manages the Drag Logic vs Instant Click logic
-func handle_input(event, current_grid_pos: Vector2i) -> bool:
+func handle_input(event, raw_grid_pos: Vector2i) -> bool:
 	if not ghost_building: return false
+	
+	# --- THE FIX: Ignore Level.gd's raw grid and use our centered one! ---
+	var current_grid_pos = _get_mouse_grid()
+	# ----------------------------------------------------------------------
 	
 	# 1. Update the Main Cursor Ghost (if not dragging)
 	if not is_dragging:
@@ -95,7 +102,7 @@ func handle_input(event, current_grid_pos: Vector2i) -> bool:
 		# CASE A: Draggable Building (Wall) -> START DRAG
 		if ghost_building.is_draggable:
 			is_dragging = true
-			drag_start = current_grid_pos
+			drag_start = current_grid_pos # Now the drag starts perfectly centered too!
 			_update_drag_line(current_grid_pos)
 			ghost_building.visible = false # Hide the main cursor
 			return false # Keep processing input
@@ -118,13 +125,12 @@ func handle_input(event, current_grid_pos: Vector2i) -> bool:
 		return false #Keep placing belts
 
 	return false
-# ---------------------------------------
 
 func _process(delta):
 	for b in buildings:
-		b.building_tick(delta)
+		if is_instance_valid(b) and not b.is_queued_for_deletion():
+			b.building_tick(delta)
 	
-
 	if placing_building:
 		queue_redraw()
 	
@@ -361,91 +367,118 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	
 	# Check Economy
 	var cost = ghost_building.get_build_cost()
-	if not EconomyManager.can_afford(cost):
-		return false
-
-	# Pay the Cost
-	EconomyManager.spend_resources(cost)
-
-	# Finalize the Building
-	ghost_building.set_ghost(false)
-	ghost_building.place_at(grid_pos, object_layer)
 	
-	ghost_building.visible = true
-	ghost_building.modulate = Color(1, 1, 1, 1)
+	# --- NEW: IS THIS INSTANT OR A BLUEPRINT? ---
+	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding
 	
-	# NEW: Setup Conveyor Direction
-	if ghost_building is ConveyorBuilding:
-		# The ghost already has the correct direction from _update_drag_line or rotate_ghost
-		ghost_building.setup(level_ref, ghost_building.direction)
-	elif ghost_building.has_method("setup"):
+	if is_instant:
+		# ==========================================
+		# 1. INSTANT BUILD LOGIC (Belts & Core)
+		# ==========================================
+		if not EconomyManager.can_afford(cost):
+			return false
+
+		EconomyManager.spend_resources(cost)
+
+		ghost_building.set_ghost(false)
+		ghost_building.place_at(grid_pos, object_layer)
+		
+		ghost_building.visible = true
+		ghost_building.modulate = Color(1, 1, 1, 1)
+		
+		if ghost_building is ConveyorBuilding:
+			ghost_building.setup(level_ref, ghost_building.direction)
+		elif ghost_building.has_method("setup"):
 			ghost_building.setup(level_ref)
-	# ----------------
-		
-	# Connect Signals
-	if ghost_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
-		ghost_building.fired_projectile.connect(level_ref._on_tower_fired)
-		
-	ghost_building.destroyed.connect(_on_building_destroyed)
+			
+		if ghost_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
+			ghost_building.fired_projectile.connect(level_ref._on_tower_fired)
+		ghost_building.destroyed.connect(_on_building_destroyed)
 
-	buildings.append(ghost_building)
-	_register_building(ghost_building)
-	_register_occupied_tiles(ghost_building)
-	_add_safe_zone(ghost_building)
-	_add_build_zone(ghost_building)
-	_add_attack_zone(ghost_building)
-	
-	# --- NEW: TRIGGER CORRUPTION AND UNLOCK GAME ---
-	if ghost_building is CoreBuilding:
+		buildings.append(ghost_building)
+		_register_building(ghost_building)
+		_register_occupied_tiles(ghost_building)
+		_add_safe_zone(ghost_building)
+		_add_build_zone(ghost_building)
+		_add_attack_zone(ghost_building)
 		
-		# 1. Unlock the building manager!
-		is_core_placed = true
-		core_placed_event.emit() 
+		# --- CORE SPECIAL LOGIC ---
+		if ghost_building is CoreBuilding:
+			is_core_placed = true
+			core_placed_event.emit() 
+			
+			var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
+			var spawn_tiles = _get_empty_tiles_around(ghost_building, 1)
+			
+			for tile in spawn_tiles:
+				var new_bot = bot_scene.instantiate()
+				level_ref.object_layer.add_child(new_bot)
+				var local_pos = level_ref.object_layer.map_to_local(tile)
+				new_bot.global_position = level_ref.object_layer.to_global(local_pos)
+				new_bot.setup(level_ref)
+				new_bot.clicked.connect(_on_bot_clicked)
+			
+			if level_ref and level_ref.has_node("CorruptionManager"):
+				var corruption_manager = level_ref.get_node("CorruptionManager")
+				var core_grid = object_layer.local_to_map(ghost_building.global_position)
+				corruption_manager.start_outbreak(core_grid)
+				
+			if level_ref.has_node("TimeManager"):
+				var time_manager = level_ref.get_node("TimeManager")
+				time_manager.is_time_running = true
+				print("Core placed! The clock is ticking...")
 		
-		#Place a worker bot
-		var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
+		# --- PATHFINDER ---
+		if pathfinder:
+			var footprint = ghost_building.get_footprint(grid_pos)
+			if ghost_building.is_solid_obstacle:
+				for tile in footprint: pathfinder.set_obstacle(tile, true)
+			else:
+				for tile in footprint: pathfinder.set_weighted_obstacle(tile, ghost_building.path_cost)
+		
+		ghost_building = null
 
-		var spawn_tiles = _get_empty_tiles_around(ghost_building, 1)
+	else:
+		# ==========================================
+		# 2. BLUEPRINT LOGIC (Towers, Walls, Processors)
+		# ==========================================
+		# Check if they have the resources globally just to prevent spamming impossible builds
+		if not EconomyManager.can_afford(cost):
+			return false
+			
+		# Notice we DO NOT call EconomyManager.spend_resources(cost)! 
+		# The bots will physically deduct them from the stockpiles when they deliver them.
+
+		var site = construction_site_scene.instantiate() as ConstructionSite
+		var target_scene = load(ghost_building.scene_file_path)
+
+		# Convert the grid coordinate to real pixel space
+		var local_px = object_layer.map_to_local(grid_pos)
+		site.global_position = local_px
+		level_ref.object_layer.add_child(site)
+
+		# Pass the target scene and the String-based cost dictionary!
+		site.setup_blueprint(level_ref, target_scene, cost, ghost_building.size)
 		
-		for tile in spawn_tiles:
-			var new_bot = bot_scene.instantiate()
-			level_ref.object_layer.add_child(new_bot)
-			
-			# Convert the grid tile to a perfect pixel position
-			var local_pos = level_ref.object_layer.map_to_local(tile)
-			new_bot.global_position = level_ref.object_layer.to_global(local_pos)
-			
-			new_bot.setup(level_ref)
-			
-			new_bot.clicked.connect(_on_bot_clicked)
+		# Give it its footprint so it reserves the space
+		site.occupied_tiles = ghost_building.get_footprint(grid_pos)
+
+		buildings.append(site)
+		_register_building(site)
+		_register_occupied_tiles(site)
 		
-		# 2. Trigger Corruption
-		if level_ref and level_ref.has_node("CorruptionManager"):
-			var corruption_manager = level_ref.get_node("CorruptionManager")
-			var core_grid = object_layer.local_to_map(ghost_building.global_position)
-			corruption_manager.start_outbreak(core_grid)
-			
-		# 3. Start the Clock!
-		if level_ref.has_node("TimeManager"):
-			var time_manager = level_ref.get_node("TimeManager")
-			time_manager.is_time_running = true
-			print("Core placed! The clock is ticking...")
-	# ------------------------------
-	
-	
-	# Update Pathfinder
-	if pathfinder:
-		var footprint = ghost_building.get_footprint(grid_pos)
+		site.destroyed.connect(_on_building_destroyed)
 		
-		if ghost_building.is_solid_obstacle:
-			for tile in footprint:
+		# Register the blueprint as a solid obstacle so bots walk around it
+		if pathfinder:
+			for tile in site.occupied_tiles:
 				pathfinder.set_obstacle(tile, true)
-		else:
-			for tile in footprint:
-				pathfinder.set_weighted_obstacle(tile, ghost_building.path_cost)
-	
-	ghost_building = null
-	
+				
+		# Delete the green ghost, we replaced it with the blueprint
+		ghost_building.queue_free()
+		ghost_building = null
+
+	# --- END PLACEMENT (Shared Cleanup) ---
 	if not is_dragging:
 		placing_building = false
 		queue_redraw()
@@ -711,7 +744,18 @@ func _update_ghost_position_to(grid_pos: Vector2i):
 func _get_mouse_grid() -> Vector2i:
 	var mouse_global = get_global_mouse_position()
 	if not object_layer: return Vector2i.ZERO
-	return object_layer.local_to_map(object_layer.to_local(mouse_global))
+	
+	var raw_grid = object_layer.local_to_map(object_layer.to_local(mouse_global))
+	
+	# --- NEW: Center the ghost on the mouse! ---
+	if ghost_building and "size" in ghost_building:
+		# We subtract 1 before dividing so 1x1 and 2x2 buildings don't over-correct!
+		var offset_x = int( (ghost_building.size.x - 1) / 2.0 )
+		var offset_y = int( (ghost_building.size.y - 1) / 2.0 )
+		
+		return raw_grid - Vector2i(offset_x, offset_y)
+		
+	return raw_grid
 
 
 func _can_place_building(building: Building, origin: Vector2i, temp_network: Array[Vector2i] = []) -> bool:
@@ -877,7 +921,34 @@ func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Diction
 	for resource_name in base_cost:
 		total[resource_name] = base_cost[resource_name] * quantity
 	return total
+
+
+# ============================================================================
+# BLUEPRINT COMPLETION
+# ============================================================================
+func register_finished_building(new_building: Building, grid_pos: Vector2i):
+	# 1. Add to standard trackers
+	buildings.append(new_building)
+	_register_building(new_building) # Connects the hover signals
+	_register_occupied_tiles(new_building)
 	
+	# 2. Add to visual/combat grids
+	_add_safe_zone(new_building)
+	_add_build_zone(new_building)
+	_add_attack_zone(new_building)
+	
+	# 3. Connect essential gameplay signals
+	if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
+		new_building.fired_projectile.connect(level_ref._on_tower_fired)
+	new_building.destroyed.connect(_on_building_destroyed)
+	
+	# 4. Update the Pathfinder!
+	if pathfinder:
+		var footprint = new_building.get_footprint(grid_pos)
+		if new_building.is_solid_obstacle:
+			for tile in footprint: pathfinder.set_obstacle(tile, true)
+		else:
+			for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost)
 # ==========================================
 # CORRUPTION / SAFE ZONE LOGIC
 # ==========================================
