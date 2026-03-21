@@ -135,17 +135,17 @@ func _setup_bot_ui(b: Node2D):
 	if info["Target"] == "Wood Only": info_label.modulate = Color(0.6, 1.0, 0.6)
 	elif info["Target"] == "Stone Only": info_label.modulate = Color(0.785, 0.785, 0.785, 1.0)
 	elif info["Target"] == "Repair": info_label.modulate = Color(0.2, 0.6, 1.0)
-	elif info["Target"] == "Build": info_label.modulate = Color(0.655, 0.528, 0.0, 1.0)
+	elif info["Target"] == "Build": info_label.modulate = Color(0.524, 0.004, 0.953, 1.0) 
 	elif info["Target"] == "Halted": info_label.modulate = Color(1.0, 0.4, 0.4)
 	else: info_label.modulate = Color(1.0, 1.0, 1.0)
 
 	# --- THE FIX: Spawn a dedicated RTS Command Panel! ---
-	# We pass the integer values of your Enum: ALL=0, WOOD=1, STONE=2, STOP=3
+	# We pass the integer values of your Enum: ALL=0, WOOD=1, STONE=2, STOP=4
 	
 	_create_button("Wood Only", Color(0.6, 1.0, 0.6), func(): b.set_priority(0))
 	_create_button("Stone Only", Color(0.785, 0.785, 0.785, 1.0), func(): b.set_priority(1))
 	_create_button("Repair", Color(0.2, 0.6, 1.0), func(): b.set_priority(2))
-	_create_button("Build", Color(0.655, 0.528, 0.0, 1.0), func(): b.set_priority(3))
+	_create_button("Build", Color(0.524, 0.004, 0.953, 1.0) , func(): b.set_priority(3))
 	_create_button("Halt Bot", Color(1.0, 0.4, 0.4), func(): b.set_priority(4))
 
 func close_menu():

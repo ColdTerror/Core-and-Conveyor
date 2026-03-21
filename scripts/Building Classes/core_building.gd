@@ -31,12 +31,9 @@ func _exit_tree():
 # INVENTORY LOGIC
 # ==========================================
 
-# Bots (and later Conveyors) will call this to drop things off
+# Bots (and Conveyors) will call this to drop things off
 func add_item(item_res: ItemResource, amount: int) -> int:
-	# Extract the string immediately so the rest of the Core logic doesn't break!
-	var item_name = item_res.display_name 
-	
-	var current_amount = inventory.get(item_name, 0)
+	var current_amount = inventory.get(item_res, 0)
 	var space_left = max_capacity_per_item - current_amount
 	
 	if space_left <= 0:
@@ -45,36 +42,73 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 	# Only take what we have space for
 	var amount_to_take = min(amount, space_left)
 	
-	inventory[item_name] = current_amount + amount_to_take
+	inventory[item_res] = current_amount + amount_to_take
 	
-	# Ping the Global Economy UI
-	EconomyManager.add_resources(item_name, amount_to_take)
+	# Ping the Global Economy UI (Translate to String for the UI!)
+	EconomyManager.add_resources(item_res.display_name, amount_to_take)
 	inventory_changed.emit()
 	
 	return amount_to_take
 
-# The EconomyManager calls this when you buy a building
-func consume_resources(remaining_bill: Dictionary):
-	var needed_items = remaining_bill.keys()
-	
-	for res in needed_items:
-		if inventory.has(res):
-			# Figure out how much we need vs how much the Core actually has
-			var take = min(remaining_bill[res], inventory[res])
+# ==========================================
+# BOT RETRIEVAL LOGIC
+# ==========================================
+func take_item(item_name: String, requested_amount: int) -> Dictionary:
+	# Search our inventory for the actual ItemResource the bot wants
+	for item_res in inventory.keys():
+		if item_res.display_name == item_name:
+			var available = inventory[item_res]
 			
-			inventory[res] -= take
-			if inventory[res] <= 0:
-				inventory.erase(res)
+			if available <= 0: continue
+			
+			var amount_to_take = min(requested_amount, available)
+			
+			inventory[item_res] -= amount_to_take
+			
+			# Clean up empty slots
+			if inventory[item_res] <= 0:
+				inventory.erase(item_res)
 				
-			remaining_bill[res] -= take
-			if remaining_bill[res] <= 0:
-				remaining_bill.erase(res)
+			inventory_changed.emit()
+			
+			# SYNC GLOBAL ECONOMY
+			EconomyManager.remove_resources_from_global({ item_name: amount_to_take })
+			
+			# Return the REAL Resource data AND the amount
+			return { "resource": item_res, "amount": amount_to_take }
+			
+	# We didn't have it!
+	return { "amount": 0 }
+
+
+func consume_resources(remaining_bill: Dictionary):
+	var needed_items = remaining_bill.keys() # e.g., ["Wood", "Stone"]
+	
+	for res_name in needed_items:
+		# Search our physical inventory for the matching resource
+		for inv_res in inventory.keys():
+			if inv_res.display_name == res_name:
+				
+				var take = min(remaining_bill[res_name], inventory[inv_res])
+				
+				inventory[inv_res] -= take
+				if inventory[inv_res] <= 0:
+					inventory.erase(inv_res)
+					
+				remaining_bill[res_name] -= take
+				if remaining_bill[res_name] <= 0:
+					remaining_bill.erase(res_name)
+					
+				break # Found it, move to the next item on the bill!
 				
 	inventory_changed.emit()
 
-# Tells the Hover UI what to display if you click on the Core!
+# Translates the physical inventory back into Strings for the UI and Manager
 func get_economy_assets() -> Dictionary:
-	return inventory.duplicate()
+	var string_inventory = {}
+	for res in inventory.keys():
+		string_inventory[res.display_name] = inventory[res]
+	return string_inventory
 	
 func get_inventory_info() -> Dictionary:
 	return inventory

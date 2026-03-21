@@ -13,7 +13,15 @@ var max_health: int = 100
 enum TaskPriority { GATHER_WOOD, GATHER_STONE, REPAIR, BUILD, STOPPED }
 var current_priority: TaskPriority = TaskPriority.GATHER_WOOD
 
-enum State { IDLE, MOVING_TO_RESOURCE, HARVESTING, MOVING_TO_INVENTORY, DEPOSITING, ON_STANDBY, MOVING_TO_REPAIR, REPAIRING, MOVING_TO_BUILD, BUILDING }
+enum State { 
+	IDLE, 
+	MOVING_TO_RESOURCE, HARVESTING, 
+	MOVING_TO_INVENTORY, DEPOSITING, 
+	ON_STANDBY, 
+	MOVING_TO_REPAIR, REPAIRING, 
+	MOVING_TO_BUILD, BUILDING,
+	MOVING_TO_FETCH, FETCHING 
+}
 var current_state: State = State.IDLE
 
 @export var speed: float = 75.0
@@ -62,6 +70,8 @@ func _process(delta):
 			_move_along_path(delta, State.REPAIRING)
 		State.MOVING_TO_BUILD:
 			_move_along_path(delta, State.BUILDING)
+		State.MOVING_TO_FETCH:
+			_move_along_path(delta, State.FETCHING)
 
 # ==========================================
 # 1. BRAIN: DECISION MAKING
@@ -215,31 +225,129 @@ func _find_construction_site():
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
 	var best_tile = Vector2i(-1, -1)
 	var min_dist = INF
+	
+	# We need to remember what building we pick, so we know what to fetch
+	var target_blueprint: ConstructionSite = null
 
+	# 1. FIND A BLUEPRINT
 	for b in level_ref.building_manager.buildings:
 		if not is_instance_valid(b) or b.is_queued_for_deletion():
 			continue
-		# Duck-type: Is this a Construction Site? Is it ready to be hammered?
-		if b is ConstructionSite and b.is_ready_to_build:
-			if b.occupied_tiles.size() > 0:
+			
+		if b is ConstructionSite:
+			# CASE A: Hands are empty, and it needs materials!
+			if carried_amount == 0 and not b.is_ready_to_build:
 				var b_tile = b.occupied_tiles[0]
 				var dist = my_pos.distance_squared_to(b_tile)
 				if dist < min_dist:
 					min_dist = dist
 					best_tile = b_tile
+					target_blueprint = b
+					
+			# CASE B: Hands are full, and it needs the exact item we are holding!
+			elif carried_amount > 0 and not b.is_ready_to_build:
+				if b.required_items.has(carried_item_name):
+					var needed = b.required_items[carried_item_name]
+					var have = b.delivered_items.get(carried_item_name, 0)
+					if have < needed: # It actually needs the item in our hands!
+						var b_tile = b.occupied_tiles[0]
+						var dist = my_pos.distance_squared_to(b_tile)
+						if dist < min_dist:
+							min_dist = dist
+							best_tile = b_tile
+							target_blueprint = b
+							
+			# CASE C: Hands are empty, materials are delivered, ready to hammer!
+			elif carried_amount == 0 and b.is_ready_to_build:
+				var b_tile = b.occupied_tiles[0]
+				var dist = my_pos.distance_squared_to(b_tile)
+				if dist < min_dist:
+					min_dist = dist
+					best_tile = b_tile
+					target_blueprint = b
 
+	if best_tile != Vector2i(-1, -1) and target_blueprint != null:
+		
+		# If our hands are full, or the blueprint is ready to be hammered, walk to the blueprint!
+		if carried_amount > 0 or target_blueprint.is_ready_to_build:
+			target_tile = best_tile
+			_request_path(best_tile, true)
+			if not current_path.is_empty():
+				# Are we dropping off items, or swinging the hammer?
+				current_state = State.MOVING_TO_INVENTORY if carried_amount > 0 else State.MOVING_TO_BUILD
+			else:
+				current_state = State.IDLE 
+				
+		# If our hands are empty, and it needs items, we must FETCH!
+		else:
+			# Look at what the blueprint is missing
+			var item_to_fetch = ""
+			for req_name in target_blueprint.required_items.keys():
+				var needed = target_blueprint.required_items[req_name]
+				var have = target_blueprint.delivered_items.get(req_name, 0)
+				if have < needed:
+					item_to_fetch = req_name
+					break # Found something it needs!
+					
+			if item_to_fetch != "":
+				_find_stockpile_with_item(item_to_fetch)
+			else:
+				current_state = State.IDLE
+
+	else:
+		# No sites need building, or we couldn't path to them
+		current_state = State.ON_STANDBY
+		action_timer.start(2.0)
+
+func _find_stockpile_with_item(item_name: String):
+	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
+	var best_tile = Vector2i(-1, -1)
+	var min_dist = INF
+
+	for b in level_ref.building_manager.buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
+		
+		var has_item = false
+		
+		# --- CASE 1: Normal Stockpiles (Uses ItemResource keys) ---
+		if "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
+			for key in b.inventory.keys():
+				if key is ItemResource and key.display_name == item_name:
+					# Ensure the value is actually an int/float before checking > 0
+					var amount = b.inventory[key]
+					if typeof(amount) in [TYPE_INT, TYPE_FLOAT] and amount > 0:
+						has_item = true
+						break
+		
+		# --- CASE 2: Core Building (Uses String keys) ---
+		# If your core tracks inventory differently, you can check it here!
+		elif b is CoreBuilding and b.has_method("get_economy_assets"):
+			var assets = b.get_economy_assets()
+			if assets.has(item_name) and assets[item_name] > 0:
+				has_item = true
+
+		if has_item:
+			var b_tile = b.occupied_tiles[0]
+			var dist = my_pos.distance_squared_to(b_tile)
+			if dist < min_dist:
+				min_dist = dist
+				best_tile = b_tile
+					
 	if best_tile != Vector2i(-1, -1):
+		# We found a stockpile! Walk to it and FETCH.
+		carried_item_name = item_name # Memorize what we are supposed to grab
 		target_tile = best_tile
 		_request_path(best_tile, true)
 		if not current_path.is_empty():
-			current_state = State.MOVING_TO_BUILD
+			current_state = State.MOVING_TO_FETCH
 		else:
-			current_state = State.IDLE 
+			current_state = State.IDLE
 	else:
-		# No sites are ready to be built.
+		# No stockpile has the item! We are stuck waiting.
+		print("Builder Bot: No stockpiles have ", item_name, "!")
 		current_state = State.ON_STANDBY
 		action_timer.start(2.0)
-		
+
 # ==========================================
 # 2. LEGS: MOVEMENT
 # ==========================================
@@ -301,8 +409,10 @@ func _start_action():
 	elif current_state == State.REPAIRING:
 		action_timer.start(1.0)
 	elif current_state == State.BUILDING:
-		action_timer.start(0.5)
-
+		action_timer.start(1.0)
+	elif current_state == State.FETCHING: 
+		action_timer.start(1.0)
+		
 func _on_action_timer_timeout():
 	if current_state == State.HARVESTING:
 		if level_ref.active_grid_objects.has(target_tile):
@@ -330,6 +440,32 @@ func _on_action_timer_timeout():
 				_find_nearest_storage()
 			else:
 				current_state = State.IDLE
+
+	elif current_state == State.FETCHING:
+		var storage = null
+		if level_ref.building_manager.occupied_tiles.has(target_tile):
+			storage = level_ref.building_manager.occupied_tiles[target_tile]
+			
+		# Check if the building has our new pulling function
+		if storage and storage.has_method("take_item"):
+			# Attempt to pull the item we memorized!
+			var result = storage.take_item(carried_item_name, carry_capacity)
+			
+			if result.get("amount", 0) > 0:
+				carried_amount = result["amount"]
+				carried_item_res = result["resource"] # We need the Resource to deposit it later!
+				inventory_changed.emit()
+				
+				# Go back to IDLE. Next frame, the Brain will see our hands 
+				# are full and instantly route us to the blueprint!
+				current_state = State.IDLE 
+			else:
+				# Another bot took the last item before we got here!
+				carried_item_name = ""
+				current_state = State.IDLE
+		else:
+			carried_item_name = ""
+			current_state = State.IDLE
 
 	elif current_state == State.DEPOSITING:
 		if carried_amount > 0:
@@ -381,7 +517,7 @@ func _on_action_timer_timeout():
 				if building.health >= building.max_health:
 					current_state = State.IDLE # Find the next broken building!
 				else:
-					action_timer.start(0.5) # Keep hammering!
+					action_timer.start(1.0) # Keep hammering!
 			else:
 				current_state = State.IDLE # It's fully healed
 		else:
@@ -402,7 +538,7 @@ func _on_action_timer_timeout():
 			if not is_instance_valid(building) or building.is_queued_for_deletion():
 				current_state = State.IDLE # It finished building!
 			else:
-				action_timer.start(0.5) # Keep hammering!
+				action_timer.start(1.0) # Keep hammering!
 		else:
 			current_state = State.IDLE
 			
@@ -481,6 +617,7 @@ func get_inventory_info() -> Dictionary:
 	var p_name = "Wood Only"
 	if current_priority == TaskPriority.GATHER_STONE: p_name = "Stone Only"
 	elif current_priority == TaskPriority.REPAIR: p_name = "Repair Duty"
+	elif current_priority == TaskPriority.BUILD: p_name = "Build Duty"
 	elif current_priority == TaskPriority.STOPPED: p_name = "Halted"
 	
 	var carrying_text = "Empty"
@@ -516,7 +653,7 @@ func _draw():
 	
 	# --- NEW: Action Progress Bar ---
 	# 1. Define the states where the bot is standing still and actively working
-	var active_states = [State.HARVESTING, State.DEPOSITING, State.REPAIRING, State.ON_STANDBY]
+	var active_states = [State.HARVESTING, State.DEPOSITING, State.REPAIRING, State.ON_STANDBY, State.BUILDING]
 	
 	# 2. Only draw the bar if we are in a working state AND the timer is ticking
 	if current_state in active_states and not action_timer.is_stopped() and action_timer.wait_time > 0:
@@ -536,6 +673,8 @@ func _draw():
 		var fill_color = Color(0.2, 0.8, 0.2) # Default Green (Harvesting/Depositing)
 		if current_state == State.REPAIRING:
 			fill_color = Color(0.2, 0.6, 1.0) # Blue for Repairs
+		elif current_state == State.BUILDING:
+			fill_color = Color(0.524, 0.004, 0.953, 1.0) 
 		elif current_state == State.ON_STANDBY:
 			fill_color = Color(1.0, 0.8, 0.2) # Yellow for the wait penalty
 			

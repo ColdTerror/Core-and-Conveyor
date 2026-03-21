@@ -177,6 +177,46 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	inventory_changed.emit()
 	return amount_to_take
 
+# ==========================================
+# BOT RETRIEVAL LOGIC
+# ==========================================
+# ==========================================
+# BOT RETRIEVAL LOGIC
+# ==========================================
+func take_item(item_name: String, requested_amount: int) -> Dictionary:
+	# Search our inventory for the item the bot is asking for
+	for item_res in inventory.keys():
+		if item_res.display_name == item_name:
+			var available = inventory[item_res]
+			
+			if available <= 0: continue
+			
+			# Give the bot what it asked for, OR whatever we have left
+			var amount_to_take = min(requested_amount, available)
+			
+			inventory[item_res] -= amount_to_take
+			
+			# --- THE FIX 1: Clean up empty slots ---
+			if inventory[item_res] <= 0:
+				inventory.erase(item_res)
+				_prune_available_types() # Keep the UI cycle options updated!
+			# ---------------------------------------
+				
+			inventory_changed.emit()
+			
+			# --- THE FIX 2: Sync Global Economy ---
+			# Tell the UI that these items have physically left storage!
+			EconomyManager.remove_resources_from_global({ item_name: amount_to_take })
+			# --------------------------------------
+			
+			# Return the Resource data AND the amount so the bot can hold it
+			return { "resource": item_res, "amount": amount_to_take }
+			
+	# We didn't have it!
+	return { "amount": 0 }
+
+
+
 # --------------------------------------------------
 # HELPERS
 # --------------------------------------------------

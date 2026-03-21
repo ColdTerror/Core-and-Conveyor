@@ -39,6 +39,7 @@ func can_afford(cost: Dictionary) -> bool:
 			
 	return true
 
+#Instant 'magic' purchase
 func spend_resources(cost: Dictionary):
 	# 1. Deduct from Global Numbers
 	for resource_name in cost:
@@ -63,6 +64,7 @@ func _pull_items_from_sources(cost: Dictionary):
 			source.consume_resources(remaining_bill)
 
 # Used when an item moves from a Building -> Belt.
+#Physical Purchase
 func remove_resources_from_global(cost: Dictionary):
 	for resource_name in cost:
 		var amount = cost[resource_name]
