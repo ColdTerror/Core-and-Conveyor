@@ -18,9 +18,14 @@ func _process(_delta):
 		hide_popup()
 		return
 
-	# PROGRESS BAR ANIMATION (Only runs if visible + is machine)
-	if visible and current_building.has_method("get_progress_ratio"):
-		work_bar.value = current_building.get_progress_ratio() * 100.0
+	# PROGRESS BAR ANIMATION
+	if visible:
+		if current_building is ConstructionSite:
+			# Blueprints use their HP bar to track build progress!
+			work_bar.value = (float(current_building.health) / current_building.max_health) * 100.0
+		elif current_building.has_method("get_progress_ratio"):
+			# Processors use their crafting timer
+			work_bar.value = current_building.get_progress_ratio() * 100.0
 
 func show_building_info(b: Building):
 	var is_new_target = (current_building != b)
@@ -41,7 +46,7 @@ func show_building_info(b: Building):
 	if not current_building.inventory_changed.is_connected(_on_inventory_changed):
 		current_building.inventory_changed.connect(_on_inventory_changed)
 	
-	work_bar.visible = (b is ProcessorBuilding)
+	work_bar.visible = (b is ProcessorBuilding) or (b is ConstructionSite)
 	_refresh_inventory_ui()
 	
 	# --- NEW: Generate the Stats ---
@@ -185,7 +190,12 @@ func show_inventory(inventory: Dictionary):
 		var row := Label.new()
 		
 		# --- 3. Apply Terminology and Color Coding! ---
-		if is_buffer and (value is int or value is float):
+		if current_building is ConstructionSite:
+			# BLUEPRINT TEXT (Gold)
+			row.text = "%s: %s" % [display_text, str(value)]
+			row.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2)) 
+			
+		elif is_buffer and (value is int or value is float):
 			if max_cap > 0 and value >= max_cap:
 				# JAMMED WARNING (Red)
 				row.text = "Buffer FULL [%s]: %d/%d" % [display_text, value, max_cap]

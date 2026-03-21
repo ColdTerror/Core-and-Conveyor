@@ -97,6 +97,11 @@ func add_build_progress(amount: int):
 	if not is_ready_to_build: return
 	
 	health += amount
+	
+	inventory_changed.emit()
+	if has_signal("health_changed"):
+		health_changed.emit(health, max_health)
+	
 	if health >= max_health:
 		_finish_construction()
 

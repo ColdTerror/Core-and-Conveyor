@@ -143,6 +143,8 @@ func _find_nearest_storage():
 	for b in level_ref.building_manager.buildings:
 		if not is_instance_valid(b) or b.is_queued_for_deletion():
 			continue
+		if b is ConstructionSite: 
+			continue
 		if not b.has_method("add_item"): continue
 		if b in full_storages_ignored: continue
 		if b in unreachable_storages: continue  # NEW: skip known blocked storages
@@ -295,9 +297,14 @@ func _find_construction_site():
 				current_state = State.IDLE
 
 	else:
-		# No sites need building, or we couldn't path to them
-		current_state = State.ON_STANDBY
-		action_timer.start(2.0)
+		# --- THE FIX: DUMP LEFTOVER INVENTORY ---
+		if carried_amount > 0:
+			# We are holding useless materials! Go put them back in the box.
+			_find_nearest_storage()
+		else:
+			# Hands are completely empty and no sites need building. Rest.
+			current_state = State.ON_STANDBY
+			action_timer.start(2.0)
 
 func _find_stockpile_with_item(item_name: String):
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
@@ -653,7 +660,7 @@ func _draw():
 	
 	# --- NEW: Action Progress Bar ---
 	# 1. Define the states where the bot is standing still and actively working
-	var active_states = [State.HARVESTING, State.DEPOSITING, State.REPAIRING, State.ON_STANDBY, State.BUILDING]
+	var active_states = [State.HARVESTING, State.DEPOSITING, State.REPAIRING, State.ON_STANDBY, State.BUILDING, State.FETCHING]
 	
 	# 2. Only draw the bar if we are in a working state AND the timer is ticking
 	if current_state in active_states and not action_timer.is_stopped() and action_timer.wait_time > 0:
@@ -674,9 +681,11 @@ func _draw():
 		if current_state == State.REPAIRING:
 			fill_color = Color(0.2, 0.6, 1.0) # Blue for Repairs
 		elif current_state == State.BUILDING:
-			fill_color = Color(0.524, 0.004, 0.953, 1.0) 
+			fill_color = Color(0.524, 0.004, 0.953, 1.0)  #Purple for building
+		elif current_state == State.FETCHING:
+			fill_color = Color(0.0, 0.8, 0.8) #Cyan for fetching
 		elif current_state == State.ON_STANDBY:
-			fill_color = Color(1.0, 0.8, 0.2) # Yellow for the wait penalty
+			fill_color = Color(1.0, 1.0, 1.0, 1.0) # White for the wait penalty
 			
 		# Draw the rectangles
 		draw_rect(bg_rect, Color(0.1, 0.1, 0.1, 0.8), true)
