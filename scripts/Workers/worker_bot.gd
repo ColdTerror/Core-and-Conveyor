@@ -54,6 +54,9 @@ func _process(delta):
 	
 	match current_state:
 		State.IDLE:
+			if _escape_trapped_tile():
+				return # Skip this frame so the new safe position registers!
+				
 			if current_priority == TaskPriority.REPAIR:
 				_find_damaged_building()
 			elif current_priority == TaskPriority.BUILD:
@@ -609,6 +612,32 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 					
 	return {"stand": best_stand, "target": best_target}
 
+
+func _escape_trapped_tile() -> bool:
+	var pathfinder = level_ref.building_manager.pathfinder
+	if not pathfinder: return false
+	
+	var my_grid = level_ref.object_layer.local_to_map(global_position)
+	
+	# Are we stuck inside a solid building footprint?
+	if pathfinder.astar.is_point_solid(my_grid):
+		
+		# Search outward in a square (Up to 2 tiles away just in case they are stuck in a big building!)
+		for radius in range(1, 3):
+			for x in range(-radius, radius + 1):
+				for y in range(-radius, radius + 1):
+					var test_tile = my_grid + Vector2i(x, y)
+					
+					# Look for the closest empty piece of ground
+					if pathfinder.astar.is_in_boundsv(test_tile) and not pathfinder.astar.is_point_solid(test_tile):
+						
+						# Found a safe spot! "Pop" the bot out instantly.
+						var safe_local = level_ref.object_layer.map_to_local(test_tile)
+						global_position = level_ref.object_layer.to_global(safe_local)
+						print("Bot escaped from being trapped inside a building!")
+						return true # Escaped!
+						
+	return false # Not trapped
 
 # ==========================================
 # UI INTERACTION & PRIORITY LOGIC
