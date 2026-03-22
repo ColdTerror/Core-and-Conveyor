@@ -11,7 +11,7 @@ var max_health: int = 100
 
 # --- THE PRIORITY SYSTEM ---
 enum TaskPriority { GATHER_WOOD, GATHER_STONE, REPAIR, BUILD, STOPPED }
-var current_priority: TaskPriority = TaskPriority.GATHER_WOOD
+var current_priority: TaskPriority = TaskPriority.STOPPED
 
 enum State { 
 	IDLE, 
@@ -52,6 +52,10 @@ func setup(level: Node2D):
 	
 	if has_node("Area2D"):
 		$Area2D.input_event.connect(_on_input_event)
+		
+	if level_ref and level_ref.object_layer:
+		# Figure out what tile we are standing on right now
+		home_tile = level_ref.object_layer.local_to_map(global_position)
 
 func _process(delta):
 	queue_redraw()
