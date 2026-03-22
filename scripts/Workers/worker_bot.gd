@@ -20,9 +20,12 @@ enum State {
 	ON_STANDBY, 
 	MOVING_TO_REPAIR, REPAIRING, 
 	MOVING_TO_BUILD, BUILDING,
-	MOVING_TO_FETCH, FETCHING 
+	MOVING_TO_FETCH, FETCHING,
+	MOVING_HOME
 }
 var current_state: State = State.IDLE
+
+var home_tile: Vector2i = Vector2i(-1, -1)
 
 @export var speed: float = 75.0
 @export var carry_capacity: int = 5
@@ -56,7 +59,10 @@ func _process(delta):
 		State.IDLE:
 			if _escape_trapped_tile():
 				return # Skip this frame so the new safe position registers!
-				
+			
+			if current_priority == TaskPriority.STOPPED:
+				_go_home_or_standby(1.0)
+				return
 			if current_priority == TaskPriority.REPAIR:
 				_find_damaged_building()
 			elif current_priority == TaskPriority.BUILD:
@@ -198,8 +204,7 @@ func _find_nearest_storage():
 			unreachable_storages.append(b_node)
 
 	# Every storage is either full, filtered, or unreachable
-	current_state = State.ON_STANDBY
-	action_timer.start(5.0)
+	_go_home_or_standby(5.0)
 
 # ==========================================
 # REPAIR SEARCH
@@ -238,8 +243,7 @@ func _find_damaged_building():
 			current_state = State.IDLE
 	else:
 		# Base is completely healthy! Wait 2 seconds and check again.
-		current_state = State.ON_STANDBY
-		action_timer.start(5.0)
+		_go_home_or_standby(2.0)
 
 func _find_construction_site():
 	_clear_reservation()
@@ -322,8 +326,7 @@ func _find_construction_site():
 			_find_nearest_storage()
 		else:
 			# Hands are completely empty and no sites need building. Rest.
-			current_state = State.ON_STANDBY
-			action_timer.start(2.0)
+			_go_home_or_standby(2.0)
 
 func _find_stockpile_with_item(item_name: String):
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
@@ -372,8 +375,7 @@ func _find_stockpile_with_item(item_name: String):
 	else:
 		# No stockpile has the item! We are stuck waiting.
 		print("Builder Bot: No stockpiles have ", item_name, "!")
-		current_state = State.ON_STANDBY
-		action_timer.start(2.0)
+		_go_home_or_standby(2.0)
 
 # ==========================================
 # 2. LEGS: MOVEMENT
@@ -706,6 +708,48 @@ func _clear_reservation():
 		if info.has("reserved_by") and info["reserved_by"] == self:
 			info["reserved_by"] = null
 
+
+# ==========================================
+# HOME SYSTEM
+# ==========================================
+func set_home(grid_pos: Vector2i):
+	home_tile = grid_pos
+	inventory_changed.emit()
+	
+	# If the bot is currently doing nothing, wake it up so it walks home instantly!
+	if current_state in [State.IDLE, State.ON_STANDBY]:
+		current_state = State.IDLE 
+
+func _go_home_or_standby(wait_time: float):
+	if home_tile != Vector2i(-1, -1):
+		var my_grid = level_ref.object_layer.local_to_map(global_position)
+		if my_grid != home_tile:
+			if _request_path_exact(home_tile):
+				current_state = State.MOVING_HOME
+				return
+				
+	# If no home is set, we are already home, or the path is blocked:
+	current_state = State.ON_STANDBY
+	action_timer.start(wait_time)
+
+func _request_path_exact(target_grid: Vector2i) -> bool:
+	var pathfinder = level_ref.building_manager.pathfinder
+	if not pathfinder: return false
+	
+	# If the player built a wall over the bot's home, it can't go there!
+	if pathfinder.astar.is_point_solid(target_grid):
+		return false 
+		
+	var target_local = level_ref.object_layer.map_to_local(target_grid)
+	var target_world = level_ref.object_layer.to_global(target_local)
+	
+	var packed_path = pathfinder.get_path_route(global_position, target_world)
+	if packed_path.is_empty(): return false
+	
+	current_path.clear()
+	current_path.append_array(packed_path)
+	return true
+
 # ==========================================
 # DEBUG VISUALS
 # ==========================================
@@ -722,6 +766,15 @@ func _draw():
 			draw_polyline(points, Color(0.2, 0.8, 1.0, 0.8), 2.0)
 			draw_circle(to_local(current_path[-1]), 4.0, Color(1.0, 0.2, 0.2))
 
+	# Draw Home Tile (Light Blue Transparent Square)
+	if home_tile != Vector2i(-1, -1) and level_ref and level_ref.object_layer:
+		var home_local_map = level_ref.object_layer.map_to_local(home_tile)
+		var home_global = level_ref.object_layer.to_global(home_local_map)
+		var home_local_to_bot = to_local(home_global)
+		var rect = Rect2(home_local_to_bot - Vector2(16, 16), Vector2(32, 32))
+		draw_rect(rect, Color(0.2, 0.8, 1.0, 0.2), true) 
+		draw_rect(rect, Color(0.2, 0.8, 1.0, 0.8), false, 2.0)
+	
 	if target_tile != Vector2i(-1, -1) and (current_state == State.MOVING_TO_RESOURCE or current_state == State.HARVESTING):
 		if level_ref and level_ref.object_layer:
 			var target_local_map = level_ref.object_layer.map_to_local(target_tile)
