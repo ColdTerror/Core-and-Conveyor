@@ -7,6 +7,7 @@ extends PanelContainer
 @onready var close_button = $VBoxContainer/CloseButton
 
 var current_building: Node2D = null
+var bot_awaiting_home: Node2D = null # --- NEW: Remembers the bot while waiting for a click! ---
 
 signal menu_closed
 
@@ -20,7 +21,7 @@ func open_menu(building: Node2D):
 	current_building = building
 	title_label.text = building.building_name
 	
-	# --- NEW: LIVE UPDATES ---
+	# --- LIVE UPDATES ---
 	# Duck typing: Check if this object (Bot or Building) has the signal
 	if current_building.has_signal("inventory_changed"):
 		if not current_building.inventory_changed.is_connected(refresh_ui):
@@ -45,13 +46,10 @@ func refresh_ui():
 		_setup_processor_ui(current_building as ProcessorBuilding)
 	elif current_building is StockpileBuilding:
 		_setup_stockpile_ui(current_building as StockpileBuilding)
-	# --- NEW: ROUTE FOR TOWERS ---
 	elif current_building is TowerBuilding:
 		_setup_tower_ui(current_building as TowerBuilding)
-	# --- NEW: ROUTE FOR BOTS (Duck Typing!) ---
 	elif current_building.has_method("set_priority"):
 		_setup_bot_ui(current_building)
-	# ------------------------------------------
 	else:
 		info_label.text = "No configurable options."
 
@@ -105,13 +103,13 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 	# 3. Spawn CYCLE OUTPUT Button (If ANY items exist in inventory!)
 	if b.has_method("cycle_output_mode") and b.has_method("get_economy_assets"):
 		var unique_item_types_count = b.get_economy_assets().keys().size()
-		# --- FIXED: Changed from > 1 to > 0 ---
 		if unique_item_types_count > 0: 
 			_create_button("Cycle Output", Color.WHITE, b.cycle_output_mode)
 			
 	# 4. Spawn VOID Button
 	if b.has_method("void_inventory"):
 		_create_button("Void All Items", Color(1.0, 0.3, 0.3), b.void_inventory)
+
 
 # --- HELPER: Setup UI for Towers ---
 func _setup_tower_ui(b: TowerBuilding):
@@ -127,6 +125,7 @@ func _setup_tower_ui(b: TowerBuilding):
 	# Spawn the dynamic button
 	_create_button("Cycle Targeting", Color.WHITE, b.cycle_targeting_mode)
 
+
 # --- HELPER: Setup UI for Worker Bots ---
 func _setup_bot_ui(b: Node2D):
 	var info = b.get_inventory_info()
@@ -139,23 +138,61 @@ func _setup_bot_ui(b: Node2D):
 	elif info["Target"] == "Halted": info_label.modulate = Color(1.0, 0.4, 0.4)
 	else: info_label.modulate = Color(1.0, 1.0, 1.0)
 
-	# --- THE FIX: Spawn a dedicated RTS Command Panel! ---
-	# We pass the integer values of your Enum: ALL=0, WOOD=1, STONE=2, STOP=4
-	
+	# RTS Command Panel
 	_create_button("Wood Only", Color(0.6, 1.0, 0.6), func(): b.set_priority(0))
 	_create_button("Stone Only", Color(0.785, 0.785, 0.785, 1.0), func(): b.set_priority(1))
 	_create_button("Repair", Color(0.2, 0.6, 1.0), func(): b.set_priority(2))
 	_create_button("Build", Color(0.524, 0.004, 0.953, 1.0) , func(): b.set_priority(3))
 	_create_button("Halt Bot", Color(1.0, 0.4, 0.4), func(): b.set_priority(4))
+	
+	# --- NEW: Set Home Button ---
+	_create_button("Set Home", Color(1.0, 0.8, 0.2), func(): 
+		bot_awaiting_home = b
+		print("Targeting Mode ON: Click a tile to set home.")
+		close_menu() # Hide the UI so the player can click the grass
+	)
+
 
 func close_menu():
-	# --- NEW: CLEAN UP SIGNALS ---
-	# We must disconnect so it doesn't try to update a closed menu!
+	# CLEAN UP SIGNALS
 	if is_instance_valid(current_building) and current_building.has_signal("inventory_changed"):
 		if current_building.inventory_changed.is_connected(refresh_ui):
 			current_building.inventory_changed.disconnect(refresh_ui)
-	# -----------------------------
 	
 	current_building = null
 	hide()
 	menu_closed.emit()
+
+
+# ==========================================================
+# TARGETING MODE LOGIC (Intercepts Clicks when waiting for Home)
+# ==========================================================
+func _unhandled_input(event):
+	# Are we currently waiting for the player to pick a home?
+	if bot_awaiting_home != null and is_instance_valid(bot_awaiting_home):
+		
+		if event is InputEventMouseButton and event.pressed:
+			
+			# --- LEFT CLICK: SET HOME ---
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				
+				# 1. Borrow the bot's spatial awareness to get the true world mouse position
+				var world_mouse_pos = bot_awaiting_home.get_global_mouse_position()
+				
+				# 2. Borrow the bot's level reference to calculate the grid tile
+				if "level_ref" in bot_awaiting_home and bot_awaiting_home.level_ref != null:
+					var grid_pos = bot_awaiting_home.level_ref.object_layer.local_to_map(world_mouse_pos)
+					
+					# 3. Apply the home!
+					bot_awaiting_home.set_home(grid_pos)
+					print("Home set to: ", grid_pos)
+				
+				# Cleanup
+				bot_awaiting_home = null
+				get_viewport().set_input_as_handled()
+				
+			# --- RIGHT CLICK: CANCEL ---
+			elif event.button_index == MOUSE_BUTTON_RIGHT:
+				bot_awaiting_home = null
+				print("Canceled Set Home mode.")
+				get_viewport().set_input_as_handled()
