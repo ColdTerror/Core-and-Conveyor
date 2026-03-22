@@ -49,12 +49,9 @@ func show_building_info(b: Building):
 	work_bar.visible = (b is ProcessorBuilding) or (b is ConstructionSite)
 	_refresh_inventory_ui()
 	
-	# --- NEW: Generate the Stats ---
 	_refresh_stats_ui(b)
-	# -------------------------------
 	
 	
-	# --- 4. THE FLASH ANIMATION ---
 	# Only play this if we switched targets or the popup was hidden
 	if is_new_target or not visible:
 		# Ensure we are visible first

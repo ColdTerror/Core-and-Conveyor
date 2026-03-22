@@ -16,7 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/buildings & related/processors/Sawmill/sawmill_building1.tscn" id="16_pqd0y"]
 [ext_resource type="PackedScene" uid="uid://datlui80eimn3" path="res://scenes/buildings & related/harvesters/Mine/MineBuilding1.tscn" id="17_w3o6u"]
 [ext_resource type="PackedScene" uid="uid://u8dr3txp3net" path="res://scenes/buildings & related/towers & defense/Bow Tower/bow_tower1.tscn" id="17_xy2fk"]
-[ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/building_hover_popup.tscn" id="18_82cfe"]
+[ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/hover_menu.tscn" id="18_82cfe"]
 [ext_resource type="PackedScene" uid="uid://cg13cd0e8r5ne" path="res://scenes/buildings & related/towers & defense/projectile.tscn" id="18_cmcjb"]
 [ext_resource type="PackedScene" uid="uid://do66a1tmnwe8j" path="res://scenes/buildings & related/processors/Stonemason/stonemason_building1.tscn" id="18_gur6y"]
 [ext_resource type="PackedScene" uid="uid://c0fjlwuepy3iy" path="res://scenes/buildings & related/towers & defense/wall.tscn" id="18_kih21"]
@@ -25,7 +25,7 @@
 [ext_resource type="PackedScene" uid="uid://bscvnmiqn3de6" path="res://scenes/buildings & related/belts & items/router_building.tscn" id="20_2e2fo"]
 [ext_resource type="PackedScene" uid="uid://dstw12awamhw8" path="res://scenes/buildings & related/core_building.tscn" id="21_gur6y"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
-[ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/building_menu.tscn" id="21_wu01b"]
+[ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/detail_menu.tscn" id="21_wu01b"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
 [ext_resource type="Script" uid="uid://derk5dx603k7c" path="res://scripts/Managers/time_manager.gd" id="23_asl66"]
 [ext_resource type="PackedScene" uid="uid://ce1ik2gwvn5dc" path="res://scenes/buildings & related/construction_site_building.tscn" id="26_v3why"]
@@ -84,7 +84,7 @@ tile_set = ExtResource("2_w8frs")
 [node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "hover_popup", "terrain_layer", "corruption_layer")]
 script = ExtResource("15_gunhw")
 object_layer = NodePath("../ObjectLayer")
-hover_popup = NodePath("../CanvasLayer/Popup_Layer/BuildingHoverPopup")
+hover_popup = NodePath("../CanvasLayer/Popup_Layer/HoverMenu")
 terrain_layer = NodePath("../TerrainLayer")
 corruption_layer = NodePath("../CorruptionLayer")
 construction_site_scene = ExtResource("26_v3why")
@@ -120,7 +120,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="BuildingMenu" parent="CanvasLayer/Popup_Layer" unique_id=1200069952 instance=ExtResource("21_wu01b")]
+[node name="DetailMenu" parent="CanvasLayer/Popup_Layer" unique_id=1200069952 instance=ExtResource("21_wu01b")]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -130,7 +130,7 @@ offset_right = 60.0
 offset_bottom = 0.0
 grow_vertical = 0
 
-[node name="BuildingHoverPopup" parent="CanvasLayer/Popup_Layer" unique_id=545312411 instance=ExtResource("18_82cfe")]
+[node name="HoverMenu" parent="CanvasLayer/Popup_Layer" unique_id=545312411 instance=ExtResource("18_82cfe")]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0

@@ -5,7 +5,7 @@ extends Node2D
 @onready var object_layer: TileMapLayer = $ObjectLayer
 
 
-@onready var hover_popup := $CanvasLayer/Popup_Layer/BuildingHoverPopup
+@onready var hover_menu := $CanvasLayer/Popup_Layer/HoverMenu
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
 
 # Mode State
@@ -60,13 +60,13 @@ var active_grid_objects := {}
 
 @onready var building_manager: BuildingManager = $BuildingManager
 
-@onready var building_menu = $CanvasLayer/Popup_Layer/BuildingMenu 
+@onready var detail_menu = $CanvasLayer/Popup_Layer/DetailMenu 
 
 @onready var pathfinder = $Pathfinder
 
 func _ready():
 	generate_simple_map()
-	hover_popup.hide()
+	hover_menu.hide()
 	
 	# Connect the new resource signals
 	ResourceManager.resource_state_changed.connect(_on_resource_state_changed)
@@ -84,7 +84,7 @@ func _ready():
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	building_manager.pathfinder = pathfinder
 	
-	building_manager.building_selected.connect(building_menu.open_menu)
+	building_manager.building_selected.connect(detail_menu.open_menu)
 	
 	building_manager.core_placed_event.connect(_on_core_placed)
 	
