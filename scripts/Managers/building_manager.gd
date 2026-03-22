@@ -407,8 +407,9 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 			is_core_placed = true
 			core_placed_event.emit() 
 			
+			#SPAWN BOTS
 			var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
-			var spawn_tiles = _get_empty_tiles_around(ghost_building, 4)
+			var spawn_tiles = _get_empty_tiles_around(ghost_building, 1)
 			
 			for tile in spawn_tiles:
 				var new_bot = bot_scene.instantiate()

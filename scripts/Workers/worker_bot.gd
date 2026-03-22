@@ -26,6 +26,7 @@ enum State {
 var current_state: State = State.IDLE
 
 var home_tile: Vector2i = Vector2i(-1, -1)
+var is_selected: bool = false
 
 @export var speed: float = 75.0
 @export var carry_capacity: int = 5
@@ -81,6 +82,8 @@ func _process(delta):
 			_move_along_path(delta, State.BUILDING)
 		State.MOVING_TO_FETCH:
 			_move_along_path(delta, State.FETCHING)
+		State.MOVING_HOME:
+			_move_along_path(delta, State.IDLE)
 
 # ==========================================
 # 1. BRAIN: DECISION MAKING
@@ -767,7 +770,7 @@ func _draw():
 			draw_circle(to_local(current_path[-1]), 4.0, Color(1.0, 0.2, 0.2))
 
 	# Draw Home Tile (Light Blue Transparent Square)
-	if home_tile != Vector2i(-1, -1) and level_ref and level_ref.object_layer:
+	if is_selected and home_tile != Vector2i(-1, -1) and level_ref and level_ref.object_layer:
 		var home_local_map = level_ref.object_layer.map_to_local(home_tile)
 		var home_global = level_ref.object_layer.to_global(home_local_map)
 		var home_local_to_bot = to_local(home_global)

@@ -18,15 +18,24 @@ func _ready():
 	info_label.custom_minimum_size = Vector2(225, 50) 
 
 func open_menu(building: Node2D):
+	if is_instance_valid(current_building) and current_building != building:
+		if "is_selected" in current_building:
+			current_building.is_selected = false
+			current_building.queue_redraw()
+	
 	current_building = building
 	title_label.text = building.building_name
 	
-	# --- LIVE UPDATES ---
-	# Duck typing: Check if this object (Bot or Building) has the signal
+	if "is_selected" in current_building:
+		current_building.is_selected = true
+		current_building.queue_redraw()
+		
+
+
 	if current_building.has_signal("inventory_changed"):
 		if not current_building.inventory_changed.is_connected(refresh_ui):
 			current_building.inventory_changed.connect(refresh_ui)
-	# -------------------------
+
 
 	refresh_ui()
 	show()
@@ -149,16 +158,21 @@ func _setup_bot_ui(b: Node2D):
 	_create_button("Set Home", Color(1.0, 0.8, 0.2), func(): 
 		bot_awaiting_home = b
 		print("Targeting Mode ON: Click a tile to set home.")
-		close_menu() # Hide the UI so the player can click the grass
 	)
 
 
 func close_menu():
 	# CLEAN UP SIGNALS
-	if is_instance_valid(current_building) and current_building.has_signal("inventory_changed"):
-		if current_building.inventory_changed.is_connected(refresh_ui):
-			current_building.inventory_changed.disconnect(refresh_ui)
+	if is_instance_valid(current_building):
+		if current_building.has_signal("inventory_changed"):
+			if current_building.inventory_changed.is_connected(refresh_ui):
+				current_building.inventory_changed.disconnect(refresh_ui)
+		
+		if "is_selected" in current_building:
+			current_building.is_selected = false
+			current_building.queue_redraw()
 	
+	bot_awaiting_home = null
 	current_building = null
 	hide()
 	menu_closed.emit()
