@@ -4,6 +4,9 @@ class_name WorkerBot
 signal clicked(bot: WorkerBot)
 signal inventory_changed
 
+signal hovered(bot: WorkerBot) 
+signal unhovered(bot: WorkerBot)
+
 # --- THE DISGUISE (Duck Typing) ---
 var building_name: String = "Worker Bot"
 var health: int = 100
@@ -52,6 +55,8 @@ func setup(level: Node2D):
 	
 	if has_node("Area2D"):
 		$Area2D.input_event.connect(_on_input_event)
+		$Area2D.mouse_entered.connect(_on_mouse_entered)
+		$Area2D.mouse_exited.connect(_on_mouse_exited)
 		
 	if level_ref and level_ref.object_layer:
 		# Figure out what tile we are standing on right now
@@ -651,6 +656,13 @@ func _escape_trapped_tile() -> bool:
 # ==========================================
 # UI INTERACTION & PRIORITY LOGIC
 # ==========================================
+
+func _on_mouse_entered():
+	hovered.emit(self)
+
+func _on_mouse_exited():
+	unhovered.emit(self)
+
 
 func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

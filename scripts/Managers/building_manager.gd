@@ -418,6 +418,8 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 				new_bot.global_position = level_ref.object_layer.to_global(local_pos)
 				new_bot.setup(level_ref)
 				new_bot.clicked.connect(_on_bot_clicked)
+				new_bot.hovered.connect(_on_building_hovered)  
+				new_bot.unhovered.connect(_on_building_unhovered)
 			
 			if level_ref and level_ref.has_node("CorruptionManager"):
 				var corruption_manager = level_ref.get_node("CorruptionManager")
@@ -880,11 +882,11 @@ func _clear_drag_ghosts():
 		if is_instance_valid(g): g.queue_free()
 	drag_ghosts.clear()
 
-func _on_building_hovered(building: Building):
+func _on_building_hovered(building: Node2D):
 	if hover_popup:
 		hover_popup.show_building_info(building)
 
-func _on_building_unhovered(building):
+func _on_building_unhovered(building: Node2D):
 	if hover_popup:
 		# THE FIX: Only hide if the popup is currently displaying THIS building.
 		# If the popup has already switched to a new building, ignore this signal.

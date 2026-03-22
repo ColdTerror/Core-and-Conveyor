@@ -6,7 +6,7 @@ extends PanelContainer
 @onready var inventory_box = $VBoxContainer/Inventory
 @onready var work_bar = $VBoxContainer/WorkBar
 
-var current_building: Building = null
+var current_building: Node2D = null
 
 func _ready():
 	work_bar.visible = false
@@ -20,56 +20,57 @@ func _process(_delta):
 
 	# PROGRESS BAR ANIMATION
 	if visible:
+		# Duck typing check to prevent crashing on bots
 		if current_building is ConstructionSite:
-			# Blueprints use their HP bar to track build progress!
 			work_bar.value = (float(current_building.health) / current_building.max_health) * 100.0
 		elif current_building.has_method("get_progress_ratio"):
-			# Processors use their crafting timer
 			work_bar.value = current_building.get_progress_ratio() * 100.0
 
-func show_building_info(b: Building):
+
+
+func show_building_info(b: Node2D):
 	var is_new_target = (current_building != b)
 	_disconnect_signals()
 	current_building = b
 	
-	# --- UPDATED: Show the Name AND Level ---
-	var lvl = b.building_level if "building_level" in b else 1
-	name_label.text = "%s (Lv. %d)" % [b.building_name, lvl]
-	# ----------------------------------------
-	
-	health_label.text = "%d / %d" % [b.health, b.max_health]
-	_update_health_text(b.health, b.max_health)
-	
-	if not current_building.health_changed.is_connected(_on_health_changed):
-		current_building.health_changed.connect(_on_health_changed)
+	# --- NAME & LEVEL ---
+	var b_name = b.building_name if "building_name" in b else "Unknown Object"
+	if "building_level" in b:
+		name_label.text = "%s (Lv. %d)" % [b_name, b.building_level]
+	else:
+		name_label.text = b_name # Bots don't have levels!
+
+	# --- HEALTH LOGIC ---
+	if "health" in b and "max_health" in b:
+		health_label.visible = true
+		_update_health_text(b.health, b.max_health)
+	else:
+		health_label.visible = false
+
+	# --- SIGNALS ---
+	if b.has_signal("health_changed") and not b.health_changed.is_connected(_on_health_changed):
+		b.health_changed.connect(_on_health_changed)
 		
-	if not current_building.inventory_changed.is_connected(_on_inventory_changed):
-		current_building.inventory_changed.connect(_on_inventory_changed)
+	if b.has_signal("inventory_changed") and not b.inventory_changed.is_connected(_on_inventory_changed):
+		b.inventory_changed.connect(_on_inventory_changed)
 	
+	# Only show work bar for specific building types
 	work_bar.visible = (b is ProcessorBuilding) or (b is ConstructionSite)
-	_refresh_inventory_ui()
 	
+	_refresh_inventory_ui()
 	_refresh_stats_ui(b)
 	
-	
-	# Only play this if we switched targets or the popup was hidden
+	# TWEEN ANIMATION
 	if is_new_target or not visible:
-		# Ensure we are visible first
 		show()
-		
-		# Set Pivot to center so it scales from the middle
 		pivot_offset = size / 2
-		
-		# Reset to "Small and Transparent"
 		scale = Vector2(0.9, 0.9)
 		modulate.a = 0.5 
 		
-		# Create a Tween to "Pop" it back to normal
 		var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		
-		# Animate Scale and Opacity back to 1.0 over 0.1 seconds (Very fast)
 		tween.tween_property(self, "scale", Vector2.ONE, 0.1)
 		tween.parallel().tween_property(self, "modulate:a", 1.0, 0.1)
+
 
 func hide_popup():
 	_disconnect_signals()
@@ -79,12 +80,11 @@ func hide_popup():
 # --- HELPER: CLEAN DISCONNECT ---
 func _disconnect_signals():
 	if current_building and is_instance_valid(current_building):
-		if current_building.health_changed.is_connected(_on_health_changed):
+		if current_building.has_signal("health_changed") and current_building.health_changed.is_connected(_on_health_changed):
 			current_building.health_changed.disconnect(_on_health_changed)
 			
-		if current_building.has_signal("inventory_changed"):
-			if current_building.inventory_changed.is_connected(_on_inventory_changed):
-				current_building.inventory_changed.disconnect(_on_inventory_changed)
+		if current_building.has_signal("inventory_changed") and current_building.inventory_changed.is_connected(_on_inventory_changed):
+			current_building.inventory_changed.disconnect(_on_inventory_changed)
 
 # --- SIGNAL CALLBACKS ---
 
@@ -97,12 +97,12 @@ func _update_health_text(current: int, max_hp: int):
 func _on_inventory_changed():
 	_refresh_inventory_ui()
 
-# --- INVENTORY LOGIC (Unchanged) ---
+
+# --- INVENTORY LOGIC ---
 
 func _refresh_inventory_ui():
 	if not current_building: return
 	
-	# Safety: Ensure building has this function before calling
 	if not current_building.has_method("get_inventory_info"):
 		hide_inventory()
 		return
@@ -114,48 +114,6 @@ func _refresh_inventory_ui():
 	else:
 		hide_inventory()
 
-func _refresh_stats_ui(b: Building):
-	# Clear the old stats from the last building we clicked
-	for child in stats_box.get_children():
-		child.queue_free()
-
-	var stats = []
-	
-	# Duck typing: Safely check if the building has these specific variables!
-
-	#Processor Buildings
-	if "crafting_time_multiplier" in b: 
-		var pct = int(b.crafting_time_multiplier * 100)
-		stats.append("Time Multiplier: %d%%" % pct)
-
-	#Harvest Building
-	if "scan_radius" in b:
-		stats.append("Harvest Radius: %d" % b.scan_radius)
-	if "harvest_damage" in b:
-		stats.append("Harvest Amount: %d" % b.harvest_damage)
-	if "work_interval" in b:
-		stats.append("Work Interval: %.1fs" % b.work_interval)
-		
-	#Towers
-	if "damage_multiplier" in b: 
-		stats.append("Damage Mult: %.1fx" % b.damage_multiplier)
-	if "fire_rate" in b: 
-		stats.append("Fire Rate: %.1f/s" % b.fire_rate)
-	if "attack_range" in b: 
-		var tile_range = int(b.attack_range / 32.0)
-		stats.append("Range: %d Tiles" % tile_range)
-
-
-	# Generate a label for each stat we found
-	for stat_text in stats:
-		var row = Label.new()
-		row.text = stat_text
-		row.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8)) # Nice muted gray
-		
-		# Optional: Make the font a little smaller for stats so it doesn't clutter
-		row.add_theme_font_size_override("font_size", 12) 
-		
-		stats_box.add_child(row)
 
 func show_inventory(inventory: Dictionary):
 	inventory_box.visible = true
@@ -164,17 +122,25 @@ func show_inventory(inventory: Dictionary):
 	for child in inventory_box.get_children():
 		child.queue_free()
 
-	# --- 1. Determine Building Role (Buffer vs Storage) ---
+	# --- NEW: SPECIAL BOT TRAP ---
+	# If this is our bot, it returns text like {"Target": "Wood Only", "Carrying": "Wood (5)"}
+	if current_building.building_name == "Worker Bot":
+		for key in inventory.keys():
+			var row = Label.new()
+			row.text = "%s: %s" % [key, inventory[key]]
+			row.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0)) # Soft Blue
+			inventory_box.add_child(row)
+		return # Stop here so it doesn't run the building logic below!
+	# -----------------------------
+
+	# --- Standard Building Logic ---
 	var is_buffer = false
 	var max_cap = 0
 	
-	# Duck-typing: If the building has a 'buffer_capacity' variable, we assume 
-	# it is a Harvester or Processor holding unsecured items.
 	if "buffer_capacity" in current_building:
 		is_buffer = true
 		max_cap = current_building.buffer_capacity
 
-	# --- 2. Populate rows ---
 	for key in inventory.keys():
 		var value = inventory[key] 
 		var display_text = "Unknown"
@@ -186,24 +152,19 @@ func show_inventory(inventory: Dictionary):
 			
 		var row := Label.new()
 		
-		# --- 3. Apply Terminology and Color Coding! ---
 		if current_building is ConstructionSite:
-			# BLUEPRINT TEXT (Gold)
 			row.text = "%s: %s" % [display_text, str(value)]
 			row.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2)) 
 			
 		elif is_buffer and (value is int or value is float):
 			if max_cap > 0 and value >= max_cap:
-				# JAMMED WARNING (Red)
 				row.text = "Buffer FULL [%s]: %d/%d" % [display_text, value, max_cap]
 				row.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3)) 
 			else:
-				# UNSECURED BUFFER (Grey)
 				var cap_str = str(max_cap) if max_cap > 0 else "?"
 				row.text = "Output Buffer [%s]: %d/%s" % [display_text, value, cap_str]
 				row.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7)) 
 		else:
-			# SECURED STORAGE (Green)
 			if value is int or value is float:
 				row.text = "Secured [%s]: %d" % [display_text, value]
 			else:
@@ -215,3 +176,40 @@ func show_inventory(inventory: Dictionary):
 
 func hide_inventory():
 	inventory_box.visible = false
+
+
+func _refresh_stats_ui(b: Node2D):
+	# Clear the old stats from the last building we clicked
+	for child in stats_box.get_children():
+		child.queue_free()
+
+	var stats = []
+	
+	# --- BOTS ---
+	if "speed" in b: stats.append("Move Speed: %d" % b.speed)
+	if "carry_capacity" in b: stats.append("Carry Cap: %d" % b.carry_capacity)
+	
+	# --- PROCESSORS ---
+	if "crafting_time_multiplier" in b: 
+		var pct = int(b.crafting_time_multiplier * 100)
+		stats.append("Time Multiplier: %d%%" % pct)
+
+	# --- HARVESTERS ---
+	if "scan_radius" in b: stats.append("Harvest Radius: %d" % b.scan_radius)
+	if "harvest_damage" in b: stats.append("Harvest Amount: %d" % b.harvest_damage)
+	if "work_interval" in b: stats.append("Work Interval: %.1fs" % b.work_interval)
+		
+	# --- TOWERS ---
+	if "damage_multiplier" in b: stats.append("Damage Mult: %.1fx" % b.damage_multiplier)
+	if "fire_rate" in b: stats.append("Fire Rate: %.1f/s" % b.fire_rate)
+	if "attack_range" in b: 
+		var tile_range = int(b.attack_range / 32.0)
+		stats.append("Range: %d Tiles" % tile_range)
+
+	# Generate a label for each stat we found
+	for stat_text in stats:
+		var row = Label.new()
+		row.text = stat_text
+		row.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8)) # Nice muted gray
+		row.add_theme_font_size_override("font_size", 12) 
+		stats_box.add_child(row)
