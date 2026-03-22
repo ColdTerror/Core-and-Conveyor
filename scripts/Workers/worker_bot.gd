@@ -134,14 +134,13 @@ func _find_nearest_resource():
 			best_tile = tile
 				
 	if best_tile != Vector2i(-1, -1):
-		target_tile = best_tile
+		_request_path([best_tile], false) # Wrap single resource in array!
 		
-		# --- NEW: CLAIM THE TILE ---
-		level_ref.active_grid_objects[best_tile]["reserved_by"] = self
-		# ---------------------------
-		
-		current_state = State.MOVING_TO_RESOURCE
-		_request_path(target_tile, false)
+		if not current_path.is_empty():
+			level_ref.active_grid_objects[target_tile]["reserved_by"] = self
+			current_state = State.MOVING_TO_RESOURCE
+		else:
+			current_state = State.IDLE
 	else:
 		if carried_amount > 0:
 			_find_nearest_storage()
@@ -184,19 +183,15 @@ func _find_nearest_storage():
 
 	# Try each candidate until one has a valid path
 	for candidate in candidates:
-		var b_tile = candidate["tile"]
 		var b_node = candidate["building"]
 
-		_request_path(b_tile, true)
+		_request_path(b_node.occupied_tiles, true) # Pass the full array!
 
 		if not current_path.is_empty():
-			# Valid path found!
-			target_tile = b_tile
 			current_state = State.MOVING_TO_INVENTORY
 			return
 		else:
-			# Path failed — blacklist this storage until we reset
-			print("Bot: Storage at %s is unreachable, blacklisting." % b_tile)
+			print("Bot: Storage unreachable, blacklisting.")
 			unreachable_storages.append(b_node)
 
 	# Every storage is either full, filtered, or unreachable
@@ -223,21 +218,21 @@ func _find_damaged_building():
 			# 2. Is it damaged?
 			if b.health < b.max_health:
 				if b.occupied_tiles.size() > 0:
-					var b_tile = b.occupied_tiles[0]
-					var dist = my_pos.distance_squared_to(b_tile)
+					var dist = my_pos.distance_squared_to(b.occupied_tiles[0])
 					if dist < min_dist:
 						min_dist = dist
-						best_tile = b_tile
+						best_tile = b.occupied_tiles[0] # Just used for tracking closest building
+						target_tile = best_tile # Temporary hold
 
 	if best_tile != Vector2i(-1, -1):
-		target_tile = best_tile
-		_request_path(best_tile, true) # Treat as building for pathing
+		# Retrieve the actual building object we found
+		var building = level_ref.building_manager.occupied_tiles[best_tile]
+		_request_path(building.occupied_tiles, true) 
 		
-		# Prevent telepathy bug!
 		if not current_path.is_empty():
 			current_state = State.MOVING_TO_REPAIR
 		else:
-			current_state = State.IDLE 
+			current_state = State.IDLE
 	else:
 		# Base is completely healthy! Wait 2 seconds and check again.
 		current_state = State.ON_STANDBY
@@ -293,15 +288,13 @@ func _find_construction_site():
 
 	if best_tile != Vector2i(-1, -1) and target_blueprint != null:
 		
-		# If our hands are full, or the blueprint is ready to be hammered, walk to the blueprint!
 		if carried_amount > 0 or target_blueprint.is_ready_to_build:
-			target_tile = best_tile
-			_request_path(best_tile, true)
+			_request_path(target_blueprint.occupied_tiles, true) # Pass the array!
+			
 			if not current_path.is_empty():
-				# Are we dropping off items, or swinging the hammer?
 				current_state = State.MOVING_TO_INVENTORY if carried_amount > 0 else State.MOVING_TO_BUILD
 			else:
-				current_state = State.IDLE 
+				current_state = State.IDLE
 				
 		# If our hands are empty, and it needs items, we must FETCH!
 		else:
@@ -364,10 +357,11 @@ func _find_stockpile_with_item(item_name: String):
 				best_tile = b_tile
 					
 	if best_tile != Vector2i(-1, -1):
-		# We found a stockpile! Walk to it and FETCH.
-		carried_item_name = item_name # Memorize what we are supposed to grab
-		target_tile = best_tile
-		_request_path(best_tile, true)
+		carried_item_name = item_name 
+		
+		var stockpile = level_ref.building_manager.occupied_tiles[best_tile]
+		_request_path(stockpile.occupied_tiles, true) # Pass the array!
+		
 		if not current_path.is_empty():
 			current_state = State.MOVING_TO_FETCH
 		else:
@@ -382,16 +376,18 @@ func _find_stockpile_with_item(item_name: String):
 # 2. LEGS: MOVEMENT
 # ==========================================
 
-func _request_path(target_grid: Vector2i, is_core: bool = false):
+func _request_path(target_tiles: Array, is_building: bool = false):
 	var pathfinder = level_ref.building_manager.pathfinder
 	if not pathfinder: return
 	
-	var standing_tile = _get_standable_adjacent_tile(target_grid)
+	var result = _get_standable_adjacent_tile(target_tiles)
+	var standing_tile = result["stand"]
+	var interaction_tile = result["target"]
 	
 	if standing_tile == Vector2i(-1, -1):
-		print("Bot: Target ", target_grid, " is completely blocked in!")
-		if not is_core:
-			unreachable_tiles.append(target_grid)
+		print("Bot: Target footprint is completely blocked in!")
+		if not is_building:
+			unreachable_tiles.append(target_tiles[0])
 		current_state = State.IDLE
 		return
 		
@@ -401,14 +397,17 @@ func _request_path(target_grid: Vector2i, is_core: bool = false):
 	var packed_path = pathfinder.get_path_route(global_position, target_world)
 	
 	if packed_path.is_empty():
-		print("Bot: Cannot find a route to adjacent tile ", standing_tile)
-		if not is_core:
-			unreachable_tiles.append(target_grid)
+		print("Bot: Cannot find a route to footprint!")
+		if not is_building:
+			unreachable_tiles.append(target_tiles[0])
 		current_state = State.IDLE
 		return
 		
 	current_path.clear()
 	current_path.append_array(packed_path)
+	
+	# --- NEW: Tell the bot's action logic exactly which tile we walked up to! ---
+	target_tile = interaction_tile
 
 
 func _move_along_path(delta: float, next_state: State):
@@ -522,7 +521,6 @@ func _on_action_timer_timeout():
 		else:
 			current_state = State.IDLE
 
-
 	elif current_state == State.REPAIRING:
 		var building = null
 		if level_ref.building_manager.occupied_tiles.has(target_tile):
@@ -575,32 +573,41 @@ func _on_action_timer_timeout():
 	elif current_state == State.ON_STANDBY:
 		# Timer expired — wipe all blacklists and try again fresh
 		full_storages_ignored.clear()
-		unreachable_storages.clear() # NEW: Maybe a wall was removed!
+		unreachable_storages.clear()
+		unreachable_tiles.clear()
 		current_state = State.IDLE
 
 
 # ==========================================
 # TILE MATH HELPERS
 # ==========================================
-func _get_standable_adjacent_tile(target_tile: Vector2i) -> Vector2i:
+
+func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 	var pathfinder = level_ref.building_manager.pathfinder
-	if not pathfinder: return Vector2i(-1, -1)
+	if not pathfinder: return {"stand": Vector2i(-1, -1), "target": Vector2i(-1, -1)}
 	
 	var neighbors = [Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)]
 	var best_stand = Vector2i(-1, -1)
+	var best_target = Vector2i(-1, -1)
 	var my_grid = level_ref.object_layer.local_to_map(global_position)
 	var closest_dist = INF
 	
-	for offset in neighbors:
-		var test_tile = target_tile + offset
-		
-		if pathfinder.astar.is_in_boundsv(test_tile) and not pathfinder.astar.is_point_solid(test_tile):
-			var dist = my_grid.distance_squared_to(test_tile)
-			if dist < closest_dist:
-				closest_dist = dist
-				best_stand = test_tile
+	for t_tile in target_tiles:
+		for offset in neighbors:
+			var test_tile = t_tile + offset
+			
+			# Don't try to stand inside the building itself!
+			if test_tile in target_tiles:
+				continue
 				
-	return best_stand
+			if pathfinder.astar.is_in_boundsv(test_tile) and not pathfinder.astar.is_point_solid(test_tile):
+				var dist = my_grid.distance_squared_to(test_tile)
+				if dist < closest_dist:
+					closest_dist = dist
+					best_stand = test_tile
+					best_target = t_tile
+					
+	return {"stand": best_stand, "target": best_target}
 
 
 # ==========================================
