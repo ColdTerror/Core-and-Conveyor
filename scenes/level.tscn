@@ -105,7 +105,7 @@ script = ExtResource("29_7agi7")
 [node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
-real_minutes_per_day = 1.0
+real_minutes_per_day = 100.0
 
 [node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
 color = Color(1, 1, 1, 0)

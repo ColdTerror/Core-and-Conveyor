@@ -57,31 +57,50 @@ func _ready():
 	
 	health = max_health
 	if has_node("Area2D"):
-		$Area2D.mouse_entered.connect(_on_mouse_entered)
-		$Area2D.mouse_exited.connect(_on_mouse_exited)
+		# Check if they are already connected before connecting!
+		if not $Area2D.mouse_entered.is_connected(_on_mouse_entered):
+			$Area2D.mouse_entered.connect(_on_mouse_entered)
+		if not $Area2D.mouse_exited.is_connected(_on_mouse_exited):
+			$Area2D.mouse_exited.connect(_on_mouse_exited)
 
 # ==========================================
 # UNIFIED PLACEMENT UPDATER
 # ==========================================
 func _update_collision(footprint_px: Vector2):
+	# --------------------------------------------------
 	# 1. Update or Create Area2D (For Mouse Hover/Clicks)
-	if has_node("Area2D/CollisionShape2D"):
-		var area := $Area2D
-		var collision_shape := $Area2D/CollisionShape2D
+	# --------------------------------------------------
+	var area: Area2D
+	var area_shape: CollisionShape2D
+	
+	if not has_node("Area2D"):
+		# Create it dynamically!
+		area = Area2D.new()
+		area.name = "Area2D"
+		area_shape = CollisionShape2D.new()
+		area_shape.name = "CollisionShape2D"
+		area_shape.shape = RectangleShape2D.new()
 		
-		# UNIQUE SHAPE FIX: If the shape is shared from the editor, duplicate it
-		# so we don't accidentally resize every 1x1 building in the game to 4x4!
-		if collision_shape.shape == null:
-			collision_shape.shape = RectangleShape2D.new()
-		elif not collision_shape.shape.is_local_to_scene():
-			collision_shape.shape = collision_shape.shape.duplicate()
+		area.add_child(area_shape)
+		add_child(area)
+	else:
+		# Update the existing one!
+		area = $Area2D
+		area_shape = $Area2D/CollisionShape2D
+		
+		if area_shape.shape == null:
+			area_shape.shape = RectangleShape2D.new()
+		elif not area_shape.shape.is_local_to_scene():
+			area_shape.shape = area_shape.shape.duplicate()
 			
-		var shape := collision_shape.shape as RectangleShape2D
-		shape.size = footprint_px
-		area.position = Vector2.ZERO
-		collision_shape.position = Vector2.ZERO
+	var shape := area_shape.shape as RectangleShape2D
+	shape.size = footprint_px
+	area.position = Vector2.ZERO
+	area_shape.position = Vector2.ZERO
 
+	# --------------------------------------------------
 	# 2. Update or Create StaticBody2D (For Enemy Physics)
+	# --------------------------------------------------
 	var static_body: StaticBody2D
 	
 	if not has_node("AutoCollisionBody"):
@@ -108,7 +127,6 @@ func _update_collision(footprint_px: Vector2):
 	p_shape.shape.size = footprint_px
 	static_body.position = Vector2.ZERO
 	p_shape.position = Vector2.ZERO
-
 
 # --- Ghost / Visuals ---
 func set_ghost(enabled: bool):

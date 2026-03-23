@@ -13,24 +13,23 @@ var blueprint_size: Vector2i = Vector2i(1, 1)
 # ==========================================
 # 1. THE DYNAMIC SETUP
 # ==========================================
-# UPDATED: Now accepts b_size!
 func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: Dictionary, b_size: Vector2i):
 	level_ref = level_instance
 	target_building_scene = target_scene
 	required_items = costs.duplicate()
 	
 	blueprint_size = b_size
-	size = b_size # Update the base Building class size variable too!
+	size = b_size # Critical: Updates the base Building class size!
 	
+	# Instantly stretch the collision and hover boxes!
 	var footprint_px = Vector2(size.x * 32.0, size.y * 32.0)
 	_update_collision(footprint_px)
-	
-	if level_ref and level_ref.get("object_layer") and grid_origin != Vector2i.ZERO:
-		place_at(grid_origin, level_ref.object_layer)
 	
 	building_name = "Construction Site"
 	health = 0 
 	max_health = 100 
+	
+	queue_redraw()
 	
 	queue_redraw() # Tell Godot to run the _draw() function!
 

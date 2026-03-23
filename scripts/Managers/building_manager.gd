@@ -455,16 +455,17 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		var site = construction_site_scene.instantiate() as ConstructionSite
 		var target_scene = load(ghost_building.scene_file_path)
 
-		# Convert the grid coordinate to real pixel space
-		var local_px = object_layer.map_to_local(grid_pos)
-		site.global_position = local_px
+		# 1. Add to the tree first
 		level_ref.object_layer.add_child(site)
 
-		# Pass the target scene and the String-based cost dictionary!
+		# 2. THE FIX: Tell it how big it is BEFORE you place it!
+		# This updates the site's internal `size` to 2x2, 3x3, etc.
 		site.setup_blueprint(level_ref, target_scene, cost, ghost_building.size)
 		
-		# Give it its footprint so it reserves the space
-		site.occupied_tiles = ghost_building.get_footprint(grid_pos)
+		# 3. THE FIX: Let the base Building class do the math!
+		# place_at() uses the newly updated size to perfectly center the global_position.
+		# (It also automatically calculates site.occupied_tiles, so we don't need to do it manually!)
+		site.place_at(grid_pos, object_layer)
 
 		buildings.append(site)
 		_register_building(site)
@@ -472,10 +473,13 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		
 		site.destroyed.connect(_on_building_destroyed)
 		
-		# Register the blueprint as a solid obstacle so bots walk around it
+		# Register the blueprint as a heavy obstacle so enemies can smash it!
 		if pathfinder:
 			for tile in site.occupied_tiles:
-				pathfinder.set_obstacle(tile, true)
+				# Use the weighted obstacle logic instead of solid, 
+				# so the enemies' bulldozer AI works on blueprints too!
+				pathfinder.astar.set_point_solid(tile, false)
+				pathfinder.astar.set_point_weight_scale(tile, 50.0) 
 				
 		# Delete the green ghost, we replaced it with the blueprint
 		ghost_building.queue_free()
