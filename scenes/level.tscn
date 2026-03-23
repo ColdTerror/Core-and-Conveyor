@@ -57,7 +57,6 @@ level_ref = NodePath("..")
 corruption_layer = NodePath("../CorruptionLayer")
 enemy_scene = ExtResource("27_cmcjb")
 time_manager = NodePath("../TimeManager")
-show_debug_draw = false
 fallback_spawn_radius = 100.0
 enemy_popup = NodePath("../CanvasLayer/Popup_Layer/EnemyInfoPopup")
 
@@ -89,13 +88,14 @@ terrain_layer = NodePath("../TerrainLayer")
 corruption_layer = NodePath("../CorruptionLayer")
 construction_site_scene = ExtResource("26_v3why")
 
-[node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager", "wave_manager")]
+[node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager", "wave_manager", "time_manager")]
 script = ExtResource("34_v3why")
 corruption_layer = NodePath("../CorruptionLayer")
 terrain_layer = NodePath("../TerrainLayer")
 object_layer = NodePath("../ObjectLayer")
 building_manager = NodePath("../BuildingManager")
 wave_manager = NodePath("../WaveManager")
+time_manager = NodePath("../TimeManager")
 corruption_atlas = Vector2i(2, 1)
 
 [node name="Pathfinder" type="Node2D" parent="." unique_id=1266074560]
@@ -104,7 +104,7 @@ script = ExtResource("29_7agi7")
 [node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
-real_minutes_per_day = 1000.0
+real_minutes_per_day = 1.0
 
 [node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
 color = Color(1, 1, 1, 0)
