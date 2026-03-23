@@ -22,42 +22,18 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 	blueprint_size = b_size
 	size = b_size # Update the base Building class size variable too!
 	
-	update_collision_size(blueprint_size)
+	var footprint_px = Vector2(size.x * 32.0, size.y * 32.0)
+	_update_collision(footprint_px)
+	
+	if level_ref and level_ref.get("object_layer") and grid_origin != Vector2i.ZERO:
+		place_at(grid_origin, level_ref.object_layer)
 	
 	building_name = "Construction Site"
 	health = 0 
 	max_health = 100 
 	
-	_setup_collision()
 	queue_redraw() # Tell Godot to run the _draw() function!
 
-# ==========================================
-# NEW: DYNAMIC HITBOX GENERATION
-# ==========================================
-func _setup_collision():
-	var area = Area2D.new()
-	area.name = "Area2D"
-	
-	var coll = CollisionShape2D.new()
-	var shape = RectangleShape2D.new()
-	
-	var w = blueprint_size.x * 32.0
-	var h = blueprint_size.y * 32.0
-	shape.size = Vector2(w, h)
-	coll.shape = shape
-	
-	# --- THE FIX: Shift the collision shape to align with the grid anchor! ---
-	# Since the node is at the center of the top-left tile, we push the box 
-	# half a tile (-16) up and left to find the true bounding corner, then 
-	# add half the total width/height to find the true physical center.
-	coll.position = Vector2(-16.0 + (w / 2.0), -16.0 + (h / 2.0))
-	# -------------------------------------------------------------------------
-	
-	area.add_child(coll)
-	add_child(area)
-	
-	area.mouse_entered.connect(_on_mouse_entered)
-	area.mouse_exited.connect(_on_mouse_exited)
 
 
 
@@ -155,15 +131,14 @@ func get_inventory_info() -> Dictionary:
 	return info
 	
 # ==========================================
-# NEW: VISUALS
+# VISUALS
 # ==========================================
 func _draw():
 	var w = blueprint_size.x * 32.0
 	var h = blueprint_size.y * 32.0
 	
-	# --- THE FIX: Start exactly half a tile up and left from the origin node ---
-	var top_left = Vector2(-16.0, -16.0)
-	# ---------------------------------------------------------------------------
+	# THE FIX: To center a drawing, you start exactly half the width left, and half the height up.
+	var top_left = Vector2(-w / 2.0, -h / 2.0)
 	
 	var rect = Rect2(top_left, Vector2(w, h))
 

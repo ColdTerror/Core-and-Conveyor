@@ -52,55 +52,63 @@ var grid_origin: Vector2i = Vector2i.ZERO
 
 # --- Ready ---
 func _ready():
-	_generate_collision_box()
+	var footprint_px = Vector2(size.x * 32.0, size.y * 32.0)
+	_update_collision(footprint_px)
+	
 	health = max_health
 	if has_node("Area2D"):
 		$Area2D.mouse_entered.connect(_on_mouse_entered)
 		$Area2D.mouse_exited.connect(_on_mouse_exited)
 
 # ==========================================
-# AUTO-GENERATED PHYSICS
+# UNIFIED PLACEMENT UPDATER
 # ==========================================
-func _generate_collision_box():
-	# 1. Create the Physics Body
-	var static_body = StaticBody2D.new()
-	static_body.name = "AutoCollisionBody"
-	
-	# 2. Create the Shape
-	var collision_shape = CollisionShape2D.new()
-	var rect = RectangleShape2D.new()
-	
-	# 3. Calculate the exact pixel size based on grid footprint!
-	rect.size = Vector2(size.x * 32, size.y * 32)
-	collision_shape.shape = rect
-	
-	
-	# 4. Assemble the nodes
-	static_body.add_child(collision_shape)
-	add_child(static_body)
-	
-	# 5. Ghost Safety: Disable collision if this is a placement preview!
-	if "is_ghost" in self and is_ghost:
-		static_body.collision_layer = 0
-		static_body.collision_mask = 0
-	else:
-		# Standard physics layer
-		static_body.collision_layer = 1
-		static_body.collision_mask = 1
-
-func update_collision_size(new_grid_size: Vector2i):
-	size = new_grid_size
-	
-	var static_body = get_node_or_null("AutoCollisionBody")
-	if static_body and static_body.get_child_count() > 0:
-		var collision_shape = static_body.get_child(0) as CollisionShape2D
+func _update_collision(footprint_px: Vector2):
+	# 1. Update or Create Area2D (For Mouse Hover/Clicks)
+	if has_node("Area2D/CollisionShape2D"):
+		var area := $Area2D
+		var collision_shape := $Area2D/CollisionShape2D
 		
-		# Update the size of the rectangle
-		if collision_shape and collision_shape.shape is RectangleShape2D:
-			collision_shape.shape.size = Vector2(size.x * 32, size.y * 32)
+		# UNIQUE SHAPE FIX: If the shape is shared from the editor, duplicate it
+		# so we don't accidentally resize every 1x1 building in the game to 4x4!
+		if collision_shape.shape == null:
+			collision_shape.shape = RectangleShape2D.new()
+		elif not collision_shape.shape.is_local_to_scene():
+			collision_shape.shape = collision_shape.shape.duplicate()
 			
-			# (If you uncommented the offset line earlier, uncomment this one too!)
-			# collision_shape.position = collision_shape.shape.size / 2.0
+		var shape := collision_shape.shape as RectangleShape2D
+		shape.size = footprint_px
+		area.position = Vector2.ZERO
+		collision_shape.position = Vector2.ZERO
+
+	# 2. Update or Create StaticBody2D (For Enemy Physics)
+	var static_body: StaticBody2D
+	
+	if not has_node("AutoCollisionBody"):
+		# Create it dynamically!
+		static_body = StaticBody2D.new()
+		static_body.name = "AutoCollisionBody"
+		var phys_shape = CollisionShape2D.new()
+		phys_shape.shape = RectangleShape2D.new()
+		static_body.add_child(phys_shape)
+		add_child(static_body)
+		
+		# Apply ghost physics rules
+		if "is_ghost" in self and is_ghost:
+			static_body.collision_layer = 0
+			static_body.collision_mask = 0
+		else:
+			static_body.collision_layer = 1
+			static_body.collision_mask = 1
+	else:
+		static_body = $AutoCollisionBody
+		
+	# Apply the exact pixel size!
+	var p_shape = static_body.get_child(0) as CollisionShape2D
+	p_shape.shape.size = footprint_px
+	static_body.position = Vector2.ZERO
+	p_shape.position = Vector2.ZERO
+
 
 # --- Ghost / Visuals ---
 func set_ghost(enabled: bool):
@@ -192,18 +200,6 @@ func place_at(origin: Vector2i, object_layer: TileMapLayer):
 
 	_update_collision(footprint_px)
 
-
-func _update_collision(footprint_px: Vector2):
-	if not has_node("Area2D/CollisionShape2D"):
-		return
-
-	var area := $Area2D
-	var collision_shape := $Area2D/CollisionShape2D
-	var shape := collision_shape.shape as RectangleShape2D
-
-	shape.size = footprint_px
-	area.position = Vector2.ZERO
-	collision_shape.position = Vector2.ZERO
 
 
 # --- Signals ---
