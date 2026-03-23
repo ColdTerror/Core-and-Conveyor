@@ -21,6 +21,15 @@ class_name CorruptionManager
 @export var full_moon_spread_time: float = 3.0     # Extremely slow (gives the player a break)
 @export var blood_moon_spread_time: float = 0.5    # Terrifyingly fast!
 
+# --- NEW: EVOLUTION & PRESSURE ---
+@export_group("Evolution")
+var corruption_tier: int = 1
+var current_pressure: float = 0.0
+@export var base_evolution_threshold: float = 100.0 
+@export var evolution_multiplier: float = 3.0 # Tier 2 = 100, Tier 3 = 300, Tier 4 = 900
+
+signal corruption_evolved(new_tier: int)
+
 var active_edges: Array[Vector2i] = []
 var is_active: bool = false
 var spread_timer: Timer
@@ -105,6 +114,8 @@ func _on_spread_tick():
 	var edges_processed = 0
 	var i = active_edges.size() - 1
 	
+	var blocked_attempts = 0
+	
 	# Process from the end of the array backwards so we can safely delete items
 	while i >= 0 and edges_processed < tiles_per_tick:
 		var edge_tile = active_edges[i]
@@ -115,51 +126,74 @@ func _on_spread_tick():
 			i -= 1
 			continue
 			
-		var spread_success = _try_infect_neighbors(edge_tile)
+		var result = _try_infect_neighbors(edge_tile)
 		
-		# If this tile has no empty neighbors left, it's no longer an "edge"
-		if not spread_success:
+		# Did it spread?
+		if not result["has_empty"]:
 			active_edges.remove_at(i)
+			
+		# Did it hit a shield?
+		blocked_attempts += result["blocked_count"]
 			
 		edges_processed += 1
 		i -= 1
+		
+	if blocked_attempts > 0:
+		_add_pressure(blocked_attempts * 1.0)
 
-func _try_infect_neighbors(center_tile: Vector2i) -> bool:
+# We now return a Dictionary so we can report back IF we spread, AND how many times we were blocked!
+func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 	var directions = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
 	var has_empty_neighbors = false
+	var blocked_count = 0
 	
 	for dir in directions:
 		var neighbor = center_tile + dir
 		
-		# 1. Is it already corrupted?
 		if corruption_layer.get_cell_source_id(neighbor) != -1:
 			continue
 			
-		# 2. Is it in the player's Safe Zone?
-		if building_manager.safe_tiles.has(neighbor):
-			continue
-			
-		# 3. Is it valid terrain? (Has floor, but no physical obstacles)
-		var has_floor = terrain_layer and terrain_layer.get_cell_source_id(neighbor) != -1
+		# --- UPDATED: RESISTANCE CHECK ---
+		var resistance = building_manager.safe_tiles.get(neighbor, 0)
 		
+		if resistance > 0:
+			# If the shield is stronger than the corruption, it blocks it!
+			if resistance >= corruption_tier:
+				blocked_count += 1
+				continue # Blocked! Move to the next neighbor.
+			else:
+				# The Corruption is a higher tier than the shield! It breaks through!
+				pass 
+		# ---------------------------------
+			
+		var has_floor = terrain_layer and terrain_layer.get_cell_source_id(neighbor) != -1
 		if has_floor:
-			# --- RNG OBSTACLE BREACHING ---
 			var has_obstacle = object_layer and object_layer.get_cell_source_id(neighbor) != -1
-			
 			if has_obstacle:
-				# Roll the dice! A 75% chance to fail the breach.
 				if randf() > 0.25:
-					# We failed to breach this tick, but we return true so the 
-					# tile stays active and tries again next tick!
-					return true 
-			# ------------------------------
+					return {"has_empty": true, "blocked_count": blocked_count} 
 			
-			# If there's no obstacle, OR we hit the lucky 25% chance:
 			has_empty_neighbors = true
 			_corrupt_tile(neighbor)
-			return true
+			return {"has_empty": true, "blocked_count": blocked_count}
 			
-	return has_empty_neighbors
+	return {"has_empty": has_empty_neighbors, "blocked_count": blocked_count}
+
+func _add_pressure(amount: float):
+	current_pressure += amount
+	
+	# Calculate the goal for the CURRENT tier using an exponential curve
+	# Tier 1 -> 100 * (3.0 ^ 0) = 100
+	# Tier 2 -> 100 * (3.0 ^ 1) = 300
+	# Tier 3 -> 100 * (3.0 ^ 2) = 900
+	var threshold = base_evolution_threshold * pow(evolution_multiplier, corruption_tier - 1)
+	
+	if current_pressure >= threshold:
+		current_pressure -= threshold # Carry over leftover pressure
+		corruption_tier += 1
+		
+		print("!!! CORRUPTION MUTATED TO TIER %d !!!" % corruption_tier)
+		corruption_evolved.emit(corruption_tier)
 
 func _corrupt_tile(tile: Vector2i):
 	corruption_layer.set_cell(tile, corruption_source_id, corruption_atlas)
