@@ -15,8 +15,9 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_34v7p"]
 size = Vector2(32, 32)
 
-[node name="Conveyer" type="Node2D" unique_id=2033791368]
+[node name="Conveyer" type="Node2D" unique_id=134896756]
 script = ExtResource("1_34v7p")
+is_solid_obstacle = false
 is_draggable = true
 building_name = "Conveyer"
 icon = SubResource("AtlasTexture_34v7p")

@@ -22,6 +22,8 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 	blueprint_size = b_size
 	size = b_size # Update the base Building class size variable too!
 	
+	update_collision_size(blueprint_size)
+	
 	building_name = "Construction Site"
 	health = 0 
 	max_health = 100 

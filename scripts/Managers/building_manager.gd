@@ -369,7 +369,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	var cost = ghost_building.get_build_cost()
 	
 	# --- NEW: IS THIS INSTANT OR A BLUEPRINT? ---
-	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding
+	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable
 	
 	if is_instant:
 		# ==========================================

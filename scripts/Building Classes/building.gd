@@ -52,11 +52,55 @@ var grid_origin: Vector2i = Vector2i.ZERO
 
 # --- Ready ---
 func _ready():
+	_generate_collision_box()
 	health = max_health
 	if has_node("Area2D"):
 		$Area2D.mouse_entered.connect(_on_mouse_entered)
 		$Area2D.mouse_exited.connect(_on_mouse_exited)
 
+# ==========================================
+# AUTO-GENERATED PHYSICS
+# ==========================================
+func _generate_collision_box():
+	# 1. Create the Physics Body
+	var static_body = StaticBody2D.new()
+	static_body.name = "AutoCollisionBody"
+	
+	# 2. Create the Shape
+	var collision_shape = CollisionShape2D.new()
+	var rect = RectangleShape2D.new()
+	
+	# 3. Calculate the exact pixel size based on grid footprint!
+	rect.size = Vector2(size.x * 32, size.y * 32)
+	collision_shape.shape = rect
+	
+	
+	# 4. Assemble the nodes
+	static_body.add_child(collision_shape)
+	add_child(static_body)
+	
+	# 5. Ghost Safety: Disable collision if this is a placement preview!
+	if "is_ghost" in self and is_ghost:
+		static_body.collision_layer = 0
+		static_body.collision_mask = 0
+	else:
+		# Standard physics layer
+		static_body.collision_layer = 1
+		static_body.collision_mask = 1
+
+func update_collision_size(new_grid_size: Vector2i):
+	size = new_grid_size
+	
+	var static_body = get_node_or_null("AutoCollisionBody")
+	if static_body and static_body.get_child_count() > 0:
+		var collision_shape = static_body.get_child(0) as CollisionShape2D
+		
+		# Update the size of the rectangle
+		if collision_shape and collision_shape.shape is RectangleShape2D:
+			collision_shape.shape.size = Vector2(size.x * 32, size.y * 32)
+			
+			# (If you uncommented the offset line earlier, uncomment this one too!)
+			# collision_shape.position = collision_shape.shape.size / 2.0
 
 # --- Ghost / Visuals ---
 func set_ghost(enabled: bool):

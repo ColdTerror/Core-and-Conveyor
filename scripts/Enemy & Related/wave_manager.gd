@@ -6,6 +6,7 @@ class_name WaveManager
 @export var corruption_layer: TileMapLayer 
 @export var enemy_scene: PackedScene
 @export var time_manager: TimeManager
+@export var corruption_manager: CorruptionManager
 
 # --- SPAWN SETTINGS ---
 @export_group("Spawn Settings")
@@ -110,6 +111,23 @@ func _do_spawn():
 	var enemy = enemy_scene.instantiate()
 	
 	enemy.add_to_group("Enemies") 
+	
+	
+	if corruption_manager:
+		# 10% chance per corruption tier (Tier 1 = 10%, Tier 2 = 20%, etc.)
+		var elite_chance = corruption_manager.corruption_tier * 0.10
+		
+		# Roll the dice!
+		if randf() < elite_chance:
+			
+			# Duck-type check just to be safe
+			if "max_health" in enemy and "health" in enemy:
+				enemy.max_health *= 2
+				enemy.health = enemy.max_health
+				
+			# Visually mutate them so the player knows to panic!
+			enemy.modulate = Color(0.8, 0.2, 1.0) # Deep Purple
+			enemy.scale = Vector2(1.2, 1.2)       # 20% Larger
 	
 	if level_ref: level_ref.add_child(enemy)
 	else: get_parent().add_child(enemy)

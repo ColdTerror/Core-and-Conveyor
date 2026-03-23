@@ -18,13 +18,10 @@ item_name = "Plank"
 amount = 1
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_r6sg1"]
-size = Vector2(32, 32)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gxk2j"]
 size = Vector2(32, 32)
 
-[node name="Wall" type="StaticBody2D" unique_id=613196680 groups=["Structure"]]
+[node name="Wall" type="Node2D" unique_id=1237469307 groups=["Structure"]]
 script = ExtResource("1_gxk2j")
 is_solid_obstacle = false
 path_cost = 50.0
@@ -37,9 +34,6 @@ build_costs = Array[ExtResource("3_gpfny")]([SubResource("Resource_2ksci"), SubR
 texture = ExtResource("1_a3mu7")
 region_enabled = true
 region_rect = Rect2(64, 0, 32, 32)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1142028149]
-shape = SubResource("RectangleShape2D_r6sg1")
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1119633970]
 
