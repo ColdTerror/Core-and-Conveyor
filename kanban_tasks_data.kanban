@@ -11,7 +11,10 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"f1a8d512-eb0a-4620-a76a-f5b0763a7e5d",
+				"02390957-491b-4a3a-a79d-722cdc83d7fb",
+				"578963eb-2b72-4228-b7c6-ef4dcb168dbb"
 			]
 		},
 		{
@@ -301,6 +304,27 @@
 		{
 			"uuid": "61ab005b-1c25-4c5f-b27a-e085ba79d1b9",
 			"title": "change bot waiting bar to white",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f1a8d512-eb0a-4620-a76a-f5b0763a7e5d",
+			"title": "allow buildings to be started without all resources",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "02390957-491b-4a3a-a79d-722cdc83d7fb",
+			"title": "center view button (on selected building)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "578963eb-2b72-4228-b7c6-ef4dcb168dbb",
+			"title": "free buildings never get built by bots",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
