@@ -10,6 +10,7 @@ var current_building: Node2D = null
 var bot_awaiting_home: Node2D = null # --- NEW: Remembers the bot while waiting for a click! ---
 
 signal menu_closed
+signal research_button_clicked
 
 func _ready():
 	hide()
@@ -57,6 +58,8 @@ func refresh_ui():
 		_setup_stockpile_ui(current_building as StockpileBuilding)
 	elif current_building is TowerBuilding:
 		_setup_tower_ui(current_building as TowerBuilding)
+	elif current_building is CoreBuilding:
+		_setup_core_ui(current_building as CoreBuilding)
 	elif current_building.has_method("set_priority"):
 		_setup_bot_ui(current_building)
 	else:
@@ -134,6 +137,14 @@ func _setup_tower_ui(b: TowerBuilding):
 	# Spawn the dynamic button
 	_create_button("Cycle Targeting", Color.WHITE, b.cycle_targeting_mode)
 
+func _setup_core_ui(b: CoreBuilding):
+	# Optional: You can make the info label say something cool here
+	info_label.modulate = Color(0.8, 0.8, 1.0) # Light blue text
+	
+	# Spawn the Research Button!
+	_create_button("Open Research Tree", Color(1.0, 0.84, 0.0), func(): 
+		research_button_clicked.emit()
+	)
 
 # --- HELPER: Setup UI for Worker Bots ---
 func _setup_bot_ui(b: Node2D):
