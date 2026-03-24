@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://cdmxyx00rhtcw"]
+
+[ext_resource type="Script" uid="uid://0kiohp0mjbln" path="res://scripts/UI/research_screen.gd" id="1_ewaee"]
+
+[node name="ResearchScreen" type="CanvasLayer" unique_id=662735147]
+script = ExtResource("1_ewaee")
+
+[node name="BackgroundBlocker" type="ColorRect" parent="." unique_id=770719332]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.09803922, 0.09803922, 0.39215687, 0.5882353)
+
+[node name="MarginContainer" type="MarginContainer" parent="BackgroundBlocker" unique_id=504993472]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="BackgroundBlocker/MarginContainer" unique_id=1092951236]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="BackgroundBlocker/MarginContainer/VBoxContainer" unique_id=1619038639]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="BackgroundBlocker/MarginContainer/VBoxContainer/Header" unique_id=690847584]
+layout_mode = 2
+text = "Core Systems Research"
+
+[node name="Control" type="Control" parent="BackgroundBlocker/MarginContainer/VBoxContainer/Header" unique_id=1607435655]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CloseButton" type="Button" parent="BackgroundBlocker/MarginContainer/VBoxContainer/Header" unique_id=298945861]
+layout_mode = 2
+text = "Close"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="BackgroundBlocker/MarginContainer/VBoxContainer" unique_id=1556475757]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TechTreeCanvas" type="Control" parent="BackgroundBlocker/MarginContainer/VBoxContainer/ScrollContainer" unique_id=463438218]
+custom_minimum_size = Vector2(1500, 750)
+layout_mode = 2

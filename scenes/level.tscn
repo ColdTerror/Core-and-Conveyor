@@ -32,8 +32,10 @@
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/test_enemy.tscn" id="27_cmcjb"]
 [ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/Managers/pathfinder.gd" id="29_7agi7"]
 [ext_resource type="PackedScene" uid="uid://mc4h1u2qxbyd" path="res://scenes/ui/enemy_info_popup.tscn" id="29_w3o6u"]
+[ext_resource type="Script" uid="uid://cp1a4u82js3m8" path="res://scripts/UI/MainHUD.gd" id="30_2jdvr"]
 [ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/Enemy & Related/wave_manager.tscn" id="32_2e2fo"]
 [ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/Enemy & Related/corruption_manager.gd" id="34_v3why"]
+[ext_resource type="PackedScene" uid="uid://cdmxyx00rhtcw" path="res://scenes/ui/research_screen.tscn" id="35_asl66"]
 
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
@@ -111,6 +113,7 @@ real_minutes_per_day = 100.0
 color = Color(1, 1, 1, 0)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1762792378]
+script = ExtResource("30_2jdvr")
 
 [node name="Popup_Layer" type="Control" parent="CanvasLayer" unique_id=1765369194]
 layout_mode = 3
@@ -156,15 +159,6 @@ offset_left = -23.5
 offset_right = 23.5
 offset_bottom = 81.0
 grow_horizontal = 2
-
-[node name="Debug_Layer" type="Control" parent="CanvasLayer" unique_id=2020326709]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 
 [node name="Hud_Layer" type="Control" parent="CanvasLayer" unique_id=1589356399]
 layout_mode = 3
@@ -224,3 +218,6 @@ text = "Restart
 [node name="Exit" type="Button" parent="CanvasLayer/GameOverPanel/VBoxContainer" unique_id=1944556398]
 layout_mode = 2
 text = "Exit"
+
+[node name="ResearchScreen" parent="CanvasLayer" unique_id=662735147 instance=ExtResource("35_asl66")]
+visible = false

@@ -24,6 +24,7 @@ func _ready():
 	zoom = Vector2(target_zoom, target_zoom)
 
 func _process(delta):
+	if GameState.is_menu_open: return
 	handle_keyboard_pan(delta)
 	#handle_edge_pan(delta)
 	
@@ -73,6 +74,8 @@ func handle_edge_pan(delta):
 
 
 func _input(event):
+	if GameState.is_menu_open: return
+	
 	# Zoom with mouse wheel
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
