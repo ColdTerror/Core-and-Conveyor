@@ -54,7 +54,7 @@ show_grid_buttons = false
 show_minimap_button = false
 show_arrange_button = false
 
-[node name="Core Start" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1401898486 instance=ExtResource("2_l6ox2")]
+[node name="CoreStart" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1401898486 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
 offset_left = 50.0
 offset_top = 250.0
@@ -64,7 +64,7 @@ mouse_filter = 1
 position_offset = Vector2(50, 250)
 title = "Core Start"
 
-[node name="Bot Branch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
+[node name="BotBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
 offset_left = 400.0
 offset_right = 564.0
@@ -73,7 +73,7 @@ mouse_filter = 1
 position_offset = Vector2(400, 0)
 title = "Bot Branch"
 
-[node name="Building Branch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
+[node name="BuildingBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
 offset_left = 400.0
 offset_top = 250.0
@@ -83,7 +83,7 @@ mouse_filter = 1
 position_offset = Vector2(400, 250)
 title = "Building Branch"
 
-[node name="Global Branch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
+[node name="GlobalBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
 offset_left = 400.0
 offset_top = 500.0
