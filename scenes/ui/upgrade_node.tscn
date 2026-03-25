@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://v7q6hfuukr2s"]
 
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_t1yql"]
+[ext_resource type="Script" uid="uid://b1ln656py44at" path="res://scripts/UI/upgrade_node.gd" id="1_8d5fv"]
 
 [node name="UpgradeNode" type="GraphNode" unique_id=1401898486]
 offset_right = 9.0
@@ -34,15 +34,15 @@ slot/2/right_type = 0
 slot/2/right_color = Color(1, 1, 1, 1)
 slot/2/right_icon = null
 slot/2/draw_stylebox = true
+script = ExtResource("1_8d5fv")
 
-[node name="TextureRect" type="TextureRect" parent="." unique_id=1264766424]
+[node name="DescLabel" type="Label" parent="." unique_id=1145649114]
 layout_mode = 2
-mouse_filter = 2
-texture = ExtResource("1_t1yql")
+text = "Increase Bot Speed"
 
-[node name="Label" type="Label" parent="." unique_id=1145649114]
+[node name="CostLabel" type="Label" parent="." unique_id=284713512]
 layout_mode = 2
-text = "100 Wood"
+text = "100 wood"
 
 [node name="Button" type="Button" parent="." unique_id=1650103622]
 layout_mode = 2

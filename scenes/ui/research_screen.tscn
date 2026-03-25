@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://0kiohp0mjbln" path="res://scripts/UI/research_screen.gd" id="1_ewaee"]
 [ext_resource type="PackedScene" uid="uid://v7q6hfuukr2s" path="res://scenes/ui/upgrade_node.tscn" id="2_l6ox2"]
+[ext_resource type="Resource" uid="uid://cn8jh6p0ykffa" path="res://resources/items/raw_resources/wood.tres" id="3_xgb3y"]
+[ext_resource type="Resource" uid="uid://b2175t1sagf73" path="res://resources/items/raw_resources/stone.tres" id="4_3s71f"]
 
 [node name="ResearchScreen" type="CanvasLayer" unique_id=662735147]
 script = ExtResource("1_ewaee")
@@ -57,38 +59,60 @@ show_arrange_button = false
 [node name="CoreStart" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1401898486 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
 offset_left = 50.0
-offset_top = 250.0
-offset_right = 214.0
-offset_bottom = 491.0
+offset_top = 300.0
+offset_right = 234.0
+offset_bottom = 436.0
 mouse_filter = 1
-position_offset = Vector2(50, 250)
+position_offset = Vector2(50, 300)
 title = "Core Start"
+research_name = "Core Start"
+desc = "Unlock Research"
+research_cost = {
+ExtResource("3_xgb3y"): 25
+}
 
 [node name="BotBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
 offset_left = 400.0
-offset_right = 564.0
-offset_bottom = 241.0
+offset_top = 50.0
+offset_right = 584.0
+offset_bottom = 186.0
 mouse_filter = 1
-position_offset = Vector2(400, 0)
+position_offset = Vector2(400, 50)
 title = "Bot Branch"
+desc = "Increase bot move speed by 25%"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
 
 [node name="BuildingBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
 offset_left = 400.0
-offset_top = 250.0
-offset_right = 564.0
-offset_bottom = 491.0
+offset_top = 300.0
+offset_right = 584.0
+offset_bottom = 436.0
 mouse_filter = 1
-position_offset = Vector2(400, 250)
+position_offset = Vector2(400, 300)
 title = "Building Branch"
+research_name = "Building Limit 1"
+desc = "Increase Building Limit by 10"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
 
 [node name="GlobalBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
 offset_left = 400.0
-offset_top = 500.0
-offset_right = 564.0
-offset_bottom = 741.0
+offset_top = 550.0
+offset_right = 584.0
+offset_bottom = 686.0
 mouse_filter = 1
-position_offset = Vector2(400, 500)
+position_offset = Vector2(400, 550)
 title = "Global Branch"
+research_name = "Wave Measurement"
+desc = "Can see an estimate of enemy count coming that night"
+research_cost = {
+ExtResource("3_xgb3y"): 50
+}
