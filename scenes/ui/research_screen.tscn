@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cdmxyx00rhtcw"]
 
 [ext_resource type="Script" uid="uid://0kiohp0mjbln" path="res://scripts/UI/research_screen.gd" id="1_ewaee"]
+[ext_resource type="PackedScene" uid="uid://v7q6hfuukr2s" path="res://scenes/ui/upgrade_node.tscn" id="2_l6ox2"]
 
 [node name="ResearchScreen" type="CanvasLayer" unique_id=662735147]
 script = ExtResource("1_ewaee")
@@ -43,10 +44,51 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "Close"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="BackgroundBlocker/MarginContainer/VBoxContainer" unique_id=1556475757]
+[node name="GraphEdit" type="GraphEdit" parent="BackgroundBlocker/MarginContainer/VBoxContainer" unique_id=1474269741]
 layout_mode = 2
 size_flags_vertical = 3
+grid_pattern = 1
+snapping_distance = 50
+minimap_enabled = false
+show_grid_buttons = false
+show_minimap_button = false
+show_arrange_button = false
 
-[node name="TechTreeCanvas" type="Control" parent="BackgroundBlocker/MarginContainer/VBoxContainer/ScrollContainer" unique_id=463438218]
-custom_minimum_size = Vector2(1500, 750)
-layout_mode = 2
+[node name="Core Start" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1401898486 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 250.0
+offset_right = 214.0
+offset_bottom = 491.0
+mouse_filter = 1
+position_offset = Vector2(50, 250)
+title = "Core Start"
+
+[node name="Bot Branch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 400.0
+offset_right = 564.0
+offset_bottom = 241.0
+mouse_filter = 1
+position_offset = Vector2(400, 0)
+title = "Bot Branch"
+
+[node name="Building Branch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 250.0
+offset_right = 564.0
+offset_bottom = 491.0
+mouse_filter = 1
+position_offset = Vector2(400, 250)
+title = "Building Branch"
+
+[node name="Global Branch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 500.0
+offset_right = 564.0
+offset_bottom = 741.0
+mouse_filter = 1
+position_offset = Vector2(400, 500)
+title = "Global Branch"

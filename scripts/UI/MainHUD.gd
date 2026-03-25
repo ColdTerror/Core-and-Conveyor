@@ -2,6 +2,7 @@ extends CanvasLayer # (Or whatever your main UI script is)
 
 @onready var detail_menu = $Popup_Layer/DetailMenu 
 @onready var game_ui = $Hud_Layer/GameUI
+@onready var hotbar = $Hud_Layer/HotBar_UI
 
 @onready var research_screen = $ResearchScreen
 
@@ -15,6 +16,7 @@ func _ready():
 func _on_open_research_tree():
 	# 1. Close the little popup menu so it's out of the way
 	detail_menu.close_menu()
+	hotbar.hide()
 	
 	game_ui.hide()
 	
@@ -23,3 +25,4 @@ func _on_open_research_tree():
 
 func _on_close_research_tree():
 	game_ui.show()
+	hotbar.show()
