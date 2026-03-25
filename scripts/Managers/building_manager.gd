@@ -10,6 +10,15 @@ class_name BuildingManager
 @export var construction_site_scene: PackedScene 
 
 
+# --- PRIORITY SYSTEM ---
+# Index 0 is Priority #1! We pre-populate it with our abstract groups.
+var master_priority_queue: Array = ["Belts", "Walls"]
+
+func _is_grouped_type(building: Node) -> bool:
+	# Add any other classes here that shouldn't be individually ranked!
+	return building is ConveyorBuilding or building is WallBuilding
+	
+
 # ---TRACKERS ---
 # Key: Vector2i (Grid Coord), Value: int (Number of buildings in range)
 var safe_tiles: Dictionary = {}
@@ -41,7 +50,6 @@ signal building_selected(building: Building)
 signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary)
 signal placement_ended # Fires when we cancel or finish placing
 
-# --- NEW: CORE TRACKING ---
 signal core_placed_event
 var is_core_placed: bool = false
 
@@ -286,6 +294,9 @@ func _on_building_destroyed(b: Building):
 	if b in buildings:
 		buildings.erase(b)
 	
+	if master_priority_queue.has(b):
+		master_priority_queue.erase(b)
+		
 	for tile in b.occupied_tiles:
 		if occupied_tiles.has(tile) and occupied_tiles[tile] == b:  # ONLY erase if it's still THIS building
 			occupied_tiles.erase(tile)
@@ -395,9 +406,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 			ghost_building.fired_projectile.connect(level_ref._on_tower_fired)
 		ghost_building.destroyed.connect(_on_building_destroyed)
 
-		buildings.append(ghost_building)
 		_register_building(ghost_building)
-		_register_occupied_tiles(ghost_building)
 		_add_safe_zone(ghost_building)
 		_add_build_zone(ghost_building)
 		_add_attack_zone(ghost_building)
@@ -461,9 +470,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		# (It also automatically calculates site.occupied_tiles, so we don't need to do it manually!)
 		site.place_at(grid_pos, object_layer)
 
-		buildings.append(site)
 		_register_building(site)
-		_register_occupied_tiles(site)
 		
 		site.destroyed.connect(_on_building_destroyed)
 		
@@ -839,6 +846,12 @@ func _register_occupied_tiles(building: Building):
 		occupied_tiles[tile] = building
 
 func _register_building(building: Building):
+	buildings.append(building)
+	_register_occupied_tiles(building)
+	
+	if not _is_grouped_type(building) and not master_priority_queue.has(building):
+		master_priority_queue.append(building)
+		
 	building.hovered.connect(_on_building_hovered)
 	building.unhovered.connect(_on_building_unhovered)
 
@@ -929,9 +942,7 @@ func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Diction
 # ============================================================================
 func register_finished_building(new_building: Building, grid_pos: Vector2i):
 	# 1. Add to standard trackers
-	buildings.append(new_building)
-	_register_building(new_building) # Connects the hover signals
-	_register_occupied_tiles(new_building)
+	_register_building(new_building) 
 	
 	# 2. Add to visual/combat grids
 	_add_safe_zone(new_building)
@@ -1148,9 +1159,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		new_building.setup(level_ref)
 	
 	# 7. REGISTRATION: Tell the BuildingManager this exists now
-	buildings.append(new_building)
 	_register_building(new_building)
-	_register_occupied_tiles(new_building)
 	_add_safe_zone(new_building)
 	_add_build_zone(new_building)
 	_add_attack_zone(new_building)
@@ -1269,6 +1278,52 @@ func show_upgrade_preview(grid_pos: Vector2i):
 	# 4. If nothing valid is hovered, fire the "hide" signal
 	placement_ended.emit()
 	
+ 
+# ============================================================================
+# PRIORITY SYSTEM
+# ============================================================================
+func get_highest_priority_job(bot_position: Vector2) -> Node:
+	# Read the master list from highest priority (0) to lowest
+	for item in master_priority_queue:
+		
+		# CASE A: IT IS A GLOBAL GROUP (String like "Belts")
+		if typeof(item) == TYPE_STRING:
+			var best_in_group = _find_closest_needing_work_in_group(item, bot_position)
+			if best_in_group != null:
+				return best_in_group # Found a belt/wall that needs work!
+				
+		# CASE B: IT IS A SPECIFIC BUILDING (Node)
+		else:
+			if is_instance_valid(item) and _building_needs_work(item):
+				return item 
+				
+	return null # Nothing in the entire base needs work!
+
+# --- HELPER LOGIC ---
+func _building_needs_work(bldg: Node) -> bool:
+	if bldg.has_method("needs_materials") and bldg.needs_materials(): return true
+	if bldg.health < bldg.max_health: return true
+	return false
+
+func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -> Node:
+	var best_dist = INF
+	var best_target = null
+	
+	# Loop through your existing arrays based on the group
+	var search_array = []
+	if group_name == "Belts":
+		# Assuming you have a way to filter conveyors, or just loop all buildings:
+		for b in buildings:
+			if b is ConveyorBuilding: search_array.append(b)
+			
+	for b in search_array:
+		if _building_needs_work(b):
+			var dist = bot_pos.distance_squared_to(b.global_position)
+			if dist < best_dist:
+				best_dist = dist
+				best_target = b
+				
+	return best_target
 
 # ==========================================
 # BOT UI ROUTING

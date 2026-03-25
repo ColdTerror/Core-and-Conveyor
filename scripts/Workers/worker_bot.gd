@@ -90,10 +90,8 @@ func _process(delta):
 			if current_priority == TaskPriority.STOPPED:
 				_go_home_or_standby(1.0)
 				return
-			if current_priority == TaskPriority.REPAIR:
-				_find_damaged_building()
-			elif current_priority == TaskPriority.BUILD:
-				_find_construction_site()
+			if current_priority == TaskPriority.REPAIR or current_priority == TaskPriority.BUILD:
+				_find_priority_job()
 			else:
 				_find_nearest_resource()
 			
@@ -236,126 +234,79 @@ func _find_nearest_storage():
 	_go_home_or_standby(5.0)
 
 # ==========================================
-# REPAIR SEARCH
+# UNIFIED PRIORITY SEARCH
 # ==========================================
-func _find_damaged_building():
+func _find_priority_job():
 	_clear_reservation()
-	if current_priority == TaskPriority.STOPPED: return
 	if not level_ref or not level_ref.building_manager: return
 
-	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
-	var best_tile = Vector2i(-1, -1)
-	var min_dist = INF
+	# 1. Ask the Boss for the most important task!
+	var best_job = level_ref.building_manager.get_highest_priority_job(global_position)
 
-	for b in level_ref.building_manager.buildings:
-		if not is_instance_valid(b) or b.is_queued_for_deletion():
-			continue
-		# 1. Duck-type: Does this object even have health?
-		if "health" in b and "max_health" in b:
-			# 2. Is it damaged?
-			if b.health < b.max_health:
-				if b.occupied_tiles.size() > 0:
-					var dist = my_pos.distance_squared_to(b.occupied_tiles[0])
-					if dist < min_dist:
-						min_dist = dist
-						best_tile = b.occupied_tiles[0] # Just used for tracking closest building
-						target_tile = best_tile # Temporary hold
-
-	if best_tile != Vector2i(-1, -1):
-		# Retrieve the actual building object we found
-		var building = level_ref.building_manager.occupied_tiles[best_tile]
-		_request_path(building.occupied_tiles, true) 
-		
-		if not current_path.is_empty():
-			current_state = State.MOVING_TO_REPAIR
+	# 2. IF NO JOBS EXIST
+	if best_job == null:
+		if carried_amount > 0:
+			_find_nearest_storage() # Put away whatever we are holding
 		else:
-			current_state = State.IDLE
-	else:
-		# Base is completely healthy! Wait 2 seconds and check again.
-		_go_home_or_standby(2.0)
+			_go_home_or_standby(2.0) # Rest
+		return
 
-func _find_construction_site():
-	_clear_reservation()
-	if not level_ref or not level_ref.building_manager: return
-
-	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
-	var best_tile = Vector2i(-1, -1)
-	var min_dist = INF
-	
-	# We need to remember what building we pick, so we know what to fetch
-	var target_blueprint: ConstructionSite = null
-
-	# 1. FIND A BLUEPRINT
-	for b in level_ref.building_manager.buildings:
-		if not is_instance_valid(b) or b.is_queued_for_deletion():
-			continue
-			
-		if b is ConstructionSite:
-			# CASE A: Hands are empty, and it needs materials!
-			if carried_amount == 0 and not b.is_ready_to_build:
-				var b_tile = b.occupied_tiles[0]
-				var dist = my_pos.distance_squared_to(b_tile)
-				if dist < min_dist:
-					min_dist = dist
-					best_tile = b_tile
-					target_blueprint = b
-					
-			# CASE B: Hands are full, and it needs the exact item we are holding!
-			elif carried_amount > 0 and not b.is_ready_to_build:
-				if b.required_items.has(carried_item_name):
-					var needed = b.required_items[carried_item_name]
-					var have = b.delivered_items.get(carried_item_name, 0)
-					if have < needed: # It actually needs the item in our hands!
-						var b_tile = b.occupied_tiles[0]
-						var dist = my_pos.distance_squared_to(b_tile)
-						if dist < min_dist:
-							min_dist = dist
-							best_tile = b_tile
-							target_blueprint = b
-							
-			# CASE C: Hands are empty, materials are delivered, ready to hammer!
-			elif carried_amount == 0 and b.is_ready_to_build:
-				var b_tile = b.occupied_tiles[0]
-				var dist = my_pos.distance_squared_to(b_tile)
-				if dist < min_dist:
-					min_dist = dist
-					best_tile = b_tile
-					target_blueprint = b
-
-	if best_tile != Vector2i(-1, -1) and target_blueprint != null:
+	# 3. WE HAVE A JOB! Are we holding the WRONG item for it?
+	if carried_amount > 0:
+		var holding_wrong_item = true
 		
-		if carried_amount > 0 or target_blueprint.is_ready_to_build:
-			_request_path(target_blueprint.occupied_tiles, true) # Pass the array!
-			
+		# Only blueprints accept deliveries. Repairs don't need items in hands.
+		if best_job is ConstructionSite and not best_job.is_ready_to_build:
+			if best_job.required_items.has(carried_item_name):
+				var needed = best_job.required_items[carried_item_name]
+				var have = best_job.delivered_items.get(carried_item_name, 0)
+				if have < needed:
+					holding_wrong_item = false # We are holding exactly what it needs!
+					
+		if holding_wrong_item:
+			_find_nearest_storage() # Go put the wrong item away first!
+			return
+
+	# 4. EXECUTE THE JOB
+	if best_job is ConstructionSite:
+		if carried_amount > 0:
+			# Hands are full of the right material -> Deliver it!
+			_request_path(best_job.occupied_tiles, true)
 			if not current_path.is_empty():
-				current_state = State.MOVING_TO_INVENTORY if carried_amount > 0 else State.MOVING_TO_BUILD
+				current_state = State.MOVING_TO_INVENTORY 
 			else:
 				current_state = State.IDLE
 				
-		# If our hands are empty, and it needs items, we must FETCH!
-		else:
-			# Look at what the blueprint is missing
+		elif not best_job.is_ready_to_build:
+			# Blueprint needs items, hands are empty -> Fetch!
 			var item_to_fetch = ""
-			for req_name in target_blueprint.required_items.keys():
-				var needed = target_blueprint.required_items[req_name]
-				var have = target_blueprint.delivered_items.get(req_name, 0)
+			for req_name in best_job.required_items.keys():
+				var needed = best_job.required_items[req_name]
+				var have = best_job.delivered_items.get(req_name, 0)
 				if have < needed:
 					item_to_fetch = req_name
-					break # Found something it needs!
+					break
 					
 			if item_to_fetch != "":
 				_find_stockpile_with_item(item_to_fetch)
 			else:
 				current_state = State.IDLE
-
-	else:
-		# --- THE FIX: DUMP LEFTOVER INVENTORY ---
-		if carried_amount > 0:
-			# We are holding useless materials! Go put them back in the box.
-			_find_nearest_storage()
+				
 		else:
-			# Hands are completely empty and no sites need building. Rest.
-			_go_home_or_standby(2.0)
+			# Fully stocked -> Hammer it!
+			_request_path(best_job.occupied_tiles, true)
+			if not current_path.is_empty():
+				current_state = State.MOVING_TO_BUILD
+			else:
+				current_state = State.IDLE
+				
+	else:
+		# It's a standard damaged building -> Repair it!
+		_request_path(best_job.occupied_tiles, true)
+		if not current_path.is_empty():
+			current_state = State.MOVING_TO_REPAIR
+		else:
+			current_state = State.IDLE
 
 func _find_stockpile_with_item(item_name: String):
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
