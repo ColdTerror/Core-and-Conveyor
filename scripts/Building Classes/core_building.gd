@@ -97,7 +97,7 @@ func _check_research_completion():
 	if research_bill.is_empty() and active_research_name != "":
 		print("RESEARCH COMPLETE: ", active_research_name)
 		# TODO: Apply the actual global buffs here!
-		
+		ResearchManager.complete_research(active_research_name)
 		active_research_name = ""
 		research_bill_max.clear()
 		inventory_changed.emit()

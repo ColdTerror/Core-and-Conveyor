@@ -31,7 +31,9 @@ var current_state: State = State.IDLE
 var home_tile: Vector2i = Vector2i(-1, -1)
 var is_selected: bool = false
 
-@export var speed: float = 75.0
+@export var base_speed: float = 75.0
+
+var current_speed: float
 @export var carry_capacity: int = 5
 @export var harvest_time: float = 1
 
@@ -61,6 +63,21 @@ func setup(level: Node2D):
 	if level_ref and level_ref.object_layer:
 		# Figure out what tile we are standing on right now
 		home_tile = level_ref.object_layer.local_to_map(global_position)
+
+func _ready():
+	current_speed = base_speed
+	# 1. Join the group so the Manager can find us when an upgrade finishes
+	add_to_group("WorkerBots")
+	
+	# 2. Apply buffs IMMEDIATELY on spawn, so new bots get the current upgrades!
+	apply_research_buffs()
+
+func apply_research_buffs():
+	# Calculate our new speed based on the global multiplier
+	current_speed = base_speed * ResearchManager.bot_speed_mult
+	
+	# If you have an inventory capacity variable, update it here too!
+	# max_carry_amount = ResearchManager.bot_carry_capacity
 
 func _process(delta):
 	queue_redraw()
@@ -435,7 +452,7 @@ func _move_along_path(delta: float, next_state: State):
 		
 	var target_pos = current_path[0]
 	var dist = global_position.distance_to(target_pos)
-	var move_step = speed * delta
+	var move_step = current_speed * delta
 	
 	if dist <= move_step:
 		global_position = target_pos

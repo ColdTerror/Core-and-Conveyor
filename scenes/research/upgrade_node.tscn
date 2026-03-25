@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://v7q6hfuukr2s"]
 
-[ext_resource type="Script" uid="uid://b1ln656py44at" path="res://scripts/UI/upgrade_node.gd" id="1_8d5fv"]
+[ext_resource type="Script" uid="uid://b1ln656py44at" path="res://scripts/Research/upgrade_node.gd" id="1_8d5fv"]
 
 [node name="UpgradeNode" type="GraphNode" unique_id=1401898486]
 offset_right = 9.0

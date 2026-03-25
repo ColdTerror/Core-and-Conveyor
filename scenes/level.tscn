@@ -35,7 +35,7 @@
 [ext_resource type="Script" uid="uid://cp1a4u82js3m8" path="res://scripts/UI/MainHUD.gd" id="30_2jdvr"]
 [ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/Enemy & Related/wave_manager.tscn" id="32_2e2fo"]
 [ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/Enemy & Related/corruption_manager.gd" id="34_v3why"]
-[ext_resource type="PackedScene" uid="uid://cdmxyx00rhtcw" path="res://scenes/ui/research_screen.tscn" id="35_asl66"]
+[ext_resource type="PackedScene" uid="uid://cdmxyx00rhtcw" path="res://scenes/research/research_screen.tscn" id="35_asl66"]
 
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")

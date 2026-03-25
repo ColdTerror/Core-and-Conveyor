@@ -369,7 +369,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	var cost = ghost_building.get_build_cost()
 	
 	# --- NEW: IS THIS INSTANT OR A BLUEPRINT? ---
-	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable
+	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or cost.is_empty()
 	
 	if is_instant:
 		# ==========================================
@@ -445,12 +445,6 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		# ==========================================
 		# 2. BLUEPRINT LOGIC (Towers, Walls, Processors)
 		# ==========================================
-		# Check if they have the resources globally just to prevent spamming impossible builds
-		if not EconomyManager.can_afford(cost):
-			return false
-			
-		# Notice we DO NOT call EconomyManager.spend_resources(cost)! 
-		# The bots will physically deduct them from the stockpiles when they deliver them.
 
 		var site = construction_site_scene.instantiate() as ConstructionSite
 		var target_scene = load(ghost_building.scene_file_path)

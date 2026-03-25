@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cdmxyx00rhtcw"]
 
-[ext_resource type="Script" uid="uid://0kiohp0mjbln" path="res://scripts/UI/research_screen.gd" id="1_ewaee"]
-[ext_resource type="PackedScene" uid="uid://v7q6hfuukr2s" path="res://scenes/ui/upgrade_node.tscn" id="2_l6ox2"]
+[ext_resource type="Script" uid="uid://0kiohp0mjbln" path="res://scripts/Research/research_screen.gd" id="1_ewaee"]
+[ext_resource type="PackedScene" uid="uid://v7q6hfuukr2s" path="res://scenes/research/upgrade_node.tscn" id="2_l6ox2"]
 [ext_resource type="Resource" uid="uid://cn8jh6p0ykffa" path="res://resources/items/raw_resources/wood.tres" id="3_xgb3y"]
 [ext_resource type="Resource" uid="uid://b2175t1sagf73" path="res://resources/items/raw_resources/stone.tres" id="4_3s71f"]
 
@@ -82,8 +82,8 @@ position_offset = Vector2(400, 50)
 title = "Bot Branch"
 desc = "Increase bot move speed by 25%"
 research_cost = {
-ExtResource("3_xgb3y"): 50,
-ExtResource("4_3s71f"): 50
+ExtResource("3_xgb3y"): 1,
+ExtResource("4_3s71f"): 1
 }
 
 [node name="BuildingBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
