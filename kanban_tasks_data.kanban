@@ -14,7 +14,8 @@
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
 				"02390957-491b-4a3a-a79d-722cdc83d7fb",
 				"6ef39b29-fb3e-4a51-97f7-7f3ef2905d76",
-				"7c967b5f-cd2e-455e-b41b-222b577c935a"
+				"7c967b5f-cd2e-455e-b41b-222b577c935a",
+				"7eb553dd-7f84-4612-a906-d4292c66658b"
 			]
 		},
 		{
@@ -350,6 +351,13 @@
 		{
 			"uuid": "7c967b5f-cd2e-455e-b41b-222b577c935a",
 			"title": "construction site now correct, new building is offset now",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "7eb553dd-7f84-4612-a906-d4292c66658b",
+			"title": "repair health doesnt update when hovering",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

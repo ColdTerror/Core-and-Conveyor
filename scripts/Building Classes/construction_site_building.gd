@@ -91,7 +91,7 @@ func _finish_construction():
 		new_building.setup(level_ref)
 		
 	# 2. Get our exact grid coordinate before we delete ourselves
-	var my_grid = level_ref.object_layer.local_to_map(global_position)
+	var my_grid = occupied_tiles[0]
 	
 	# --- CLEANUP FIRST ---
 	if has_signal("destroyed"):

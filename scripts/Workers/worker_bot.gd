@@ -13,7 +13,7 @@ var health: int = 100
 var max_health: int = 100
 
 # --- THE PRIORITY SYSTEM ---
-enum TaskPriority { GATHER_WOOD, GATHER_STONE, REPAIR, BUILD, STOPPED }
+enum TaskPriority { GATHER_WOOD, GATHER_STONE, MAINTAIN, STOPPED }
 var current_priority: TaskPriority = TaskPriority.STOPPED
 
 enum State { 
@@ -90,7 +90,7 @@ func _process(delta):
 			if current_priority == TaskPriority.STOPPED:
 				_go_home_or_standby(1.0)
 				return
-			if current_priority == TaskPriority.REPAIR or current_priority == TaskPriority.BUILD:
+			if current_priority == TaskPriority.MAINTAIN:
 				_find_priority_job()
 			else:
 				_find_nearest_resource()
@@ -672,8 +672,7 @@ func set_priority(new_priority: int):
 func get_inventory_info() -> Dictionary:
 	var p_name = "Wood Only"
 	if current_priority == TaskPriority.GATHER_STONE: p_name = "Stone Only"
-	elif current_priority == TaskPriority.REPAIR: p_name = "Repair Duty"
-	elif current_priority == TaskPriority.BUILD: p_name = "Build Duty"
+	elif current_priority == TaskPriority.MAINTAIN: p_name = "Maintenance Duty"
 	elif current_priority == TaskPriority.STOPPED: p_name = "Halted"
 	
 	var carrying_text = "Empty"
