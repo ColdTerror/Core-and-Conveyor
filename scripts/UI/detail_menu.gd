@@ -138,13 +138,35 @@ func _setup_tower_ui(b: TowerBuilding):
 	_create_button("Cycle Targeting", Color.WHITE, b.cycle_targeting_mode)
 
 func _setup_core_ui(b: CoreBuilding):
-	# Optional: You can make the info label say something cool here
-	info_label.modulate = Color(0.8, 0.8, 1.0) # Light blue text
+	info_label.modulate = Color(0.8, 0.8, 1.0)
 	
-	# Spawn the Research Button!
-	_create_button("Open Research Tree", Color(1.0, 0.84, 0.0), func(): 
-		research_button_clicked.emit()
-	)
+	# Are we currently researching something?
+	if b.active_research_name != "":
+		info_label.text = ""
+		info_label.text += "\n\nResearching: %s" % b.active_research_name
+		
+		# Loop through the bill and print the progress (e.g., "Wood: 20 / 50")
+		for item_name in b.research_bill_max.keys():
+			var max_required = b.research_bill_max[item_name]
+			var still_needed = b.research_bill.get(item_name, 0)
+			var currently_deposited = max_required - still_needed
+			
+			info_label.text += "\n%s: %d / %d" % [item_name.display_name, currently_deposited, max_required]
+			
+		# Optional: Add a cancel button!
+		_create_button("Cancel Research", Color(1.0, 0.4, 0.4), func():
+			b.active_research_name = ""
+			b.research_bill.clear()
+			b.research_bill_max.clear()
+			refresh_ui()
+		)
+		
+	else:
+		info_label.text = "No Current Research"
+		# Only allow opening the Tech Tree if we AREN'T currently researching
+		_create_button("Open Research Tree", Color(1.0, 0.84, 0.0), func(): 
+			research_button_clicked.emit()
+		)
 
 # --- HELPER: Setup UI for Worker Bots ---
 func _setup_bot_ui(b: Node2D):

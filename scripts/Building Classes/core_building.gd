@@ -10,6 +10,11 @@ signal core_destroyed
 var inventory: Dictionary = {} # Key: String (Item Name), Value: int
 # -------------------------------
 
+# --- RESEARCH TRACKING ---
+var active_research_name: String = ""
+var research_bill: Dictionary = {}
+var research_bill_max: Dictionary = {} # Keeps track of the original cost for the UI
+
 func _ready():
 	super()
 	
@@ -27,28 +32,75 @@ func _exit_tree():
 	# If the core dies, unregister it so the economy doesn't try to pull from a dead building
 	EconomyManager.unregister_source(self)
 
+
+func start_research(r_name: String, cost: Dictionary):
+	if active_research_name != "":
+		print("Already researching something!")
+		return
+		
+	active_research_name = r_name
+	research_bill = cost.duplicate()
+	research_bill_max = cost.duplicate()
+	
+	inventory_changed.emit() # Ping the UI to update
+	
 # ==========================================
 # INVENTORY LOGIC
 # ==========================================
 
 # Bots (and Conveyors) will call this to drop things off
 func add_item(item_res: ItemResource, amount: int) -> int:
+	var item_name = item_res.display_name
+	var amount_left_to_store = amount
+	var total_consumed = 0
+	
+	# 1. INTERCEPT FOR RESEARCH
+	if active_research_name != "" and research_bill.has(item_res):
+		
+		var needed = research_bill[item_res]
+		var consumed_for_research = min(amount_left_to_store, needed)
+		
+		research_bill[item_res] -= consumed_for_research
+		amount_left_to_store -= consumed_for_research
+		total_consumed += consumed_for_research
+		
+		# Did we finish this specific item requirement?
+		if research_bill[item_res] <= 0:
+			research_bill.erase(item_res)
+			
+		_check_research_completion()
+		
+		# If the core ate everything for research, stop here!
+		if amount_left_to_store <= 0:
+			inventory_changed.emit()
+			return total_consumed
+			
+	# 2. STORE LEFTOVERS IN REGULAR INVENTORY
+	# (Your existing code goes here, but use 'amount_left_to_store' instead of 'amount')
 	var current_amount = inventory.get(item_res, 0)
 	var space_left = max_capacity_per_item - current_amount
 	
 	if space_left <= 0:
-		return 0 # Core is completely full of this item!
+		inventory_changed.emit()
+		return total_consumed # Return what we ate for research, even if storage is full
 		
-	# Only take what we have space for
-	var amount_to_take = min(amount, space_left)
+	var amount_stored = min(amount_left_to_store, space_left)
+	inventory[item_res] = current_amount + amount_stored
 	
-	inventory[item_res] = current_amount + amount_to_take
-	
-	# Ping the Global Economy UI (Translate to String for the UI!)
-	EconomyManager.add_resources(item_res.display_name, amount_to_take)
+	EconomyManager.add_resources(item_name, amount_stored)
 	inventory_changed.emit()
 	
-	return amount_to_take
+	return total_consumed + amount_stored
+
+# --- NEW HELPER ---
+func _check_research_completion():
+	if research_bill.is_empty() and active_research_name != "":
+		print("RESEARCH COMPLETE: ", active_research_name)
+		# TODO: Apply the actual global buffs here!
+		
+		active_research_name = ""
+		research_bill_max.clear()
+		inventory_changed.emit()
 
 # ==========================================
 # BOT RETRIEVAL LOGIC
@@ -112,6 +164,9 @@ func get_economy_assets() -> Dictionary:
 	
 func get_inventory_info() -> Dictionary:
 	return inventory
+
+
+
 
 # ==========================================
 # GAME OVER LOGIC
