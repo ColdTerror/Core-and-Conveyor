@@ -53,6 +53,19 @@ func refresh_ui():
 	info_label.modulate = Color.WHITE
 	info_label.visible = true
 
+	# ==========================================
+	# NEW: UNIVERSAL FOCUS/FOLLOW BUTTON
+	# ==========================================
+	# Duck-type check: Is it a bot or a building?
+	var focus_text = "Follow Bot" if current_building.has_method("set_priority") else "Center Camera"
+	
+	_create_button(focus_text, Color(0.9, 0.9, 0.9), func():
+		var cam = get_tree().get_first_node_in_group("Camera")
+		if cam and cam.has_method("set_follow_target"):
+			cam.set_follow_target(current_building)
+	)
+	# ==========================================
+	
 	# 2. Route to the correct UI builder
 	if current_building is ProcessorBuilding:
 		_setup_processor_ui(current_building as ProcessorBuilding)
@@ -262,6 +275,10 @@ func close_menu():
 		if "is_selected" in current_building:
 			current_building.is_selected = false
 			current_building.queue_redraw()
+	
+	var cam = get_tree().get_first_node_in_group("Camera")
+	if cam and cam.has_method("set_follow_target"):
+		cam.set_follow_target(null)
 	
 	bot_awaiting_home = null
 	current_building = null

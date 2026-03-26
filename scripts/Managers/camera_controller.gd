@@ -18,20 +18,39 @@ extends Camera2D
 
 var target_zoom := 1.0
 
+# ==========================================
+# --- NEW: CAMERA FOLLOW VARIABLES ---
+# ==========================================
+var follow_target: Node2D = null
+@export var follow_smoothing := 10.0 # How "snappy" the camera tracks the bot
+
+func set_follow_target(target: Node2D):
+	follow_target = target
+# ==========================================
 
 func _ready():
 	# Set initial zoom
 	zoom = Vector2(target_zoom, target_zoom)
+	
+	# Add to group so the UI can find this camera blindly!
+	add_to_group("Camera")
 
 func _process(delta):
 	if GameState.is_menu_open: return
+	
+	# ==========================================
+	# --- NEW: FOLLOW TARGET MATH ---
+	# ==========================================
+	if is_instance_valid(follow_target):
+		global_position = global_position.lerp(follow_target.global_position, follow_smoothing * delta)
+	# ==========================================
+	
 	handle_keyboard_pan(delta)
 	#handle_edge_pan(delta)
 	
 	zoom = Vector2(target_zoom, target_zoom)
 	
-	# Smooth zoom
-	#zoom = zoom.lerp(Vector2(target_zoom, target_zoom), zoom_speed * 10 * delta)
+
 
 func handle_keyboard_pan(delta):
 	var move_direction := Vector2.ZERO
@@ -48,6 +67,14 @@ func handle_keyboard_pan(delta):
 		move_direction.y -= 1
 	
 	if move_direction.length() > 0:
+		
+		# ==========================================
+		# --- NEW: BREAKAWAY LOGIC ---
+		# If the player touches WASD, cancel the follow target immediately!
+		# ==========================================
+		if follow_target != null:
+			follow_target = null
+		
 		move_direction = move_direction.normalized()
 		# Move slower when zoomed in, faster when zoomed out
 		position += move_direction * pan_speed * delta / target_zoom
@@ -69,6 +96,11 @@ func handle_edge_pan(delta):
 		move_direction.y += 1
 	
 	if move_direction.length() > 0:
+		
+		# (Also break the lock here, just in case you re-enable edge panning later!)
+		if follow_target != null:
+			follow_target = null
+			
 		position += move_direction * edge_pan_speed * delta / target_zoom
 
 
@@ -92,4 +124,8 @@ func zoom_at_point(point: Vector2, zoom_change: float):
 	
 	# Adjust position to keep mouse point stable
 	var world_pos_after = get_global_mouse_position()
-	position += world_pos_before - world_pos_after
+	
+	# Optional refinement: Only offset the camera position if we ARE NOT following a target. 
+	# (Zooming to mouse while tracking a moving bot can cause a slight stutter).
+	if follow_target == null:
+		position += world_pos_before - world_pos_after
