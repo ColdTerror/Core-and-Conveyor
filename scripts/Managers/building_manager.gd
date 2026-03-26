@@ -12,7 +12,7 @@ class_name BuildingManager
 
 # --- PRIORITY SYSTEM ---
 # Index 0 is Priority #1! We pre-populate it with our abstract groups.
-var master_priority_queue: Array = ["Belts", "Walls"]
+var master_priority_queue: Array = []
 
 func _is_grouped_type(building: Node) -> bool:
 	# Add any other classes here that shouldn't be individually ranked!
@@ -849,8 +849,19 @@ func _register_building(building: Building):
 	buildings.append(building)
 	_register_occupied_tiles(building)
 	
-	if not _is_grouped_type(building) and not master_priority_queue.has(building):
-		master_priority_queue.append(building)
+	if _is_grouped_type(building):
+		# Figure out the string name for this group
+		var group_name = "Belts" if building is ConveyorBuilding else "Walls"
+		
+		# If it's the very first one, add the string to the master list!
+		if not master_priority_queue.has(group_name):
+			master_priority_queue.append(group_name)
+			print("Priority System: Unlocked ", group_name)
+			
+	else:
+		# Standard unique building (Towers, Core, etc.)
+		if not master_priority_queue.has(building):
+			master_priority_queue.append(building)
 		
 	building.hovered.connect(_on_building_hovered)
 	building.unhovered.connect(_on_building_unhovered)

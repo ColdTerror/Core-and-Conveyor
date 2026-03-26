@@ -33,6 +33,10 @@ func setup(level_instance: Node2D):
 	level_ref = level_instance
 	_claim_territory()
 
+func _ready():
+	super()
+	health = max_health - 10
+	
 func _exit_tree():
 	_clear_target_reservation() # Let go of whatever tree we were shooting at
 	_unclaim_territory()        # Take down the invisible fence

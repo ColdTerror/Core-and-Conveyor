@@ -522,9 +522,8 @@ func _on_action_timer_timeout():
 				if building.health > building.max_health:
 					building.health = building.max_health
 					
-				# (Optional) If your building script has a function to update its health bar, call it here!
-				if building.has_method("update_health_ui"):
-					building.update_health_ui()
+				if building.has_signal("health_changed"):
+					building.health_changed.emit(building.health, building.max_health)
 					
 				# Are we done repairing?
 				if building.health >= building.max_health:
