@@ -6,6 +6,8 @@ extends PanelContainer
 
 @onready var close_button = $VBoxContainer/CloseButton
 
+@export var building_manager: BuildingManager
+
 var current_building: Node2D = null
 var bot_awaiting_home: Node2D = null # --- NEW: Remembers the bot while waiting for a click! ---
 
@@ -64,6 +66,9 @@ func refresh_ui():
 		_setup_bot_ui(current_building)
 	else:
 		info_label.text = "No configurable options."
+		
+	if not current_building.has_method("set_priority"):
+		_build_priority_widget(current_building)
 
 # ==========================================================
 # THE MAGIC HELPER: Spawns and wires a button instantly
@@ -192,6 +197,61 @@ func _setup_bot_ui(b: Node2D):
 	)
 
 
+func _build_priority_widget(b: Node):
+	# 1. Grab the building manager safely through the building's level reference!
+	if building_manager == null: 
+		print("Widget failed: Building Manager is not assigned in the Inspector!")
+		return
+	var bm = building_manager
+	
+	# 2. Figure out if we are ranking the specific building, or its whole group!
+	var priority_item = b
+	if b is ConveyorBuilding:
+		priority_item = "Belts"
+	elif b is WallBuilding: # Make sure this matches your wall class!
+		priority_item = "Walls"
+		
+	var current_rank = bm.get_priority_rank(priority_item)
+	var max_rank = bm.get_total_priority_ranks()
+	
+	# If the building somehow isn't in the list, skip drawing the widget
+	if current_rank == 0: return
+
+	# 3. Create the Horizontal Row
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	
+	# 4. Create UP Button (Moves closer to Rank 1)
+	var up_btn = Button.new()
+	up_btn.text = " ▲ "
+	up_btn.disabled = (current_rank == 1) # Disable if it's already #1!
+	up_btn.pressed.connect(func():
+		bm.move_priority_up(priority_item)
+		refresh_ui() # Redraw the menu to update the numbers!
+	)
+	
+	# 5. Create the Text Label
+	var rank_label = Label.new()
+	rank_label.text = "  Priority: %d / %d  " % [current_rank, max_rank]
+	rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	
+	# 6. Create DOWN Button (Moves further from Rank 1)
+	var down_btn = Button.new()
+	down_btn.text = " ▼ "
+	down_btn.disabled = (current_rank == max_rank) # Disable if it's dead last!
+	down_btn.pressed.connect(func():
+		bm.move_priority_down(priority_item)
+		refresh_ui()
+	)
+	
+	# 7. Assemble the widget
+	hbox.add_child(up_btn)
+	hbox.add_child(rank_label)
+	hbox.add_child(down_btn)
+	
+	# 8. Add it to your action container! (Replaced menu_vbox)
+	action_container.add_child(hbox)
+	
 func close_menu():
 	# CLEAN UP SIGNALS
 	if is_instance_valid(current_building):

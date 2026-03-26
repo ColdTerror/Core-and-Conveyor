@@ -124,7 +124,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="DetailMenu" parent="CanvasLayer/Popup_Layer" unique_id=1200069952 instance=ExtResource("21_wu01b")]
+[node name="DetailMenu" parent="CanvasLayer/Popup_Layer" unique_id=1200069952 node_paths=PackedStringArray("building_manager") instance=ExtResource("21_wu01b")]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -133,6 +133,7 @@ offset_top = -136.0
 offset_right = 60.0
 offset_bottom = 0.0
 grow_vertical = 0
+building_manager = NodePath("../../../BuildingManager")
 
 [node name="HoverMenu" parent="CanvasLayer/Popup_Layer" unique_id=545312411 instance=ExtResource("18_82cfe")]
 layout_mode = 1

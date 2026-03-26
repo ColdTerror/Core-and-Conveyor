@@ -869,6 +869,23 @@ func _unhandled_input(event):
 			show_attack_grid = not show_attack_grid
 			queue_redraw()
 	# ---------------------------------
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_P:
+			print("\n=== MASTER PRIORITY QUEUE ===")
+			for i in range(master_priority_queue.size()):
+				var item = master_priority_queue[i]
+				var rank = i + 1 # +1 so it reads 1, 2, 3 instead of 0, 1, 2
+				
+				if typeof(item) == TYPE_STRING:
+					print("Rank ", rank, ": [GROUP] ", item)
+				else:
+					# Safely grab the building's name if it's a node
+					if is_instance_valid(item):
+						print("Rank ", rank, ": ", item.building_name, " at ", item.global_position)
+					else:
+						print("Rank ", rank, ": [DELETED/INVALID BUILDING]")
+			print("=============================\n")
+	# -------------------------------------------
 	
 	# Cancel logic
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
@@ -1324,6 +1341,32 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 				best_target = b
 				
 	return best_target
+
+# ==========================================
+# PRIORITY UI HELPERS
+# ==========================================
+func get_priority_rank(item: Variant) -> int:
+	var idx = master_priority_queue.find(item)
+	return idx + 1 if idx != -1 else 0 # Return 1-based rank (Index 0 = Rank 1)
+
+func get_total_priority_ranks() -> int:
+	return master_priority_queue.size()
+
+func move_priority_up(item: Variant):
+	var idx = master_priority_queue.find(item)
+	# If it's found, and it's NOT already #1 (index 0)
+	if idx > 0:
+		var temp = master_priority_queue[idx - 1]
+		master_priority_queue[idx - 1] = item
+		master_priority_queue[idx] = temp
+
+func move_priority_down(item: Variant):
+	var idx = master_priority_queue.find(item)
+	# If it's found, and it's NOT already at the very bottom
+	if idx != -1 and idx < master_priority_queue.size() - 1:
+		var temp = master_priority_queue[idx + 1]
+		master_priority_queue[idx + 1] = item
+		master_priority_queue[idx] = temp
 
 # ==========================================
 # BOT UI ROUTING
