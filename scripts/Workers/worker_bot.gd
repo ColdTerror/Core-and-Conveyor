@@ -24,12 +24,19 @@ enum State {
 	MOVING_TO_REPAIR, REPAIRING, 
 	MOVING_TO_BUILD, BUILDING,
 	MOVING_TO_FETCH, FETCHING,
-	MOVING_HOME
+	MOVING_HOME, RECHARGING
 }
 var current_state: State = State.IDLE
 
 var home_tile: Vector2i = Vector2i(-1, -1)
 var is_selected: bool = false
+
+# --- ENERGY SYSTEM ---
+@export var max_energy: float = 100.0
+var current_energy: float = 100.0
+@export var energy_drain_rate: float = 2.0 # Loses 2 energy per second while working
+@export var energy_recharge_rate: float = 25.0 # Gains 25 energy per second at home
+var is_limping: bool = false
 
 @export var base_speed: float = 75.0
 
@@ -82,6 +89,8 @@ func apply_research_buffs():
 func _process(delta):
 	queue_redraw()
 	
+	_handle_energy(delta)
+	
 	match current_state:
 		State.IDLE:
 			if _escape_trapped_tile():
@@ -107,7 +116,12 @@ func _process(delta):
 		State.MOVING_TO_FETCH:
 			_move_along_path(delta, State.FETCHING)
 		State.MOVING_HOME:
-			_move_along_path(delta, State.IDLE)
+			if is_limping:
+				_move_along_path(delta, State.RECHARGING)
+			else:
+				_move_along_path(delta, State.IDLE)
+		State.RECHARGING:
+			pass
 
 # ==========================================
 # 1. BRAIN: DECISION MAKING
@@ -356,6 +370,58 @@ func _find_stockpile_with_item(item_name: String):
 		# No stockpile has the item! We are stuck waiting.
 		print("Builder Bot: No stockpiles have ", item_name, "!")
 		_go_home_or_standby(2.0)
+
+func _handle_energy(delta: float):
+	# 1. RECHARGING LOGIC
+	if current_state == State.RECHARGING:
+		current_energy += energy_recharge_rate * delta
+		if current_energy >= max_energy:
+			current_energy = max_energy
+			is_limping = false
+			
+			# Restore normal speed (Re-apply any research buffs!)
+			current_speed = base_speed 
+			if ResearchManager.bot_speed_mult:
+				current_speed *= ResearchManager.bot_speed_mult
+				
+			current_state = State.IDLE # Wake up and find a job!
+		return
+
+	# 2. DRAINING LOGIC (Only drain if actively moving or working)
+	var active_states = [
+		State.MOVING_TO_RESOURCE, State.HARVESTING, 
+		State.MOVING_TO_INVENTORY, State.DEPOSITING, 
+		State.MOVING_TO_REPAIR, State.REPAIRING, 
+		State.MOVING_TO_BUILD, State.BUILDING, 
+		State.MOVING_TO_FETCH, State.FETCHING
+	]
+	
+	if current_state in active_states:
+		current_energy -= energy_drain_rate * delta
+		
+		# 3. EXHAUSTION TRIGGER
+		if current_energy <= 0 and not is_limping:
+			current_energy = 0
+			is_limping = true
+			current_speed = base_speed * 0.4 # Slow down to 40% speed!
+			
+			print("Bot exhausted! Limping home.")
+			
+			# Drop current task and wipe the path
+			_clear_reservation()
+			action_timer.stop()
+			target_tile = Vector2i(-1, -1)
+			
+			# Try to go home
+			if home_tile != Vector2i(-1, -1):
+				if _request_path_exact(home_tile):
+					current_state = State.MOVING_HOME
+				else:
+					# Path is blocked! Fall asleep on the floor.
+					current_state = State.RECHARGING 
+			else:
+				# No home assigned! Fall asleep on the floor.
+				current_state = State.RECHARGING
 
 # ==========================================
 # 2. LEGS: MOVEMENT
@@ -801,3 +867,22 @@ func _draw():
 		draw_rect(bg_rect, Color(0.1, 0.1, 0.1, 0.8), true)
 		draw_rect(fg_rect, fill_color, true)
 		draw_rect(bg_rect, Color(0.0, 0.0, 0.0, 1.0), false, 1.0)
+		
+	# --- ENERGY BAR ---
+	if current_energy < max_energy:
+		var e_width = 24.0
+		var e_height = 4.0
+		var e_pos = Vector2(-e_width / 2.0, 18.0) # Drawn below the bot's feet
+		
+		var e_bg = Rect2(e_pos, Vector2(e_width, e_height))
+		var e_fg = Rect2(e_pos, Vector2(e_width * (current_energy / max_energy), e_height))
+		
+		var energy_color = Color(1.0, 0.8, 0.2) # Yellow (Normal Drain)
+		if is_limping: 
+			energy_color = Color(1.0, 0.2, 0.2) # Red (Exhausted/Limping)
+		elif current_state == State.RECHARGING: 
+			energy_color = Color(0.2, 1.0, 0.8) # Cyan (Charging Up)
+		
+		draw_rect(e_bg, Color(0.1, 0.1, 0.1, 0.8), true)
+		draw_rect(e_fg, energy_color, true)
+		draw_rect(e_bg, Color(0.0, 0.0, 0.0, 1.0), false, 1.0)

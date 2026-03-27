@@ -12,13 +12,16 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"6ef39b29-fb3e-4a51-97f7-7f3ef2905d76"
+				"450e0453-afc9-44d7-a45d-e73c2c9f8be0",
+				"f250597f-dfe0-418f-a8cc-98fc75523137"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"6ef39b29-fb3e-4a51-97f7-7f3ef2905d76"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -357,6 +360,20 @@
 		{
 			"uuid": "7eb553dd-7f84-4612-a906-d4292c66658b",
 			"title": "repair health doesnt update when hovering",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "450e0453-afc9-44d7-a45d-e73c2c9f8be0",
+			"title": "update bot home when moving home",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f250597f-dfe0-418f-a8cc-98fc75523137",
+			"title": "bot set priority is bugged(halt makes it mine rock?)",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
