@@ -703,6 +703,7 @@ func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int):
 		clicked.emit(self)
 
 func set_priority(new_priority: int):
+	print(new_priority)
 	if current_priority == new_priority: return
 	
 	current_priority = new_priority as TaskPriority
@@ -727,9 +728,16 @@ func set_priority(new_priority: int):
 		action_timer.stop()
 		current_state = State.IDLE
 	else:
-		if current_state == State.IDLE or current_state == State.MOVING_TO_RESOURCE:
+		# ← Expanded: interrupt ANY gathering/depositing state, not just IDLE/MOVING
+		var interruptible_states = [
+			State.IDLE, 
+			State.MOVING_TO_RESOURCE, State.HARVESTING,
+			State.MOVING_TO_INVENTORY, State.DEPOSITING
+		]
+		if current_state in interruptible_states:
 			target_tile = Vector2i(-1, -1)
 			current_path.clear()
+			action_timer.stop()  # ← Critical: stop the harvest timer mid-swing
 			current_state = State.IDLE
 			
 	inventory_changed.emit()
@@ -738,7 +746,7 @@ func get_inventory_info() -> Dictionary:
 	var p_name = "Wood Only"
 	if current_priority == TaskPriority.GATHER_STONE: p_name = "Stone Only"
 	elif current_priority == TaskPriority.MAINTAIN: p_name = "Maintenance Duty"
-	elif current_priority == TaskPriority.STOPPED: p_name = "Halted"
+	elif current_priority == TaskPriority.STOPPED: p_name = "Home"
 	
 	var carrying_text = "Empty"
 	if carried_amount > 0:
