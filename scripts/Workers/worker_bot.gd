@@ -393,7 +393,8 @@ func _handle_energy(delta: float):
 		State.MOVING_TO_INVENTORY, State.DEPOSITING, 
 		State.MOVING_TO_REPAIR, State.REPAIRING, 
 		State.MOVING_TO_BUILD, State.BUILDING, 
-		State.MOVING_TO_FETCH, State.FETCHING
+		State.MOVING_TO_FETCH, State.FETCHING,
+		State.MOVING_HOME
 	]
 	
 	if current_state in active_states:
@@ -776,8 +777,10 @@ func set_home(grid_pos: Vector2i):
 	inventory_changed.emit()
 	
 	# If the bot is currently doing nothing, wake it up so it walks home instantly!
-	if current_state in [State.IDLE, State.ON_STANDBY]:
-		current_state = State.IDLE 
+	if current_state in [State.IDLE, State.ON_STANDBY, State.MOVING_HOME, State.RECHARGING]:
+		current_path.clear()
+		action_timer.stop()
+		current_state = State.IDLE
 
 func _go_home_or_standby(wait_time: float):
 	if home_tile != Vector2i(-1, -1):
