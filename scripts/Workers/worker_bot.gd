@@ -116,10 +116,7 @@ func _process(delta):
 		State.MOVING_TO_FETCH:
 			_move_along_path(delta, State.FETCHING)
 		State.MOVING_HOME:
-			if is_limping:
-				_move_along_path(delta, State.RECHARGING)
-			else:
-				_move_along_path(delta, State.IDLE)
+			_move_along_path(delta, State.RECHARGING)
 		State.RECHARGING:
 			pass
 
