@@ -267,8 +267,10 @@ func can_accept_item(_item: ItemResource) -> bool:
 func accept_item(_item: ItemResource) -> bool:
 	return false
 	
-	
-# NEW FUNCTION:
+func has_space_for(item_name: String) -> bool:
+	return false
+
+
 # Returns a clean dictionary of { "ResourceName": Amount }
 # Default: Empty (Towers/Walls return nothing, so no crash)
 func get_economy_assets() -> Dictionary:

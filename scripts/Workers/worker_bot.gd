@@ -202,19 +202,24 @@ func _find_nearest_storage():
 	
 	if not level_ref or not level_ref.building_manager: return
 	
+	if not _any_storage_has_space():
+		full_storages_ignored.clear()
+		unreachable_storages.clear()
+		_go_home_or_standby(5.0)
+		return
+	
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
 
 	# Build a sorted list of candidates, then try each until one paths successfully.
 	var candidates: Array = []
 
 	for b in level_ref.building_manager.buildings:
-		if not is_instance_valid(b) or b.is_queued_for_deletion():
-			continue
-		if b is ConstructionSite: 
-			continue
+		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
+		if b is ConstructionSite: continue
+		if b is TowerBuilding: continue
 		if not b.has_method("add_item"): continue
 		if b in full_storages_ignored: continue
-		if b in unreachable_storages: continue  # NEW: skip known blocked storages
+		if b in unreachable_storages: continue  
 
 		if "is_dedicated_mode" in b and "selected_output_name" in b:
 			if b.is_dedicated_mode and b.selected_output_name != "" and b.selected_output_name != carried_item_name:
@@ -318,6 +323,24 @@ func _find_priority_job():
 			current_state = State.MOVING_TO_REPAIR
 		else:
 			current_state = State.IDLE
+
+func _any_storage_has_space() -> bool:
+	if not level_ref or not level_ref.building_manager: return false
+	
+	for b in level_ref.building_manager.buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
+		if b is ConstructionSite: continue
+		if b is TowerBuilding: continue
+		if not b.has_method("add_item"): continue
+		
+		if "is_dedicated_mode" in b and "selected_output_name" in b:
+			if b.is_dedicated_mode and b.selected_output_name != "" and b.selected_output_name != carried_item_name:
+				continue
+		
+		if b.has_method("has_space_for") and b.has_space_for(carried_item_name):
+			return true
+			
+	return false
 
 func _find_stockpile_with_item(item_name: String):
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)

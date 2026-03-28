@@ -92,6 +92,13 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 	
 	return total_consumed + amount_stored
 
+
+func has_space_for(item_name: String) -> bool:
+	for item_res in inventory.keys():
+		if item_res.display_name == item_name:
+			return inventory[item_res] < max_capacity_per_item
+	return true # Item not in inventory yet, so there's definitely space
+	
 # --- NEW HELPER ---
 func _check_research_completion():
 	if research_bill.is_empty() and active_research_name != "":

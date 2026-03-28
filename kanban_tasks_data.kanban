@@ -11,7 +11,8 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"6c3c444f-33d7-4dfe-b604-4f1977f71bf9"
 			]
 		},
 		{
@@ -373,6 +374,13 @@
 		{
 			"uuid": "f250597f-dfe0-418f-a8cc-98fc75523137",
 			"title": "bot set priority is bugged(halt makes it mine rock?)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "6c3c444f-33d7-4dfe-b604-4f1977f71bf9",
+			"title": "clean up inventory functions and combine them",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

@@ -180,9 +180,6 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 # ==========================================
 # BOT RETRIEVAL LOGIC
 # ==========================================
-# ==========================================
-# BOT RETRIEVAL LOGIC
-# ==========================================
 func take_item(item_name: String, requested_amount: int) -> Dictionary:
 	# Search our inventory for the item the bot is asking for
 	for item_res in inventory.keys():
@@ -216,6 +213,15 @@ func take_item(item_name: String, requested_amount: int) -> Dictionary:
 	return { "amount": 0 }
 
 
+func has_space_for(item_name: String) -> bool:
+	if is_dedicated_mode:
+		if dedicated_item_name != "" and dedicated_item_name != item_name:
+			return false
+		return get_total_items() < max_dedicated_capacity
+	else:
+		var item_res = _find_item_by_name(item_name)
+		var current = inventory.get(item_res, 0) if item_res else 0
+		return current < max_mixed_capacity
 
 # --------------------------------------------------
 # HELPERS
