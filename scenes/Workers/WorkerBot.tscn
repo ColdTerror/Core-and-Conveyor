@@ -8,6 +8,7 @@ size = Vector2(32, 32)
 
 [node name="WorkerBot" type="Node2D" unique_id=999813474]
 script = ExtResource("1_e4pf7")
+max_energy = 200.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2067196448]
 scale = Vector2(0.25, 0.25)

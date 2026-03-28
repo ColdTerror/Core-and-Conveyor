@@ -53,6 +53,11 @@ var current_state: State = State.IDLE
 var current_speed: float
 var _think_cooldown: float = 0.0
 
+# --- Standby Durations ---
+const STANDBY_IDLE: float = 1.0       # Nothing to do, check soon
+const STANDBY_WAITING: float = 2.0    # Waiting for jobs or materials
+const STANDBY_STORAGE_FULL: float = 5.0 # All storage full, wait for space
+
 # --- Inventory ---
 var carried_item_name: String = ""
 var carried_amount: int = 0
@@ -97,6 +102,7 @@ func setup(level: Node2D):
 		home_tile = level_ref.object_layer.local_to_map(global_position)
 
 func _ready():
+	current_energy = max_energy
 	current_speed = base_speed
 	add_to_group("WorkerBots")
 	apply_research_buffs()
@@ -125,7 +131,7 @@ func _process(delta):
 			_think_cooldown = 0.2
 			
 			if current_priority == TaskPriority.STOPPED:
-				_go_home_or_standby(1.0)
+				_go_home_or_standby(STANDBY_IDLE)
 				return
 			if current_priority == TaskPriority.MAINTAIN:
 				_find_priority_job()
@@ -270,7 +276,7 @@ func _find_priority_job():
 		if carried_amount > 0:
 			_find_nearest_storage()
 		else:
-			_go_home_or_standby(2.0)
+			_go_home_or_standby(STANDBY_WAITING)
 		return
 
 	# We have a job but are holding the wrong item — go deposit first
@@ -338,7 +344,7 @@ func _find_nearest_storage():
 	if not _any_storage_has_space():
 		full_storages_ignored.clear()
 		unreachable_storages.clear()
-		_go_home_or_standby(5.0)
+		_go_home_or_standby(STANDBY_STORAGE_FULL)
 		return
 	
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
@@ -379,7 +385,7 @@ func _find_nearest_storage():
 	# All candidates exhausted — wait and retry
 	full_storages_ignored.clear()
 	unreachable_storages.clear()
-	_go_home_or_standby(5.0)
+	_go_home_or_standby(STANDBY_STORAGE_FULL)
 
 # Scans all buildings to find a stockpile that holds the requested item
 func _find_stockpile_with_item(item_name: String):
@@ -392,13 +398,7 @@ func _find_stockpile_with_item(item_name: String):
 		
 		var has_item = false
 		
-		# CoreBuilding uses String keys — check it first to avoid the inventory branch below
-		if b is CoreBuilding and b.has_method("get_economy_assets"):
-			var assets = b.get_economy_assets()
-			if assets.has(item_name) and assets[item_name] > 0:
-				has_item = true
-		# Standard stockpiles use ItemResource keys
-		elif "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
+		if "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
 			for key in b.inventory.keys():
 				if key is ItemResource and key.display_name == item_name:
 					var amount = b.inventory[key]
@@ -421,7 +421,7 @@ func _find_stockpile_with_item(item_name: String):
 		else:
 			current_state = State.IDLE
 	else:
-		_go_home_or_standby(2.0)
+		_go_home_or_standby(STANDBY_WAITING)
 
 # Returns true if any valid storage building has space for our carried item
 func _any_storage_has_space() -> bool:
