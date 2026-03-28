@@ -58,6 +58,9 @@ var unreachable_tiles: Array[Vector2i] = []
 var full_storages_ignored: Array[Node2D] = []
 var unreachable_storages: Array[Node2D] = [] # NEW: Pathfinding blacklist for storages
 
+
+var _think_cooldown: float = 0.0
+
 func setup(level: Node2D):
 	level_ref = level
 	action_timer.timeout.connect(_on_action_timer_timeout)
@@ -95,6 +98,11 @@ func _process(delta):
 		State.IDLE:
 			if _escape_trapped_tile():
 				return # Skip this frame so the new safe position registers!
+			
+			_think_cooldown -= delta
+			if _think_cooldown > 0:
+				return
+			_think_cooldown = 0.2
 			
 			if current_priority == TaskPriority.STOPPED:
 				_go_home_or_standby(1.0)
@@ -352,22 +360,18 @@ func _find_stockpile_with_item(item_name: String):
 		
 		var has_item = false
 		
-		# --- CASE 1: Normal Stockpiles (Uses ItemResource keys) ---
-		if "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
+		
+		if b is CoreBuilding and b.has_method("get_economy_assets"):
+			var assets = b.get_economy_assets()
+			if assets.has(item_name) and assets[item_name] > 0:
+				has_item = true
+		elif "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
 			for key in b.inventory.keys():
 				if key is ItemResource and key.display_name == item_name:
-					# Ensure the value is actually an int/float before checking > 0
 					var amount = b.inventory[key]
 					if typeof(amount) in [TYPE_INT, TYPE_FLOAT] and amount > 0:
 						has_item = true
 						break
-		
-		# --- CASE 2: Core Building (Uses String keys) ---
-		# If your core tracks inventory differently, you can check it here!
-		elif b is CoreBuilding and b.has_method("get_economy_assets"):
-			var assets = b.get_economy_assets()
-			if assets.has(item_name) and assets[item_name] > 0:
-				has_item = true
 
 		if has_item:
 			var b_tile = b.occupied_tiles[0]
@@ -417,11 +421,11 @@ func _handle_energy(delta: float):
 		State.MOVING_HOME
 	]
 	
-	if current_state in active_states:
+	if current_state in active_states and not is_limping:
 		current_energy -= energy_drain_rate * delta
 		
 		# 3. EXHAUSTION TRIGGER
-		if current_energy <= 0 and not is_limping:
+		if current_energy <= 0:
 			current_energy = 0
 			is_limping = true
 			current_speed = base_speed * 0.4 # Slow down to 40% speed!
@@ -574,7 +578,7 @@ func _on_action_timer_timeout():
 			if level_ref.building_manager.occupied_tiles.has(target_tile):
 				storage = level_ref.building_manager.occupied_tiles[target_tile]
 				
-			if storage and storage.has_method("add_item"):
+			if storage and storage.has_method("add_item") and is_instance_valid(storage):
 				var amount_taken = storage.add_item(carried_item_res, carried_amount)
 				carried_amount -= amount_taken
 				inventory_changed.emit()
