@@ -12,7 +12,8 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"6c3c444f-33d7-4dfe-b604-4f1977f71bf9"
+				"6c3c444f-33d7-4dfe-b604-4f1977f71bf9",
+				"084902d2-ca56-43cd-890c-21af5ddcf715"
 			]
 		},
 		{
@@ -381,6 +382,13 @@
 		{
 			"uuid": "6c3c444f-33d7-4dfe-b604-4f1977f71bf9",
 			"title": "clean up inventory functions and combine them",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "084902d2-ca56-43cd-890c-21af5ddcf715",
+			"title": "add more upgrades",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
