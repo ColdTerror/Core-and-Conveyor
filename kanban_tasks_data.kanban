@@ -12,17 +12,13 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"6c3c444f-33d7-4dfe-b604-4f1977f71bf9",
-				"f57f5143-4789-4d20-83d4-2bb1269266e1",
-				"9458347a-857b-40af-9d0f-cb73240730a4"
+				"0c621e4f-65e7-4a55-bf90-02b8f6758a0a"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": [
-				"084902d2-ca56-43cd-890c-21af5ddcf715"
-			]
+			"tasks": []
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -30,8 +26,12 @@
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"f1a8d512-eb0a-4620-a76a-f5b0763a7e5d",
+				"084902d2-ca56-43cd-890c-21af5ddcf715",
+				"6c3c444f-33d7-4dfe-b604-4f1977f71bf9",
+				"f57f5143-4789-4d20-83d4-2bb1269266e1",
 				"eb674fc5-e9f8-4848-861c-9ac574bdaf6d",
 				"450e0453-afc9-44d7-a45d-e73c2c9f8be0",
+				"9458347a-857b-40af-9d0f-cb73240730a4",
 				"02390957-491b-4a3a-a79d-722cdc83d7fb",
 				"6ef39b29-fb3e-4a51-97f7-7f3ef2905d76",
 				"dc7fd2f6-3733-4f42-83f8-9b705b3ea43a",
@@ -406,6 +406,13 @@
 		{
 			"uuid": "9458347a-857b-40af-9d0f-cb73240730a4",
 			"title": "bot displays more stats",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "0c621e4f-65e7-4a55-bf90-02b8f6758a0a",
+			"title": "terrain modification",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

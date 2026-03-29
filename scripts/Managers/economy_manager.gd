@@ -5,9 +5,8 @@ extends Node
 # We use a Dictionary to track everything by its string name.
 # You can define your starting resources here.
 var global_inventory: Dictionary = {
-	"Wood": 1000,
-	"Stone": 1000,
-	"Plank": 1000
+	"Wood": 0,
+	"Stone": 0
 	
 }
 

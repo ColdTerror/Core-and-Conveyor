@@ -42,7 +42,38 @@ func start_research(r_name: String, cost: Dictionary):
 	research_bill = cost.duplicate()
 	research_bill_max = cost.duplicate()
 	
-	inventory_changed.emit() # Ping the UI to update
+	# --- Immediately consume any matching items already in the core ---
+	for item_res in inventory.keys():
+		if research_bill.has(item_res):
+			var needed = research_bill[item_res]
+			var available = inventory[item_res]
+			var consumed = min(needed, available)
+			
+			research_bill[item_res] -= consumed
+			inventory[item_res] -= consumed
+			
+			# Clean up empty slots
+			if inventory[item_res] <= 0:
+				inventory.erase(item_res)
+			if research_bill[item_res] <= 0:
+				research_bill.erase(item_res)
+				
+	# Sync the economy since we just removed items
+	var consumed_amounts = {}
+	for res in research_bill_max.keys():
+		var originally_needed = research_bill_max[res]
+		var still_needed = research_bill.get(res, 0)
+		var consumed = originally_needed - still_needed
+		if consumed > 0:
+			consumed_amounts[res.display_name] = consumed
+
+	if not consumed_amounts.is_empty():
+		EconomyManager.remove_resources_from_global(consumed_amounts)
+		
+	# Check if existing items already completed the research entirely
+	_check_research_completion()
+	
+	inventory_changed.emit()
 	
 # ==========================================
 # INVENTORY LOGIC
