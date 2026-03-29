@@ -49,36 +49,40 @@ text = "Close"
 [node name="GraphEdit" type="GraphEdit" parent="BackgroundBlocker/MarginContainer/VBoxContainer" unique_id=1474269741]
 layout_mode = 2
 size_flags_vertical = 3
+scroll_offset = Vector2(-190, -98.125)
 grid_pattern = 1
 snapping_distance = 50
+zoom = 0.75
 minimap_enabled = false
 show_grid_buttons = false
 show_minimap_button = false
 show_arrange_button = false
 
-[node name="CoreStart" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1401898486 instance=ExtResource("2_l6ox2")]
+[node name="Core1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1401898486 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
-offset_left = 50.0
-offset_top = 300.0
-offset_right = 234.0
-offset_bottom = 436.0
+offset_left = 274.75
+offset_top = 145.375
+offset_right = 624.75
+offset_bottom = 295.375
+scale = Vector2(0.75, 0.75)
 mouse_filter = 1
-position_offset = Vector2(50, 300)
-title = "Core Start"
-research_name = "Core Start"
-desc = "Unlock Research"
+position_offset = Vector2(113, 63)
+title = "Core Branch"
+research_name = "Core Expansion 1"
+desc = "Unlock Tier 0 Research"
 research_cost = {
 ExtResource("3_xgb3y"): 25
 }
 
-[node name="BotBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
+[node name="Bot1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
-offset_left = 400.0
-offset_top = 50.0
-offset_right = 584.0
-offset_bottom = 186.0
+offset_left = 486.25
+offset_top = 145.375
+offset_right = 836.25
+offset_bottom = 295.375
+scale = Vector2(0.75, 0.75)
 mouse_filter = 1
-position_offset = Vector2(400, 50)
+position_offset = Vector2(395, 63)
 title = "Bot Branch"
 desc = "Increase bot move speed by 25%"
 research_cost = {
@@ -86,14 +90,15 @@ ExtResource("3_xgb3y"): 1,
 ExtResource("4_3s71f"): 1
 }
 
-[node name="BuildingBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
+[node name="Building1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
-offset_left = 400.0
-offset_top = 300.0
-offset_right = 584.0
-offset_bottom = 436.0
+offset_left = 647.5
+offset_top = 146.875
+offset_right = 997.5
+offset_bottom = 296.875
+scale = Vector2(0.75, 0.75)
 mouse_filter = 1
-position_offset = Vector2(400, 300)
+position_offset = Vector2(610, 65)
 title = "Building Branch"
 research_name = "Building Limit 1"
 desc = "Increase Building Limit by 10"
@@ -102,17 +107,118 @@ ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
 }
 
-[node name="GlobalBranch" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
+[node name="Global1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
 layout_mode = 0
-offset_left = 400.0
-offset_top = 550.0
-offset_right = 584.0
-offset_bottom = 686.0
+offset_left = 835.0
+offset_top = 148.375
+offset_right = 1185.0
+offset_bottom = 298.375
+scale = Vector2(0.75, 0.75)
 mouse_filter = 1
-position_offset = Vector2(400, 550)
+position_offset = Vector2(860, 67)
 title = "Global Branch"
 research_name = "Wave Measurement"
-desc = "Can see an estimate of enemy count coming that night"
+desc = "Estimate Enemy Count at Night"
 research_cost = {
 ExtResource("3_xgb3y"): 50
+}
+
+[node name="Tower1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=919121047 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 1069.75
+offset_top = 145.375
+offset_right = 1419.75
+offset_bottom = 295.375
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1173, 63)
+title = "Tower Branch"
+research_name = "Tower Damage 1"
+desc = "Increase all Tower Damage by 10%"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Core2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=134985909 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 274.75
+offset_top = 145.375
+offset_right = 624.75
+offset_bottom = 295.375
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(113, 63)
+title = "Core Branch"
+research_name = "Core Expansion 2"
+desc = "Unlock Tier 1 Research"
+research_cost = {
+ExtResource("3_xgb3y"): 25
+}
+
+[node name="Bot2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=659654113 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 486.25
+offset_top = 145.375
+offset_right = 836.25
+offset_bottom = 295.375
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(395, 63)
+title = "Bot Branch"
+research_name = "Bot Speed 2"
+desc = "Increase bot move speed by 25% (again)"
+research_cost = {
+ExtResource("3_xgb3y"): 1,
+ExtResource("4_3s71f"): 1
+}
+
+[node name="Building2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=568078980 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 647.5
+offset_top = 146.875
+offset_right = 997.5
+offset_bottom = 296.875
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(610, 65)
+title = "Building Branch"
+research_name = "Building Limit 2"
+desc = "Increase Building Limit by 10"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Global2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=383648997 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 835.0
+offset_top = 148.375
+offset_right = 1185.0
+offset_bottom = 298.375
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(860, 67)
+title = "Global Branch"
+research_name = "Moon Measurement"
+desc = "Tell what moon phase is coming that night"
+research_cost = {
+ExtResource("3_xgb3y"): 50
+}
+
+[node name="Tower2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1143563071 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 1069.75
+offset_top = 145.375
+offset_right = 1419.75
+offset_bottom = 295.375
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1173, 63)
+title = "Tower Branch"
+research_name = "Tower Damage 2"
+desc = "Increase all Tower Damage by 10%"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
 }

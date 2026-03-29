@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://b1ln656py44at" path="res://scripts/Research/upgrade_node.gd" id="1_8d5fv"]
 
 [node name="UpgradeNode" type="GraphNode" unique_id=1401898486]
+custom_minimum_size = Vector2(350, 150)
 offset_right = 9.0
 offset_bottom = 55.0
 title = "Upgrade Name"
