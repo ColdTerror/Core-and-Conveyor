@@ -182,42 +182,48 @@ func hide_inventory():
 
 
 func _refresh_stats_ui(b: Node2D):
-	# Clear the old stats from the last building we clicked
 	for child in stats_box.get_children():
 		child.queue_free()
 
 	var stats = []
 	
-	# --- BOTS ---
+	if b.building_name == "Worker Bot":
+		_collect_bot_stats(b, stats)
+	elif b is TowerBuilding:
+		_collect_tower_stats(b, stats)
+	elif b is ProcessorBuilding:
+		_collect_processor_stats(b, stats)
+	else:
+		_collect_harvester_stats(b, stats)
+
+	for stat_text in stats:
+		var row = Label.new()
+		row.text = stat_text
+		row.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		row.add_theme_font_size_override("font_size", 12)
+		stats_box.add_child(row)
+
+func _collect_bot_stats(b: Node2D, stats: Array):
 	if "current_speed" in b: stats.append("Speed: %.0f" % b.current_speed)
 	if "carry_capacity" in b: stats.append("Carry Cap: %d" % b.carry_capacity)
-	if "current_energy" in b and "max_energy" in b: 
+	if "current_energy" in b and "max_energy" in b:
 		stats.append("Energy: %.0f / %.0f" % [b.current_energy, b.max_energy])
 	if "energy_recharge_rate" in b: stats.append("Recharge: %.0f/s" % b.energy_recharge_rate)
 	if "energy_drain_rate" in b: stats.append("Drain: %.0f/s" % b.energy_drain_rate)
 	if "is_limping" in b and b.is_limping: stats.append("Status: Limping!")
-	
-	# --- PROCESSORS ---
-	if "crafting_time_multiplier" in b: 
-		var pct = int(b.crafting_time_multiplier * 100)
-		stats.append("Time Multiplier: %d%%" % pct)
 
-	# --- HARVESTERS ---
+func _collect_tower_stats(b: Node2D, stats: Array):
+	if "damage_multiplier" in b: stats.append("Damage Mult: %.1fx" % b.damage_multiplier)
+	if "fire_rate" in b: stats.append("Fire Rate: %.1f/s" % b.fire_rate)
+	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range / 32.0))
+	if "ammo_inventory" in b and "ammo_capacity" in b:
+		stats.append("Ammo: %d / %d" % [b.ammo_inventory.size(), b.ammo_capacity])
+
+func _collect_processor_stats(b: Node2D, stats: Array):
+	if "crafting_time_multiplier" in b:
+		stats.append("Time Multiplier: %d%%" % int(b.crafting_time_multiplier * 100))
+
+func _collect_harvester_stats(b: Node2D, stats: Array):
 	if "scan_radius" in b: stats.append("Harvest Radius: %d" % b.scan_radius)
 	if "harvest_damage" in b: stats.append("Harvest Amount: %d" % b.harvest_damage)
 	if "work_interval" in b: stats.append("Work Interval: %.1fs" % b.work_interval)
-		
-	# --- TOWERS ---
-	if "damage_multiplier" in b: stats.append("Damage Mult: %.1fx" % b.damage_multiplier)
-	if "fire_rate" in b: stats.append("Fire Rate: %.1f/s" % b.fire_rate)
-	if "attack_range" in b: 
-		var tile_range = int(b.attack_range / 32.0)
-		stats.append("Range: %d Tiles" % tile_range)
-
-	# Generate a label for each stat we found
-	for stat_text in stats:
-		var row = Label.new()
-		row.text = stat_text
-		row.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8)) # Nice muted gray
-		row.add_theme_font_size_override("font_size", 12) 
-		stats_box.add_child(row)
