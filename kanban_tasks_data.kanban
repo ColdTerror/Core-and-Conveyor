@@ -12,7 +12,8 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"0c621e4f-65e7-4a55-bf90-02b8f6758a0a"
+				"0c621e4f-65e7-4a55-bf90-02b8f6758a0a",
+				"324167b9-7fe2-4f06-b874-eaf2b7445305"
 			]
 		},
 		{
@@ -413,6 +414,20 @@
 		{
 			"uuid": "0c621e4f-65e7-4a55-bf90-02b8f6758a0a",
 			"title": "terrain modification",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "2ae23aa5-758f-44bb-b005-9d89a8749adc",
+			"title": "processor",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "324167b9-7fe2-4f06-b874-eaf2b7445305",
+			"title": "stockpile",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

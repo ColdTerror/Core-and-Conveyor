@@ -197,4 +197,5 @@ func _add_pressure(amount: float):
 
 func _corrupt_tile(tile: Vector2i):
 	corruption_layer.set_cell(tile, corruption_source_id, corruption_atlas)
-	active_edges.append(tile)
+	if not active_edges.has(tile):  
+		active_edges.append(tile)

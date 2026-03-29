@@ -27,6 +27,7 @@ var show_range_overlay := false:
 
 const TILE_SIZE = 32
 
+var _claimed_tiles: Array[Vector2i] = []
 
 # --- SETUP ---
 func setup(level_instance: Node2D):
@@ -112,7 +113,7 @@ func _perform_harvest():
 		
 		# (Optional safety measure: only add if we actually broke something)
 		if actual_harvested > 0:
-			stored_amount += harvest_damage
+			stored_amount += actual_harvested
 			inventory_changed.emit()
 
 # --- TARGET FINDING ---
@@ -239,32 +240,22 @@ func _claim_territory():
 	for x in range(start_x, end_x + 1):
 		for y in range(start_y, end_y + 1):
 			var tile = Vector2i(x, y)
+			_claimed_tiles.append(tile)  # ← Cache it
 			if level_ref.active_grid_objects.has(tile):
 				var info = level_ref.active_grid_objects[tile]
-				# Put up the invisible fence for the bots!
 				info["harvester_claim_count"] = info.get("harvester_claim_count", 0) + 1
 
 func _unclaim_territory():
-	if not level_ref or not level_ref.object_layer: return
+	# Use the cached list instead of recalculating
+	for tile in _claimed_tiles:
+		if level_ref and level_ref.active_grid_objects.has(tile):
+			var info = level_ref.active_grid_objects[tile]
+			if info.has("harvester_claim_count"):
+				info["harvester_claim_count"] -= 1
+				if info["harvester_claim_count"] <= 0:
+					info.erase("harvester_claim_count")
 	
-	var center_tile = level_ref.object_layer.local_to_map(global_position)
-	var top_left_tile = center_tile - (size / 2)
-	
-	var start_x = top_left_tile.x - scan_radius
-	var end_x = top_left_tile.x + size.x + scan_radius - 1
-	var start_y = top_left_tile.y - scan_radius
-	var end_y = top_left_tile.y + size.y + scan_radius - 1
-	
-	for x in range(start_x, end_x + 1):
-		for y in range(start_y, end_y + 1):
-			var tile = Vector2i(x, y)
-			if level_ref.active_grid_objects.has(tile):
-				var info = level_ref.active_grid_objects[tile]
-				# Take down the fence when destroyed
-				if info.has("harvester_claim_count"):
-					info["harvester_claim_count"] -= 1
-					if info["harvester_claim_count"] <= 0:
-						info.erase("harvester_claim_count")
+	_claimed_tiles.clear()
 
 func _clear_target_reservation():
 	if current_target != Vector2i.MAX and level_ref and level_ref.active_grid_objects.has(current_target):
