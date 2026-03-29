@@ -39,9 +39,15 @@ var show_range_overlay := false:
 func _ready():
 	super()
 	_cached_range_tiles = _get_local_range_tiles()
+	add_to_group("Towers")
 
 func setup(level_instance: Node2D):
 	level_ref = level_instance
+
+
+
+func apply_research_buffs():
+	damage_multiplier = ResearchManager.tower_damage_mult
 
 
 # ============================================================

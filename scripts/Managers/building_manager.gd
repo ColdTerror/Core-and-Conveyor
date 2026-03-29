@@ -550,8 +550,24 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 		if have < total_needed:
 			can_place = false # We are broke!
 			
+	# --- BUILDING LIMIT STATS ---
+	var extra_stats = {}
+	
+	if not (ghost_building is ConveyorBuilding) and not (ghost_building is WallBuilding):
+		var capped_buildings = buildings.filter(func(b): 
+			return not (b is ConveyorBuilding) and not (b is WallBuilding)
+		)
+		var current = capped_buildings.size()
+		var limit = ResearchManager.max_buildings_allowed
+		extra_stats["Building Limit"] = "%d / %d" % [current, limit]
+		
+		# Also flag can_place false here if at limit
+		if current >= limit:
+			can_place = false
+	# ----------------------------
+	
 	# Tell the UI! 
-	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place, {})
+	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place, extra_stats)
 
 # -------------------------------
 # DRAG LOGIC IMPLEMENTATION
@@ -777,6 +793,14 @@ func _can_place_building(building: Building, origin: Vector2i, temp_network: Arr
 		return false
 	# ==========================================
 	
+	if not (building is ConveyorBuilding) and not (building is WallBuilding):
+		var capped_buildings = buildings.filter(func(b): 
+			return not (b is ConveyorBuilding) and not (b is WallBuilding)
+		)
+		if capped_buildings.size() >= ResearchManager.max_buildings_allowed:
+			print_debug("Building limit reached! Upgrade Core to expand.")
+			return false
+
 	var footprint = building.get_footprint(origin)
 	
 	# --- 1. THE EXPANSION CHECK ---

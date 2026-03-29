@@ -25,7 +25,10 @@ func _process(_delta):
 			work_bar.value = (float(current_building.health) / current_building.max_health) * 100.0
 		elif current_building.has_method("get_progress_ratio"):
 			work_bar.value = current_building.get_progress_ratio() * 100.0
-
+	
+	# Live-refresh bot stats since energy changes every frame
+	if is_instance_valid(current_building) and current_building.building_name == "Worker Bot":
+		_refresh_stats_ui(current_building)
 
 
 func show_building_info(b: Node2D):
@@ -186,8 +189,13 @@ func _refresh_stats_ui(b: Node2D):
 	var stats = []
 	
 	# --- BOTS ---
-	if "speed" in b: stats.append("Move Speed: %d" % b.speed)
+	if "current_speed" in b: stats.append("Speed: %.0f" % b.current_speed)
 	if "carry_capacity" in b: stats.append("Carry Cap: %d" % b.carry_capacity)
+	if "current_energy" in b and "max_energy" in b: 
+		stats.append("Energy: %.0f / %.0f" % [b.current_energy, b.max_energy])
+	if "energy_recharge_rate" in b: stats.append("Recharge: %.0f/s" % b.energy_recharge_rate)
+	if "energy_drain_rate" in b: stats.append("Drain: %.0f/s" % b.energy_drain_rate)
+	if "is_limping" in b and b.is_limping: stats.append("Status: Limping!")
 	
 	# --- PROCESSORS ---
 	if "crafting_time_multiplier" in b: 

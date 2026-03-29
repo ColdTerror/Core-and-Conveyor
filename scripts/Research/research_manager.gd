@@ -87,4 +87,4 @@ func _update_living_bots():
 	get_tree().call_group("WorkerBots", "apply_research_buffs")
 
 func _update_living_towers():
-	pass
+	get_tree().call_group("Towers", "apply_research_buffs")

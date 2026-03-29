@@ -21,7 +21,6 @@ func _ready():
 	_refresh_button()
 
 func _refresh_button():
-	print("refreshing graphnode")
 	var already_done = research_name in ResearchManager.unlocked_techs
 	var tier_met = ResearchManager.can_research(research_name)
 	

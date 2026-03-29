@@ -58,7 +58,6 @@ func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_affo
 			text += "%s: %d / %d\n" % [res, have, needed]
 			
 	if not extra_stats.is_empty():
-		text += "\n-- Upgrades --\n"
 		for stat_name in extra_stats:
 			text += "%s: %s\n" % [stat_name, extra_stats[stat_name]]
 			
