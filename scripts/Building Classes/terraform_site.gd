@@ -7,6 +7,10 @@ var job_type: JobType
 
 var level_ref: Node2D
 
+var is_ready_to_build: bool = true
+var required_items: Dictionary = {} 
+var delivered_items: Dictionary = {}
+
 func setup(level: Node2D, grid_pos: Vector2i, type: JobType):
 	level_ref = level
 	job_type = type
@@ -56,7 +60,7 @@ func _draw():
 	var rect = Rect2(top_left, Vector2(tile_size, tile_size))
 	
 	# Color code by type (Red for Clear, Blue for Water)
-	var color = Color(1.0, 0.2, 0.2, 0.8) if job_type == JobType.REMOVE_OBJECT else Color(0.2, 0.6, 1.0, 0.8)
+	var color = Color(1.0, 0.2, 0.2, 0.8)
 	var fill = Color(color.r, color.g, color.b, 0.15)
 	
 	draw_rect(rect, fill, true)

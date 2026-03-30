@@ -12,7 +12,8 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"98ce003e-e8ee-4651-9334-cd575dcef697"
+				"98ce003e-e8ee-4651-9334-cd575dcef697",
+				"d8915488-d31c-4403-a47d-9b6ddd651484"
 			]
 		},
 		{
@@ -427,15 +428,15 @@
 			"steps": []
 		},
 		{
-			"uuid": "324167b9-7fe2-4f06-b874-eaf2b7445305",
-			"title": "stockpile",
+			"uuid": "98ce003e-e8ee-4651-9334-cd575dcef697",
+			"title": "building manager makeover",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
 		{
-			"uuid": "98ce003e-e8ee-4651-9334-cd575dcef697",
-			"title": "building manager makeover",
+			"uuid": "d8915488-d31c-4403-a47d-9b6ddd651484",
+			"title": "visualize the terrain tool (when its on/off)",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

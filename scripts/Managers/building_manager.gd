@@ -37,7 +37,6 @@ var ghost_building: Building = null
 var placing_building := false
 
 @export var terraform_site_scene: PackedScene
-var is_terrain_mode: bool = false
 
 # --- DRAG VARIABLES ---
 var is_dragging: bool = false
@@ -905,10 +904,6 @@ func _unhandled_input(event):
 			print("show attack key")
 			show_attack_grid = not show_attack_grid
 			queue_redraw()
-		elif event.keycode == KEY_T:
-			is_terrain_mode = not is_terrain_mode
-			if is_terrain_mode: cancel_placement() # Drop any buildings we are holding
-			print("Terrain mode: ", is_terrain_mode)
 		elif event.keycode == KEY_P:
 			print("\n=== MASTER PRIORITY QUEUE ===")
 			for i in range(master_priority_queue.size()):
@@ -925,16 +920,6 @@ func _unhandled_input(event):
 						print("Rank ", rank, ": [DELETED/INVALID BUILDING]")
 			print("=============================\n")
 	# -------------------------------------------
-	if is_terrain_mode:
-		# Check for Left Click OR Click-and-Drag
-		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or \
-		   (event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)):
-			
-			print("try change terrain")
-			var grid_pos = _get_mouse_grid()
-			_try_add_terrain_job(grid_pos)
-			get_viewport().set_input_as_handled()
-			return
 	# Cancel logic
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 		if ghost_building != null:

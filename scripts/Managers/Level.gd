@@ -9,7 +9,7 @@ extends Node2D
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
 
 # Mode State
-enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE}
+enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM}
 var current_mode = InteractionMode.NONE
 
 var last_hovered_upgrade_tile := Vector2i(-1, -1)
@@ -237,7 +237,11 @@ func _draw():
 	# UPGRADE (Blue/Cyan)
 	elif current_mode == InteractionMode.UPGRADE:
 		_draw_grid_highlight(Color(0.2, 0.8, 1.0, 0.3), Color(0.2, 0.8, 1.0, 0.8))
-
+	
+	# --- NEW: TERRAFORM (Orange) ---
+	elif current_mode == InteractionMode.TERRAFORM:
+		_draw_grid_highlight(Color(1.0, 0.6, 0.0, 0.3), Color(1.0, 0.6, 0.0, 0.8))
+		
 # Helper function to keep _draw clean!
 func _draw_grid_highlight(fill_color: Color, outline_color: Color):
 	var mouse_pos = get_global_mouse_position()
@@ -449,11 +453,26 @@ func _unhandled_input(event):
 		print("Entered Deconstruct Mode")
 		
 	# --- Change into UPGRADE mode ---
-	# (Remember to map "upgrade_hotkey" to 'U' in Project Settings -> Input Map!)
 	if event.is_action_pressed("upgrade_hotkey"): 
 		building_manager.cancel_placement()
-		current_mode = InteractionMode.UPGRADE
-		print("Entered Upgrade Mode")
+		if current_mode == InteractionMode.UPGRADE:
+			current_mode = InteractionMode.NONE
+			print("Exited Upgrade Mode")
+		else:
+			current_mode = InteractionMode.UPGRADE
+			print("Entered Upgrade Mode")
+		
+	# --- NEW: Change into TERRAFORM mode ---
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_T:
+			building_manager.cancel_placement()
+			# Toggle it on/off
+			if current_mode == InteractionMode.TERRAFORM:
+				current_mode = InteractionMode.NONE
+				print("Exited Terrain Mode")
+			else:
+				current_mode = InteractionMode.TERRAFORM
+				print("Entered Terrain Mode")
 
 	# 2. BUILDING MODE (Delegated to Manager)
 	# We check this FIRST. If we are placing a building, we send Presses, Releases, 
@@ -505,6 +524,21 @@ func _unhandled_input(event):
 			
 		return # Stop processing other clicks
 
+	# --- TERRAFORM MODE LOGIC ---
+	if current_mode == InteractionMode.TERRAFORM:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			building_manager._try_add_terrain_job(grid_pos)
+			
+		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			building_manager._try_add_terrain_job(grid_pos)
+			
+		# Right click or Escape to cancel
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+			current_mode = InteractionMode.NONE
+			print("Exited Terrain Mode")
+			
+		return # Stop processing other clicks
+		
 	# 3. TILE MODE & SELECTION (Standard Clicks)
 	# Only listen for explicit "Presses" for these modes
 	if event.is_action_pressed("ui_left"):
