@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://ctedoygpx45hx" path="res://scripts/UI/priority_menu.gd" id="1_ui8jo"]
 
 [node name="PriorityMenu" type="PanelContainer" unique_id=1030070791]
-custom_minimum_size = Vector2(800, 600)
+custom_minimum_size = Vector2(600, 400)
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -40,7 +40,10 @@ layout_mode = 2
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer" unique_id=2046592532]
 custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
 [node name="ListContainer" type="VBoxContainer" parent="VBoxContainer/ScrollContainer" unique_id=55897273]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
