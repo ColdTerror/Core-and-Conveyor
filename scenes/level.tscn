@@ -28,7 +28,7 @@
 [ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/detail_menu.tscn" id="21_wu01b"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
 [ext_resource type="Script" uid="uid://derk5dx603k7c" path="res://scripts/Managers/time_manager.gd" id="23_asl66"]
-[ext_resource type="Script" uid="uid://bdgkdni8jfnax" path="res://scripts/UI/highlight_layer.gd" id="25_svjb4"]
+[ext_resource type="Script" uid="uid://bdgkdni8jfnax" path="res://scripts/UI/overlay_renderer.gd" id="25_svjb4"]
 [ext_resource type="PackedScene" uid="uid://ce1ik2gwvn5dc" path="res://scenes/buildings & related/construction_site_building.tscn" id="26_v3why"]
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/test_enemy.tscn" id="27_cmcjb"]
 [ext_resource type="PackedScene" uid="uid://bc7bv1elbmh38" path="res://scenes/buildings & related/terraform_site.tscn" id="27_q4oe8"]
@@ -86,7 +86,7 @@ tile_set = ExtResource("2_w8frs")
 [node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
 tile_set = ExtResource("2_w8frs")
 
-[node name="HighlightLayer" type="Node2D" parent="." unique_id=826390895]
+[node name="OverlayRenderer" type="Node2D" parent="." unique_id=826390895]
 script = ExtResource("25_svjb4")
 
 [node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "hover_popup", "terrain_layer", "corruption_layer")]

@@ -144,153 +144,6 @@ func _process(delta):
 		queue_redraw()
 	
 
-
-# -------------------------------
-# VISUAL OVERLAYS (Grid-Based)
-# -------------------------------
-func _draw():
-	# If we aren't placing a building AND both toggles are off, don't draw anything
-	if not placing_building and not show_build_grid and not show_safe_grid and not show_attack_grid:
-		return
-
-	var tile_size = 32.0 
-	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
-	var b_width = 2.0 # Line width for all borders
-	
-	# 1. DRAW GLOBAL BUILD ZONES (F1 Hotkey)
-	if show_build_grid:
-		var build_color = Color(0.2, 1.0, 0.2, 0.15) # Faint green fill
-		var build_border_color = Color(0.2, 1.0, 0.2, 0.8) # Solid green border
-		
-		for tile in buildable_tiles.keys():
-			var local_pos = object_layer.map_to_local(tile) - half_offset
-			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), build_color)
-			
-			var tl = local_pos
-			var tr = local_pos + Vector2(tile_size, 0)
-			var bl = local_pos + Vector2(0, tile_size)
-			var br = local_pos + Vector2(tile_size, tile_size)
-			
-			if not buildable_tiles.has(tile + Vector2i.UP): draw_line(tl, tr, build_border_color, b_width)
-			if not buildable_tiles.has(tile + Vector2i.DOWN): draw_line(bl, br, build_border_color, b_width)
-			if not buildable_tiles.has(tile + Vector2i.LEFT): draw_line(tl, bl, build_border_color, b_width)
-			if not buildable_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, build_border_color, b_width)
-
-	# 2. DRAW GLOBAL SAFE ZONES (F2 Hotkey)
-	if show_safe_grid:
-		var safe_border_color = Color(0.2, 0.5, 1.0, 0.8) # Solid blue border
-		
-		for tile in safe_tiles.keys():
-			var overlaps = safe_tiles[tile]
-			
-			# Heat Map Math: Start at 0.15 alpha. Add 0.15 for each overlapping resistance zone. Cap at 0.7.
-			var current_alpha = min(0.15 + ((overlaps - 1) * 0.15), 0.7)
-			var fill_color = Color(0.2, 0.5, 1.0, current_alpha)
-			
-			var local_pos = object_layer.map_to_local(tile) - half_offset
-			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), fill_color)
-			
-			var tl = local_pos
-			var tr = local_pos + Vector2(tile_size, 0)
-			var bl = local_pos + Vector2(0, tile_size)
-			var br = local_pos + Vector2(tile_size, tile_size)
-			
-			if not safe_tiles.has(tile + Vector2i.UP): draw_line(tl, tr, safe_border_color, b_width)
-			if not safe_tiles.has(tile + Vector2i.DOWN): draw_line(bl, br, safe_border_color, b_width)
-			if not safe_tiles.has(tile + Vector2i.LEFT): draw_line(tl, bl, safe_border_color, b_width)
-			if not safe_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, safe_border_color, b_width)
-	
-	# 3 DRAW GLOBAL ATTACK ZONES (F3 Hotkey)
-	if show_attack_grid:
-		var attack_border_color = Color(1.0, 0.2, 0.2, 0.8) # Solid red border
-		
-		for tile in attack_tiles.keys():
-			var overlaps = attack_tiles[tile]
-			
-			# Heat Map Math: Start at 0.15 alpha. Add 0.15 for each overlapping tower. Cap it at 0.7 so it doesn't turn black.
-			var current_alpha = min(0.15 + ((overlaps - 1) * 0.15), 0.7)
-			var fill_color = Color(1.0, 0.2, 0.2, current_alpha)
-			
-			var local_pos = object_layer.map_to_local(tile) - half_offset
-			draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), fill_color)
-			
-			var tl = local_pos
-			var tr = local_pos + Vector2(tile_size, 0)
-			var bl = local_pos + Vector2(0, tile_size)
-			var br = local_pos + Vector2(tile_size, tile_size)
-			
-			# ONLY draw the border if the neighboring tile is completely empty!
-			if not attack_tiles.has(tile + Vector2i.UP): draw_line(tl, tr, attack_border_color, b_width)
-			if not attack_tiles.has(tile + Vector2i.DOWN): draw_line(bl, br, attack_border_color, b_width)
-			if not attack_tiles.has(tile + Vector2i.LEFT): draw_line(tl, bl, attack_border_color, b_width)
-			if not attack_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, attack_border_color, b_width)
-			
-	# 4. DRAW GHOST PREVIEWS (When Placing)
-	if placing_building:
-		var ghosts_to_draw = []
-		if is_dragging and drag_ghosts.size() > 0:
-			ghosts_to_draw = drag_ghosts
-		elif ghost_building:
-			ghosts_to_draw = [ghost_building]
-
-		var preview_build = Color(0.5, 1.0, 0.5, 0.15) # Brighter green fill
-		var preview_safe = Color(0.5, 0.8, 1.0, 0.15)  # Brighter blue fill
-
-		var unique_safe_tiles = {}
-		var unique_build_tiles = {}
-
-		# A. Gather all the tiles without drawing them yet
-		for g in ghosts_to_draw:
-			if not is_instance_valid(g): continue
-			
-			var origin = object_layer.local_to_map(g.global_position)
-			
-			if "corruption_range" in g and g.corruption_range > 0:
-				var s_tiles = _get_tiles_in_radius(origin, g, g.corruption_range)
-				for t in s_tiles:
-					unique_safe_tiles[t] = true 
-					
-			if "build_range" in g and g.build_range > 0:
-				var b_tiles = _get_tiles_in_radius(origin, g, g.build_range)
-				for t in b_tiles:
-					unique_build_tiles[t] = true
-
-		# B. Draw every collected tile fill exactly ONCE!
-		for t in unique_safe_tiles.keys():
-			var pos = object_layer.map_to_local(t) - half_offset
-			draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_safe)
-			
-		for t in unique_build_tiles.keys():
-			var pos = object_layer.map_to_local(t) - half_offset
-			draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), preview_build)
-
-		# C. Draw crisp, color-coded borders around the outer edges
-		var build_border_color = Color(0.2, 1.0, 0.2, 0.8) 
-		for t in unique_build_tiles.keys():
-			var pos = object_layer.map_to_local(t) - half_offset
-			var tl = pos                                      
-			var tr = pos + Vector2(tile_size, 0)              
-			var bl = pos + Vector2(0, tile_size)              
-			var br = pos + Vector2(tile_size, tile_size)      
-			
-			if not unique_build_tiles.has(t + Vector2i.UP): draw_line(tl, tr, build_border_color, b_width)
-			if not unique_build_tiles.has(t + Vector2i.DOWN): draw_line(bl, br, build_border_color, b_width)
-			if not unique_build_tiles.has(t + Vector2i.LEFT): draw_line(tl, bl, build_border_color, b_width)
-			if not unique_build_tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, build_border_color, b_width)
-
-		var safe_border_color = Color(0.2, 0.5, 1.0, 0.8) 
-		for t in unique_safe_tiles.keys():
-			var pos = object_layer.map_to_local(t) - half_offset
-			var tl = pos
-			var tr = pos + Vector2(tile_size, 0)
-			var bl = pos + Vector2(0, tile_size)
-			var br = pos + Vector2(tile_size, tile_size)
-			
-			if not unique_safe_tiles.has(t + Vector2i.UP): draw_line(tl, tr, safe_border_color, b_width)
-			if not unique_safe_tiles.has(t + Vector2i.DOWN): draw_line(bl, br, safe_border_color, b_width)
-			if not unique_safe_tiles.has(t + Vector2i.LEFT): draw_line(tl, bl, safe_border_color, b_width)
-			if not unique_safe_tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, safe_border_color, b_width)
-	
 func _on_building_destroyed(b: Building):
 	if b in buildings:
 		buildings.erase(b)
@@ -1409,6 +1262,8 @@ func move_priority_down(item: Variant):
 		master_priority_queue[idx + 1] = item
 		master_priority_queue[idx] = temp
 
+var terraform_jobs: Dictionary = {}
+
 func _try_add_terrain_job(grid_pos: Vector2i):
 	# Don't overlap jobs or buildings!
 	if occupied_tiles.has(grid_pos): return 
@@ -1430,9 +1285,12 @@ func _try_add_terrain_job(grid_pos: Vector2i):
 		level_ref.object_layer.add_child(site)
 		site.setup(level_ref, grid_pos, job_type)
 		
+		terraform_jobs[grid_pos] = job_type
+		
 		# Register it exactly like a building so the bots can see it!
 		_register_building(site)
 		site.destroyed.connect(_on_building_destroyed)
+		site.destroyed.connect(func(_b): terraform_jobs.erase(grid_pos))
 		
 	else:
 		print("Nothing to remove at: ", grid_pos)
