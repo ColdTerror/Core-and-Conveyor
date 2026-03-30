@@ -283,7 +283,7 @@ func _find_priority_job():
 	if carried_amount > 0:
 		var holding_wrong_item = true
 		
-		if best_job is ConstructionSite and not best_job.is_ready_to_build:
+		if (best_job is ConstructionSite or best_job is TerraformSite) and not best_job.is_ready_to_build:
 			if best_job.required_items.has(carried_item_name):
 				var needed = best_job.required_items[carried_item_name]
 				var have = best_job.delivered_items.get(carried_item_name, 0)
@@ -295,7 +295,7 @@ func _find_priority_job():
 			return
 
 	# Execute the job based on what type it is and what state we're in
-	if best_job is ConstructionSite:
+	if best_job is ConstructionSite or best_job is TerraformSite:
 		if carried_amount > 0:
 			# Hands full of the right material — deliver it
 			_request_path(best_job.occupied_tiles, true)
@@ -623,7 +623,7 @@ func _do_repair():
 func _do_build():
 	var building = level_ref.building_manager.occupied_tiles.get(target_tile, null)
 		
-	if not building or not building is ConstructionSite:
+	if not building or not (building is ConstructionSite or building is TerraformSite):
 		current_state = State.IDLE
 		return
 		

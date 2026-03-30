@@ -30,6 +30,7 @@
 [ext_resource type="Script" uid="uid://derk5dx603k7c" path="res://scripts/Managers/time_manager.gd" id="23_asl66"]
 [ext_resource type="PackedScene" uid="uid://ce1ik2gwvn5dc" path="res://scenes/buildings & related/construction_site_building.tscn" id="26_v3why"]
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/test_enemy.tscn" id="27_cmcjb"]
+[ext_resource type="PackedScene" uid="uid://bc7bv1elbmh38" path="res://scenes/buildings & related/terraform_site.tscn" id="27_q4oe8"]
 [ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/Managers/pathfinder.gd" id="29_7agi7"]
 [ext_resource type="PackedScene" uid="uid://mc4h1u2qxbyd" path="res://scenes/ui/enemy_info_popup.tscn" id="29_w3o6u"]
 [ext_resource type="Script" uid="uid://cp1a4u82js3m8" path="res://scripts/UI/MainHUD.gd" id="30_2jdvr"]
@@ -90,6 +91,7 @@ hover_popup = NodePath("../CanvasLayer/Popup_Layer/HoverMenu")
 terrain_layer = NodePath("../TerrainLayer")
 corruption_layer = NodePath("../CorruptionLayer")
 construction_site_scene = ExtResource("26_v3why")
+terraform_site_scene = ExtResource("27_q4oe8")
 
 [node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager", "wave_manager", "time_manager")]
 script = ExtResource("34_v3why")

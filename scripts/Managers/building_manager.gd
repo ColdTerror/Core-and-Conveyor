@@ -36,6 +36,9 @@ var occupied_tiles := {} # Key: Vector2i, Value: Building
 var ghost_building: Building = null
 var placing_building := false
 
+@export var terraform_site_scene: PackedScene
+var is_terrain_mode: bool = false
+
 # --- DRAG VARIABLES ---
 var is_dragging: bool = false
 var drag_start: Vector2i
@@ -96,10 +99,9 @@ func start_placing(scene: PackedScene):
 func handle_input(event, raw_grid_pos: Vector2i) -> bool:
 	if not ghost_building: return false
 	
-	# --- THE FIX: Ignore Level.gd's raw grid and use our centered one! ---
 	var current_grid_pos = _get_mouse_grid()
-	# ----------------------------------------------------------------------
 	
+
 	# 1. Update the Main Cursor Ghost (if not dragging)
 	if not is_dragging:
 		_update_ghost_position_to(current_grid_pos)
@@ -903,9 +905,11 @@ func _unhandled_input(event):
 			print("show attack key")
 			show_attack_grid = not show_attack_grid
 			queue_redraw()
-	# ---------------------------------
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_P:
+		elif event.keycode == KEY_T:
+			is_terrain_mode = not is_terrain_mode
+			if is_terrain_mode: cancel_placement() # Drop any buildings we are holding
+			print("Terrain mode: ", is_terrain_mode)
+		elif event.keycode == KEY_P:
 			print("\n=== MASTER PRIORITY QUEUE ===")
 			for i in range(master_priority_queue.size()):
 				var item = master_priority_queue[i]
@@ -921,7 +925,16 @@ func _unhandled_input(event):
 						print("Rank ", rank, ": [DELETED/INVALID BUILDING]")
 			print("=============================\n")
 	# -------------------------------------------
-	
+	if is_terrain_mode:
+		# Check for Left Click OR Click-and-Drag
+		if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or \
+		   (event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)):
+			
+			print("try change terrain")
+			var grid_pos = _get_mouse_grid()
+			_try_add_terrain_job(grid_pos)
+			get_viewport().set_input_as_handled()
+			return
 	# Cancel logic
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 		if ghost_building != null:
@@ -1363,11 +1376,16 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 	
 	# Loop through your existing arrays based on the group
 	var search_array = []
-	if group_name == "Belts":
-		# Assuming you have a way to filter conveyors, or just loop all buildings:
-		for b in buildings:
-			if b is ConveyorBuilding: search_array.append(b)
 			
+	if group_name == "Belts":
+		for b in buildings: if b is ConveyorBuilding: search_array.append(b)
+	elif group_name == "Walls":
+		for b in buildings: if b is WallBuilding: search_array.append(b)
+		
+	# --- THE FIX: ADD TERRAFORM ROUTING ---
+	elif group_name == "Terraform":
+		for b in buildings: if b is TerraformSite: search_array.append(b)
+		
 	for b in search_array:
 		if _building_needs_work(b):
 			var dist = bot_pos.distance_squared_to(b.global_position)
@@ -1403,6 +1421,38 @@ func move_priority_down(item: Variant):
 		master_priority_queue[idx + 1] = item
 		master_priority_queue[idx] = temp
 
+func _try_add_terrain_job(grid_pos: Vector2i):
+	# Don't overlap jobs or buildings!
+	if occupied_tiles.has(grid_pos): return 
+		
+	var job_type = -1
+	var has_object = object_layer.get_cell_source_id(grid_pos) != -1
+	var has_active_resource = level_ref.active_grid_objects.has(grid_pos)
+		
+	if has_object or has_active_resource:
+		job_type = TerraformSite.JobType.REMOVE_OBJECT
+	elif terrain_layer:
+		var tile_data = terrain_layer.get_cell_tile_data(grid_pos)
+		if tile_data != null and tile_data.get_custom_data("buildable") == false:
+			job_type = TerraformSite.JobType.CONVERT_WATER
+			
+	if job_type != -1:
+		# SPAWN THE NODE!
+		var site = terraform_site_scene.instantiate() as TerraformSite
+		level_ref.object_layer.add_child(site)
+		site.setup(level_ref, grid_pos, job_type)
+		
+		# Register it exactly like a building so the bots can see it!
+		_register_building(site)
+		site.destroyed.connect(_on_building_destroyed)
+		
+		# Ensure "Terraform" is dynamically added to the Priority List
+		if not master_priority_queue.has("Terraform"):
+			master_priority_queue.append("Terraform")
+			print("Priority System: Unlocked Terraforming")
+	else:
+		print("Nothing to remove at: ", grid_pos)
+		
 # ==========================================
 # BOT UI ROUTING
 # ==========================================

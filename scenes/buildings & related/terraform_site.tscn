@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bc7bv1elbmh38"]
+
+[ext_resource type="Script" uid="uid://b42oljumf8ies" path="res://scripts/Building Classes/terraform_site.gd" id="1_57551"]
+
+[node name="TerraformSite" type="Node2D" unique_id=2015433597]
+script = ExtResource("1_57551")
