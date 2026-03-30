@@ -12,7 +12,8 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"98ce003e-e8ee-4651-9334-cd575dcef697"
+				"98ce003e-e8ee-4651-9334-cd575dcef697",
+				"3512b141-faac-45c3-a413-6d121b4e22cb"
 			]
 		},
 		{
@@ -430,7 +431,7 @@
 		{
 			"uuid": "98ce003e-e8ee-4651-9334-cd575dcef697",
 			"title": "building manager makeover",
-			"description": "",
+			"description": "split it into parts (no god script)",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
@@ -444,6 +445,13 @@
 		{
 			"uuid": "36049934-101a-4949-bd3d-3d431f8afd8e",
 			"title": "remove terrain job",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "3512b141-faac-45c3-a413-6d121b4e22cb",
+			"title": "priority list ui",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
