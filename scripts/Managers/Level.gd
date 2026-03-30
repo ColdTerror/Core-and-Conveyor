@@ -14,6 +14,10 @@ var current_mode = InteractionMode.NONE
 
 var last_hovered_upgrade_tile := Vector2i(-1, -1)
 
+var is_terrain_remove_brush: bool = false
+var last_terrain_tile := Vector2i(-1, -1)
+
+
 enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
 @export var current_map_type: MapGenType = MapGenType.RIVER_DIVIDE
 
@@ -526,15 +530,41 @@ func _unhandled_input(event):
 
 	# --- TERRAFORM MODE LOGIC ---
 	if current_mode == InteractionMode.TERRAFORM:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			building_manager._try_add_terrain_job(grid_pos)
-			
+		
+		# 1. THE INITIAL CLICK (Sets the brush type)
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				last_terrain_tile = grid_pos
+				
+				# Did we click a site? Become an ERASER!
+				if building_manager.occupied_tiles.has(grid_pos) and building_manager.occupied_tiles[grid_pos] is TerraformSite:
+					is_terrain_remove_brush = true
+					building_manager.deconstruct_building_at(grid_pos)
+				else:
+					# Otherwise, become a PEN!
+					is_terrain_remove_brush = false
+					building_manager._try_add_terrain_job(grid_pos)
+			else:
+				# Reset the tracker when the mouse is released
+				last_terrain_tile = Vector2i(-1, -1)
+				
+		# 2. THE DRAG (Applies the chosen brush)
 		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			building_manager._try_add_terrain_job(grid_pos)
 			
-		# Right click or Escape to cancel
+			# Only trigger once per grid tile to save performance
+			if grid_pos != last_terrain_tile:
+				last_terrain_tile = grid_pos
+				
+				if is_terrain_remove_brush:
+					if building_manager.occupied_tiles.has(grid_pos) and building_manager.occupied_tiles[grid_pos] is TerraformSite:
+						building_manager.deconstruct_building_at(grid_pos)
+				else:
+					building_manager._try_add_terrain_job(grid_pos)
+			
+		# 3. CANCEL (Right click or Escape)
 		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
 			current_mode = InteractionMode.NONE
+			last_terrain_tile = Vector2i(-1, -1)
 			print("Exited Terrain Mode")
 			
 		return # Stop processing other clicks

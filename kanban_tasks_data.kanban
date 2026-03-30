@@ -12,24 +12,24 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"98ce003e-e8ee-4651-9334-cd575dcef697",
-				"d8915488-d31c-4403-a47d-9b6ddd651484"
+				"98ce003e-e8ee-4651-9334-cd575dcef697"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": [
-				"0c621e4f-65e7-4a55-bf90-02b8f6758a0a"
-			]
+			"tasks": []
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
+				"0c621e4f-65e7-4a55-bf90-02b8f6758a0a",
 				"f1a8d512-eb0a-4620-a76a-f5b0763a7e5d",
 				"084902d2-ca56-43cd-890c-21af5ddcf715",
+				"36049934-101a-4949-bd3d-3d431f8afd8e",
+				"d8915488-d31c-4403-a47d-9b6ddd651484",
 				"6c3c444f-33d7-4dfe-b604-4f1977f71bf9",
 				"f57f5143-4789-4d20-83d4-2bb1269266e1",
 				"eb674fc5-e9f8-4848-861c-9ac574bdaf6d",
@@ -437,6 +437,13 @@
 		{
 			"uuid": "d8915488-d31c-4403-a47d-9b6ddd651484",
 			"title": "visualize the terrain tool (when its on/off)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "36049934-101a-4949-bd3d-3d431f8afd8e",
+			"title": "remove terrain job",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

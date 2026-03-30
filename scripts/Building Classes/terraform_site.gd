@@ -32,6 +32,9 @@ func add_build_progress(amount: int):
 	health += amount
 	queue_redraw()
 	
+	if has_signal("health_changed"):
+		health_changed.emit(health, max_health)
+		
 	if health >= max_health:
 		_finish_terraforming()
 
@@ -59,9 +62,9 @@ func _draw():
 	var top_left = Vector2(-tile_size / 2.0, -tile_size / 2.0)
 	var rect = Rect2(top_left, Vector2(tile_size, tile_size))
 	
-	# Color code by type (Red for Clear, Blue for Water)
-	var color = Color(1.0, 0.2, 0.2, 0.8)
-	var fill = Color(color.r, color.g, color.b, 0.15)
+	# Color code by type (Orange)
+	var color = Color(1.0, 0.6, 0.0, 0.8)
+	var fill = Color(1.0, 0.6, 0.0, 0.3)
 	
 	draw_rect(rect, fill, true)
 	draw_rect(rect, color, false, 2.0)
