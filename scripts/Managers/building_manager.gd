@@ -1,139 +1,77 @@
 extends Node2D
 class_name BuildingManager
 
-@export var object_layer: TileMapLayer
-@export var hover_popup: Control
+# ==========================================
+# SIGNALS
+# ==========================================
+signal building_selected(building: Building)
+signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary)
+signal placement_ended
+signal core_placed_event
 
+# ==========================================
+# EXPORTS
+# ==========================================
+@export var object_layer: TileMapLayer
 @export var terrain_layer: TileMapLayer
 @export var corruption_layer: TileMapLayer
+@export var hover_popup: Control
+@export var construction_site_scene: PackedScene
+@export var terraform_site_scene: PackedScene
 
-@export var construction_site_scene: PackedScene 
+# ==========================================
+# RUNTIME STATE
+# ==========================================
 
+# --- Core ---
+var is_core_placed: bool = false
+var level_ref: Node2D
+var pathfinder: Pathfinder
 
-# --- PRIORITY SYSTEM ---
-# Index 0 is Priority #1! We pre-populate it with our abstract groups.
-var master_priority_queue: Array = []
+# --- Building Tracking ---
+var buildings: Array[Building] = []
+var occupied_tiles := {}          # Key: Vector2i, Value: Building
 
-func _is_grouped_type(building: Node) -> bool:
-	# Add any other classes here that shouldn't be individually ranked!
-	return building is ConveyorBuilding or building is WallBuilding or building is TerraformSite
-	
-
-# ---TRACKERS ---
-# Key: Vector2i (Grid Coord), Value: int (Number of buildings in range)
+# --- Zone Tracking ---
+# Key: Vector2i, Value: int (overlap count)
 var safe_tiles: Dictionary = {}
-var buildable_tiles: Dictionary = {} 
+var buildable_tiles: Dictionary = {}
 var attack_tiles: Dictionary = {}
 
-# --- VISUALIZER STATES ---
+# --- Terraform ---
+var terraform_jobs: Dictionary = {} # Key: Vector2i, Value: TerraformSite.JobType
+
+# --- Overlay Toggles (read by MapOverlayManager) ---
 var show_build_grid: bool = false
 var show_safe_grid: bool = false
 var show_attack_grid: bool = false
 
-var buildings: Array[Building] = []
-var occupied_tiles := {} # Key: Vector2i, Value: Building
-
+# --- Placement ---
 var ghost_building: Building = null
-var placing_building := false
-
-@export var terraform_site_scene: PackedScene
-
-# --- DRAG VARIABLES ---
+var placing_building: bool = false
 var is_dragging: bool = false
 var drag_start: Vector2i
-var drag_ghosts: Array[Node2D] = [] # Stores the temporary ghosts for the line
+var drag_ghosts: Array[Node2D] = []
 
-var level_ref: Node2D 
+# ==========================================
+# PRIORITY SYSTEM
+# ==========================================
+# Index 0 = highest priority. Groups use strings, unique buildings use node refs.
+var master_priority_queue: Array = []
 
-var pathfinder: Pathfinder
+func _is_grouped_type(building: Node) -> bool:
+	return building is ConveyorBuilding or building is WallBuilding or building is TerraformSite
 
-signal building_selected(building: Building)
+# ==========================================
+# SETUP
+# ==========================================
 
-signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary)
-signal placement_ended # Fires when we cancel or finish placing
-
-signal core_placed_event
-var is_core_placed: bool = false
-
-# -------------------------------
-# PUBLIC API
-# -------------------------------
 func initialize(level_instance: Node2D):
 	level_ref = level_instance
-	
-func start_placing(scene: PackedScene):
-	if scene == null:
-		return
 
-	# Reset any previous state
-	cancel_placement()
-
-	ghost_building = scene.instantiate() as Building
-	# Add to a dedicated ghost layer if possible, otherwise just child it
-	if level_ref and level_ref.has_node("GhostLayer"):
-		level_ref.get_node("GhostLayer").add_child(ghost_building)
-	else:
-		add_child(ghost_building)
-	
-	# Inject Level immediately so Ghost can see the grid
-	if ghost_building is ConveyorBuilding:
-		# Give it a default direction for the ghost previews
-		ghost_building.setup(level_ref, Vector2i.RIGHT)
-	elif ghost_building.has_method("setup"):
-		ghost_building.setup(level_ref)
-
-	ghost_building.set_ghost(true)
-	placing_building = true
-	
-	# Reset drag state
-	is_dragging = false
-	_clear_drag_ghosts()
-	
-	# --- FIXED: Force an immediate position and validity check! ---
-	var initial_grid_pos = _get_mouse_grid()
-	_update_ghost_position_to(initial_grid_pos)
-
-# --- NEW: INPUT HANDLER FOR LEVEL.GD ---
-# This manages the Drag Logic vs Instant Click logic
-func handle_input(event, raw_grid_pos: Vector2i) -> bool:
-	if not ghost_building: return false
-	
-	var current_grid_pos = _get_mouse_grid()
-	
-
-	# 1. Update the Main Cursor Ghost (if not dragging)
-	if not is_dragging:
-		_update_ghost_position_to(current_grid_pos)
-
-	# 2. HANDLE CLICKS
-	if event.is_action_pressed("ui_left"):
-		
-		# CASE A: Draggable Building (Wall) -> START DRAG
-		if ghost_building.is_draggable:
-			is_dragging = true
-			drag_start = current_grid_pos # Now the drag starts perfectly centered too!
-			_update_drag_line(current_grid_pos)
-			ghost_building.visible = false # Hide the main cursor
-			return false # Keep processing input
-			
-		# CASE B: Normal Building (Tower) -> PLACE INSTANTLY
-		else:
-			return confirm_placement()
-
-	# 3. HANDLE DRAG UPDATE (Mouse Moved)
-	if is_dragging and event is InputEventMouseMotion:
-		_update_drag_line(current_grid_pos)
-
-	# 4. HANDLE RELEASE (Commit Drag)
-	if event.is_action_released("ui_left") and is_dragging:
-		
-		ghost_building.visible = true # Show cursor again
-		_commit_drag_line()
-		is_dragging = false
-		_clear_drag_ghosts()
-		return false #Keep placing belts
-
-	return false
+# ==========================================
+# MAIN LOOP
+# ==========================================
 
 func _process(delta):
 	for b in buildings:
@@ -142,205 +80,123 @@ func _process(delta):
 	
 	if placing_building:
 		queue_redraw()
-	
 
-func _on_building_destroyed(b: Building):
-	if b in buildings:
-		buildings.erase(b)
+func _unhandled_input(event):
+	_handle_overlay_hotkeys(event)
 	
-	if master_priority_queue.has(b):
-		master_priority_queue.erase(b)
-		
-	for tile in b.occupied_tiles:
-		if occupied_tiles.has(tile) and occupied_tiles[tile] == b:  # ONLY erase if it's still THIS building
-			occupied_tiles.erase(tile)
+	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
+		if ghost_building != null:
+			cancel_placement()
+
+func _handle_overlay_hotkeys(event):
+	if not event is InputEventKey or not event.is_pressed() or event.is_echo(): return
 	
-	_remove_safe_zone(b)
-	_remove_build_zone(b)
-	_remove_attack_zone(b)
+	match event.keycode:
+		KEY_F1:
+			show_build_grid = not show_build_grid
+			queue_redraw()
+		KEY_F2:
+			show_safe_grid = not show_safe_grid
+			queue_redraw()
+		KEY_F3:
+			show_attack_grid = not show_attack_grid
+			queue_redraw()
+		KEY_P:
+			_debug_print_priority_queue()
+
+# ==========================================
+# PLACEMENT: PUBLIC API
+# ==========================================
+
+func start_placing(scene: PackedScene):
+	if scene == null: return
+
+	cancel_placement()
+
+	ghost_building = scene.instantiate() as Building
+	if level_ref and level_ref.has_node("GhostLayer"):
+		level_ref.get_node("GhostLayer").add_child(ghost_building)
+	else:
+		add_child(ghost_building)
 	
-	# Free up the Pathfinder Tiles
-	# We iterate through the tiles the building used to occupy
-	if pathfinder:
-		for tile in b.occupied_tiles:
-			# Reset the tile to be Walkable (Not Solid)
-			pathfinder.set_obstacle(tile, false)
-			
-			# Reset the Weight (Cost) to default Grass (1.0)
-			# This ensures Walls don't leave behind invisible "slow zones"
-			pathfinder.set_weighted_obstacle(tile, 1.0)
+	if ghost_building is ConveyorBuilding:
+		ghost_building.setup(level_ref, Vector2i.RIGHT)
+	elif ghost_building.has_method("setup"):
+		ghost_building.setup(level_ref)
 
-	# We call the translator function. 
-	# - If it's a Tower, it returns {} (Safe).
-	# - If it's a Stockpile, it returns {"Wood": 50} (Safe).
-	if b.has_method("get_economy_assets"):
-		var assets = b.get_economy_assets()
-		
-		if not assets.is_empty():
-			EconomyManager.remove_resources_from_global(assets)
-	# ------------------
+	ghost_building.set_ghost(true)
+	placing_building = true
+	is_dragging = false
+	_clear_drag_ghosts()
 	
+	_update_ghost_position_to(_get_mouse_grid())
 
+func handle_input(event, raw_grid_pos: Vector2i) -> bool:
+	if not ghost_building: return false
+	
+	var current_grid_pos = _get_mouse_grid()
 
-func select_building_at(grid_pos: Vector2i):
-	if occupied_tiles.has(grid_pos):
-		var building = occupied_tiles[grid_pos]
-		building_selected.emit(building)
+	if not is_dragging:
+		_update_ghost_position_to(current_grid_pos)
 
-# --- UPDATED: Accepts optional grid position for Dragging ---
-func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
-	if not placing_building or ghost_building == null:
+	if event.is_action_pressed("ui_left"):
+		if ghost_building.is_draggable:
+			is_dragging = true
+			drag_start = current_grid_pos
+			_update_drag_line(current_grid_pos)
+			ghost_building.visible = false
+			return false
+		else:
+			return confirm_placement()
+
+	if is_dragging and event is InputEventMouseMotion:
+		_update_drag_line(current_grid_pos)
+
+	if event.is_action_released("ui_left") and is_dragging:
+		ghost_building.visible = true
+		_commit_drag_line()
+		is_dragging = false
+		_clear_drag_ghosts()
 		return false
-	
-	var grid_pos = specific_pos
-	if grid_pos == Vector2i(-1, -1):
-		grid_pos = _get_mouse_grid()
 
-	# ==========================================================
-	# NEW: INTERCEPT CONVEYOR BUILD-OVER (FREE ROTATION VS UPGRADE)
-	# ==========================================================
+	return false
+
+func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
+	if not placing_building or ghost_building == null: return false
+	
+	var grid_pos = specific_pos if specific_pos != Vector2i(-1, -1) else _get_mouse_grid()
+
+	# Handle conveyor build-over (free rotation vs upgrade)
 	if occupied_tiles.has(grid_pos):
 		var existing_building = occupied_tiles[grid_pos]
 		if existing_building is ConveyorBuilding and ghost_building is ConveyorBuilding:
-			
-			# CASE A: Same building type! (Belt on Belt). Do Free Rotation.
 			if existing_building.building_name == ghost_building.building_name:
+				# Same type — free rotation
 				if existing_building.direction != ghost_building.direction:
 					existing_building.direction = ghost_building.direction
 					existing_building.rotation = Vector2(ghost_building.direction).angle()
 					existing_building.setup(level_ref, ghost_building.direction)
-				
 				ghost_building.queue_free()
 				ghost_building = null
-		
 				if not is_dragging:
 					placing_building = false
 					queue_redraw()
 					placement_ended.emit()
-					
-				return true 
-				
-			# CASE B: Different type! (Router on Belt). Upgrade it!
+				return true
 			else:
-				# Destroy the old belt first, then let the rest of the function run 
-				# to charge the player and place the Router!
+				# Different type — upgrade, destroy old belt first
 				deconstruct_building_at(grid_pos)
-	# ==========================================================
+
+	if not _can_place_building(ghost_building, grid_pos): return false
 	
-	if not _can_place_building(ghost_building, grid_pos):
-		return false
-	
-	# Check Economy
 	var cost = ghost_building.get_build_cost()
-	
-	# --- NEW: IS THIS INSTANT OR A BLUEPRINT? ---
 	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or cost.is_empty()
 	
 	if is_instant:
-		# ==========================================
-		# 1. INSTANT BUILD LOGIC (Belts & Core)
-		# ==========================================
-		if not EconomyManager.can_afford(cost):
-			return false
-
-		EconomyManager.spend_resources(cost)
-
-		ghost_building.set_ghost(false)
-		ghost_building.place_at(grid_pos, object_layer)
-		
-		ghost_building.visible = true
-		ghost_building.modulate = Color(1, 1, 1, 1)
-		
-		if ghost_building is ConveyorBuilding:
-			ghost_building.setup(level_ref, ghost_building.direction)
-		elif ghost_building.has_method("setup"):
-			ghost_building.setup(level_ref)
-			
-		if ghost_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
-			ghost_building.fired_projectile.connect(level_ref._on_tower_fired)
-		ghost_building.destroyed.connect(_on_building_destroyed)
-
-		_register_building(ghost_building)
-		_add_safe_zone(ghost_building)
-		_add_build_zone(ghost_building)
-		_add_attack_zone(ghost_building)
-		
-		# --- CORE SPECIAL LOGIC ---
-		if ghost_building is CoreBuilding:
-			is_core_placed = true
-			core_placed_event.emit() 
-			
-			#SPAWN BOTS
-			var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
-			var spawn_tiles = _get_empty_tiles_around(ghost_building, 1)
-			
-			for tile in spawn_tiles:
-				var new_bot = bot_scene.instantiate()
-				level_ref.object_layer.add_child(new_bot)
-				var local_pos = level_ref.object_layer.map_to_local(tile)
-				new_bot.global_position = level_ref.object_layer.to_global(local_pos)
-				new_bot.setup(level_ref)
-				new_bot.clicked.connect(_on_bot_clicked)
-				new_bot.hovered.connect(_on_building_hovered)  
-				new_bot.unhovered.connect(_on_building_unhovered)
-			
-			if level_ref and level_ref.has_node("CorruptionManager"):
-				var corruption_manager = level_ref.get_node("CorruptionManager")
-				var core_grid = object_layer.local_to_map(ghost_building.global_position)
-				corruption_manager.start_outbreak(core_grid)
-				
-			if level_ref.has_node("TimeManager"):
-				var time_manager = level_ref.get_node("TimeManager")
-				time_manager.is_time_running = true
-				print("Core placed! The clock is ticking...")
-		
-		# --- PATHFINDER ---
-		if pathfinder:
-			var footprint = ghost_building.get_footprint(grid_pos)
-			if ghost_building.is_solid_obstacle:
-				for tile in footprint: pathfinder.set_obstacle(tile, true)
-			else:
-				for tile in footprint: pathfinder.set_weighted_obstacle(tile, ghost_building.path_cost)
-		
-		ghost_building = null
-
+		_place_instant(ghost_building, grid_pos, cost)
 	else:
-		# ==========================================
-		# 2. BLUEPRINT LOGIC (Towers, Walls, Processors)
-		# ==========================================
+		_place_blueprint(ghost_building, grid_pos, cost)
 
-		var site = construction_site_scene.instantiate() as ConstructionSite
-		var target_scene = load(ghost_building.scene_file_path)
-
-		# 1. Add to the tree first
-		level_ref.object_layer.add_child(site)
-
-		# 2. THE FIX: Tell it how big it is BEFORE you place it!
-		# This updates the site's internal `size` to 2x2, 3x3, etc.
-		site.setup_blueprint(level_ref, target_scene, cost, ghost_building.size, ghost_building.building_name)
-		
-		# 3. THE FIX: Let the base Building class do the math!
-		# place_at() uses the newly updated size to perfectly center the global_position.
-		# (It also automatically calculates site.occupied_tiles, so we don't need to do it manually!)
-		site.place_at(grid_pos, object_layer)
-
-		_register_building(site)
-		
-		site.destroyed.connect(_on_building_destroyed)
-		
-		# Register the blueprint as a heavy obstacle so enemies can smash it!
-		if pathfinder:
-			for tile in site.occupied_tiles:
-				# Use the weighted obstacle logic instead of solid, 
-				# so the enemies' bulldozer AI works on blueprints too!
-				pathfinder.astar.set_point_solid(tile, false)
-				pathfinder.astar.set_point_weight_scale(tile, 50.0) 
-				
-		# Delete the green ghost, we replaced it with the blueprint
-		ghost_building.queue_free()
-		ghost_building = null
-
-	# --- END PLACEMENT (Shared Cleanup) ---
 	if not is_dragging:
 		placing_building = false
 		queue_redraw()
@@ -348,49 +204,165 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	
 	return true
 
-# ==========================================
-# BOT SPAWNING HELPER
-# ==========================================
-func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
-	var valid_tiles: Array[Vector2i] = []
-	var origin = building.grid_origin
-	var search_radius = 1
+func cancel_placement():
+	if ghost_building:
+		ghost_building.queue_free()
+		ghost_building = null
+	_clear_drag_ghosts()
+	is_dragging = false
+	placing_building = false
+	queue_redraw()
+	placement_ended.emit()
+
+func rotate_ghost():
+	if not ghost_building or not ghost_building is ConveyorBuilding: return
 	
-	# Keep searching outward until we find enough tiles (or hit a safety limit of 10)
-	while valid_tiles.size() < count and search_radius < 10:
-		for x in range(origin.x - search_radius, origin.x + building.size.x + search_radius):
-			for y in range(origin.y - search_radius, origin.y + building.size.y + search_radius):
-				var check_tile = Vector2i(x, y)
-				
-				# 1. Skip if it's inside the building itself
-				if building.occupied_tiles.has(check_tile): continue
-				
-				# 2. Skip if we already picked this tile
-				if valid_tiles.has(check_tile): continue
-				
-				# 3. Ask the Pathfinder if this tile is physically walkable!
-				if pathfinder and pathfinder.astar.is_in_boundsv(check_tile):
-					if not pathfinder.astar.is_point_solid(check_tile):
-						valid_tiles.append(check_tile)
-						
-						# Stop searching if we have enough!
-						if valid_tiles.size() >= count:
-							return valid_tiles
-							
-		search_radius += 1 # Expand the ring!
+	var dirs = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
+	var idx = dirs.find(ghost_building.direction)
+	var new_dir = dirs[(idx + 1) % dirs.size()]
+	ghost_building.direction = new_dir
+	ghost_building.rotation = Vector2(new_dir).angle()
+
+# ==========================================
+# PLACEMENT: INTERNAL
+# ==========================================
+
+func _place_instant(building: Building, grid_pos: Vector2i, cost: Dictionary):
+	if not EconomyManager.can_afford(cost): return
+	EconomyManager.spend_resources(cost)
+
+	building.set_ghost(false)
+	building.place_at(grid_pos, object_layer)
+	building.visible = true
+	building.modulate = Color(1, 1, 1, 1)
+	
+	if building is ConveyorBuilding:
+		building.setup(level_ref, building.direction)
+	elif building.has_method("setup"):
+		building.setup(level_ref)
 		
-	return valid_tiles
+	if building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
+		building.fired_projectile.connect(level_ref._on_tower_fired)
+	building.destroyed.connect(_on_building_destroyed)
+
+	_register_building(building)
+	_add_safe_zone(building)
+	_add_build_zone(building)
+	_add_attack_zone(building)
+	
+	if building is CoreBuilding:
+		_on_core_placed(building, grid_pos)
+	
+	if pathfinder:
+		var footprint = building.get_footprint(grid_pos)
+		if building.is_solid_obstacle:
+			for tile in footprint: pathfinder.set_obstacle(tile, true)
+		else:
+			for tile in footprint: pathfinder.set_weighted_obstacle(tile, building.path_cost)
+	
+	ghost_building = null
+
+func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
+	var site = construction_site_scene.instantiate() as ConstructionSite
+	var target_scene = load(building.scene_file_path)
+
+	level_ref.object_layer.add_child(site)
+	site.setup_blueprint(level_ref, target_scene, cost, building.size, building.building_name)
+	site.place_at(grid_pos, object_layer)
+
+	_register_building(site)
+	site.destroyed.connect(_on_building_destroyed)
+	
+	if pathfinder:
+		for tile in site.occupied_tiles:
+			pathfinder.astar.set_point_solid(tile, false)
+			pathfinder.astar.set_point_weight_scale(tile, 50.0)
+			
+	building.queue_free()
+	ghost_building = null
+
+func _on_core_placed(building: Building, grid_pos: Vector2i):
+	is_core_placed = true
+	core_placed_event.emit()
+	
+	var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
+	for tile in _get_empty_tiles_around(building, 1):
+		var new_bot = bot_scene.instantiate()
+		level_ref.object_layer.add_child(new_bot)
+		new_bot.global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(tile))
+		new_bot.setup(level_ref)
+		new_bot.clicked.connect(_on_bot_clicked)
+		new_bot.hovered.connect(_on_building_hovered)
+		new_bot.unhovered.connect(_on_building_unhovered)
+	
+	if level_ref and level_ref.has_node("CorruptionManager"):
+		level_ref.get_node("CorruptionManager").start_outbreak(object_layer.local_to_map(building.global_position))
+		
+	if level_ref.has_node("TimeManager"):
+		level_ref.get_node("TimeManager").is_time_running = true
+
+func _can_place_building(building: Building, origin: Vector2i, temp_network: Array[Vector2i] = []) -> bool:
+	if not object_layer: return false
+	
+	# Core must be placed first
+	if not is_core_placed and not (building is CoreBuilding):
+		return false
+
+	# Building limit check (excludes belts and walls)
+	if not (building is ConveyorBuilding) and not (building is WallBuilding):
+		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding))
+		if capped.size() >= ResearchManager.max_buildings_allowed:
+			return false
+
+	var footprint = building.get_footprint(origin)
+	
+	# Must touch existing base or drag network
+	if buildings.size() > 0 or temp_network.size() > 0:
+		var touches_range = false
+		for tile in footprint:
+			if buildable_tiles.has(tile):
+				touches_range = true
+				break
+			for temp_grid in temp_network:
+				if tile.distance_to(temp_grid) <= building.build_range:
+					touches_range = true
+					break
+			if touches_range: break
+		if not touches_range: return false
+
+	# No corruption
+	for tile in footprint:
+		if corruption_layer and corruption_layer.get_cell_source_id(tile) != -1:
+			return false
+
+	# Valid buildable terrain
+	for tile in footprint:
+		if terrain_layer:
+			var tile_data = terrain_layer.get_cell_tile_data(tile)
+			if tile_data == null: return false
+			if tile_data.get_custom_data("buildable") == false: return false
+
+	# No objects on tile
+	for tile in footprint:
+		if object_layer and object_layer.get_cell_source_id(tile) != -1:
+			return false
+
+	# No existing buildings (belts can overlap belts)
+	for tile in footprint:
+		if occupied_tiles.has(tile):
+			var existing = occupied_tiles[tile]
+			if existing is ConveyorBuilding and building is ConveyorBuilding:
+				continue
+			return false
+
+	return true
 
 func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool = true):
 	if not is_instance_valid(ghost_building): return
 	
-	var can_place = is_location_valid 
-	var display_count = chargeable_count
-	
-	# If every single tile is physically blocked, show the cost of 1 base building in red.
-	if not is_location_valid:
-		can_place = false
-		display_count = 1
+	var can_place = is_location_valid
+	var display_count = chargeable_count if is_location_valid else 1
+	if not is_location_valid: can_place = false
 		
 	var base_cost = ghost_building.get_build_cost()
 	var total_cost = {}
@@ -398,62 +370,68 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 	for res in base_cost:
 		var total_needed = base_cost[res] * display_count
 		total_cost[res] = total_needed
-		
-		# Check against the economy
-		var have = EconomyManager.global_inventory.get(res, 0)
-		if have < total_needed:
-			can_place = false # We are broke!
-			
-	# --- BUILDING LIMIT STATS ---
-	var extra_stats = {}
-	
-	if not (ghost_building is ConveyorBuilding) and not (ghost_building is WallBuilding):
-		var capped_buildings = buildings.filter(func(b): 
-			return not (b is ConveyorBuilding) and not (b is WallBuilding)
-		)
-		var current = capped_buildings.size()
-		var limit = ResearchManager.max_buildings_allowed
-		extra_stats["Building Limit"] = "%d / %d" % [current, limit]
-		
-		# Also flag can_place false here if at limit
-		if current >= limit:
+		if EconomyManager.global_inventory.get(res, 0) < total_needed:
 			can_place = false
-	# ----------------------------
+
+	var extra_stats = {}
+	if not (ghost_building is ConveyorBuilding) and not (ghost_building is WallBuilding):
+		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding))
+		extra_stats["Building Limit"] = "%d / %d" % [capped.size(), ResearchManager.max_buildings_allowed]
+		if capped.size() >= ResearchManager.max_buildings_allowed:
+			can_place = false
 	
-	# Tell the UI! 
 	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place, extra_stats)
 
-# -------------------------------
-# DRAG LOGIC IMPLEMENTATION
-# -------------------------------
+func _update_ghost_position_to(grid_pos: Vector2i):
+	ghost_building.place_at(grid_pos, object_layer)
+	var valid = _can_place_building(ghost_building, grid_pos)
+	
+	var is_free = false
+	if valid and occupied_tiles.has(grid_pos):
+		var existing = occupied_tiles[grid_pos]
+		if existing is ConveyorBuilding and ghost_building is ConveyorBuilding:
+			if existing.building_name == ghost_building.building_name:
+				is_free = true
+			
+	ghost_building.set_valid_placement(valid)
+	update_placement_cost_ui(0 if is_free else 1, valid)
+
+func _get_mouse_grid() -> Vector2i:
+	var mouse_global = get_global_mouse_position()
+	if not object_layer: return Vector2i.ZERO
+	
+	var raw_grid = object_layer.local_to_map(object_layer.to_local(mouse_global))
+	
+	if ghost_building and "size" in ghost_building:
+		var offset_x = int((ghost_building.size.x - 1) / 2.0)
+		var offset_y = int((ghost_building.size.y - 1) / 2.0)
+		return raw_grid - Vector2i(offset_x, offset_y)
+		
+	return raw_grid
+
+# ==========================================
+# DRAG LOGIC
+# ==========================================
 
 func _update_drag_line(current_grid: Vector2i):
 	var points = _get_straight_line(drag_start, current_grid)
 	
-	# 1. Calculate Direction (Conveyors only)
-	var drag_direction = Vector2i.RIGHT 
+	var drag_direction = Vector2i.RIGHT
 	if ghost_building is ConveyorBuilding:
-		# Default to whatever direction you manually rotated it to!
-		drag_direction = ghost_building.direction 
-		
-		# If you dragged your mouse, THEN override the direction
+		drag_direction = ghost_building.direction
 		if points.size() > 1:
-			var diff = points[-1] - points[0] 
+			var diff = points[-1] - points[0]
 			if abs(diff.x) >= abs(diff.y):
 				drag_direction = Vector2i.RIGHT if diff.x > 0 else Vector2i.LEFT
 			else:
 				drag_direction = Vector2i.DOWN if diff.y > 0 else Vector2i.UP
 	
-	# 2. Sync Ghost Count (Create/Delete visual nodes)
 	while drag_ghosts.size() < points.size():
 		var new_ghost = ghost_building.duplicate()
 		new_ghost.visible = true
-		
-		# Apply initial direction
 		if new_ghost is ConveyorBuilding:
 			new_ghost.direction = drag_direction
 			new_ghost.rotation = Vector2(drag_direction).angle()
-		
 		if level_ref and level_ref.has_node("GhostLayer"):
 			level_ref.get_node("GhostLayer").add_child(new_ghost)
 		else:
@@ -461,35 +439,25 @@ func _update_drag_line(current_grid: Vector2i):
 		drag_ghosts.append(new_ghost)
 	
 	while drag_ghosts.size() > points.size():
-		var g = drag_ghosts.pop_back()
-		g.queue_free()
+		drag_ghosts.pop_back().queue_free()
 	
-	# 3. GET BASE COST
-	var base_cost = ghost_building.get_build_cost() # e.g. {"Wood": 5}
+	var base_cost = ghost_building.get_build_cost()
 	
-	# --- NEW: REVERSE BUILD ORDER IF DRAGGING INWARD ---
-	# Check if the player is dragging from outside the base INTO the base.
+	# Reverse build order if dragging inward
 	if points.size() > 1 and buildings.size() > 0:
-		var start_touches_base = false
-		var end_touches_base = false
-		
-		# Quick distance check for the start and end of the line
+		var start_touches = false
+		var end_touches = false
 		for b in buildings:
 			var b_grid = object_layer.local_to_map(b.global_position)
-			if points[0].distance_to(b_grid) <= b.build_range: start_touches_base = true
-			if points[-1].distance_to(b_grid) <= b.build_range: end_touches_base = true
-			
-		# If the end is safe but the start isn't, flip the line!
-		if end_touches_base and not start_touches_base:
+			if points[0].distance_to(b_grid) <= b.build_range: start_touches = true
+			if points[-1].distance_to(b_grid) <= b.build_range: end_touches = true
+		if end_touches and not start_touches:
 			points.reverse()
 			drag_ghosts.reverse()
-	# ---------------------------------------------------
 	
-	# --- NEW: Track the valid grid positions and the actual BILL ---
 	var current_drag_network: Array[Vector2i] = []
-	var chargeable_count: int = 0 
+	var chargeable_count: int = 0
 	
-	# 4. Update Position & Color Loop
 	for i in range(points.size()):
 		var pt = points[i]
 		var g = drag_ghosts[i]
@@ -501,562 +469,233 @@ func _update_drag_line(current_grid: Vector2i):
 		if object_layer:
 			g.global_position = object_layer.map_to_local(pt)
 		
-		var is_valid = true
-		var is_free_overwrite = false 
+		var is_valid = _can_place_building(g, pt, current_drag_network)
+		var is_free_overwrite = false
 		
-		# A. Physical & Expansion Check 
-		if not _can_place_building(g, pt, current_drag_network):
-			is_valid = false
-			
-		# --- FIXED: Check if this is a free rotation overwrite (names must match!) ---
 		if is_valid and occupied_tiles.has(pt):
 			var existing = occupied_tiles[pt]
 			if existing is ConveyorBuilding and g is ConveyorBuilding:
 				if existing.building_name == g.building_name:
 					is_free_overwrite = true
 				
-		# B. Economic Check 
 		if is_valid and not is_free_overwrite:
-			var cumulative_cost = _calculate_cumulative_cost(base_cost, chargeable_count + 1)
-			if not EconomyManager.can_afford(cumulative_cost):
+			if not EconomyManager.can_afford(_calculate_cumulative_cost(base_cost, chargeable_count + 1)):
 				is_valid = false
 		
-		# --- NEW: Only charge money if it's not a free overwrite ---
 		if is_valid:
 			current_drag_network.append(pt)
 			if not is_free_overwrite:
 				chargeable_count += 1
-		 
-		# Apply Visuals
+		
 		if g.has_method("set_valid_placement"):
 			g.set_valid_placement(is_valid)
 		else:
 			g.modulate = Color(0, 1, 0, 0.5) if is_valid else Color(1, 0, 0, 0.5)
 
-	# --- FIXED: Tell UI to charge for new belts, but stay green if overwriting! ---
-	var is_location_valid = current_drag_network.size() > 0
-	update_placement_cost_ui(chargeable_count, is_location_valid)
+	update_placement_cost_ui(chargeable_count, current_drag_network.size() > 0)
 
 func _commit_drag_line():
-	# Store the original scene to respawn logic later
 	if drag_ghosts.size() == 0: return
 	
-	var original_scene_path = ghost_building.scene_file_path
-	var original_scene = load(original_scene_path)
+	var original_scene = load(ghost_building.scene_file_path)
 	
-	# 1. Kill the main cursor ghost so it doesn't get in the way
 	if ghost_building:
 		ghost_building.queue_free()
 		ghost_building = null
 	
-	# 2. Iterate and Build
 	for g in drag_ghosts:
-		# Promote 'g' to be the active ghost
 		ghost_building = g
-		
-		# Calculate grid pos from the ghost's visual position
-		# (Must use local_to_map relative to object_layer)
 		var grid_pos = object_layer.local_to_map(object_layer.to_local(g.global_position))
-		
-		# Try to build
-		var success = confirm_placement(grid_pos)
-		
-		# If placement failed (blocked/no money), we must delete the unused ghost
-		if not success:
+		if not confirm_placement(grid_pos):
 			g.queue_free()
 			
-	# --- CRITICAL FIX ---
-	# We have either used or deleted all ghosts. 
-	# Clear the array so handle_input doesn't try to delete them again!
-	drag_ghosts.clear() 
-	# --------------------
-
-	# 3. Restore the main cursor for the next placement
+	drag_ghosts.clear()
 	start_placing(original_scene)
-
-# Add this function
-func rotate_ghost():
-	if not ghost_building:
-		return
-		
-	if ghost_building is ConveyorBuilding:
-		# Cycle through directions: RIGHT -> DOWN -> LEFT -> UP -> RIGHT
-		var current_dir = ghost_building.direction
-		var new_dir = Vector2i.ZERO
-		
-		if current_dir == Vector2i.RIGHT:
-			new_dir = Vector2i.DOWN
-		elif current_dir == Vector2i.DOWN:
-			new_dir = Vector2i.LEFT
-		elif current_dir == Vector2i.LEFT:
-			new_dir = Vector2i.UP
-		else:  # UP
-			new_dir = Vector2i.RIGHT
-		
-		# Update the ghost with new direction
-		ghost_building.direction = new_dir
-		ghost_building.rotation = Vector2(new_dir).angle()
-	# Add other rotatable building types here in the future
-
-# -------------------------------
-# INTERNAL HELPERS
-# -------------------------------
-
-func _update_ghost_position_to(grid_pos: Vector2i):
-	ghost_building.place_at(grid_pos, object_layer)
-	var valid = _can_place_building(ghost_building, grid_pos)
-	
-	# --- FIXED: Only free if they are the EXACT SAME building! ---
-	var is_free = false
-	if valid and occupied_tiles.has(grid_pos):
-		var existing = occupied_tiles[grid_pos]
-		if existing is ConveyorBuilding and ghost_building is ConveyorBuilding:
-			if existing.building_name == ghost_building.building_name:
-				is_free = true
-			
-	ghost_building.set_valid_placement(valid)
-	
-	# --- FIXED: Pass 0 if free, 1 if normal! ---
-	update_placement_cost_ui(0 if is_free else 1, valid)
-
-func _get_mouse_grid() -> Vector2i:
-	var mouse_global = get_global_mouse_position()
-	if not object_layer: return Vector2i.ZERO
-	
-	var raw_grid = object_layer.local_to_map(object_layer.to_local(mouse_global))
-	
-	# --- NEW: Center the ghost on the mouse! ---
-	if ghost_building and "size" in ghost_building:
-		# We subtract 1 before dividing so 1x1 and 2x2 buildings don't over-correct!
-		var offset_x = int( (ghost_building.size.x - 1) / 2.0 )
-		var offset_y = int( (ghost_building.size.y - 1) / 2.0 )
-		
-		return raw_grid - Vector2i(offset_x, offset_y)
-		
-	return raw_grid
-
-
-func _can_place_building(building: Building, origin: Vector2i, temp_network: Array[Vector2i] = []) -> bool:
-	if not object_layer: return false
-	
-	# ==========================================
-	# --- NEW: UNIVERSAL CORE BLOCKADE ---
-	# ==========================================
-	if not is_core_placed and not (building is CoreBuilding):
-		print_debug("Place core first")
-		return false
-	# ==========================================
-	
-	if not (building is ConveyorBuilding) and not (building is WallBuilding):
-		var capped_buildings = buildings.filter(func(b): 
-			return not (b is ConveyorBuilding) and not (b is WallBuilding)
-		)
-		if capped_buildings.size() >= ResearchManager.max_buildings_allowed:
-			print_debug("Building limit reached! Upgrade Core to expand.")
-			return false
-
-	var footprint = building.get_footprint(origin)
-	
-	# --- 1. THE EXPANSION CHECK ---
-	if buildings.size() > 0 or temp_network.size() > 0:
-		var touches_range = false
-		
-		for tile in footprint:
-			
-			# 1A. Check the Established Base (O(1) Dictionary Lookup! Instant!)
-			if buildable_tiles.has(tile):
-				touches_range = true
-				break 
-				
-			# 1B. Check against the temporary drag line
-			# (We still do math here because these aren't actually built yet)
-			for temp_grid in temp_network:
-				if tile.distance_to(temp_grid) <= building.build_range:
-					touches_range = true
-					break
-			
-			if touches_range: break
-			
-		if not touches_range:
-			return false
-	# ------------------------------
-
-	# 2. Check for Corruption
-	for tile in footprint:
-		if corruption_layer and corruption_layer.get_cell_source_id(tile) != -1:
-			return false # Cannot build on purple fog!
-
-	# 3. Check Terrain (Floor exists and is Buildable)
-	for tile in footprint:
-		if terrain_layer:
-			var tile_data = terrain_layer.get_cell_tile_data(tile)
-			
-			# A. Is there even a floor tile here?
-			if tile_data == null:
-				return false 
-				
-			# B. Is it marked as 'buildable' in the TileSet Custom Data?
-			if tile_data.get_custom_data("buildable") == false:
-				return false # It's water, lava, or a void!
-
-	# 4. Check Object Layer (Trees, Rocks)
-	for tile in footprint:
-		if object_layer and object_layer.get_cell_source_id(tile) != -1:
-			return false
-
-	# 5. Check Occupied Tiles (Other Buildings)
-	for tile in footprint:
-		if occupied_tiles.has(tile):
-			var existing_building = occupied_tiles[tile]
-			
-			# --- NEW: ALLOW BELT BUILD-OVER ---
-			# If both the ghost and the existing building are conveyors, allow it!
-			if existing_building is ConveyorBuilding and building is ConveyorBuilding:
-				continue 
-			# ----------------------------------
-			
-			return false
-
-	return true
-	
-func _register_occupied_tiles(building: Building):
-	for tile in building.occupied_tiles:
-		occupied_tiles[tile] = building
-
-func _register_building(building: Building):
-	buildings.append(building)
-	_register_occupied_tiles(building)
-	
-	if _is_grouped_type(building):
-		# Figure out the string name for this group
-		var group_name = ""
-		if building is ConveyorBuilding: group_name = "Belts"
-		elif building is WallBuilding: group_name = "Walls"
-		elif building is TerraformSite: group_name = "Terraform"
-		
-		# If it's the very first one, add the string to the master list!
-		if not master_priority_queue.has(group_name):
-			master_priority_queue.append(group_name)
-			print("Priority System: Unlocked ", group_name)
-			
-	else:
-		# Standard unique building (Towers, Core, etc.)
-		if not master_priority_queue.has(building):
-			master_priority_queue.append(building)
-		
-	building.hovered.connect(_on_building_hovered)
-	building.unhovered.connect(_on_building_unhovered)
-
-func _unhandled_input(event):
-	# --- NEW: HOTKEYS FOR OVERLAYS ---
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_F1:
-			show_build_grid = not show_build_grid
-			queue_redraw()
-		elif event.keycode == KEY_F2:
-			show_safe_grid = not show_safe_grid
-			queue_redraw()
-		elif event.keycode == KEY_F3:
-			print("show attack key")
-			show_attack_grid = not show_attack_grid
-			queue_redraw()
-		elif event.keycode == KEY_P:
-			print("\n=== MASTER PRIORITY QUEUE ===")
-			for i in range(master_priority_queue.size()):
-				var item = master_priority_queue[i]
-				var rank = i + 1 # +1 so it reads 1, 2, 3 instead of 0, 1, 2
-				
-				if typeof(item) == TYPE_STRING:
-					print("Rank ", rank, ": [GROUP] ", item)
-				else:
-					# Safely grab the building's name if it's a node
-					if is_instance_valid(item):
-						print("Rank ", rank, ": ", item.building_name, " at ", item.global_position)
-					else:
-						print("Rank ", rank, ": [DELETED/INVALID BUILDING]")
-			print("=============================\n")
-	# -------------------------------------------
-	# Cancel logic
-	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
-		if ghost_building != null:
-			cancel_placement()
-			
-func cancel_placement():
-	if ghost_building:
-		ghost_building.queue_free()
-		ghost_building = null
-	
-	_clear_drag_ghosts()
-	is_dragging = false
-	placing_building = false
-	
-	queue_redraw()
-	
-	placement_ended.emit()
 
 func _clear_drag_ghosts():
 	for g in drag_ghosts:
 		if is_instance_valid(g): g.queue_free()
 	drag_ghosts.clear()
 
-func _on_building_hovered(building: Node2D):
-	if hover_popup:
-		hover_popup.show_building_info(building)
+# ==========================================
+# BUILDING REGISTRATION & DESTRUCTION
+# ==========================================
 
-func _on_building_unhovered(building: Node2D):
-	if hover_popup:
-		# THE FIX: Only hide if the popup is currently displaying THIS building.
-		# If the popup has already switched to a new building, ignore this signal.
-		if hover_popup.current_building == building:
-			hover_popup.hide_popup()
-
-# Same math as your Level.gd
-func _get_straight_line(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
-	var points: Array[Vector2i] = []
-	var diff = end - start
-	var final_end = end
+func _register_building(building: Building):
+	buildings.append(building)
+	_register_occupied_tiles(building)
 	
-	# Axis Lock
-	if abs(diff.x) >= abs(diff.y):
-		final_end.y = start.y
+	if _is_grouped_type(building):
+		var group_name = ""
+		if building is ConveyorBuilding: group_name = "Belts"
+		elif building is WallBuilding: group_name = "Walls"
+		elif building is TerraformSite: group_name = "Terraform"
+		if not master_priority_queue.has(group_name):
+			master_priority_queue.append(group_name)
 	else:
-		final_end.x = start.x
+		if not master_priority_queue.has(building):
+			master_priority_queue.append(building)
 		
-	var current = start
-	var step = Vector2i.ZERO
-	if final_end.x != start.x: step.x = sign(final_end.x - start.x)
-	if final_end.y != start.y: step.y = sign(final_end.y - start.y)
+	building.hovered.connect(_on_building_hovered)
+	building.unhovered.connect(_on_building_unhovered)
+
+func _register_occupied_tiles(building: Building):
+	for tile in building.occupied_tiles:
+		occupied_tiles[tile] = building
+
+func _on_building_destroyed(b: Building):
+	buildings.erase(b)
+	master_priority_queue.erase(b)
+		
+	for tile in b.occupied_tiles:
+		if occupied_tiles.get(tile) == b:
+			occupied_tiles.erase(tile)
 	
-	var safe = 0
-	while safe < 100:
-		points.append(current)
-		if current == final_end: break
-		current += step
-		safe += 1
-		
-	return points
+	_remove_safe_zone(b)
+	_remove_build_zone(b)
+	_remove_attack_zone(b)
+	
+	if pathfinder:
+		for tile in b.occupied_tiles:
+			pathfinder.set_obstacle(tile, false)
+			pathfinder.set_weighted_obstacle(tile, 1.0)
 
-func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Dictionary:
-	var total = {}
-	for resource_name in base_cost:
-		total[resource_name] = base_cost[resource_name] * quantity
-	return total
+	if b.has_method("get_economy_assets"):
+		var assets = b.get_economy_assets()
+		if not assets.is_empty():
+			EconomyManager.remove_resources_from_global(assets)
 
-
-# ============================================================================
-# BLUEPRINT COMPLETION
-# ============================================================================
 func register_finished_building(new_building: Building, grid_pos: Vector2i):
-	# 1. Add to standard trackers
-	_register_building(new_building) 
-	
-	# 2. Add to visual/combat grids
+	_register_building(new_building)
 	_add_safe_zone(new_building)
 	_add_build_zone(new_building)
 	_add_attack_zone(new_building)
 	
-	# 3. Connect essential gameplay signals
 	if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
 		new_building.fired_projectile.connect(level_ref._on_tower_fired)
 	new_building.destroyed.connect(_on_building_destroyed)
 	
-	# 4. Update the Pathfinder!
 	if pathfinder:
 		var footprint = new_building.get_footprint(grid_pos)
 		if new_building.is_solid_obstacle:
 			for tile in footprint: pathfinder.set_obstacle(tile, true)
 		else:
 			for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost)
+
+func select_building_at(grid_pos: Vector2i):
+	if occupied_tiles.has(grid_pos):
+		building_selected.emit(occupied_tiles[grid_pos])
+
+func deconstruct_building_at(grid_pos: Vector2i):
+	if not occupied_tiles.has(grid_pos): return
+	var building = occupied_tiles[grid_pos]
+	if building is CoreBuilding:
+		print("Cannot deconstruct the Core!")
+		return
+	building.die()
+
 # ==========================================
-# CORRUPTION / SAFE ZONE LOGIC
+# ZONE TRACKING
 # ==========================================
 
 func _get_tiles_in_radius(origin: Vector2i, building: Building, radius: float) -> Array[Vector2i]:
 	var tiles: Array[Vector2i] = []
-	var tile_size = 32.0 # Adjust this if your tiles are 16x16 or 64x64
-	
-	# 1. Get building size (default to 1x1 for belts/small props if missing)
+	var tile_size = 32.0
 	var b_size = building.size if "size" in building else Vector2i(1, 1)
 	
-	# 2. Find the EXACT pixel boundaries of the visual building
 	var center_pos = building.global_position
 	var half_w = (b_size.x * tile_size) / 2.0
 	var half_h = (b_size.y * tile_size) / 2.0
-	
 	var rect_x_min = center_pos.x - half_w
 	var rect_x_max = center_pos.x + half_w
 	var rect_y_min = center_pos.y - half_h
 	var rect_y_max = center_pos.y + half_h
 	
-	# 3. Create a generous search box around the origin tile
-	var r_int = ceil(radius)
-	var search_radius = r_int + max(b_size.x, b_size.y)
-	
+	var search_radius = ceil(radius) + max(b_size.x, b_size.y)
 	var max_dist_px = radius * tile_size
 	
-	# 4. Check every tile in the search box
 	for x in range(origin.x - search_radius, origin.x + search_radius + 1):
 		for y in range(origin.y - search_radius, origin.y + search_radius + 1):
 			var tile_pos = Vector2i(x, y)
-			
-			# Get the exact physical center of the tile we are testing
-			var tile_center_px = object_layer.map_to_local(tile_pos)
-			
-			# Math: Measure distance from the tile's center to the building's outer edge
-			var dx = max(0.0, max(rect_x_min - tile_center_px.x, tile_center_px.x - rect_x_max))
-			var dy = max(0.0, max(rect_y_min - tile_center_px.y, tile_center_px.y - rect_y_max))
-			
-			var dist_px = Vector2(dx, dy).length()
-			
-			# If the tile is within the radius, add it!
-			if dist_px <= max_dist_px:
+			var tile_center = object_layer.map_to_local(tile_pos)
+			var dx = max(0.0, max(rect_x_min - tile_center.x, tile_center.x - rect_x_max))
+			var dy = max(0.0, max(rect_y_min - tile_center.y, tile_center.y - rect_y_max))
+			if Vector2(dx, dy).length() <= max_dist_px:
 				tiles.append(tile_pos)
 				
 	return tiles
 
-#--------------------------------------------------------------------------------#
-#Add/Remove Visual Zones
 func _add_safe_zone(building: Building):
-	if not "corruption_range" in building or building.corruption_range <= 0: 
-		return
-	
-	# Get the center tile of the building
+	if not "corruption_range" in building or building.corruption_range <= 0: return
 	var origin = object_layer.local_to_map(building.global_position)
-	var tiles = _get_tiles_in_radius(origin, building, building.corruption_range)
-	
-	for tile in tiles:
-		# Add +1 to the protection ledger
+	for tile in _get_tiles_in_radius(origin, building, building.corruption_range):
 		safe_tiles[tile] = safe_tiles.get(tile, 0) + 1
-		
-		# Instantly purge corruption if it exists here!
 		if corruption_layer and corruption_layer.get_cell_source_id(tile) != -1:
 			corruption_layer.set_cell(tile, -1)
 
 func _remove_safe_zone(building: Building):
-	if not "corruption_range" in building or building.corruption_range <= 0: 
-		return
-	
-	var tiles = _get_tiles_in_radius(building.grid_origin, building, building.corruption_range)
-	
-	for tile in tiles:
+	if not "corruption_range" in building or building.corruption_range <= 0: return
+	for tile in _get_tiles_in_radius(building.grid_origin, building, building.corruption_range):
 		if safe_tiles.has(tile):
-			# Subtract 1 from the protection ledger
 			safe_tiles[tile] -= 1
-			
-			# If 0 buildings are protecting it now, remove it entirely
-			if safe_tiles[tile] <= 0:
-				safe_tiles.erase(tile)
+			if safe_tiles[tile] <= 0: safe_tiles.erase(tile)
 
 func _add_build_zone(building: Building):
 	if not "build_range" in building or building.build_range <= 0: return
-	
 	var origin = object_layer.local_to_map(building.global_position)
-	var tiles = _get_tiles_in_radius(origin, building, building.build_range)
-	
-	for tile in tiles:
+	for tile in _get_tiles_in_radius(origin, building, building.build_range):
 		buildable_tiles[tile] = buildable_tiles.get(tile, 0) + 1
 
 func _remove_build_zone(building: Building):
 	if not "build_range" in building or building.build_range <= 0: return
-	
-	var tiles = _get_tiles_in_radius(building.grid_origin, building, building.build_range)
-	
-	for tile in tiles:
+	for tile in _get_tiles_in_radius(building.grid_origin, building, building.build_range):
 		if buildable_tiles.has(tile):
 			buildable_tiles[tile] -= 1
-			if buildable_tiles[tile] <= 0:
-				buildable_tiles.erase(tile)
+			if buildable_tiles[tile] <= 0: buildable_tiles.erase(tile)
 
 func _add_attack_zone(building: Building):
-	# Make sure it's actually a tower with a pre-calculated range!
 	if not "attack_range" in building or not "_cached_range_tiles" in building: return
-	
 	var origin = object_layer.local_to_map(building.global_position)
-	
 	for offset in building._cached_range_tiles.keys():
 		var tile = origin + offset
 		attack_tiles[tile] = attack_tiles.get(tile, 0) + 1
 
 func _remove_attack_zone(building: Building):
 	if not "attack_range" in building or not "_cached_range_tiles" in building: return
-	
-	var origin = building.grid_origin
-	
 	for offset in building._cached_range_tiles.keys():
-		var tile = origin + offset
+		var tile = building.grid_origin + offset
 		if attack_tiles.has(tile):
 			attack_tiles[tile] -= 1
-			if attack_tiles[tile] <= 0:
-				attack_tiles.erase(tile)
+			if attack_tiles[tile] <= 0: attack_tiles.erase(tile)
 
-#--------------------------------------------------------------------------------#
-
-
-
-func deconstruct_building_at(grid_pos: Vector2i):
-	if occupied_tiles.has(grid_pos):
-		var building = occupied_tiles[grid_pos]
-
-		# --- NEW: Block Core Deletion ---
-		if building is CoreBuilding:
-			print("Cannot deconstruct the Core!")
-			# Optional: Play an error sound or show a floating text warning here
-			return # Stop the function immediately!
-		# --------------------------------
-		
-		print("Deconstructed: ", building.building_name)
-		
-		# Calling die() will trigger the 'destroyed' signal you already set up, 
-		# which tells the BuildingManager to clean up the occupied_tiles dictionary!
-		building.die()
-		
-		
-
-# ============================================================================
+# ==========================================
 # UPGRADE SYSTEM
-# ============================================================================
+# ==========================================
+
 func upgrade_building_at(grid_pos: Vector2i) -> bool:
-	if not occupied_tiles.has(grid_pos):
-		return false
-		
+	if not occupied_tiles.has(grid_pos): return false
 	var old_building = occupied_tiles[grid_pos]
+	if not old_building.upgrades_to: return false
 	
-	if not old_building.upgrades_to:
-		return false
-	
-	# 1. Build the cost dict and check affordability
 	var upgrade_cost_dict = {}
 	for cost in old_building.upgrade_cost:
 		upgrade_cost_dict[cost.item_name] = cost.amount
 	
-	if not upgrade_cost_dict.is_empty():
-		if not EconomyManager.can_afford(upgrade_cost_dict):
-			return false
+	if not upgrade_cost_dict.is_empty() and not EconomyManager.can_afford(upgrade_cost_dict):
+		return false
 	
-	# 2. Save old state
 	var old_dir = old_building.direction if "direction" in old_building else Vector2i.RIGHT
 	var old_rot = old_building.rotation
-	
-
 	var true_origin = old_building.grid_origin
 
-	
-	# 3. CLEANUP: Force the grid to forget the old building instantly
 	_on_building_destroyed(old_building)
-	old_building.queue_free() # Safely erases the visual node at the end of the frame
+	old_building.queue_free()
 	
-	# 4. INSTANTIATE: Create the new building
 	var new_building = old_building.upgrades_to.instantiate() as Building
-	
-	# If your place_at handles reparenting to the object_layer, you just need this!
-	# (If it doesn't, just keep the add_child line above this one)
-	level_ref.object_layer.add_child(new_building) 
-	
-	# 5. POSITION: Use the building's true origin, not the clicked tile!
+	level_ref.object_layer.add_child(new_building)
 	new_building.place_at(true_origin, level_ref.object_layer)
 	new_building.set_ghost(false)
 	
-	# 6. SETUP: Apply rotation and initialize
 	if new_building is ConveyorBuilding:
 		new_building.direction = old_dir
 		new_building.rotation = old_rot
@@ -1064,18 +703,15 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	elif new_building.has_method("setup"):
 		new_building.setup(level_ref)
 	
-	# 7. REGISTRATION: Tell the BuildingManager this exists now
 	_register_building(new_building)
 	_add_safe_zone(new_building)
 	_add_build_zone(new_building)
 	_add_attack_zone(new_building)
 	
-	# Connect essential signals
 	if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
 		new_building.fired_projectile.connect(level_ref._on_tower_fired)
 	new_building.destroyed.connect(_on_building_destroyed)
 	
-	# Update pathfinder (Crucial for walls!)
 	if pathfinder:
 		var footprint = new_building.get_footprint(grid_pos)
 		if new_building.is_solid_obstacle:
@@ -1083,129 +719,96 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		else:
 			for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost)
 	
-	# 8. FINALIZE: Spend the resources ONLY for the upgrade cost
 	if not upgrade_cost_dict.is_empty():
 		EconomyManager.spend_resources(upgrade_cost_dict)
 		
-	print("Successfully Upgraded to: ", new_building.building_name)
 	return true
-	
-# ============================================================================
-# UPGRADE UI PREVIEW
-# ============================================================================
-func show_upgrade_preview(grid_pos: Vector2i):
-	# 1. Is there a building here?
-	if occupied_tiles.has(grid_pos):
-		var b = occupied_tiles[grid_pos]
-		
-		# 2. Does it have an upgrade?
-		if b.upgrades_to:
-			
-			# Parse the cost exactly how you do in upgrade_building_at()
-			var upgrade_cost_dict = {}
-			for cost in b.upgrade_cost:
-				# Depending on how you set up your exports, use the appropriate key mapping
-				var key = cost.item_name if "item_name" in cost else cost
-				var val = cost.amount if "amount" in cost else b.upgrade_cost[cost]
-				upgrade_cost_dict[key] = val
-			
-			# Check Economy
-			var can_afford = true
-			if not upgrade_cost_dict.is_empty():
-				can_afford = EconomyManager.can_afford(upgrade_cost_dict)
-				
-			# --- NEW: EXTRACT UPGRADE STATS ---
-			var stats = {}
-			var temp_new = b.upgrades_to.instantiate()
-			
-			# Compare HP (Duck typing checks if they both have max_health)
-			if "max_health" in b and "max_health" in temp_new:
-				if b.max_health != temp_new.max_health:
-					stats["HP"] = "%d -> %d" % [b.max_health, temp_new.max_health]
-			
-			# Compare Crafting Multiplier
-			if "crafting_time_multiplier" in b and "crafting_time_multiplier" in temp_new:
-				if b.crafting_time_multiplier != temp_new.crafting_time_multiplier:
-					# Convert the float (1.5) to a clean percentage (150%)
-					var old_pct = int(b.crafting_time_multiplier * 100)
-					var new_pct = int(temp_new.crafting_time_multiplier * 100)
-					stats["Craft Time"] = "%d%% -> %d%%" % [old_pct, new_pct]
-			
-			#@export var scan_radius: int = 4
-			#@export var harvest_damage: int = 2
-			#@export var work_interval: float = 1.0
-			
-			# Compare Harvest Range
-			if "scan_radius" in b and "scan_radius" in temp_new:
-				if b.scan_radius != temp_new.scan_radius:
-					stats["Harvest Radius"] = "%d -> %d" % [b.scan_radius, temp_new.scan_radius]
-					
-					
-			# Compare Harvest Amount
-			if "harvest_damage" in b and "harvest_damage" in temp_new:
-				if b.harvest_damage != temp_new.harvest_damage:
-					stats["Harvest Amount"] = "%d -> %d" % [b.harvest_damage, temp_new.harvest_damage]
-					
-			# Compare Harvest Time
-			if "work_interval" in b and "work_interval" in temp_new:
-				if b.work_interval != temp_new.work_interval:
-					stats["Time Per Harvest"] = "%.1fs -> %.1fs" % [b.work_interval, temp_new.work_interval]
-					
-			# Compare Attack Range(Towers)
-			if "attack_range" in b and "attack_range" in temp_new:
-				if b.attack_range != temp_new.attack_range:
-					# Divide by 32.0 and cast to int to get the clean tile count
-					var old_tiles = int(b.attack_range / 32.0)
-					var new_tiles = int(temp_new.attack_range / 32.0)
-					stats["Attack Range"] = "%d -> %d Tiles" % [old_tiles, new_tiles]
-		
-			# Compare Fire Rate(Towers)
-			if "fire_rate" in b and "fire_rate" in temp_new:
-				if b.fire_rate != temp_new.fire_rate:
-					stats["Fire Rate"] = "%d -> %d/s" % [b.fire_rate, temp_new.fire_rate]
-			
-			# Compare Damage Mult(Towers)
-			if "damage_multiplier" in b and "damage_multiplier" in temp_new:
-				if b.damage_multiplier != temp_new.damage_multiplier:
-					stats["Damage Multipler"] = "%.1fx -> %.1fx" % [b.damage_multiplier, temp_new.damage_multiplier]
-					
-			temp_new.queue_free() # Clean up the temporary building
-			# ----------------------------------
-		
-			# 3. Fire the signal to your GameUI!
-			placement_cost_updated.emit("Upgrade " + b.building_name, upgrade_cost_dict, can_afford, stats)
-			return
-		else:
-			# --- NEW: MAX LEVEL LOGIC ---
-			# Pass an empty dictionary and "false" so it knows we can't buy anything
-			placement_cost_updated.emit(b.building_name + " (Max Tier)", {}, false, {})
-			return
 
-	# 4. If nothing valid is hovered, fire the "hide" signal
-	placement_ended.emit()
-	
- 
-# ============================================================================
-# PRIORITY SYSTEM
-# ============================================================================
-func get_highest_priority_job(bot_position: Vector2) -> Node:
-	# Read the master list from highest priority (0) to lowest
-	for item in master_priority_queue:
+func show_upgrade_preview(grid_pos: Vector2i):
+	if not occupied_tiles.has(grid_pos):
+		placement_ended.emit()
+		return
 		
-		# CASE A: IT IS A GLOBAL GROUP (String like "Belts")
+	var b = occupied_tiles[grid_pos]
+	
+	if not b.upgrades_to:
+		placement_cost_updated.emit(b.building_name + " (Max Tier)", {}, false, {})
+		return
+
+	var upgrade_cost_dict = {}
+	for cost in b.upgrade_cost:
+		upgrade_cost_dict[cost.item_name if "item_name" in cost else cost] = cost.amount if "amount" in cost else b.upgrade_cost[cost]
+	
+	var can_afford = upgrade_cost_dict.is_empty() or EconomyManager.can_afford(upgrade_cost_dict)
+	var stats = _get_upgrade_stats(b)
+	
+	placement_cost_updated.emit("Upgrade " + b.building_name, upgrade_cost_dict, can_afford, stats)
+
+func _get_upgrade_stats(b: Building) -> Dictionary:
+	var stats = {}
+	var temp = b.upgrades_to.instantiate()
+	
+	if "max_health" in b and "max_health" in temp and b.max_health != temp.max_health:
+		stats["HP"] = "%d -> %d" % [b.max_health, temp.max_health]
+	if "crafting_time_multiplier" in b and "crafting_time_multiplier" in temp and b.crafting_time_multiplier != temp.crafting_time_multiplier:
+		stats["Craft Time"] = "%d%% -> %d%%" % [int(b.crafting_time_multiplier * 100), int(temp.crafting_time_multiplier * 100)]
+	if "scan_radius" in b and "scan_radius" in temp and b.scan_radius != temp.scan_radius:
+		stats["Harvest Radius"] = "%d -> %d" % [b.scan_radius, temp.scan_radius]
+	if "harvest_damage" in b and "harvest_damage" in temp and b.harvest_damage != temp.harvest_damage:
+		stats["Harvest Amount"] = "%d -> %d" % [b.harvest_damage, temp.harvest_damage]
+	if "work_interval" in b and "work_interval" in temp and b.work_interval != temp.work_interval:
+		stats["Time Per Harvest"] = "%.1fs -> %.1fs" % [b.work_interval, temp.work_interval]
+	if "attack_range" in b and "attack_range" in temp and b.attack_range != temp.attack_range:
+		stats["Attack Range"] = "%d -> %d Tiles" % [int(b.attack_range / 32.0), int(temp.attack_range / 32.0)]
+	if "fire_rate" in b and "fire_rate" in temp and b.fire_rate != temp.fire_rate:
+		stats["Fire Rate"] = "%d -> %d/s" % [b.fire_rate, temp.fire_rate]
+	if "damage_multiplier" in b and "damage_multiplier" in temp and b.damage_multiplier != temp.damage_multiplier:
+		stats["Damage Multiplier"] = "%.1fx -> %.1fx" % [b.damage_multiplier, temp.damage_multiplier]
+	
+	temp.queue_free()
+	return stats
+
+# ==========================================
+# TERRAFORM
+# ==========================================
+
+func _try_add_terrain_job(grid_pos: Vector2i):
+	if occupied_tiles.has(grid_pos): return
+		
+	var job_type = -1
+	if object_layer.get_cell_source_id(grid_pos) != -1 or level_ref.active_grid_objects.has(grid_pos):
+		job_type = TerraformSite.JobType.REMOVE_OBJECT
+	elif terrain_layer:
+		var tile_data = terrain_layer.get_cell_tile_data(grid_pos)
+		if tile_data != null and tile_data.get_custom_data("buildable") == false:
+			job_type = TerraformSite.JobType.CONVERT_WATER
+			
+	if job_type == -1:
+		print("Nothing to remove at: ", grid_pos)
+		return
+		
+	var site = terraform_site_scene.instantiate() as TerraformSite
+	level_ref.object_layer.add_child(site)
+	site.setup(level_ref, grid_pos, job_type)
+	terraform_jobs[grid_pos] = job_type
+	_register_building(site)
+	site.destroyed.connect(_on_building_destroyed)
+	site.destroyed.connect(func(_b): terraform_jobs.erase(grid_pos))
+
+# ==========================================
+# PRIORITY SYSTEM
+# ==========================================
+
+func get_highest_priority_job(bot_position: Vector2) -> Node:
+	for item in master_priority_queue:
 		if typeof(item) == TYPE_STRING:
-			var best_in_group = _find_closest_needing_work_in_group(item, bot_position)
-			if best_in_group != null:
-				return best_in_group # Found a belt/wall that needs work!
-				
-		# CASE B: IT IS A SPECIFIC BUILDING (Node)
+			var best = _find_closest_needing_work_in_group(item, bot_position)
+			if best != null: return best
 		else:
 			if is_instance_valid(item) and _building_needs_work(item):
-				return item 
-				
-	return null # Nothing in the entire base needs work!
+				return item
+	return null
 
-# --- HELPER LOGIC ---
 func _building_needs_work(bldg: Node) -> bool:
 	if bldg.has_method("needs_materials") and bldg.needs_materials(): return true
 	if bldg.health < bldg.max_health: return true
@@ -1215,20 +818,11 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 	var best_dist = INF
 	var best_target = null
 	
-	# Loop through your existing arrays based on the group
-	var search_array = []
-			
-	if group_name == "Belts":
-		for b in buildings: if b is ConveyorBuilding: search_array.append(b)
-	elif group_name == "Walls":
-		for b in buildings: if b is WallBuilding: search_array.append(b)
-		
-	# --- THE FIX: ADD TERRAFORM ROUTING ---
-	elif group_name == "Terraform":
-		for b in buildings: if b is TerraformSite: search_array.append(b)
-		
-	for b in search_array:
-		if _building_needs_work(b):
+	for b in buildings:
+		var matches = (group_name == "Belts" and b is ConveyorBuilding) or \
+					  (group_name == "Walls" and b is WallBuilding) or \
+					  (group_name == "Terraform" and b is TerraformSite)
+		if matches and _building_needs_work(b):
 			var dist = bot_pos.distance_squared_to(b.global_position)
 			if dist < best_dist:
 				best_dist = dist
@@ -1236,19 +830,15 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 				
 	return best_target
 
-# ==========================================
-# PRIORITY UI HELPERS
-# ==========================================
 func get_priority_rank(item: Variant) -> int:
 	var idx = master_priority_queue.find(item)
-	return idx + 1 if idx != -1 else 0 # Return 1-based rank (Index 0 = Rank 1)
+	return idx + 1 if idx != -1 else 0
 
 func get_total_priority_ranks() -> int:
 	return master_priority_queue.size()
 
 func move_priority_up(item: Variant):
 	var idx = master_priority_queue.find(item)
-	# If it's found, and it's NOT already #1 (index 0)
 	if idx > 0:
 		var temp = master_priority_queue[idx - 1]
 		master_priority_queue[idx - 1] = item
@@ -1256,49 +846,93 @@ func move_priority_up(item: Variant):
 
 func move_priority_down(item: Variant):
 	var idx = master_priority_queue.find(item)
-	# If it's found, and it's NOT already at the very bottom
 	if idx != -1 and idx < master_priority_queue.size() - 1:
 		var temp = master_priority_queue[idx + 1]
 		master_priority_queue[idx + 1] = item
 		master_priority_queue[idx] = temp
 
-var terraform_jobs: Dictionary = {}
+# ==========================================
+# BOT SPAWNING HELPER
+# ==========================================
 
-func _try_add_terrain_job(grid_pos: Vector2i):
-	# Don't overlap jobs or buildings!
-	if occupied_tiles.has(grid_pos): return 
+func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
+	var valid_tiles: Array[Vector2i] = []
+	var origin = building.grid_origin
+	var search_radius = 1
+	
+	while valid_tiles.size() < count and search_radius < 10:
+		for x in range(origin.x - search_radius, origin.x + building.size.x + search_radius):
+			for y in range(origin.y - search_radius, origin.y + building.size.y + search_radius):
+				var check_tile = Vector2i(x, y)
+				if building.occupied_tiles.has(check_tile): continue
+				if valid_tiles.has(check_tile): continue
+				if pathfinder and pathfinder.astar.is_in_boundsv(check_tile):
+					if not pathfinder.astar.is_point_solid(check_tile):
+						valid_tiles.append(check_tile)
+						if valid_tiles.size() >= count: return valid_tiles
+		search_radius += 1
 		
-	var job_type = -1
-	var has_object = object_layer.get_cell_source_id(grid_pos) != -1
-	var has_active_resource = level_ref.active_grid_objects.has(grid_pos)
-		
-	if has_object or has_active_resource:
-		job_type = TerraformSite.JobType.REMOVE_OBJECT
-	elif terrain_layer:
-		var tile_data = terrain_layer.get_cell_tile_data(grid_pos)
-		if tile_data != null and tile_data.get_custom_data("buildable") == false:
-			job_type = TerraformSite.JobType.CONVERT_WATER
-			
-	if job_type != -1:
-		# SPAWN THE NODE!
-		var site = terraform_site_scene.instantiate() as TerraformSite
-		level_ref.object_layer.add_child(site)
-		site.setup(level_ref, grid_pos, job_type)
-		
-		terraform_jobs[grid_pos] = job_type
-		
-		# Register it exactly like a building so the bots can see it!
-		_register_building(site)
-		site.destroyed.connect(_on_building_destroyed)
-		site.destroyed.connect(func(_b): terraform_jobs.erase(grid_pos))
-		
-	else:
-		print("Nothing to remove at: ", grid_pos)
-		
+	return valid_tiles
+
 # ==========================================
-# BOT UI ROUTING
+# MATH HELPERS
 # ==========================================
+
+func _get_straight_line(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
+	var points: Array[Vector2i] = []
+	var diff = end - start
+	var final_end = end
+	
+	if abs(diff.x) >= abs(diff.y): final_end.y = start.y
+	else: final_end.x = start.x
+		
+	var current = start
+	var step = Vector2i(
+		sign(final_end.x - start.x) if final_end.x != start.x else 0,
+		sign(final_end.y - start.y) if final_end.y != start.y else 0
+	)
+	
+	for _i in range(100):
+		points.append(current)
+		if current == final_end: break
+		current += step
+		
+	return points
+
+func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Dictionary:
+	var total = {}
+	for resource_name in base_cost:
+		total[resource_name] = base_cost[resource_name] * quantity
+	return total
+
+# ==========================================
+# UI & HOVER EVENTS
+# ==========================================
+
+func _on_building_hovered(building: Node2D):
+	if hover_popup:
+		hover_popup.show_building_info(building)
+
+func _on_building_unhovered(building: Node2D):
+	if hover_popup and hover_popup.current_building == building:
+		hover_popup.hide_popup()
+
 func _on_bot_clicked(bot: Node2D):
-	# Fire the exact same signal we use for actual buildings!
-	# The UI won't know the difference.
 	building_selected.emit(bot)
+
+# ==========================================
+# DEBUG
+# ==========================================
+
+func _debug_print_priority_queue():
+	print("\n=== MASTER PRIORITY QUEUE ===")
+	for i in range(master_priority_queue.size()):
+		var item = master_priority_queue[i]
+		var rank = i + 1
+		if typeof(item) == TYPE_STRING:
+			print("Rank %d: [GROUP] %s" % [rank, item])
+		elif is_instance_valid(item):
+			print("Rank %d: %s at %s" % [rank, item.building_name, item.global_position])
+		else:
+			print("Rank %d: [DELETED]" % rank)
+	print("=============================\n")

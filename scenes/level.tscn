@@ -89,12 +89,12 @@ tile_set = ExtResource("2_w8frs")
 [node name="OverlayRenderer" type="Node2D" parent="." unique_id=826390895]
 script = ExtResource("25_svjb4")
 
-[node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "hover_popup", "terrain_layer", "corruption_layer")]
+[node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "terrain_layer", "corruption_layer", "hover_popup")]
 script = ExtResource("15_gunhw")
 object_layer = NodePath("../ObjectLayer")
-hover_popup = NodePath("../CanvasLayer/Popup_Layer/HoverMenu")
 terrain_layer = NodePath("../TerrainLayer")
 corruption_layer = NodePath("../CorruptionLayer")
+hover_popup = NodePath("../CanvasLayer/Popup_Layer/HoverMenu")
 construction_site_scene = ExtResource("26_v3why")
 terraform_site_scene = ExtResource("27_q4oe8")
 
