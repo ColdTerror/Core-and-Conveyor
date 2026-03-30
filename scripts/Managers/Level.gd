@@ -72,6 +72,7 @@ func _ready():
 	generate_simple_map()
 	hover_menu.hide()
 	
+	
 	# Connect the new resource signals
 	ResourceManager.resource_state_changed.connect(_on_resource_state_changed)
 	ResourceManager.resource_destroyed.connect(_on_resource_destroyed)
@@ -227,37 +228,7 @@ func _process(_delta):
 			last_hovered_upgrade_tile = Vector2i(-1, -1)
 			building_manager.placement_ended.emit() 
 	# -----------------------------
-	
-	queue_redraw()
 
-# ============================================================================
-# VISUAL OVERLAYS
-# ============================================================================
-func _draw():
-	# DECONSTRUCT (Red)
-	if current_mode == InteractionMode.DECONSTRUCT:
-		_draw_grid_highlight(Color(1.0, 0.2, 0.2, 0.3), Color(1.0, 0.2, 0.2, 0.8))
-		
-	# UPGRADE (Blue/Cyan)
-	elif current_mode == InteractionMode.UPGRADE:
-		_draw_grid_highlight(Color(0.2, 0.8, 1.0, 0.3), Color(0.2, 0.8, 1.0, 0.8))
-	
-	# --- NEW: TERRAFORM (Orange) ---
-	elif current_mode == InteractionMode.TERRAFORM:
-		_draw_grid_highlight(Color(1.0, 0.6, 0.0, 0.3), Color(1.0, 0.6, 0.0, 0.8))
-		
-# Helper function to keep _draw clean!
-func _draw_grid_highlight(fill_color: Color, outline_color: Color):
-	var mouse_pos = get_global_mouse_position()
-	var grid_pos = terrain_layer.local_to_map(mouse_pos)
-	var local_pos = terrain_layer.map_to_local(grid_pos)
-	
-	var half_offset = Vector2(tile_size_px.x / 2.0, tile_size_px.y / 2.0)
-	var top_left = local_pos - half_offset
-	var rect = Rect2(top_left, tile_size_px)
-	
-	draw_rect(rect, fill_color, true)
-	draw_rect(rect, outline_color, false, 2.0)
 
 
 # ============================================================================
