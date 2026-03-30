@@ -655,7 +655,9 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 	var best_stand = Vector2i(-1, -1)
 	var best_target = Vector2i(-1, -1)
 	var my_grid = level_ref.object_layer.local_to_map(global_position)
-	var closest_dist = INF
+	
+	# --- THE FIX: Track Path Length instead of straight-line distance ---
+	var shortest_path_length = INF
 	
 	for t_tile in target_tiles:
 		for offset in neighbors:
@@ -663,14 +665,24 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 			if test_tile in target_tiles: continue
 				
 			if pathfinder.astar.is_in_boundsv(test_tile) and not pathfinder.astar.is_point_solid(test_tile):
-				var dist = my_grid.distance_squared_to(test_tile)
-				if dist < closest_dist:
-					closest_dist = dist
+				
+				# 1. Ask the pathfinder for the actual walking route!
+				var path_array = pathfinder.astar.get_id_path(my_grid, test_tile)
+				
+				# 2. If the array is empty, this tile is completely walled off. Skip it!
+				if path_array.is_empty() and my_grid != test_tile:
+					continue
+					
+				# 3. Use the length of the actual path to determine the best tile
+				var path_length = path_array.size()
+				
+				if path_length < shortest_path_length:
+					shortest_path_length = path_length
 					best_stand = test_tile
 					best_target = t_tile
 					
 	return {"stand": best_stand, "target": best_target}
-
+	
 # If the bot is inside a solid tile (e.g. a building was placed on top of it), pop it out
 func _escape_trapped_tile() -> bool:
 	var pathfinder = level_ref.building_manager.pathfinder
