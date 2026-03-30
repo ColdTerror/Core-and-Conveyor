@@ -38,6 +38,7 @@
 [ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/Enemy & Related/wave_manager.tscn" id="32_2e2fo"]
 [ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/Enemy & Related/corruption_manager.gd" id="34_v3why"]
 [ext_resource type="PackedScene" uid="uid://cdmxyx00rhtcw" path="res://scenes/research/research_screen.tscn" id="35_asl66"]
+[ext_resource type="PackedScene" uid="uid://b0e2y87cv1d35" path="res://scenes/ui/priority_menu.tscn" id="36_c1pbi"]
 
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
@@ -166,6 +167,14 @@ offset_left = -23.5
 offset_right = 23.5
 offset_bottom = 81.0
 grow_horizontal = 2
+
+[node name="PriorityMenu" parent="CanvasLayer/Popup_Layer" unique_id=1030070791 node_paths=PackedStringArray("building_manager") instance=ExtResource("36_c1pbi")]
+layout_mode = 1
+offset_left = -402.0
+offset_top = -300.0
+offset_right = 402.0
+offset_bottom = 300.0
+building_manager = NodePath("../../../BuildingManager")
 
 [node name="Hud_Layer" type="Control" parent="CanvasLayer" unique_id=1589356399]
 layout_mode = 3

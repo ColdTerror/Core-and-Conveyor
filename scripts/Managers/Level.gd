@@ -66,6 +66,8 @@ var active_grid_objects := {}
 
 @onready var detail_menu = $CanvasLayer/Popup_Layer/DetailMenu 
 
+@onready var priority_menu = $CanvasLayer/Popup_Layer/PriorityMenu
+
 @onready var pathfinder = $Pathfinder
 
 func _ready():
@@ -448,6 +450,9 @@ func _unhandled_input(event):
 			else:
 				current_mode = InteractionMode.TERRAFORM
 				print("Entered Terrain Mode")
+		if event.keycode == KEY_P:
+			priority_menu.toggle_menu()
+			get_viewport().set_input_as_handled()
 
 	# 2. BUILDING MODE (Delegated to Manager)
 	# We check this FIRST. If we are placing a building, we send Presses, Releases, 

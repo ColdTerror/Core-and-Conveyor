@@ -16,7 +16,7 @@ var master_priority_queue: Array = []
 
 func _is_grouped_type(building: Node) -> bool:
 	# Add any other classes here that shouldn't be individually ranked!
-	return building is ConveyorBuilding or building is WallBuilding
+	return building is ConveyorBuilding or building is WallBuilding or building is TerraformSite
 	
 
 # ---TRACKERS ---
@@ -464,7 +464,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 
 		# 2. THE FIX: Tell it how big it is BEFORE you place it!
 		# This updates the site's internal `size` to 2x2, 3x3, etc.
-		site.setup_blueprint(level_ref, target_scene, cost, ghost_building.size)
+		site.setup_blueprint(level_ref, target_scene, cost, ghost_building.size, ghost_building.building_name)
 		
 		# 3. THE FIX: Let the base Building class do the math!
 		# place_at() uses the newly updated size to perfectly center the global_position.
@@ -876,7 +876,10 @@ func _register_building(building: Building):
 	
 	if _is_grouped_type(building):
 		# Figure out the string name for this group
-		var group_name = "Belts" if building is ConveyorBuilding else "Walls"
+		var group_name = ""
+		if building is ConveyorBuilding: group_name = "Belts"
+		elif building is WallBuilding: group_name = "Walls"
+		elif building is TerraformSite: group_name = "Terraform"
 		
 		# If it's the very first one, add the string to the master list!
 		if not master_priority_queue.has(group_name):
@@ -1431,10 +1434,6 @@ func _try_add_terrain_job(grid_pos: Vector2i):
 		_register_building(site)
 		site.destroyed.connect(_on_building_destroyed)
 		
-		# Ensure "Terraform" is dynamically added to the Priority List
-		if not master_priority_queue.has("Terraform"):
-			master_priority_queue.append("Terraform")
-			print("Priority System: Unlocked Terraforming")
 	else:
 		print("Nothing to remove at: ", grid_pos)
 		

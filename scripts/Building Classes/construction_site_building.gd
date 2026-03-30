@@ -13,7 +13,7 @@ var blueprint_size: Vector2i = Vector2i(1, 1)
 # ==========================================
 # 1. THE DYNAMIC SETUP
 # ==========================================
-func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: Dictionary, b_size: Vector2i):
+func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: Dictionary, b_size: Vector2i, target_name: String = ""):
 	level_ref = level_instance
 	target_building_scene = target_scene
 	required_items = costs.duplicate()
@@ -25,7 +25,11 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 	var footprint_px = Vector2(size.x * 32.0, size.y * 32.0)
 	_update_collision(footprint_px)
 	
-	building_name = "Construction Site"
+	if target_name != "":
+		building_name = "Building: " + target_name
+	else:
+		building_name = "Construction Site"
+		
 	health = 0 
 	max_health = 100 
 	

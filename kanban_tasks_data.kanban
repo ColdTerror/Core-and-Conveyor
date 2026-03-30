@@ -13,13 +13,15 @@
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
 				"98ce003e-e8ee-4651-9334-cd575dcef697",
-				"3512b141-faac-45c3-a413-6d121b4e22cb"
+				"6cea242c-2fdb-4a91-a620-dfda1bca28ca"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"3512b141-faac-45c3-a413-6d121b4e22cb"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -453,6 +455,13 @@
 			"uuid": "3512b141-faac-45c3-a413-6d121b4e22cb",
 			"title": "priority list ui",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "6cea242c-2fdb-4a91-a620-dfda1bca28ca",
+			"title": "bot pathfinding",
+			"description": "seems to calc distance through objects if a path is valid, so it will path through 2 trees think its the closest one when picking a adjacent tile to a building, but then have to walk all around the forest",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
