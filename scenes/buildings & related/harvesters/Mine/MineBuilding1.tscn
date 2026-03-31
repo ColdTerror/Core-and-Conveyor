@@ -20,6 +20,8 @@ generic_item_scene = ExtResource("2_wcq7w")
 building_name = "Mine"
 size = Vector2i(3, 4)
 icon = SubResource("AtlasTexture_cawij")
+build_range = 8.0
+corruption_range = 10.0
 upgrades_to = ExtResource("5_4xj7m")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]

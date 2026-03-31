@@ -22,6 +22,8 @@ building_name = "Quarry"
 size = Vector2i(3, 4)
 max_health = 150
 icon = SubResource("AtlasTexture_cawij")
+build_range = 8.0
+corruption_range = 10.0
 building_level = 2
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]

@@ -20,6 +20,7 @@ script = ExtResource("1_y4pf7")
 building_name = "Router"
 icon = SubResource("AtlasTexture_y4pf7")
 build_costs = Array[ExtResource("3_hdl5s")]([SubResource("Resource_axnho")])
+build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1421611039]
 texture = ExtResource("1_v5q08")

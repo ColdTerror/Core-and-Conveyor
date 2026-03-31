@@ -22,6 +22,8 @@ is_draggable = true
 building_name = "Conveyer"
 icon = SubResource("AtlasTexture_34v7p")
 build_costs = Array[ExtResource("3_vllef")]([SubResource("Resource_1pix4")])
+build_range = 2.0
+corruption_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=657515564]
 texture = ExtResource("1_yfprp")

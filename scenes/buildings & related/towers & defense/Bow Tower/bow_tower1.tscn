@@ -32,6 +32,8 @@ building_name = "Bow Tower"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_fp6y0")
 build_costs = Array[ExtResource("3_fp6y0")]([SubResource("Resource_nr8e2")])
+build_range = 6.0
+corruption_range = 8.0
 upgrades_to = ExtResource("4_nr8e2")
 upgrade_cost = Array[ExtResource("3_fp6y0")]([SubResource("Resource_lsqhb")])
 

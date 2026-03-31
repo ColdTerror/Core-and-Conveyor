@@ -40,6 +40,8 @@ building_name = "Fletcher"
 size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_5rwt6")
 build_costs = Array[ExtResource("7_hb67s")]([SubResource("Resource_axv5i")])
+build_range = 8.0
+corruption_range = 10.0
 upgrades_to = ExtResource("8_xjdq3")
 upgrade_cost = Array[ExtResource("7_hb67s")]([SubResource("Resource_xjdq3"), SubResource("Resource_13whr")])
 

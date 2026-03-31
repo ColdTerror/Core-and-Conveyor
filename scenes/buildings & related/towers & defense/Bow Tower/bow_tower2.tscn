@@ -29,6 +29,8 @@ building_name = "Bow Tower"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_fp6y0")
 build_costs = Array[ExtResource("3_7n57p")]([SubResource("Resource_nr8e2")])
+build_range = 6.0
+corruption_range = 8.0
 building_level = 2
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156622]
