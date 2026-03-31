@@ -1,30 +1,25 @@
 # Level.gd 
 extends Node2D
 
+# ==========================================
+# NODES & REFERENCES
+# ==========================================
 @onready var terrain_layer: TileMapLayer = $TerrainLayer
 @onready var object_layer: TileMapLayer = $ObjectLayer
 
-
 @onready var hover_menu := $CanvasLayer/Popup_Layer/HoverMenu
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
+@onready var detail_menu = $CanvasLayer/Popup_Layer/DetailMenu 
+@onready var priority_menu = $CanvasLayer/Popup_Layer/PriorityMenu
 
-# Mode State
-enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM}
-var current_mode = InteractionMode.NONE
+@onready var building_manager: BuildingManager = $BuildingManager
+@onready var pathfinder = $Pathfinder
 
-var last_hovered_upgrade_tile := Vector2i(-1, -1)
-
-var is_terrain_remove_brush: bool = false
-var last_terrain_tile := Vector2i(-1, -1)
-
-
+# ==========================================
+# ENUMS & CONSTANTS
+# ==========================================
+enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM }
 enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
-@export var current_map_type: MapGenType = MapGenType.RIVER_DIVIDE
-
-
-@export var tile_size_px: Vector2 = Vector2(32, 32)
-
-@export var tile_library: Array[TileDataResource] = []
 
 const ATLAS_COLUMNS := 3
 const TILE_COUNT := 10
@@ -38,9 +33,12 @@ const TERRAIN_SAND := 2
 const RES_TREE := 3
 const RES_STONE := 4
 
-
-var active_grid_objects := {}
-
+# ==========================================
+# EXPORTS & CONFIGURATION
+# ==========================================
+@export var current_map_type: MapGenType = MapGenType.RIVER_DIVIDE
+@export var tile_size_px: Vector2 = Vector2(32, 32)
+@export var tile_library: Array[TileDataResource] = []
 
 @export_group("Scenes")
 @export var item_scene: PackedScene 
@@ -55,34 +53,35 @@ var active_grid_objects := {}
 @export var mine_scene: PackedScene
 @export var stonemason_scene: PackedScene
 @export var fletcher_scene: PackedScene
-
-
-# ------------------
-
 @export var projectile_scene: PackedScene
 
+# ==========================================
+# RUNTIME STATE
+# ==========================================
+var current_mode = InteractionMode.NONE
+var active_grid_objects := {}
 
-@onready var building_manager: BuildingManager = $BuildingManager
+# Tool Trackers
+var last_hovered_upgrade_tile := Vector2i(-1, -1)
+var is_terrain_remove_brush: bool = false
+var last_terrain_tile := Vector2i(-1, -1)
 
-@onready var detail_menu = $CanvasLayer/Popup_Layer/DetailMenu 
-
-@onready var priority_menu = $CanvasLayer/Popup_Layer/PriorityMenu
-
-@onready var pathfinder = $Pathfinder
+# ==========================================
+# SETUP & MAIN LOOP
+# ==========================================
 
 func _ready():
 	generate_simple_map()
 	hover_menu.hide()
 	
-	
-	# Connect the new resource signals
+	# Connect the resource signals
 	ResourceManager.resource_state_changed.connect(_on_resource_state_changed)
 	ResourceManager.resource_destroyed.connect(_on_resource_destroyed)
 	
 	# Give the manager a reference to this Level node
 	building_manager.initialize(self)
 
-	# NEW: Connect Hotbar Signal
+	# Connect Hotbar Signal
 	if hotbar:
 		hotbar.item_selected.connect(_on_hotbar_item_selected)
 		_setup_hotbar_items()
@@ -92,20 +91,167 @@ func _ready():
 	building_manager.pathfinder = pathfinder
 	
 	building_manager.building_selected.connect(detail_menu.open_menu)
-	
 	building_manager.core_placed_event.connect(_on_core_placed)
+
+func _process(_delta):
+	var mouse_pos = get_global_mouse_position()
+	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
+	# --- UPGRADE HOVER UI ---
+	if current_mode == InteractionMode.UPGRADE:
+		# Only update the UI if the mouse moved to a NEW tile
+		if grid_pos != last_hovered_upgrade_tile:
+			last_hovered_upgrade_tile = grid_pos
+			building_manager.show_upgrade_preview(grid_pos)
+	else:
+		# If we cancel Upgrade Mode, hide the UI immediately
+		if last_hovered_upgrade_tile != Vector2i(-1, -1):
+			last_hovered_upgrade_tile = Vector2i(-1, -1)
+			building_manager.placement_ended.emit() 
 
-# =========================
-# Hotbar stuff
-# =========================
+# ==========================================
+# STATE MACHINE: INPUT HANDLING
+# ==========================================
 
-# 1. DEFINE WHAT GOES ON THE BAR
+func _unhandled_input(event):
+	var mouse_pos = get_global_mouse_position()
+	var grid_pos = terrain_layer.local_to_map(mouse_pos)
+
+	# ---------------------------------------------------------
+	# 1. HOTKEYS & MODE SWITCHING
+	# ---------------------------------------------------------
+	if event.is_action_pressed("rotate_tile"):
+		if current_mode == InteractionMode.PLACE_BUILDING:
+			building_manager.rotate_ghost()
+		return
+	
+	if event.is_action_pressed("deconstruct_hotkey"): 
+		building_manager.cancel_placement()
+		current_mode = InteractionMode.DECONSTRUCT
+		print("Entered Deconstruct Mode")
+		
+	if event.is_action_pressed("upgrade_hotkey"): 
+		building_manager.cancel_placement()
+		if current_mode == InteractionMode.UPGRADE:
+			current_mode = InteractionMode.NONE
+			print("Exited Upgrade Mode")
+		else:
+			current_mode = InteractionMode.UPGRADE
+			print("Entered Upgrade Mode")
+		
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_T:
+			building_manager.cancel_placement()
+			if current_mode == InteractionMode.TERRAFORM:
+				current_mode = InteractionMode.NONE
+				print("Exited Terrain Mode")
+			else:
+				current_mode = InteractionMode.TERRAFORM
+				print("Entered Terrain Mode")
+				
+		if event.keycode == KEY_P:
+			priority_menu.toggle_menu()
+			get_viewport().set_input_as_handled()
+
+	# ---------------------------------------------------------
+	# 2. BUILDING MODE (Delegated to Manager)
+	# ---------------------------------------------------------
+	if current_mode == InteractionMode.PLACE_BUILDING:
+		if event is InputEventMouse: 
+			var finished = building_manager.handle_input(event, grid_pos)
+			if finished:
+				current_mode = InteractionMode.NONE
+			return 
+
+	# ---------------------------------------------------------
+	# 3. DECONSTRUCT MODE
+	# ---------------------------------------------------------
+	if current_mode == InteractionMode.DECONSTRUCT:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			building_manager.deconstruct_building_at(grid_pos)
+		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			building_manager.deconstruct_building_at(grid_pos)
+			
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+			current_mode = InteractionMode.NONE
+			print("Exited Deconstruct Mode")
+		return 
+		
+	# ---------------------------------------------------------
+	# 4. UPGRADE MODE
+	# ---------------------------------------------------------
+	if current_mode == InteractionMode.UPGRADE:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			if building_manager.upgrade_building_at(grid_pos):
+				last_hovered_upgrade_tile = Vector2i(-1, -1)
+		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			if building_manager.upgrade_building_at(grid_pos):
+				last_hovered_upgrade_tile = Vector2i(-1, -1)
+			
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+			current_mode = InteractionMode.NONE
+			if last_hovered_upgrade_tile != Vector2i(-1, -1):
+				last_hovered_upgrade_tile = Vector2i(-1, -1)
+				building_manager.placement_ended.emit() 
+			print("Exited Upgrade Mode")
+		return 
+
+	# ---------------------------------------------------------
+	# 5. TERRAFORM MODE
+	# ---------------------------------------------------------
+	if current_mode == InteractionMode.TERRAFORM:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				last_terrain_tile = grid_pos
+				if building_manager.occupied_tiles.has(grid_pos) and building_manager.occupied_tiles[grid_pos] is TerraformSite:
+					is_terrain_remove_brush = true
+					building_manager.deconstruct_building_at(grid_pos)
+				else:
+					is_terrain_remove_brush = false
+					building_manager._try_add_terrain_job(grid_pos)
+			else:
+				last_terrain_tile = Vector2i(-1, -1)
+				
+		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			if grid_pos != last_terrain_tile:
+				last_terrain_tile = grid_pos
+				if is_terrain_remove_brush:
+					if building_manager.occupied_tiles.has(grid_pos) and building_manager.occupied_tiles[grid_pos] is TerraformSite:
+						building_manager.deconstruct_building_at(grid_pos)
+				else:
+					building_manager._try_add_terrain_job(grid_pos)
+			
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+			current_mode = InteractionMode.NONE
+			last_terrain_tile = Vector2i(-1, -1)
+			print("Exited Terrain Mode")
+		return 
+		
+	# ---------------------------------------------------------
+	# 6. DEFAULT SELECTION & CANCEL
+	# ---------------------------------------------------------
+	if event.is_action_pressed("ui_left"):
+		if current_mode == InteractionMode.NONE:
+			building_manager.select_building_at(grid_pos)
+			if has_node("WaveManager"):
+				$WaveManager.deselect_enemy()
+
+	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+		building_manager.cancel_placement()
+		current_mode = InteractionMode.NONE
+
+# ==========================================
+# HOTBAR & UI
+# ==========================================
+
 func _setup_hotbar_items():
-	# --- MODIFIED: Only give the player the Core at the start! ---
 	_add_building_to_bar("Core", core_scene)
 
-# --- NEW: Called after the Core is placed ---
+func _on_core_placed():
+	if hotbar and hotbar.has_method("remove_button"):
+		hotbar.remove_button("Core")
+	_add_unlocked_buildings()
+	
 func _add_unlocked_buildings():
 	_add_building_to_bar("Belt", conveyor_scene)
 	_add_building_to_bar("Router", router_scene)
@@ -117,136 +263,91 @@ func _add_unlocked_buildings():
 	_add_building_to_bar("Mine", mine_scene)
 	_add_building_to_bar("Stonemason", stonemason_scene)
 	_add_building_to_bar("Fletcher", fletcher_scene)
-	
-
-# =========================
-# CORE PLACEMENT EVENT
-# =========================
-func _on_core_placed():
-	# 1. Remove the Core from the hotbar
-	if hotbar and hotbar.has_method("remove_button"):
-		hotbar.remove_button("Core")
-		
-	
-	# 2. Populate the rest of the hotbar!
-	_add_unlocked_buildings()
-	
 
 func _add_building_to_bar(name: String, packed_scene: PackedScene):
 	if not packed_scene: return
-	
-	# Hack: Instance it momentarily to read the 'icon' property we added
 	var temp = packed_scene.instantiate()
-	var icon = null
-	if "icon" in temp: icon = temp.icon
-	
+	var icon = temp.icon if "icon" in temp else null
 	hotbar.add_button(name, icon, packed_scene, true)
 	temp.queue_free()
 	
-# 2. HANDLE CLICKS
 func _on_hotbar_item_selected(data, is_building):
-	# Reset states
 	building_manager.cancel_placement()
-	
-	
 	if is_building:
 		current_mode = InteractionMode.PLACE_BUILDING
 		building_manager.start_placing(data)
-	# DELETE THE ELSE BLOCK - no more tile mode for conveyors
 
-# =========================
-# Resource state change
-# =========================
+# ==========================================
+# RESOURCES & ENVIRONMENT
+# ==========================================
 
 func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResource):
-	# Now we don't need hardcoded constants like TREE_FULL_ATLAS!
-	# We use the data passed back to us.
-	
 	match state:
 		ResourceManager.ResourceState.FULL:
 			object_layer.set_cell(tile, 0, data.atlas_coords_full)
-			# Refill health in your tracking dict
 			if active_grid_objects.has(tile):
 				active_grid_objects[tile]["health"] = data.total_resources
-
 		ResourceManager.ResourceState.HARVESTING:
-			# If the data has a specific look for harvesting (leafless), use it
 			if data.atlas_coords_harvesting != Vector2i(-1, -1):
 				object_layer.set_cell(tile, 0, data.atlas_coords_harvesting)
-
 		ResourceManager.ResourceState.DEPLETED:
-			# If the data has a stump look, use it; otherwise remove tile
 			if data.atlas_coords_depleted != Vector2i(-1, -1):
 				object_layer.set_cell(tile, 0, data.atlas_coords_depleted)
 			else:
-				object_layer.set_cell(tile, -1) # Remove completely if no stump sprite
+				object_layer.set_cell(tile, -1)
 
 func _on_resource_destroyed(tile: Vector2i):
-	# 1. Remove it from the logic grid so we can build here now!
 	if active_grid_objects.has(tile):
 		active_grid_objects.erase(tile)
-		
-	# 2. Erase the visual sprite from the TileMap
-	object_layer.erase_cell(tile) # Or object_layer.set_cell(tile, -1)
+	object_layer.erase_cell(tile) 
 	
-	# 3. Free up the pathfinder so enemies and bots can walk here!
 	if building_manager and building_manager.pathfinder:
 		building_manager.pathfinder.set_obstacle(tile, false)
 		building_manager.pathfinder.set_weighted_obstacle(tile, 1.0)
 
 func handle_harvest_input(grid_pos: Vector2i):
-	# 1. Check if something exists here
-	if not active_grid_objects.has(grid_pos):
-		return
-		
+	if not active_grid_objects.has(grid_pos): return
 	var obj_info = active_grid_objects[grid_pos]
-	var data = obj_info["data"]
-	
-	# 2. Send Request to Manager
-	# We pass 'obj_info' so the manager can edit the health directly.
-	# We can also pass a specific amount (e.g. 10) if we have a super-pickaxe later.
 	ResourceManager.request_harvest(grid_pos, obj_info)
-# ===========================
 
 func get_object_tile_index(tile: Vector2i) -> int:
 	var atlas := object_layer.get_cell_atlas_coords(tile)
-	if atlas == Vector2i(-1, -1):
-		return -1
+	if atlas == Vector2i(-1, -1): return -1
 	return atlas.y * ATLAS_COLUMNS + atlas.x
 
-func _process(_delta):
-	var mouse_pos = get_global_mouse_position()
-	var grid_pos = terrain_layer.local_to_map(mouse_pos)
+# ==========================================
+# COMBAT & PROJECTILES
+# ==========================================
+
+func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset):
+	if not projectile_scene:
+		print("Error: Projectile Scene not assigned in Level Inspector")
+		return
 	
-	# --- NEW: UPGRADE HOVER UI ---
-	if current_mode == InteractionMode.UPGRADE:
-		# Only update the UI if the mouse moved to a NEW tile
-		if grid_pos != last_hovered_upgrade_tile:
-			last_hovered_upgrade_tile = grid_pos
-			building_manager.show_upgrade_preview(grid_pos)
-	else:
-		# If we cancel Upgrade Mode, hide the UI immediately
-		if last_hovered_upgrade_tile != Vector2i(-1, -1):
-			last_hovered_upgrade_tile = Vector2i(-1, -1)
-			building_manager.placement_ended.emit() 
-	# -----------------------------
+	var dir = Vector2.RIGHT 
+	if is_instance_valid(target_node):
+		dir = (target_node.global_position - start_pos).normalized()
+	
+	dir = dir.rotated(angle_offset)
+	var proj = projectile_scene.instantiate()
+	object_layer.add_child(proj)
+	
+	if proj.has_method("setup"):
+		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower)
 
-
-
-# ============================================================================
-# MAP GENERATION - RISE TO RUINS STYLE
-# ============================================================================
+# ==========================================
+# MAP GENERATION
+# ==========================================
 
 func generate_simple_map():
 	terrain_layer.clear()
 	object_layer.clear()
 	active_grid_objects.clear()
 	
-	# 1. Setup Base Noises
 	var land_noise = FastNoiseLite.new()
 	land_noise.seed = randi()
 	land_noise.noise_type = FastNoiseLite.TYPE_PERLIN
-	land_noise.frequency = 0.035 # Default mainland frequency
+	land_noise.frequency = 0.035 
 	
 	var forest_noise = FastNoiseLite.new()
 	forest_noise.seed = randi()
@@ -264,26 +365,21 @@ func generate_simple_map():
 	river_noise.seed = randi() + 3
 	river_noise.frequency = 0.006 
 	
-	# --- NEW: MAP TYPE MODIFIERS ---
 	var water_level = 0.16
 	var sand_level = 0.20
 	
 	match current_map_type:
 		MapGenType.LAKES:
-			# Lumpier terrain creates lots of natural bowls and valleys
 			land_noise.frequency = 0.08 
-			# Raise the sea level so those valleys flood and become lakes
 			water_level = 0.24 
 			sand_level = 0.28
 		MapGenType.MAINLAND:
-			pass # Uses default values, but we will skip the river carving!
+			pass 
 		MapGenType.RIVER_DIVIDE:
-			pass # Uses default values
-	# -------------------------------
-	
+			pass 
+			
 	var terrain_map := {}
 
-	# 2. Step One: Create the Island, Plateaus, and Rivers
 	for x in range(MAP_WIDTH):
 		for y in range(MAP_HEIGHT):
 			var grid_pos = Vector2i(x, y)
@@ -297,301 +393,69 @@ func generate_simple_map():
 			var elevation = noise_val * falloff
 
 			var type = TERRAIN_WATER
-			# Use the dynamic variables instead of hardcoded numbers!
-			if elevation < water_level:
-				type = TERRAIN_WATER
-			elif elevation < sand_level:
-				type = TERRAIN_SAND
-			else:
-				type = TERRAIN_GRASS 
+			if elevation < water_level: type = TERRAIN_WATER
+			elif elevation < sand_level: type = TERRAIN_SAND
+			else: type = TERRAIN_GRASS 
 				
-			# --- CARVE THE RIVER (Only if the map type allows it!) ---
 			if current_map_type == MapGenType.RIVER_DIVIDE:
 				if type == TERRAIN_GRASS or type == TERRAIN_SAND:
 					var r_val = abs(river_noise.get_noise_2d(x, y))
-					
-					if r_val < 0.05: 
-						type = TERRAIN_WATER
-					elif r_val < 0.06: 
-						type = TERRAIN_SAND
-			# ---------------------------------------------------------
+					if r_val < 0.05: type = TERRAIN_WATER
+					elif r_val < 0.06: type = TERRAIN_SAND
 			
 			terrain_map[grid_pos] = type
 
-	# 3. Apply Terrain to Tilemap
 	for pos in terrain_map:
 		var type = terrain_map[pos]
 		var atlas_coords = Vector2i(type % ATLAS_COLUMNS, type / ATLAS_COLUMNS)
 		terrain_layer.set_cell(pos, 0, atlas_coords)
 
-	# 4. Step Two: Clumped Resources (Objects on Grass)
 	for x in range(MAP_WIDTH):
 		for y in range(MAP_HEIGHT):
 			var pos = Vector2i(x, y)
-			
 			if terrain_map[pos] == TERRAIN_GRASS:
 				var biome_val = biome_noise.get_noise_2d(x, y)
-				
 				if biome_val > 0.15:
 					var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if s_val > 0.55: 
-						place_resource_at(pos, RES_STONE)
-						
+					if s_val > 0.55: place_resource_at(pos, RES_STONE)
 				elif biome_val < -0.15:
 					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if d_val > 0.60: 
-						place_resource_at(pos, RES_TREE)
+					if d_val > 0.60: place_resource_at(pos, RES_TREE)
 
 	print("Map generated: ", MapGenType.keys()[current_map_type])
 
-
-# ============================================================================
-# HELPER FUNCTIONS
-# ============================================================================
-
 func place_resource_at(grid_pos: Vector2i, resource_index: int):
 	if resource_index >= tile_library.size(): return
-	
 	var data = tile_library[resource_index]
-	
-	# NEW: Use the explicit coordinate from the resource data
 	object_layer.set_cell(grid_pos, 0, data.atlas_coords_full)
-	
-	# Register in the system
 	active_grid_objects[grid_pos] = {
 		"health": data.total_resources,
 		"data": data
 	}
 
-
-
-# ====================================================
-# MODIFIED: place_tile (Now Handles Conveyor Buildings)
-# ====================================================
 func place_tile(grid_pos: Vector2i, data: TileDataResource):
 	var correct_index = tile_library.find(data)
 	if correct_index == -1: return
 	
 	var atlas_coords = Vector2i(correct_index % ATLAS_COLUMNS, correct_index / ATLAS_COLUMNS)
-	
-	# DELETE THIS ENTIRE SECTION:
-	# --- CONVEYOR LOGIC (Spawn Building) ---
-	# if data.is_conveyor:
-	#     ... all the belt spawning code ...
-	# ---------------------------------------
-
-	# Normal tile placement (terrain/resources)
 	if not data.is_object:
 		terrain_layer.set_cell(grid_pos, 0, atlas_coords)
 	else:
 		if can_place_object(grid_pos):
 			var final_coords = data.atlas_coords_full if data.atlas_coords_full != Vector2i(-1, -1) else atlas_coords
 			object_layer.set_cell(grid_pos, 0, final_coords)
-			
 			active_grid_objects[grid_pos] = {
 				"health": data.total_resources,
 				"data": data
 			}
+
 func can_place_object(grid_pos: Vector2i) -> bool:
-	# 1. Check Terrain (Water check)
 	var terrain_atlas = terrain_layer.get_cell_atlas_coords(grid_pos)
-	# Safety check for invalid terrain
 	if terrain_atlas == Vector2i(-1, -1): return false 
 	
 	var terrain_index = terrain_atlas.y * ATLAS_COLUMNS + terrain_atlas.x
-	if terrain_index == TERRAIN_WATER:
-		return false
-
-	# 2. Check Object Layer (Trees, Rocks, existing Belts)
-	if object_layer.get_cell_source_id(grid_pos) != -1:
-		return false
-
-	# 3. Check Buildings (Towers, Sawmills)
-	if building_manager.occupied_tiles.has(grid_pos):
-		return false
+	if terrain_index == TERRAIN_WATER: return false
+	if object_layer.get_cell_source_id(grid_pos) != -1: return false
+	if building_manager.occupied_tiles.has(grid_pos): return false
 
 	return true
-
-
-func _unhandled_input(event):
-	var mouse_pos = get_global_mouse_position()
-	var grid_pos = terrain_layer.local_to_map(mouse_pos)
-
-	# 1. Rotation - UPDATE TO:
-	if event.is_action_pressed("rotate_tile"):
-		if current_mode == InteractionMode.PLACE_BUILDING:
-			building_manager.rotate_ghost()
-		return
-	
-	#Change into deconstruct mode
-	if event.is_action_pressed("deconstruct_hotkey"): # (Map this in Project Settings -> Input Map)
-		building_manager.cancel_placement()
-		current_mode = InteractionMode.DECONSTRUCT
-		print("Entered Deconstruct Mode")
-		
-	# --- Change into UPGRADE mode ---
-	if event.is_action_pressed("upgrade_hotkey"): 
-		building_manager.cancel_placement()
-		if current_mode == InteractionMode.UPGRADE:
-			current_mode = InteractionMode.NONE
-			print("Exited Upgrade Mode")
-		else:
-			current_mode = InteractionMode.UPGRADE
-			print("Entered Upgrade Mode")
-		
-	# --- NEW: Change into TERRAFORM mode ---
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_T:
-			building_manager.cancel_placement()
-			# Toggle it on/off
-			if current_mode == InteractionMode.TERRAFORM:
-				current_mode = InteractionMode.NONE
-				print("Exited Terrain Mode")
-			else:
-				current_mode = InteractionMode.TERRAFORM
-				print("Entered Terrain Mode")
-		if event.keycode == KEY_P:
-			priority_menu.toggle_menu()
-			get_viewport().set_input_as_handled()
-
-	# 2. BUILDING MODE (Delegated to Manager)
-	# We check this FIRST. If we are placing a building, we send Presses, Releases, 
-	# and Motion events to the manager so it can handle dragging walls.
-	if current_mode == InteractionMode.PLACE_BUILDING:
-		if event is InputEventMouse: # Covers Motion and Buttons
-			# The manager returns TRUE if it placed a single building and finished.
-			# It returns FALSE if it's dragging or waiting for more input.
-			var finished = building_manager.handle_input(event, grid_pos)
-			
-			if finished:
-				current_mode = InteractionMode.NONE
-			return # Don't let building clicks trigger other logic below
-
-	# --- NEW: DECONSTRUCT MODE ---
-	if current_mode == InteractionMode.DECONSTRUCT:
-		# Let the player click and drag to delete multiple things quickly
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			building_manager.deconstruct_building_at(grid_pos)
-			
-		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			building_manager.deconstruct_building_at(grid_pos)
-			
-		# Right click or Escape to cancel deconstruct mode
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
-			current_mode = InteractionMode.NONE
-			print("Exited Deconstruct Mode")
-			
-		return # Stop processing other clicks
-		
-	# --- UPGRADE MODE LOGIC ---
-	if current_mode == InteractionMode.UPGRADE:
-		# Click and drag to upgrade multiple things quickly
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			if building_manager.upgrade_building_at(grid_pos):
-				last_hovered_upgrade_tile = Vector2i(-1, -1)
-			
-		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			if building_manager.upgrade_building_at(grid_pos):
-				last_hovered_upgrade_tile = Vector2i(-1, -1)
-			
-		# Right click or Escape to cancel upgrade mode
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
-			current_mode = InteractionMode.NONE
-			if last_hovered_upgrade_tile != Vector2i(-1, -1):
-				last_hovered_upgrade_tile = Vector2i(-1, -1)
-				building_manager.placement_ended.emit() 
-			print("Exited Upgrade Mode")
-			
-		return # Stop processing other clicks
-
-	# --- TERRAFORM MODE LOGIC ---
-	if current_mode == InteractionMode.TERRAFORM:
-		
-		# 1. THE INITIAL CLICK (Sets the brush type)
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				last_terrain_tile = grid_pos
-				
-				# Did we click a site? Become an ERASER!
-				if building_manager.occupied_tiles.has(grid_pos) and building_manager.occupied_tiles[grid_pos] is TerraformSite:
-					is_terrain_remove_brush = true
-					building_manager.deconstruct_building_at(grid_pos)
-				else:
-					# Otherwise, become a PEN!
-					is_terrain_remove_brush = false
-					building_manager._try_add_terrain_job(grid_pos)
-			else:
-				# Reset the tracker when the mouse is released
-				last_terrain_tile = Vector2i(-1, -1)
-				
-		# 2. THE DRAG (Applies the chosen brush)
-		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			
-			# Only trigger once per grid tile to save performance
-			if grid_pos != last_terrain_tile:
-				last_terrain_tile = grid_pos
-				
-				if is_terrain_remove_brush:
-					if building_manager.occupied_tiles.has(grid_pos) and building_manager.occupied_tiles[grid_pos] is TerraformSite:
-						building_manager.deconstruct_building_at(grid_pos)
-				else:
-					building_manager._try_add_terrain_job(grid_pos)
-			
-		# 3. CANCEL (Right click or Escape)
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
-			current_mode = InteractionMode.NONE
-			last_terrain_tile = Vector2i(-1, -1)
-			print("Exited Terrain Mode")
-			
-		return # Stop processing other clicks
-		
-	# 3. TILE MODE & SELECTION (Standard Clicks)
-	# Only listen for explicit "Presses" for these modes
-	if event.is_action_pressed("ui_left"):
-		
-		# MODE: Selection / Interaction (Clicking existing stuff)
-		if current_mode == InteractionMode.NONE:
-			# Level doesn't care if a building is there, it just tells the manager to check!
-			building_manager.select_building_at(grid_pos)
-			
-			if has_node("WaveManager"):
-				$WaveManager.deselect_enemy()
-
-	# 4. CANCELLATION (Escape OR Right Click)
-	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
-		# Common Cancel
-		building_manager.cancel_placement()
-		current_mode = InteractionMode.NONE
-		
-
-
-		
-
-
-# This function listens for the Tower's signal
-func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset):
-	if not projectile_scene:
-		print("Error: Projectile Scene not assigned in Level Inspector")
-		return
-	
-	# 1. Calculate Direction
-	var dir = Vector2.RIGHT # Default
-	if is_instance_valid(target_node):
-		dir = (target_node.global_position - start_pos).normalized()
-	
-	# 2. Apply Spread (Rotate the vector)
-	# If angle_offset is 0 (Bow), this does nothing. 
-	# If Shotgun, this fans the arrows out.
-	dir = dir.rotated(angle_offset)
-	
-	# 3. Spawn the Projectile
-	var proj = projectile_scene.instantiate()
-	
-	# Add to Object Layer so it sorts with buildings/units
-	object_layer.add_child(proj)
-	
-	# Configure it
-	# Note: We assume your Projectile.gd has a 'setup' function
-	if proj.has_method("setup"):
-		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower)
-		
