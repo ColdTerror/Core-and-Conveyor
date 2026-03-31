@@ -157,6 +157,14 @@ func _unhandled_input(event):
 	# 2. BUILDING MODE (Delegated to Manager)
 	# ---------------------------------------------------------
 	if current_mode == InteractionMode.PLACE_BUILDING:
+		
+		#Catch the cancel placement before sending it to building manager
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
+			building_manager.cancel_placement()
+			current_mode = InteractionMode.NONE
+			return
+			
+			
 		if event is InputEventMouse: 
 			var finished = building_manager.handle_input(event, grid_pos)
 			if finished:
@@ -172,7 +180,7 @@ func _unhandled_input(event):
 		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			building_manager.deconstruct_building_at(grid_pos)
 			
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 			current_mode = InteractionMode.NONE
 			print("Exited Deconstruct Mode")
 		return 
@@ -188,7 +196,7 @@ func _unhandled_input(event):
 			if building_manager.upgrade_building_at(grid_pos):
 				last_hovered_upgrade_tile = Vector2i(-1, -1)
 			
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 			current_mode = InteractionMode.NONE
 			if last_hovered_upgrade_tile != Vector2i(-1, -1):
 				last_hovered_upgrade_tile = Vector2i(-1, -1)
@@ -221,7 +229,7 @@ func _unhandled_input(event):
 				else:
 					building_manager._try_add_terrain_job(grid_pos)
 			
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 			current_mode = InteractionMode.NONE
 			last_terrain_tile = Vector2i(-1, -1)
 			print("Exited Terrain Mode")
@@ -236,7 +244,7 @@ func _unhandled_input(event):
 			if has_node("WaveManager"):
 				$WaveManager.deselect_enemy()
 
-	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_right"):
+	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 		building_manager.cancel_placement()
 		current_mode = InteractionMode.NONE
 
