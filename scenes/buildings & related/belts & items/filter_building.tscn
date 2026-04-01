@@ -13,9 +13,10 @@ building_name = "Filter"
 build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1421611039]
+rotation = 1.5707964
 texture = ExtResource("2_uxved")
 region_enabled = true
-region_rect = Rect2(32, 32, 32, 32)
+region_rect = Rect2(64, 0, 32, 32)
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1456337677]
 
