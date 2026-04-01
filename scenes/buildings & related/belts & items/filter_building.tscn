@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://cayduqk5ki558"]
+
+[ext_resource type="Script" uid="uid://dm0dn7doslq6j" path="res://scripts/Building Classes/filter_building.gd" id="1_cfo5c"]
+[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="2_uxved"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y4pf7"]
+size = Vector2(32, 32)
+
+[node name="FilterBuilding" type="Node2D" unique_id=706441701]
+self_modulate = Color(0.2090604, 0.47490835, 0.2549174, 1)
+script = ExtResource("1_cfo5c")
+building_name = "Filter"
+build_range = 4.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1421611039]
+texture = ExtResource("2_uxved")
+region_enabled = true
+region_rect = Rect2(32, 32, 32, 32)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1456337677]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=404963682]
+shape = SubResource("RectangleShape2D_y4pf7")

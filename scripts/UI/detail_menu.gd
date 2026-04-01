@@ -77,6 +77,8 @@ func refresh_ui():
 		_setup_core_ui(current_building as CoreBuilding)
 	elif current_building.has_method("set_priority"):
 		_setup_bot_ui(current_building)
+	elif current_building is FilterBuilding:
+		_setup_filter_ui(current_building as FilterBuilding)
 	else:
 		info_label.text = "No configurable options."
 		
@@ -209,6 +211,20 @@ func _setup_bot_ui(b: Node2D):
 		print("Targeting Mode ON: Click a tile to set home.")
 	)
 
+# --- Setup UI for Filters ---
+func _setup_filter_ui(b: FilterBuilding):
+	var current_filter = b.filter_options[b.current_filter_index]
+	
+	info_label.text = "Filtering Out: %s" % current_filter
+	
+	# Optional: Give it some color coding!
+	if current_filter == "None":
+		info_label.modulate = Color(0.7, 0.7, 0.7) # Gray if off
+	else:
+		info_label.modulate = Color(0.4, 1.0, 0.4) # Green if active
+	
+	# We pass the Callable `b.cycle_filter` directly!
+	_create_button("Cycle Filter", Color.WHITE, b.cycle_filter)
 
 func _build_priority_widget(b: Node):
 	# 1. Grab the building manager safely through the building's level reference!

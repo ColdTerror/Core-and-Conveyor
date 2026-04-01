@@ -49,6 +49,7 @@ const RES_STONE := 4
 @export var wall_scene: PackedScene
 @export var conveyor_scene: PackedScene 
 @export var router_scene: PackedScene 
+@export var filter_scene: PackedScene
 @export var core_scene: PackedScene 
 @export var mine_scene: PackedScene
 @export var stonemason_scene: PackedScene
@@ -263,6 +264,7 @@ func _on_core_placed():
 func _add_unlocked_buildings():
 	_add_building_to_bar("Belt", conveyor_scene)
 	_add_building_to_bar("Router", router_scene)
+	_add_building_to_bar("Filter", filter_scene)
 	_add_building_to_bar("Hut", lumberjack_scene)
 	_add_building_to_bar("Sawmill", sawmill_scene)
 	_add_building_to_bar("Stockpile", stockpile_scene)
