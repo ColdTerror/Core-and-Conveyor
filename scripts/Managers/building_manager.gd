@@ -192,6 +192,10 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	var cost = ghost_building.get_build_cost()
 	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or cost.is_empty()
 	
+	if is_instant and not cost.is_empty():
+		if not EconomyManager.can_afford(cost):
+			return false # Instantly return false so the ghost gets deleted!
+			
 	if is_instant:
 		_place_instant(ghost_building, grid_pos, cost)
 	else:
@@ -228,7 +232,6 @@ func rotate_ghost():
 # ==========================================
 
 func _place_instant(building: Building, grid_pos: Vector2i, cost: Dictionary):
-	if not EconomyManager.can_afford(cost): return
 	EconomyManager.spend_resources(cost)
 
 	building.set_ghost(false)
@@ -362,16 +365,23 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 	
 	var can_place = is_location_valid
 	var display_count = chargeable_count if is_location_valid else 1
-	if not is_location_valid: can_place = false
 		
 	var base_cost = ghost_building.get_build_cost()
 	var total_cost = {}
+	
+	# Check if it is an instant building
+	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or base_cost.is_empty()
+	var missing_resources = false
 	
 	for res in base_cost:
 		var total_needed = base_cost[res] * display_count
 		total_cost[res] = total_needed
 		if EconomyManager.global_inventory.get(res, 0) < total_needed:
-			can_place = false
+			missing_resources = true
+
+	# ONLY block placement (and turn the UI red) if it's an Instant building!
+	if is_instant and missing_resources:
+		can_place = false
 
 	var extra_stats = {}
 	if not (ghost_building is ConveyorBuilding) and not (ghost_building is WallBuilding):
@@ -392,7 +402,15 @@ func _update_ghost_position_to(grid_pos: Vector2i):
 		if existing is ConveyorBuilding and ghost_building is ConveyorBuilding:
 			if existing.building_name == ghost_building.building_name:
 				is_free = true
-			
+				
+	if valid and not is_free:
+		var cost = ghost_building.get_build_cost()
+		var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or cost.is_empty()
+		
+		if is_instant and not cost.is_empty():
+			if not EconomyManager.can_afford(cost):
+				valid = false # Turn the ghost red instantly!
+				
 	ghost_building.set_valid_placement(valid)
 	update_placement_cost_ui(0 if is_free else 1, valid)
 
@@ -508,6 +526,7 @@ func _commit_drag_line():
 		var grid_pos = object_layer.local_to_map(object_layer.to_local(g.global_position))
 		if not confirm_placement(grid_pos):
 			g.queue_free()
+			ghost_building = null
 			
 	drag_ghosts.clear()
 	start_placing(original_scene)
