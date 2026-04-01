@@ -214,17 +214,16 @@ func _setup_bot_ui(b: Node2D):
 # --- Setup UI for Filters ---
 func _setup_filter_ui(b: FilterBuilding):
 	var current_filter = b.filter_options[b.current_filter_index]
+	var mode_text = "Output: Sides" if b.is_split_mode else "Output: Forward"
 	
-	info_label.text = "Filtering Out: %s" % current_filter
+	info_label.text = "Filtering: %s\nMode: %s" % [current_filter, mode_text]
+	info_label.modulate = Color(0.4, 1.0, 0.4) if current_filter != "None" else Color.WHITE
 	
-	# Optional: Give it some color coding!
-	if current_filter == "None":
-		info_label.modulate = Color(0.7, 0.7, 0.7) # Gray if off
-	else:
-		info_label.modulate = Color(0.4, 1.0, 0.4) # Green if active
+	# Button 1: Change what we are filtering
+	_create_button("Cycle Item", Color.WHITE, b.cycle_filter)
 	
-	# We pass the Callable `b.cycle_filter` directly!
-	_create_button("Cycle Filter", Color.WHITE, b.cycle_filter)
+	# Button 2: Change where that item goes
+	_create_button("Change Mode", Color(0.3, 0.8, 1.0), b.toggle_filter_mode)
 
 func _build_priority_widget(b: Node):
 	# 1. Grab the building manager safely through the building's level reference!

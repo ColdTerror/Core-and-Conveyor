@@ -11,7 +11,8 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c"
 			]
 		},
 		{
@@ -461,6 +462,13 @@
 			"uuid": "6cea242c-2fdb-4a91-a620-dfda1bca28ca",
 			"title": "bot pathfinding",
 			"description": "seems to calc distance through objects if a path is valid, so it will path through 2 trees think its the closest one when picking a adjacent tile to a building, but then have to walk all around the forest",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
+			"title": "router/filter sprites with arrows",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

@@ -64,10 +64,11 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 	var perpendicular_transfer = false
 	
 	if source_belt:
-		var prev_direction = source_belt.direction
-		# Check if directions are perpendicular (dot product = 0)
-		# e.g., RIGHT (1,0) dot UP (0,1) = 0
-		perpendicular_transfer = (Vector2(prev_direction).dot(Vector2(direction)) == 0)
+		if source_belt is RouterBuilding: 
+			perpendicular_transfer = true 
+		else:
+			var prev_direction = source_belt.direction
+			perpendicular_transfer = (Vector2(prev_direction).dot(Vector2(direction)) == 0)
 	
 	# If item has a parent AND it's not our level, remove it from old parent
 	if old_parent and old_parent != level_ref:
