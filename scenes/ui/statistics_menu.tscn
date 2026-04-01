@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://cmd0dxnybdaf8"]
+
+[ext_resource type="Script" uid="uid://ifv4oeufom4d" path="res://scripts/UI/statistics_menu.gd" id="1_qa3xb"]
+
+[node name="StatisticsMenu" type="PanelContainer" unique_id=1030070791]
+custom_minimum_size = Vector2(600, 400)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -109.0
+offset_top = -21.5
+offset_right = 109.0
+offset_bottom = 21.5
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_qa3xb")
+
+[node name="MainVBox" type="VBoxContainer" parent="." unique_id=830850408]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MainVBox" unique_id=453689448]
+layout_mode = 2
+text = "Day X Ledger"
+
+[node name="Columns" type="HBoxContainer" parent="MainVBox" unique_id=850947162]
+layout_mode = 2
+
+[node name="ProdColumn" type="VBoxContainer" parent="MainVBox/Columns" unique_id=370293841]
+custom_minimum_size = Vector2(250, 350)
+layout_mode = 2
+
+[node name="Produced" type="Label" parent="MainVBox/Columns/ProdColumn" unique_id=410401109]
+self_modulate = Color(0, 0.7422176, 0.26779655, 1)
+layout_mode = 2
+text = "Produced"
+horizontal_alignment = 1
+
+[node name="ProdList" type="VBoxContainer" parent="MainVBox/Columns/ProdColumn" unique_id=729447128]
+layout_mode = 2
+
+[node name="VSeparator" type="VSeparator" parent="MainVBox/Columns" unique_id=1871361800]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="ConsColumn" type="VBoxContainer" parent="MainVBox/Columns" unique_id=1623314880]
+custom_minimum_size = Vector2(250, 350)
+layout_mode = 2
+
+[node name="Consumed" type="Label" parent="MainVBox/Columns/ConsColumn" unique_id=979922047]
+self_modulate = Color(0.60697764, 0.24610785, 0.12940735, 1)
+layout_mode = 2
+text = "Consumed"
+horizontal_alignment = 1
+
+[node name="ConsList" type="VBoxContainer" parent="MainVBox/Columns/ConsColumn" unique_id=593286121]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="MainVBox" unique_id=250536759]
+layout_mode = 2
+text = "Close"

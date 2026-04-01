@@ -33,7 +33,7 @@ var history_archive: Array[Dictionary] = []
 # ==========================================
 # CORE API: DEPOSITS & INCOME
 # ==========================================
-func add_resource(resource_name: String, amount: int):
+func add_resources(resource_name: String, amount: int):
 	global_inventory[resource_name] = global_inventory.get(resource_name, 0) + amount
 	daily_production[resource_name] = daily_production.get(resource_name, 0) + amount
 	

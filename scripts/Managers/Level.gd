@@ -11,6 +11,7 @@ extends Node2D
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
 @onready var detail_menu = $CanvasLayer/Popup_Layer/DetailMenu 
 @onready var priority_menu = $CanvasLayer/Popup_Layer/PriorityMenu
+@onready var stat_menu = $CanvasLayer/Popup_Layer/StatisticsMenu
 
 @onready var building_manager: BuildingManager = $BuildingManager
 @onready var pathfinder = $Pathfinder
@@ -153,7 +154,9 @@ func _unhandled_input(event):
 		if event.keycode == KEY_P:
 			priority_menu.toggle_menu()
 			get_viewport().set_input_as_handled()
-
+		if event.keycode == KEY_L:
+			stat_menu.toggle_menu()
+			get_viewport().set_input_as_handled()
 	# ---------------------------------------------------------
 	# 2. BUILDING MODE (Delegated to Manager)
 	# ---------------------------------------------------------
