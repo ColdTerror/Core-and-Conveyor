@@ -1,34 +1,45 @@
 extends Node2D
 class_name TimeManager
 
-# --- SIGNALS ---
+# ==========================================
+# SIGNALS
+# ==========================================
 signal hour_passed(hour: int)
 signal day_started(day_number: int)
 signal night_started(day_number: int)
 
-# --- NEW: MOON PHASES ---
+# ==========================================
+# ENUMS & CONSTANTS
+# ==========================================
 enum MoonPhase { NORMAL, FULL, BLOOD }
-var current_moon_phase: MoonPhase = MoonPhase.NORMAL
 
-# --- CONFIG ---
+# ==========================================
+# EXPORTS & CONFIGURATION
+# ==========================================
 @export var lighting_modulate: CanvasModulate
 @export var real_minutes_per_day: float = 2.0 
 
 @export_group("Atmosphere")
-@export var day_color := Color(1.0, 1.0, 1.0, 1)      # Bright and normal
-@export var night_color := Color(0.5, 0.5, 0.8, 1)    # Dark, moody purple/blue
-@export var blood_moon_color := Color(0.9, 0.2, 0.2, 1) # Terrifying Red!
-@export var full_moon_color := Color(0.7, 0.8, 1.0, 1)  # Bright, safe blue!
+@export var day_color := Color(1.0, 1.0, 1.0, 1)       # Bright and normal
+@export var night_color := Color(0.5, 0.5, 0.8, 1)     # Dark, moody purple/blue
+@export var blood_moon_color := Color(0.9, 0.2, 0.2, 1)# Terrifying Red!
+@export var full_moon_color := Color(0.7, 0.8, 1.0, 1) # Bright, safe blue!
 @export var sunrise_hour: int = 6
 @export var sunset_hour: int = 18
 
-# --- STATE ---
+# ==========================================
+# RUNTIME STATE
+# ==========================================
 var is_time_running: bool = false
 var current_day: int = 1
 var current_time: float = 6.0 # Start at 6 AM
 var current_hour: int = 6
 var is_night: bool = false
+var current_moon_phase: MoonPhase = MoonPhase.NORMAL
 
+# ==========================================
+# MAIN LOOP
+# ==========================================
 func _process(delta: float):
 	_update_lighting()
 	
@@ -45,6 +56,10 @@ func _process(delta: float):
 		current_day += 1
 		print("--- DAY %d ---" % current_day)
 		
+		# Tell the EconomyManager to archive yesterday's stats!
+		if EconomyManager.has_method("archive_daily_stats"):
+			EconomyManager.archive_daily_stats(current_day)
+		
 	# 3. Handle Hour Changes (For triggering waves!)
 	var new_hour = int(floor(current_time))
 	if new_hour != current_hour:
@@ -52,16 +67,21 @@ func _process(delta: float):
 		hour_passed.emit(current_hour)
 		_check_day_night_triggers()
 
+# ==========================================
+# EVENT TRIGGERS (Dawn & Dusk)
+# ==========================================
 func _check_day_night_triggers():
+	# --- SUNRISE ---
 	if current_hour == sunrise_hour and is_night:
 		is_night = false
 		current_moon_phase = MoonPhase.NORMAL # Reset for the day
 		day_started.emit(current_day)
 		
+	# --- SUNSET ---
 	elif current_hour == sunset_hour and not is_night:
 		is_night = true
 		
-		# --- NEW: ROLL THE MOON PHASE ---
+		# Roll the Moon Phase
 		var roll = randf()
 		if roll < 0.15:
 			current_moon_phase = MoonPhase.FULL
@@ -69,18 +89,19 @@ func _check_day_night_triggers():
 			current_moon_phase = MoonPhase.BLOOD
 		else:
 			current_moon_phase = MoonPhase.NORMAL
-		# --------------------------------
 			
 		night_started.emit(current_day)
 
+# ==========================================
+# VISUALS & LIGHTING
+# ==========================================
 func _update_lighting():
 	if not lighting_modulate: return
 	
-	# --- NEW: Determine target night color based on phase ---
+	# Determine target night color based on phase
 	var target_night_color = night_color
 	if current_moon_phase == MoonPhase.BLOOD: target_night_color = blood_moon_color
 	elif current_moon_phase == MoonPhase.FULL: target_night_color = full_moon_color
-	# --------------------------------------------------------
 	
 	var blend_factor = 0.0
 	var transition_duration = 2.0 

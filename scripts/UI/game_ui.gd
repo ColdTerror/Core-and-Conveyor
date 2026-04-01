@@ -28,7 +28,7 @@ var resource_labels: Dictionary = {}
 
 func _ready():
 	update_labels()
-	EconomyManager.resources_changed.connect(_on_resources_changed)
+	EconomyManager.inventory_changed.connect(_on_inventory_changed)
 	
 	if game_over_panel:
 		game_over_panel.hide()
@@ -83,13 +83,13 @@ func _on_core_destroyed():
 func _on_restart_pressed():
 	get_tree().paused = false 
 	EconomyManager.global_inventory.clear()
-	EconomyManager.resources_changed.emit()
+	EconomyManager.inventory_changed.emit()
 	get_tree().reload_current_scene()
 
 func _on_exit_pressed():
 	get_tree().quit()
 	
-func _on_resources_changed():
+func _on_inventory_changed():
 	update_labels()
 
 func update_labels():

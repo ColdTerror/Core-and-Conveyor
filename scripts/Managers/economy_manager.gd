@@ -1,58 +1,71 @@
-# EconomyManager.gd
 extends Node
 
-# --- DYNAMIC INVENTORY ---
-# We use a Dictionary to track everything by its string name.
-# You can define your starting resources here.
-var global_inventory: Dictionary = {
-	"Wood": 0,
-	"Stone": 0
-	
-}
+# ==========================================
+# SIGNALS
+# ==========================================
+signal inventory_changed 
+signal stats_updated 
 
-signal resources_changed
+# ==========================================
+# RUNTIME STATE (THE VAULT)
+# ==========================================
+var global_inventory: Dictionary = {}
 
 # --- TRACKING SOURCES ---
-var active_sources: Array[Building] = []
+var active_sources: Array[Node] = []
 
-func register_source(b: Building):
+func register_source(b: Node):
 	if not b in active_sources:
 		active_sources.append(b)
 
-func unregister_source(b: Building):
+func unregister_source(b: Node):
 	if b in active_sources:
 		active_sources.erase(b)
-# -----------------------------
 
-func add_resources(resource_name: String, amount: int):
-	# .get(name, 0) safely returns 0 if the item doesn't exist yet, 
-	# preventing crashes when you add a brand new item like "Planks"
+# ==========================================
+# STATISTICS LEDGER
+# ==========================================
+# Removed current_day variable (TimeManager tracks this now)
+var daily_production: Dictionary = {}
+var daily_consumption: Dictionary = {}
+var history_archive: Array[Dictionary] = []
+
+# ==========================================
+# CORE API: DEPOSITS & INCOME
+# ==========================================
+func add_resource(resource_name: String, amount: int):
 	global_inventory[resource_name] = global_inventory.get(resource_name, 0) + amount
-	resources_changed.emit()
+	daily_production[resource_name] = daily_production.get(resource_name, 0) + amount
+	
+	inventory_changed.emit()
+	stats_updated.emit()
 
 func can_afford(cost: Dictionary) -> bool:
 	for resource_name in cost:
 		var amount_needed = cost[resource_name]
 		var amount_we_have = global_inventory.get(resource_name, 0)
-		
 		if amount_we_have < amount_needed: 
 			return false
-			
 	return true
 
-#Instant 'magic' purchase
+# ==========================================
+# CORE API: WITHDRAWALS & EXPENSES
+# ==========================================
+
+# INSTANT 'MAGIC' PURCHASE (e.g., placing Belts/Towers)
 func spend_resources(cost: Dictionary):
-	# 1. Deduct from Global Numbers
+	# 1. Deduct from Global Numbers and update Stats
 	for resource_name in cost:
 		var amount = cost[resource_name]
 		var current = global_inventory.get(resource_name, 0)
 		
-		# max(0, ...) ensures we never accidentally go into negative numbers
 		global_inventory[resource_name] = max(0, current - amount)
+		daily_consumption[resource_name] = daily_consumption.get(resource_name, 0) + amount
 	
-	resources_changed.emit()
+	inventory_changed.emit()
+	stats_updated.emit()
 	
-	# 2. Physically remove items from buildings
+	# 2. Physically remove items from buildings!
 	_pull_items_from_sources(cost)
 
 func _pull_items_from_sources(cost: Dictionary):
@@ -64,13 +77,39 @@ func _pull_items_from_sources(cost: Dictionary):
 		if source.has_method("consume_resources"):
 			source.consume_resources(remaining_bill)
 
-# Used when an item moves from a Building -> Belt.
-#Physical Purchase
+# PHYSICAL PURCHASE (Used when an item moves from a Building -> Belt/Bot)
 func remove_resources_from_global(cost: Dictionary):
 	for resource_name in cost:
 		var amount = cost[resource_name]
 		var current = global_inventory.get(resource_name, 0)
 		
 		global_inventory[resource_name] = max(0, current - amount)
+		
+		# Ensure physical extractions also count towards daily consumption!
+		daily_consumption[resource_name] = daily_consumption.get(resource_name, 0) + amount
 	
-	resources_changed.emit()
+	inventory_changed.emit()
+	stats_updated.emit()
+
+func get_item_count(item_name: String) -> int:
+	return global_inventory.get(item_name, 0)
+
+# ==========================================
+# ARCHIVING LOGIC (Triggered by TimeManager)
+# ==========================================
+func archive_daily_stats(day_number: int):
+	var archive_entry = {
+		"day": day_number,
+		"produced": daily_production.duplicate(),
+		"consumed": daily_consumption.duplicate()
+	}
+	history_archive.append(archive_entry)
+	
+	if history_archive.size() > 30:
+		history_archive.pop_front()
+		
+	daily_production.clear()
+	daily_consumption.clear()
+	
+	# We just emit stats_updated so the UI knows the "Today" column is now empty
+	stats_updated.emit()
