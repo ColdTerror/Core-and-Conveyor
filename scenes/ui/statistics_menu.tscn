@@ -24,6 +24,22 @@ layout_mode = 2
 layout_mode = 2
 text = "Day X Ledger"
 
+[node name="TabRow" type="HBoxContainer" parent="MainVBox" unique_id=965048955]
+layout_mode = 2
+alignment = 1
+
+[node name="BtnToday" type="Button" parent="MainVBox/TabRow" unique_id=1303940716]
+layout_mode = 2
+text = "Today"
+
+[node name="BtnYesterday" type="Button" parent="MainVBox/TabRow" unique_id=130271760]
+layout_mode = 2
+text = "Yesterday"
+
+[node name="BtnWeek" type="Button" parent="MainVBox/TabRow" unique_id=1854095799]
+layout_mode = 2
+text = "Last 7 Days"
+
 [node name="Columns" type="HBoxContainer" parent="MainVBox" unique_id=850947162]
 layout_mode = 2
 

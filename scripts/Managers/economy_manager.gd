@@ -9,9 +9,9 @@ signal stats_updated
 # ==========================================
 # RUNTIME STATE (THE VAULT)
 # ==========================================
-var global_inventory: Dictionary = {}
+var global_inventory: Dictionary = {"Wood": 0, "Stone": 0}
 
-# --- TRACKING SOURCES ---
+# --- TRACKING SOURCES ---d
 var active_sources: Array[Node] = []
 
 func register_source(b: Node):

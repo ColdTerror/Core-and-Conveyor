@@ -12,7 +12,29 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c"
+				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
+				"cb4fd3b6-d5f4-4540-b75c-9254fbeb9217",
+				"b22bc9ba-2def-4bbf-9b35-513052c3b430",
+				"a31a8e75-5ef1-4585-8e60-91fa3c499da2",
+				"ddd6f504-c916-40c9-bb1d-31bd2b9136b0",
+				"e57906b7-2a79-4a20-a5d4-dfd4dc18ce9a",
+				"1eef8af2-5273-4b7f-9356-5b2dc5b76739",
+				"feb3aee0-132b-4ef8-bf47-45aacc88f5fa",
+				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
+				"97c58da2-9cf1-4e9d-bc48-655713bec4df",
+				"214e766b-c6b2-4cbc-b5a6-b36c019515ce",
+				"65646b9a-ff70-4eb0-b87b-d09f9d8b2076",
+				"7773ff7b-022d-4e5b-9ac7-c578728ab561",
+				"a91074aa-c0bc-4620-80c9-3e7f14ef5b9e",
+				"95f4f13f-960a-4ece-bba8-12332a4663f6",
+				"c5b14a34-9caa-4b42-a10c-7739684fa129",
+				"70ab86c8-5353-4962-97a4-5027601c9581",
+				"fdeacea2-c363-4e5a-ba55-fe25491000a4",
+				"99c1dc1c-abaa-4f63-860d-7d62df1a7a88",
+				"568547de-e964-45d1-83fd-03ad3df134da",
+				"d222c0a1-4605-4013-bf37-5e3566254942",
+				"4b255627-e991-45d7-8648-afcf74e9cef5",
+				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2"
 			]
 		},
 		{
@@ -469,6 +491,160 @@
 			"uuid": "e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
 			"title": "router/filter sprites with arrows",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "cb4fd3b6-d5f4-4540-b75c-9254fbeb9217",
+			"title": "escape should exit all menus",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b22bc9ba-2def-4bbf-9b35-513052c3b430",
+			"title": "cost ui doesnt update with new resources",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a31a8e75-5ef1-4585-8e60-91fa3c499da2",
+			"title": "bot can move thru conveyers?",
+			"description": "bot should draw on top",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "ddd6f504-c916-40c9-bb1d-31bd2b9136b0",
+			"title": "when setting home move the tile with the mouse",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e57906b7-2a79-4a20-a5d4-dfd4dc18ce9a",
+			"title": "cant see recipe needs",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "1eef8af2-5273-4b7f-9356-5b2dc5b76739",
+			"title": "corruption range visualization",
+			"description": "either have numbers in each tile or scroll through the levels like dwarf fortress ",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "feb3aee0-132b-4ef8-bf47-45aacc88f5fa",
+			"title": "some buildings are on top of overlay some arent",
+			"description": "some buildings in building manager, some are in object layer (maybe free vs paid buildings? although instant buildings are under building manager.\n\nall construction site buildings are under object layer, free ones are under building manager (move them to building manager)\n\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
+			"title": "stockpile upgrades",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "97c58da2-9cf1-4e9d-bc48-655713bec4df",
+			"title": "terraform sites count towards building cap",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "214e766b-c6b2-4cbc-b5a6-b36c019515ce",
+			"title": "stockpile should remember output value when empty",
+			"description": "Output auto-disabled: item no longer in inventory\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "65646b9a-ff70-4eb0-b87b-d09f9d8b2076",
+			"title": "some way of centering screen on bots to find them on the map",
+			"description": "maybe an active bots screen showing their mode and clicking centers the camera",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "7773ff7b-022d-4e5b-9ac7-c578728ab561",
+			"title": "can only sethome in building range (and maybe with a cooldown)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a91074aa-c0bc-4620-80c9-3e7f14ef5b9e",
+			"title": "maybe corruption size can boost the enemy count?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "95f4f13f-960a-4ece-bba8-12332a4663f6",
+			"title": "upgrading buildings should keep inventory",
+			"description": "especially in the future stockpiles but for everything else as well\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c5b14a34-9caa-4b42-a10c-7739684fa129",
+			"title": "enemies should be slower in water",
+			"description": "maybe even have a path cost for water, something small but enough where it will advoid it if side by side",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "70ab86c8-5353-4962-97a4-5027601c9581",
+			"title": "drag building cost should be for total amount dragged not just the amount that will be placed",
+			"description": "so if you have 20 wood and you drag 10 belts it should say 20/50 in green instead of staying 20/20 even when you are dragging 100 belts",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2",
+			"title": "SAVE SYSTEM",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "4b255627-e991-45d7-8648-afcf74e9cef5",
+			"title": "RESEARCH UPGRADES OVERWRITE TOWER UPGRADES",
+			"description": "lvl 2 tower 1.5x\nrsearch sets it to 1.1x, instead of replacing the value we should multiply both",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "99c1dc1c-abaa-4f63-860d-7d62df1a7a88",
+			"title": "sort the stat page by amount/a-z etc",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fdeacea2-c363-4e5a-ba55-fe25491000a4",
+			"title": "enemies also pathfind through belts",
+			"description": "but they are solid and dont take damage",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "568547de-e964-45d1-83fd-03ad3df134da",
+			"title": "tower damage mult is rounded, should display to at least 2 decimals not just 1",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "d222c0a1-4605-4013-bf37-5e3566254942",
+			"title": "ledger doesnt change overnight",
+			"description": "hit midnight and today is the same as 7 days and yesterday doesnt say anything? (maybe not sending signal or something)",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
