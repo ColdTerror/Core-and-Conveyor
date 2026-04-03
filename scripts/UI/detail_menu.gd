@@ -208,6 +208,8 @@ func _setup_bot_ui(b: Node2D):
 	# --- NEW: Set Home Button ---
 	_create_button("Set Home", Color(1.0, 0.8, 0.2), func(): 
 		bot_awaiting_home = b
+		if b.has_method("toggle_set_home_mode"):
+			b.toggle_set_home_mode(true) # Tell the bot to start drawing!
 		print("Targeting Mode ON: Click a tile to set home.")
 	)
 
@@ -295,6 +297,10 @@ func close_menu():
 	if cam and cam.has_method("set_follow_target"):
 		cam.set_follow_target(null)
 	
+	if bot_awaiting_home != null and is_instance_valid(bot_awaiting_home):
+		if bot_awaiting_home.has_method("toggle_set_home_mode"):
+			bot_awaiting_home.toggle_set_home_mode(false)
+			
 	bot_awaiting_home = null
 	current_building = null
 	hide()
@@ -320,16 +326,27 @@ func _unhandled_input(event):
 				if "level_ref" in bot_awaiting_home and bot_awaiting_home.level_ref != null:
 					var grid_pos = bot_awaiting_home.level_ref.object_layer.local_to_map(world_mouse_pos)
 					
+					#Check if the tile is valid
+					if bot_awaiting_home.has_method("is_valid_home_tile"):
+						if not bot_awaiting_home.is_valid_home_tile(grid_pos):
+							# Consume the click, but keep the targeting mode ON so they can try again
+							get_viewport().set_input_as_handled()
+							return 
+					
 					# 3. Apply the home!
 					bot_awaiting_home.set_home(grid_pos)
 					print("Home set to: ", grid_pos)
 				
 				# Cleanup
+				if bot_awaiting_home.has_method("toggle_set_home_mode"):
+					bot_awaiting_home.toggle_set_home_mode(false)
 				bot_awaiting_home = null
 				get_viewport().set_input_as_handled()
 				
 			# --- RIGHT CLICK: CANCEL ---
 			elif event.button_index == MOUSE_BUTTON_RIGHT:
+				if bot_awaiting_home.has_method("toggle_set_home_mode"):
+					bot_awaiting_home.toggle_set_home_mode(false)
 				bot_awaiting_home = null
 				print("Canceled Set Home mode.")
 				get_viewport().set_input_as_handled()

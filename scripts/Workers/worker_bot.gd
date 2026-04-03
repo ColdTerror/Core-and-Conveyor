@@ -72,6 +72,7 @@ var target_tile: Vector2i = Vector2i(-1, -1)
 var current_path: Array[Vector2] = []
 
 # --- Home ---
+var is_setting_home: bool = false
 var home_tile: Vector2i = Vector2i(-1, -1)
 
 # --- Blacklists (cleared on standby to retry after waiting) ---
@@ -705,6 +706,22 @@ func _escape_trapped_tile() -> bool:
 # HOME SYSTEM
 # ==========================================
 
+
+
+func toggle_set_home_mode(enabled: bool):
+	is_setting_home = enabled
+	
+	var reboot_cost = 50.0 # Cost is 50% of the max battery
+	current_energy = max(0.0, current_energy - (max_energy/2))
+	
+	# If this change killed the battery, instantly trigger the limp state!
+	if current_energy <= 0.0 and not is_limping:
+		is_limping = true
+		current_speed = base_speed * 0.4
+		current_energy = 0
+		
+	queue_redraw()
+	
 func set_home(grid_pos: Vector2i):
 	home_tile = grid_pos
 	inventory_changed.emit()
@@ -713,6 +730,24 @@ func set_home(grid_pos: Vector2i):
 		current_path.clear()
 		action_timer.stop()
 		current_state = State.IDLE
+
+func is_valid_home_tile(grid_pos: Vector2i) -> bool:
+	if not level_ref or not level_ref.building_manager: return false
+	var bm = level_ref.building_manager
+	
+	# Be inside buildable range
+	if not bm.buildable_tiles.has(grid_pos):
+		return false
+		
+	# Cannot sleep in the Corruption!
+	if bm.corruption_layer and bm.corruption_layer.get_cell_source_id(grid_pos) != -1:
+		return false
+		
+	# 2. Cannot sleep inside a solid object (Wall, Tower, etc.)
+	if bm.pathfinder and bm.pathfinder.astar.is_point_solid(grid_pos):
+		return false
+		
+	return true
 
 # Sends the bot home if possible, otherwise puts it on a timed standby
 func _go_home_or_standby(wait_time: float):
@@ -808,6 +843,7 @@ func get_inventory_info() -> Dictionary:
 func _draw():
 	_draw_path()
 	_draw_home_tile()
+	_draw_set_home_preview()
 	_draw_target_tile()
 	_draw_action_bar()
 	_draw_energy_bar()
@@ -832,6 +868,24 @@ func _draw_home_tile():
 	var rect = Rect2(home_local - Vector2(16, 16), Vector2(32, 32))
 	draw_rect(rect, Color(0.2, 0.8, 1.0, 0.2), true)
 	draw_rect(rect, Color(0.2, 0.8, 1.0, 0.8), false, 2.0)
+
+func _draw_set_home_preview():
+	if not is_setting_home: return
+	if not level_ref or not level_ref.object_layer: return
+	
+	# Follow the mouse and snap to grid
+	var mouse_global = get_global_mouse_position()
+	var mouse_grid = level_ref.object_layer.local_to_map(level_ref.object_layer.to_local(mouse_global))
+	var preview_local = to_local(level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(mouse_grid)))
+	
+	# Draw the ghost box
+	var is_valid = is_valid_home_tile(mouse_grid)
+	var box_color = Color(0.2, 0.8, 1.0, 0.8) if is_valid else Color(1.0, 0.2, 0.2) # Green or Red
+	
+	# Draw the colored ghost box
+	var rect = Rect2(preview_local - Vector2(16, 16), Vector2(32, 32))
+	draw_rect(rect, Color(box_color.r, box_color.g, box_color.b, 0.2), true)
+	draw_rect(rect, Color(box_color.r, box_color.g, box_color.b, 0.8), false, 2.0)
 
 func _draw_target_tile():
 	if target_tile == Vector2i(-1, -1): return
