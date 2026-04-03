@@ -164,15 +164,22 @@ func _execute_movement(dir: Vector2):
 	velocity = dir * movement_speed
 	move_and_slide()
 	
-	# --- UNIFIED BUMP LOGIC ---
-	# Checks for walls regardless of whether we are pathfinding or charging
+	# --- UNIFIED BUMP LOGIC  ---
 	if get_slide_collision_count() > 0:
 		for i in get_slide_collision_count():
 			var collider = get_slide_collision(i).get_collider()
 			
-			# If we bumped the target OR a random wall, attack it
-			if collider == current_target or collider.is_in_group("Structure"):
-				_try_structure_attack(collider)
+			# Check if the collider itself has the damage script
+			var hit_node = collider
+			
+			# If it doesn't, check if its parent is the main Building node!
+			if not hit_node.has_method("take_damage") and hit_node.get_parent() != null:
+				if hit_node.get_parent().has_method("take_damage"):
+					hit_node = hit_node.get_parent()
+			
+			# If whatever we hit can take damage, chew through it!
+			if hit_node == current_target or hit_node.has_method("take_damage"):
+				_try_structure_attack(hit_node)
 
 # ---------------------------------------------------------
 # COMBAT LOGIC

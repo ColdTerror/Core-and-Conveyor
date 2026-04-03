@@ -26,7 +26,6 @@
 				"95f4f13f-960a-4ece-bba8-12332a4663f6",
 				"c5b14a34-9caa-4b42-a10c-7739684fa129",
 				"70ab86c8-5353-4962-97a4-5027601c9581",
-				"fdeacea2-c363-4e5a-ba55-fe25491000a4",
 				"99c1dc1c-abaa-4f63-860d-7d62df1a7a88",
 				"568547de-e964-45d1-83fd-03ad3df134da",
 				"4b255627-e991-45d7-8648-afcf74e9cef5",
@@ -45,6 +44,7 @@
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"a31a8e75-5ef1-4585-8e60-91fa3c499da2",
 				"d222c0a1-4605-4013-bf37-5e3566254942",
+				"fdeacea2-c363-4e5a-ba55-fe25491000a4",
 				"0c621e4f-65e7-4a55-bf90-02b8f6758a0a",
 				"97c58da2-9cf1-4e9d-bc48-655713bec4df",
 				"feb3aee0-132b-4ef8-bf47-45aacc88f5fa",
@@ -630,7 +630,7 @@
 		{
 			"uuid": "fdeacea2-c363-4e5a-ba55-fe25491000a4",
 			"title": "enemies also pathfind through belts",
-			"description": "but they are solid and dont take damage",
+			"description": "but they are solid and dont take damage\n\nthey try to pathfind around but if they have to go through they have no way of dealing damage",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
