@@ -43,6 +43,7 @@
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"a31a8e75-5ef1-4585-8e60-91fa3c499da2",
+				"d497d3e6-1910-42be-9711-ba6ecb498414",
 				"d222c0a1-4605-4013-bf37-5e3566254942",
 				"fdeacea2-c363-4e5a-ba55-fe25491000a4",
 				"0c621e4f-65e7-4a55-bf90-02b8f6758a0a",
@@ -645,6 +646,13 @@
 			"uuid": "d222c0a1-4605-4013-bf37-5e3566254942",
 			"title": "ledger doesnt change overnight",
 			"description": "hit midnight and today is the same as 7 days and yesterday doesnt say anything? (maybe not sending signal or something)",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "d497d3e6-1910-42be-9711-ba6ecb498414",
+			"title": "keep priority value when completing a building and when upgrading it",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

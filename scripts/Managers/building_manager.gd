@@ -585,7 +585,15 @@ func _on_building_destroyed(b: Building):
 			EconomyManager.remove_resources_from_global(assets)
 
 func register_finished_building(new_building: Building, grid_pos: Vector2i):
+	var old_priority_index = -1
+	if occupied_tiles.has(grid_pos):
+		var old_site = occupied_tiles[grid_pos]
+		old_priority_index = master_priority_queue.find(old_site)
+		
 	_register_building(new_building)
+	if old_priority_index != -1 and not _is_grouped_type(new_building):
+		master_priority_queue.erase(new_building)
+		master_priority_queue.insert(old_priority_index, new_building)
 	_add_safe_zone(new_building)
 	_add_build_zone(new_building)
 	_add_attack_zone(new_building)
@@ -707,11 +715,13 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	var old_rot = old_building.rotation
 	var true_origin = old_building.grid_origin
 
+	var old_priority_index = master_priority_queue.find(old_building)
+	
 	_on_building_destroyed(old_building)
 	old_building.queue_free()
 	
 	var new_building = old_building.upgrades_to.instantiate() as Building
-	level_ref.object_layer.add_child(new_building)
+	add_child(new_building)
 	new_building.place_at(true_origin, level_ref.object_layer)
 	new_building.set_ghost(false)
 	
@@ -723,9 +733,14 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		new_building.setup(level_ref)
 	
 	_register_building(new_building)
+	if old_priority_index != -1 and not _is_grouped_type(new_building):
+		master_priority_queue.erase(new_building) # Take it off the bottom
+		master_priority_queue.insert(old_priority_index, new_building) # Put it in the old spot!
 	_add_safe_zone(new_building)
 	_add_build_zone(new_building)
 	_add_attack_zone(new_building)
+	
+	
 	
 	if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
 		new_building.fired_projectile.connect(level_ref._on_tower_fired)

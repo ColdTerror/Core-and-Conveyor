@@ -97,10 +97,6 @@ func _finish_construction():
 	# 2. Get our exact grid coordinate before we delete ourselves
 	var my_grid = occupied_tiles[0]
 	
-	# --- CLEANUP FIRST ---
-	if has_signal("destroyed"):
-		destroyed.emit(self)
-	# ------------------------------
 	
 	# --- PROPER PLACEMENT ---
 	# Use the official place_at function so the building calculates its 
@@ -108,12 +104,15 @@ func _finish_construction():
 	new_building.place_at(my_grid, level_ref.object_layer)
 	# ---------------------------------
 	
-	level_ref.object_layer.add_child(new_building)
+	level_ref.building_manager.add_child(new_building)
 	
 	# 3. Register the new building into the freshly emptied slots
 	level_ref.building_manager.register_finished_building(new_building, my_grid)
 	
+	
 	# 4. Safely destroy the blueprint node!
+	if has_signal("destroyed"):
+		destroyed.emit(self)
 	queue_free()
 
 # ==========================================
