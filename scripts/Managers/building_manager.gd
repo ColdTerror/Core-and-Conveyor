@@ -269,7 +269,7 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	var site = construction_site_scene.instantiate() as ConstructionSite
 	var target_scene = load(building.scene_file_path)
 
-	level_ref.object_layer.add_child(site)
+	add_child(site)
 	site.setup_blueprint(level_ref, target_scene, cost, building.size, building.building_name)
 	site.place_at(grid_pos, object_layer)
 
@@ -311,9 +311,9 @@ func _can_place_building(building: Building, origin: Vector2i, temp_network: Arr
 	if not is_core_placed and not (building is CoreBuilding):
 		return false
 
-	# Building limit check (excludes belts and walls)
-	if not (building is ConveyorBuilding) and not (building is WallBuilding):
-		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding))
+	# Building limit check (excludes belts, walls, and terraforming)
+	if not (building is ConveyorBuilding) and not (building is WallBuilding) and not (building is TerraformSite):
+		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding) and not (b is TerraformSite))
 		if capped.size() >= ResearchManager.max_buildings_allowed:
 			return false
 
@@ -384,8 +384,8 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 		can_place = false
 
 	var extra_stats = {}
-	if not (ghost_building is ConveyorBuilding) and not (ghost_building is WallBuilding):
-		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding))
+	if not (ghost_building is ConveyorBuilding) and not (ghost_building is WallBuilding) and not (ghost_building is TerraformSite):
+		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding) and not (b is TerraformSite))
 		extra_stats["Building Limit"] = "%d / %d" % [capped.size(), ResearchManager.max_buildings_allowed]
 		if capped.size() >= ResearchManager.max_buildings_allowed:
 			can_place = false
@@ -807,7 +807,7 @@ func _try_add_terrain_job(grid_pos: Vector2i):
 		return
 		
 	var site = terraform_site_scene.instantiate() as TerraformSite
-	level_ref.object_layer.add_child(site)
+	add_child(site)
 	site.setup(level_ref, grid_pos, job_type)
 	terraform_jobs[grid_pos] = job_type
 	_register_building(site)

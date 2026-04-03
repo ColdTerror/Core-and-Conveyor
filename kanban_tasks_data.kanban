@@ -15,13 +15,10 @@
 				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
 				"cb4fd3b6-d5f4-4540-b75c-9254fbeb9217",
 				"b22bc9ba-2def-4bbf-9b35-513052c3b430",
-				"a31a8e75-5ef1-4585-8e60-91fa3c499da2",
 				"ddd6f504-c916-40c9-bb1d-31bd2b9136b0",
 				"e57906b7-2a79-4a20-a5d4-dfd4dc18ce9a",
 				"1eef8af2-5273-4b7f-9356-5b2dc5b76739",
-				"feb3aee0-132b-4ef8-bf47-45aacc88f5fa",
 				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
-				"97c58da2-9cf1-4e9d-bc48-655713bec4df",
 				"214e766b-c6b2-4cbc-b5a6-b36c019515ce",
 				"65646b9a-ff70-4eb0-b87b-d09f9d8b2076",
 				"7773ff7b-022d-4e5b-9ac7-c578728ab561",
@@ -32,7 +29,6 @@
 				"fdeacea2-c363-4e5a-ba55-fe25491000a4",
 				"99c1dc1c-abaa-4f63-860d-7d62df1a7a88",
 				"568547de-e964-45d1-83fd-03ad3df134da",
-				"d222c0a1-4605-4013-bf37-5e3566254942",
 				"4b255627-e991-45d7-8648-afcf74e9cef5",
 				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2"
 			]
@@ -47,7 +43,11 @@
 			"title": "Done",
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
+				"a31a8e75-5ef1-4585-8e60-91fa3c499da2",
+				"d222c0a1-4605-4013-bf37-5e3566254942",
 				"0c621e4f-65e7-4a55-bf90-02b8f6758a0a",
+				"97c58da2-9cf1-4e9d-bc48-655713bec4df",
+				"feb3aee0-132b-4ef8-bf47-45aacc88f5fa",
 				"3512b141-faac-45c3-a413-6d121b4e22cb",
 				"6cea242c-2fdb-4a91-a620-dfda1bca28ca",
 				"98ce003e-e8ee-4651-9334-cd575dcef697",
@@ -573,7 +573,7 @@
 		},
 		{
 			"uuid": "7773ff7b-022d-4e5b-9ac7-c578728ab561",
-			"title": "can only sethome in building range (and maybe with a cooldown)",
+			"title": "should  only sethome in building range (and maybe with a cooldown)",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

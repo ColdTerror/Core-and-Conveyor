@@ -53,12 +53,20 @@ func _process(delta: float):
 	# 2. Handle Day Rollover (Midnight)
 	if current_time >= 24.0:
 		current_time -= 24.0
+		
+		# 1. CACHE THE OLD DAY
+		var yesterday = current_day 
+		
+		# 2. FLIP THE CALENDAR FIRST
 		current_day += 1
 		print("--- DAY %d ---" % current_day)
 		
-		# Tell the EconomyManager to archive yesterday's stats!
+		# 3. NOW TRIGGER THE UI REFRESH
 		if EconomyManager.has_method("archive_daily_stats"):
-			EconomyManager.archive_daily_stats(current_day)
+			EconomyManager.archive_daily_stats(yesterday)
+		
+		
+		
 		
 	# 3. Handle Hour Changes (For triggering waves!)
 	var new_hour = int(floor(current_time))

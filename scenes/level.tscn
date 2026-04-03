@@ -86,12 +86,6 @@ tile_set = ExtResource("2_w8frs")
 z_index = -1
 tile_set = ExtResource("2_w8frs")
 
-[node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
-tile_set = ExtResource("2_w8frs")
-
-[node name="OverlayRenderer" type="Node2D" parent="." unique_id=826390895]
-script = ExtResource("25_svjb4")
-
 [node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "terrain_layer", "corruption_layer", "hover_popup")]
 script = ExtResource("15_gunhw")
 object_layer = NodePath("../ObjectLayer")
@@ -100,6 +94,12 @@ corruption_layer = NodePath("../CorruptionLayer")
 hover_popup = NodePath("../CanvasLayer/Popup_Layer/HoverMenu")
 construction_site_scene = ExtResource("26_v3why")
 terraform_site_scene = ExtResource("27_q4oe8")
+
+[node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
+tile_set = ExtResource("2_w8frs")
+
+[node name="OverlayRenderer" type="Node2D" parent="." unique_id=826390895]
+script = ExtResource("25_svjb4")
 
 [node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager", "wave_manager", "time_manager")]
 script = ExtResource("34_v3why")
@@ -117,7 +117,7 @@ script = ExtResource("29_7agi7")
 [node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
-real_minutes_per_day = 100.0
+real_minutes_per_day = 0.5
 
 [node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
 color = Color(1, 1, 1, 0)
