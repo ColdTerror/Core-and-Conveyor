@@ -122,3 +122,15 @@ func _create_stat_row(parent_container: Control, text_left: String, text_right: 
 	hbox.add_child(name_label)
 	hbox.add_child(val_label)
 	parent_container.add_child(hbox)
+
+func _unhandled_input(event):
+	# If the user presses Escape, AND this specific menu is currently open on screen...
+	if event.is_action_pressed("ui_cancel") and visible:
+		
+		# 1. Close the menu! 
+		# (Change 'hide()' to 'close_menu()' if your script has a custom cleanup function)
+		hide() 
+		
+		# 2. Consume the input so it doesn't leak into the game world
+		get_viewport().set_input_as_handled()
+		

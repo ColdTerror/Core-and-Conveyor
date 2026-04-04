@@ -311,6 +311,11 @@ func close_menu():
 # TARGETING MODE LOGIC (Intercepts Clicks when waiting for Home)
 # ==========================================================
 func _unhandled_input(event):
+	if event.is_action_pressed("ui_cancel") and visible:
+		close_menu()
+		get_viewport().set_input_as_handled()
+		return # Stop reading inputs for this frame!
+		
 	# Are we currently waiting for the player to pick a home?
 	if bot_awaiting_home != null and is_instance_valid(bot_awaiting_home):
 		

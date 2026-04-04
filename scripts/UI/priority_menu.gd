@@ -102,3 +102,14 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 	hbox.add_child(down_btn)
 	
 	list_container.add_child(hbox)
+	
+func _unhandled_input(event):
+	# If the user presses Escape, AND this specific menu is currently open on screen...
+	if event.is_action_pressed("ui_cancel") and visible:
+		
+		# 1. Close the menu! 
+		# (Change 'hide()' to 'close_menu()' if your script has a custom cleanup function)
+		close_menu()
+		
+		# 2. Consume the input so it doesn't leak into the game world
+		get_viewport().set_input_as_handled()
