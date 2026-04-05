@@ -101,25 +101,48 @@ func _draw_tile_set(tiles: Dictionary, fill: Color, border: Color, tile_size: fl
 		if not tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, border, b_width)
 
 func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float, half_offset: Vector2, b_width: float):
+	var bm = level.building_manager
+	var threshold = bm.overlay_threshold if bm else 1
 	var border = Color(base_color.r, base_color.g, base_color.b, 0.8)
+	var font = ThemeDB.fallback_font
 	
+	# 1. FILTER THE TILES
+	# Create a temporary dictionary of only the tiles that meet our current layer depth
+	var filtered_tiles = {}
 	for tile in tiles.keys():
-		var overlaps = tiles[tile]
-		var alpha = min(0.15 + ((overlaps - 1) * 0.15), 0.7)
+		if tiles[tile] >= threshold:
+			filtered_tiles[tile] = tiles[tile]
+
+	# 2. DRAW FILLS AND NUMBERS
+	for tile in filtered_tiles.keys():
+		var overlaps = filtered_tiles[tile]
+		
+		# The alpha resets based on the threshold, so the base layer always looks clean!
+		var alpha = min(0.15 + ((overlaps - threshold) * 0.15), 0.7)
 		var fill = Color(base_color.r, base_color.g, base_color.b, alpha)
 		var local_pos = level.object_layer.map_to_local(tile) - half_offset
 		draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), fill)
-	
-	for tile in tiles.keys():
+		
+		# Draw the exact number in the center of the tile!
+		var text = str(overlaps)
+		var text_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
+		var text_pos = local_pos + half_offset + Vector2(-text_size.x / 2.0, text_size.y / 3.0)
+		draw_string(font, text_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.8))
+
+	# 3. DRAW SHRINK-WRAPPED BORDERS
+	# Because we check against 'filtered_tiles.has()', the outer border will 
+	# dynamically redraw itself around whatever layer depth you are currently viewing!
+	for tile in filtered_tiles.keys():
 		var pos = level.object_layer.map_to_local(tile) - half_offset
 		var tl = pos
 		var tr = pos + Vector2(tile_size, 0)
 		var bl = pos + Vector2(0, tile_size)
 		var br = pos + Vector2(tile_size, tile_size)
-		if not tiles.has(tile + Vector2i.UP):    draw_line(tl, tr, border, b_width)
-		if not tiles.has(tile + Vector2i.DOWN):  draw_line(bl, br, border, b_width)
-		if not tiles.has(tile + Vector2i.LEFT):  draw_line(tl, bl, border, b_width)
-		if not tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, border, b_width)
+		
+		if not filtered_tiles.has(tile + Vector2i.UP):    draw_line(tl, tr, border, b_width)
+		if not filtered_tiles.has(tile + Vector2i.DOWN):  draw_line(bl, br, border, b_width)
+		if not filtered_tiles.has(tile + Vector2i.LEFT):  draw_line(tl, bl, border, b_width)
+		if not filtered_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, border, b_width)
 
 # ==========================================
 # GHOST PREVIEWS (building placement ranges)

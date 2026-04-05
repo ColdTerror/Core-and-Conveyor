@@ -45,6 +45,7 @@ var terraform_jobs: Dictionary = {} # Key: Vector2i, Value: TerraformSite.JobTyp
 var show_build_grid: bool = false
 var show_safe_grid: bool = false
 var show_attack_grid: bool = false
+var overlay_threshold: int = 1 
 
 # --- Placement ---
 var ghost_building: Building = null
@@ -106,6 +107,13 @@ func _handle_overlay_hotkeys(event):
 		KEY_F3:
 			show_attack_grid = not show_attack_grid
 			queue_redraw()
+		KEY_EQUAL: # The '+' key 
+			overlay_threshold += 1
+			print("Overlay Threshold: ", overlay_threshold)
+			queue_redraw()
+		KEY_MINUS: # The '-' key
+			overlay_threshold = max(1, overlay_threshold - 1)
+			print("Overlay Threshold: ", overlay_threshold)
 		KEY_P:
 			_debug_print_priority_queue()
 
@@ -514,8 +522,9 @@ func _update_drag_line(current_grid: Vector2i):
 					is_free_overwrite = true
 				
 		if is_valid and not is_free_overwrite:
-			if not EconomyManager.can_afford(_calculate_cumulative_cost(base_cost, chargeable_count + 1)):
-				is_valid = false
+			if not base_cost.is_empty():
+				if not EconomyManager.can_afford(_calculate_cumulative_cost(base_cost, chargeable_count + 1)):
+					is_valid = false
 		
 		if is_valid:
 			current_drag_network.append(pt)
