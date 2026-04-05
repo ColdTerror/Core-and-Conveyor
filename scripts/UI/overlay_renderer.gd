@@ -166,3 +166,28 @@ func _draw_ghost_previews():
 	# Draw borders
 	_draw_tile_set(unique_build_tiles, Color(0,0,0,0), Color(0.2, 1.0, 0.2, 0.8), tile_size, half_offset, b_width)
 	_draw_tile_set(unique_safe_tiles,  Color(0,0,0,0), Color(0.2, 0.5, 1.0, 0.8), tile_size, half_offset, b_width)
+	
+	# Draw Exact Building Footprints
+	for g in ghosts_to_draw:
+		if not is_instance_valid(g): continue
+		
+		var b_size = g.size if "size" in g else Vector2i(1, 1)
+		var footprint_px = Vector2(b_size.x * tile_size, b_size.y * tile_size)
+		
+		# The physical center of the building is exactly half the size up and left
+		var top_left = -footprint_px / 2.0 
+		
+		var is_valid = g.get_meta("is_valid", true)
+			
+		var border_color = Color(0.2, 1.0, 0.2, 0.9) if is_valid else Color(1.0, 0.2, 0.2, 0.9)
+		var grid_color = Color(border_color.r, border_color.g, border_color.b, 0.3) # Faint version
+		
+		# Align the Godot canvas to the ghost's exact position and rotation
+		draw_set_transform(to_local(g.global_position), g.rotation, g.scale)
+		
+		# 1. Draw the thick outer border
+		draw_rect(Rect2(top_left, footprint_px), border_color, false, 2.0)
+		
+			
+	# Reset the canvas transform so it doesn't mess up the rest of the game!
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1,1))

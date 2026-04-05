@@ -106,14 +106,33 @@ func _create_button(btn_text: String, btn_color: Color, action_callable: Callabl
 # --- HELPER: Setup UI for Factories ---
 func _setup_processor_ui(b: ProcessorBuilding):
 	if b.recipes.size() > 0:
-		info_label.text = "Recipe: %s" % b.active_recipe.recipe_name
+		var recipe = b.active_recipe
+		var details = "Recipe: %s\n" % recipe.recipe_name
 		
-		# Only spawn the button if we actually have choices
+		# --- 1. FORMAT INPUTS ---
+		# Loop through the Dictionary keys (ItemResource) and get the value (Amount)
+		if recipe.inputs.size() > 0:
+			details += "[Requires]"
+			for item_res in recipe.inputs.keys():
+				var amount = recipe.inputs[item_res]
+				# Fallback just in case a resource is empty/null
+				var item_name = item_res.display_name if item_res != null else "Unknown Item" 
+				details += "\n • %d %s" % [amount, item_name]
+				
+		# --- 2. FORMAT OUTPUT ---
+		# Grab the single output item directly!
+		if recipe.output_item != null:
+			details += "\n[Produces]"
+			details += "\n • %d %s" % [recipe.output_count, recipe.output_item.display_name]
+		
+		# Apply the final formatted string!
+		info_label.text = details.strip_edges()
+		
+		# 3. Only spawn the button if we actually have choices
 		if b.recipes.size() > 1:
 			_create_button("Switch Recipe", Color.WHITE, b.cycle_recipe)
 	else:
 		info_label.text = "No Recipes Configured"
-
 
 # --- HELPER: Setup UI for Stockpiles ---
 func _setup_stockpile_ui(b: StockpileBuilding):

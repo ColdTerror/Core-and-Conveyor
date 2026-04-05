@@ -65,7 +65,12 @@ func _is_grouped_type(building: Node) -> bool:
 # ==========================================
 # SETUP
 # ==========================================
+func _ready():
+	# Listen for any economy changes!
+	EconomyManager.inventory_changed.connect(_on_inventory_changed)
 
+
+			
 func initialize(level_instance: Node2D):
 	level_ref = level_instance
 
@@ -392,6 +397,16 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 	
 	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place, extra_stats)
 
+func _on_inventory_changed():
+	# If we are currently holding a blueprint, re-check the tile we are hovering over!
+	if placing_building and is_instance_valid(ghost_building):
+		var current_grid_pos = _get_mouse_grid()
+		
+		if is_dragging:
+			_update_drag_line(current_grid_pos)
+		else:
+			_update_ghost_position_to(current_grid_pos)
+			
 func _update_ghost_position_to(grid_pos: Vector2i):
 	ghost_building.place_at(grid_pos, object_layer)
 	var valid = _can_place_building(ghost_building, grid_pos)
@@ -411,6 +426,8 @@ func _update_ghost_position_to(grid_pos: Vector2i):
 			if not EconomyManager.can_afford(cost):
 				valid = false # Turn the ghost red instantly!
 				
+	ghost_building.set_meta("is_valid", valid)
+	
 	ghost_building.set_valid_placement(valid)
 	update_placement_cost_ui(0 if is_free else 1, valid)
 
@@ -504,6 +521,8 @@ func _update_drag_line(current_grid: Vector2i):
 			current_drag_network.append(pt)
 			if not is_free_overwrite:
 				chargeable_count += 1
+		
+		g.set_meta("is_valid", is_valid)
 		
 		if g.has_method("set_valid_placement"):
 			g.set_valid_placement(is_valid)
