@@ -134,14 +134,12 @@ func set_ghost(enabled: bool):
 	if has_node("Area2D"):
 		$Area2D.monitoring = not enabled
 		$Area2D.visible = not enabled
-
-	if has_node("Sprite2D"):
-		$Sprite2D.modulate = Color(1, 1, 1, 0.5 if enabled else 1)
+		
+	modulate = Color(1, 1, 1, 0.5 if enabled else 1)
 
 func set_valid_placement(valid: bool):
-	if has_node("Sprite2D"):
-		$Sprite2D.modulate = Color(0.6, 1, 0.6, 0.5) if valid else Color(1, 0.4, 0.4, 0.5)
-
+	if not is_ghost: return
+	modulate = Color(0.6, 1, 0.6, 0.5) if valid else Color(1, 0.4, 0.4, 0.5)
 
 # --- Footprint calculation ---
 func get_footprint(origin: Vector2i) -> Array[Vector2i]:

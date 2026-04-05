@@ -127,10 +127,8 @@ func start_placing(scene: PackedScene):
 	cancel_placement()
 
 	ghost_building = scene.instantiate() as Building
-	if level_ref and level_ref.has_node("GhostLayer"):
-		level_ref.get_node("GhostLayer").add_child(ghost_building)
-	else:
-		add_child(ghost_building)
+	
+	add_child(ghost_building)
 	
 	if ghost_building is ConveyorBuilding:
 		ghost_building.setup(level_ref, Vector2i.RIGHT)
@@ -475,10 +473,7 @@ func _update_drag_line(current_grid: Vector2i):
 		if new_ghost is ConveyorBuilding:
 			new_ghost.direction = drag_direction
 			new_ghost.rotation = Vector2(drag_direction).angle()
-		if level_ref and level_ref.has_node("GhostLayer"):
-			level_ref.get_node("GhostLayer").add_child(new_ghost)
-		else:
-			add_child(new_ghost)
+		add_child(new_ghost)
 		drag_ghosts.append(new_ghost)
 	
 	while drag_ghosts.size() > points.size():

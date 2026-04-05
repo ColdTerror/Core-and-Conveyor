@@ -10,7 +10,6 @@ region = Rect2(0, 64, 32, 32)
 
 [sub_resource type="Resource" id="Resource_rxp7r"]
 script = ExtResource("3_vllef")
-amount = 0
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_34v7p"]
