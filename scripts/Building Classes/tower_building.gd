@@ -260,7 +260,7 @@ func _shoot():
 	inventory_changed.emit()
 	
 	attack_cooldown = 1.0 / fire_rate
-	var final_damage = ammo_data.damage * damage_multiplier
+	var final_damage = roundi(ammo_data.damage * damage_multiplier)
 	
 	# --- FIXED: EDGE SPAWN CALCULATION ---
 	var spawn_pos = global_position

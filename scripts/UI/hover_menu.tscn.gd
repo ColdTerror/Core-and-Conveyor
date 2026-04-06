@@ -213,8 +213,8 @@ func _collect_bot_stats(b: Node2D, stats: Array):
 	if "is_limping" in b and b.is_limping: stats.append("Status: Limping!")
 
 func _collect_tower_stats(b: Node2D, stats: Array):
-	if "damage_multiplier" in b: stats.append("Damage Mult: %.1fx" % b.damage_multiplier)
-	if "fire_rate" in b: stats.append("Fire Rate: %.1f/s" % b.fire_rate)
+	if "damage_multiplier" in b: stats.append("Damage Mult: %.2fx" % b.damage_multiplier)
+	if "fire_rate" in b: stats.append("Fire Rate: %.2f/s" % b.fire_rate)
 	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range / 32.0))
 	if "ammo_inventory" in b and "ammo_capacity" in b:
 		stats.append("Ammo: %d / %d" % [b.ammo_inventory.size(), b.ammo_capacity])
@@ -226,4 +226,4 @@ func _collect_processor_stats(b: Node2D, stats: Array):
 func _collect_harvester_stats(b: Node2D, stats: Array):
 	if "scan_radius" in b: stats.append("Harvest Radius: %d" % b.scan_radius)
 	if "harvest_damage" in b: stats.append("Harvest Amount: %d" % b.harvest_damage)
-	if "work_interval" in b: stats.append("Work Interval: %.1fs" % b.work_interval)
+	if "work_interval" in b: stats.append("Work Interval: %.2fs" % b.work_interval)

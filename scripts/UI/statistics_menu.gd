@@ -80,13 +80,20 @@ func refresh_ui():
 	if prod_data.is_empty():
 		_create_stat_row(prod_list, "Nothing produced.", "", Color(0.5, 0.5, 0.5))
 	else:
-		for item_name in prod_data:
+		# 1. Get an array of just the item names
+		var prod_keys = prod_data.keys()
+		# 2. Sort the array based on the numbers inside the dictionary
+		prod_keys.sort_custom(func(a, b): return prod_data[a] > prod_data[b])
+		# 3. Build the rows using the newly sorted array!
+		for item_name in prod_keys:
 			_create_stat_row(prod_list, item_name, "+%d" % prod_data[item_name], Color(0.4, 1.0, 0.4))
 			
 	if cons_data.is_empty():
 		_create_stat_row(cons_list, "Nothing consumed.", "", Color(0.5, 0.5, 0.5))
 	else:
-		for item_name in cons_data:
+		var cons_keys = cons_data.keys()
+		cons_keys.sort_custom(func(a, b): return cons_data[a] > cons_data[b])
+		for item_name in cons_keys:
 			_create_stat_row(cons_list, item_name, "-%d" % cons_data[item_name], Color(1.0, 0.4, 0.4))
 
 # ==========================================================
@@ -132,9 +139,7 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel") and visible:
 		
 		# 1. Close the menu! 
-		# (Change 'hide()' to 'close_menu()' if your script has a custom cleanup function)
 		hide() 
-		
 		# 2. Consume the input so it doesn't leak into the game world
 		get_viewport().set_input_as_handled()
 		
