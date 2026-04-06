@@ -2,85 +2,102 @@
 
 [ext_resource type="Script" uid="uid://ctedoygpx45hx" path="res://scripts/UI/management_menu.gd" id="1_ui8jo"]
 
-[node name="ManagementMenu" type="PanelContainer" unique_id=1030070791]
-custom_minimum_size = Vector2(600, 400)
+[node name="ManagementMenu" type="Control" unique_id=286307571]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ui8jo")
+
+[node name="InputBlocker" type="ColorRect" parent="." unique_id=533774595]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.39215687)
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1687833155]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -109.0
-offset_top = -21.5
-offset_right = 109.0
-offset_bottom = 21.5
+offset_left = -350.0
+offset_top = -233.0
+offset_right = 350.0
+offset_bottom = 233.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_ui8jo")
 
-[node name="TabContainer" type="TabContainer" parent="." unique_id=466723622]
+[node name="TabContainer" type="TabContainer" parent="PanelContainer" unique_id=466723622]
 layout_mode = 2
 current_tab = 1
 
-[node name="Priorities" type="MarginContainer" parent="TabContainer" unique_id=1696144382]
+[node name="Priorities" type="MarginContainer" parent="PanelContainer/TabContainer" unique_id=1696144382]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TabContainer/Priorities" unique_id=1417829691]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Priorities" unique_id=1417829691]
 layout_mode = 2
 
-[node name="Header" type="HBoxContainer" parent="TabContainer/Priorities/VBoxContainer" unique_id=304942268]
+[node name="Header" type="HBoxContainer" parent="PanelContainer/TabContainer/Priorities/VBoxContainer" unique_id=304942268]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="TabContainer/Priorities/VBoxContainer/Header" unique_id=1502384625]
+[node name="Label" type="Label" parent="PanelContainer/TabContainer/Priorities/VBoxContainer/Header" unique_id=1502384625]
 custom_minimum_size = Vector2(700, 0)
 layout_mode = 2
 text = " Global Task Priorities"
 
-[node name="HSeparator" type="HSeparator" parent="TabContainer/Priorities/VBoxContainer" unique_id=155545421]
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/TabContainer/Priorities/VBoxContainer" unique_id=155545421]
 layout_mode = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="TabContainer/Priorities/VBoxContainer" unique_id=2046592532]
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/TabContainer/Priorities/VBoxContainer" unique_id=2046592532]
 custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ListContainer" type="VBoxContainer" parent="TabContainer/Priorities/VBoxContainer/ScrollContainer" unique_id=55897273]
+[node name="ListContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Priorities/VBoxContainer/ScrollContainer" unique_id=55897273]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Workers" type="MarginContainer" parent="TabContainer" unique_id=635120371]
+[node name="Workers" type="MarginContainer" parent="PanelContainer/TabContainer" unique_id=635120371]
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TabContainer/Workers" unique_id=353205003]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Workers" unique_id=353205003]
 layout_mode = 2
 
-[node name="Header" type="HBoxContainer" parent="TabContainer/Workers/VBoxContainer" unique_id=1016422107]
+[node name="Header" type="HBoxContainer" parent="PanelContainer/TabContainer/Workers/VBoxContainer" unique_id=1016422107]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="TabContainer/Workers/VBoxContainer/Header" unique_id=1883700128]
+[node name="Label" type="Label" parent="PanelContainer/TabContainer/Workers/VBoxContainer/Header" unique_id=1883700128]
 custom_minimum_size = Vector2(700, 0)
 layout_mode = 2
 text = "Bots"
 
-[node name="HSeparator" type="HSeparator" parent="TabContainer/Workers/VBoxContainer" unique_id=876883958]
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/TabContainer/Workers/VBoxContainer" unique_id=876883958]
 layout_mode = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="TabContainer/Workers/VBoxContainer" unique_id=1212884148]
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/TabContainer/Workers/VBoxContainer" unique_id=1212884148]
 custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ListContainer" type="VBoxContainer" parent="TabContainer/Workers/VBoxContainer/ScrollContainer" unique_id=1540172013]
+[node name="ListContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Workers/VBoxContainer/ScrollContainer" unique_id=1540172013]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Close" type="Button" parent="." unique_id=766048388]
+[node name="Close" type="Button" parent="PanelContainer" unique_id=766048388]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 8

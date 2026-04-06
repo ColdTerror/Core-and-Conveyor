@@ -28,15 +28,17 @@
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": [
-				"65646b9a-ff70-4eb0-b87b-d09f9d8b2076"
-			]
+			"tasks": []
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
+				"cb8a602b-c1a2-4fc2-bc97-40c45b7c70d0",
+				"e215fec6-a795-48cc-9dc0-2e97f8f771e8",
+				"65646b9a-ff70-4eb0-b87b-d09f9d8b2076",
+				"7e5f52da-506a-42bb-b038-2a47f6654efa",
 				"b22bc9ba-2def-4bbf-9b35-513052c3b430",
 				"1eef8af2-5273-4b7f-9356-5b2dc5b76739",
 				"e57906b7-2a79-4a20-a5d4-dfd4dc18ce9a",
@@ -661,6 +663,27 @@
 		{
 			"uuid": "2da4c99f-9dbf-4de0-a08f-0bd225899bee",
 			"title": "drag building keeps ghost for everything but the last",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e215fec6-a795-48cc-9dc0-2e97f8f771e8",
+			"title": "only able to open one menu at a time ",
+			"description": "sync stuff with gamestate",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "cb8a602b-c1a2-4fc2-bc97-40c45b7c70d0",
+			"title": "eat mouse input outside of menus",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "7e5f52da-506a-42bb-b038-2a47f6654efa",
+			"title": "priority tab switches from 1 to 0 when i click in the middle of the top row",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

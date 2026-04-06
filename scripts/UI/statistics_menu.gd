@@ -1,15 +1,15 @@
-extends PanelContainer
+extends Control
 #stat menu
 
 @export var time_manager: TimeManager
 
-@onready var title_label = $MainVBox/TitleLabel
-@onready var btn_today = $MainVBox/TabRow/BtnToday
-@onready var btn_yesterday = $MainVBox/TabRow/BtnYesterday
-@onready var btn_week = $MainVBox/TabRow/BtnWeek
-@onready var prod_list = $MainVBox/Columns/ProdColumn/ProdList
-@onready var cons_list = $MainVBox/Columns/ConsColumn/ConsList
-@onready var close_button = $MainVBox/CloseButton
+@onready var title_label = $PanelContainer/MainVBox/TitleLabel
+@onready var btn_today = $PanelContainer/MainVBox/TabRow/BtnToday
+@onready var btn_yesterday = $PanelContainer/MainVBox/TabRow/BtnYesterday
+@onready var btn_week = $PanelContainer/MainVBox/TabRow/BtnWeek
+@onready var prod_list = $PanelContainer/MainVBox/Columns/ProdColumn/ProdList
+@onready var cons_list = $PanelContainer/MainVBox/Columns/ConsColumn/ConsList
+@onready var close_button = $PanelContainer/MainVBox/CloseButton
 
 enum ViewMode { TODAY, YESTERDAY, WEEK }
 var current_mode: ViewMode = ViewMode.TODAY
@@ -26,10 +26,14 @@ func _ready():
 		EconomyManager.stats_updated.connect(refresh_ui)
 
 func toggle_menu():
-	if visible: hide()
+	if visible: 
+		GameState.is_menu_open = false
+		hide()
 	else:
-		refresh_ui()
-		show()
+		if not GameState.is_menu_open:
+			GameState.is_menu_open = true
+			refresh_ui()
+			show()
 
 func _set_mode(new_mode: ViewMode):
 	current_mode = new_mode

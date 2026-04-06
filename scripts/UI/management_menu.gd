@@ -1,4 +1,4 @@
-extends PanelContainer
+extends Control
 # ==========================================
 # MANAGEMENT MENU (Priorities & Workers)
 # ==========================================
@@ -6,57 +6,76 @@ extends PanelContainer
 @export var building_manager: BuildingManager
 
 # --- UI REFERENCES ---
-@onready var tab_container = $TabContainer
+@onready var tab_container = $PanelContainer/TabContainer
 
 # Priorities Tab
-@onready var priority_list_container = $TabContainer/Priorities/VBoxContainer/ScrollContainer/ListContainer
+@onready var priority_list_container = $PanelContainer/TabContainer/Priorities/VBoxContainer/ScrollContainer/ListContainer
 
 # Workers Tab
-@onready var bot_list_container = $TabContainer/Workers/VBoxContainer/ScrollContainer/ListContainer
+@onready var bot_list_container = $PanelContainer/TabContainer/Workers/VBoxContainer/ScrollContainer/ListContainer
 
-@onready var close_button = $Close
+# Floating Close Button
+@onready var close_button = $PanelContainer/Close
+
+# --- LIVE UPDATE TRACKING ---
+var update_timer: float = 0.0
+var update_interval: float = 0.5 
+var bot_status_labels: Dictionary = {}
+
 func _ready():
-	#hide()
+	hide()
 		
 	if close_button:
 		close_button.pressed.connect(close_menu)
 		
 	if tab_container:
-		var tab_bar = tab_container.get_tab_bar()
+		tab_container.focus_mode = Control.FOCUS_NONE
 		
+		var tab_bar = tab_container.get_tab_bar()
+		tab_bar.focus_mode = Control.FOCUS_NONE
 		tab_bar.tab_clicked.connect(_on_tab_clicked)
 
+func _process(delta):
+	# Only refresh the live data if the menu is actually open
+	if not visible:
+		return
 		
+	update_timer -= delta
+	
+	if update_timer <= 0.0:
+		update_timer = update_interval 
+		
+		# ONLY run the soft update if they are looking at the Workers tab!
+		if tab_container and tab_container.current_tab == 1:
+			_refresh_bot_tab(false) # Soft update = false
+
 func _on_tab_clicked(tab_index):
-	# 1. Stop the TabContainer from automatically handling the click for a second
-	# and manually store what the user WANTED to click.
 	var target_tab = tab_index
 	
-	# 2. Perform the refresh
 	if target_tab == 0:
 		_refresh_priority_tab()
 	elif target_tab == 1:
-		_refresh_bot_tab()
+		_refresh_bot_tab(true) # Force rebuild = true
 		
-	# 3. FORCE the tab to stay on the index the user clicked
-	# We use call_deferred to make sure this is the LAST thing that happens this frame
+	# Force the tab to stay on the index the user clicked
 	tab_container.call_deferred("set_current_tab", target_tab)
 
 func toggle_menu():
 	if visible:
 		close_menu()
 	else:
-		open_menu()
+		if not GameState.is_menu_open:
+			open_menu()
 
 func open_menu():
+	GameState.is_menu_open = true
 	_refresh_priority_tab()
-	_refresh_bot_tab()
+	_refresh_bot_tab(true) # Force rebuild when opening
 	show()
 
 func close_menu():
+	GameState.is_menu_open = false
 	hide()
-
-	
 
 # ==========================================
 # PRIORITIES TAB LOGIC
@@ -100,7 +119,7 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 	# --- DEDICATED RANK LABEL ---
 	var rank_label = Label.new()
 	rank_label.text = str(rank) + "."
-	rank_label.custom_minimum_size = Vector2(30, 0) # Keeps alignment locked for double digits
+	rank_label.custom_minimum_size = Vector2(30, 0)
 	rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	
 	# --- NAME BUTTON ---
@@ -147,24 +166,36 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 # WORKERS TAB LOGIC
 # ==========================================
 
-func _refresh_bot_tab():
+func _refresh_bot_tab(force_rebuild: bool = false):
 	if not bot_list_container: return
 	
-	# 1. Clean up old UI rows
+	var bots = get_tree().get_nodes_in_group("Bots")
+	
+	# 1. Hard Rebuild if forced (tab clicked/menu opened) OR if a bot was born/died
+	if force_rebuild or bots.size() != bot_status_labels.size():
+		_rebuild_bot_list(bots)
+	else:
+		# 2. Soft Update! Change the text without deleting the buttons
+		for bot in bots:
+			if bot_status_labels.has(bot) and is_instance_valid(bot_status_labels[bot]):
+				if bot.has_method("get_inventory_info"):
+					var info = bot.get_inventory_info()
+					var new_text = "Task: %s | Carrying: %s" % [info.get("Target", "Idle"), info.get("Carrying", "Nothing")]
+					bot_status_labels[bot].text = new_text
+
+func _rebuild_bot_list(bots: Array):
+	# Clean up old UI rows and reset tracking
+	bot_status_labels.clear()
 	for child in bot_list_container.get_children():
 		child.queue_free()
 		
-	# 2. Find all the bots currently in the world (Make sure your bots are in the "Workers" group!)
-	var bots = get_tree().get_nodes_in_group("Bots")
-	var bot_index = 1
-	
 	if bots.is_empty():
 		var empty_label = Label.new()
 		empty_label.text = "No active worker bots."
 		bot_list_container.add_child(empty_label)
 		return
 
-	# 3. Build a row for each bot
+	var bot_index = 1
 	for bot in bots:
 		var row = HBoxContainer.new()
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -176,12 +207,15 @@ func _refresh_bot_tab():
 		
 		# --- STATUS ---
 		var status_label = Label.new()
+		status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		if bot.has_method("get_inventory_info"):
 			var info = bot.get_inventory_info()
 			status_label.text = "Task: %s | Carrying: %s" % [info.get("Target", "Idle"), info.get("Carrying", "Nothing")]
 		else:
 			status_label.text = "Task: Unknown"
-		status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			
+		# SAVE LABEL IN DICTIONARY
+		bot_status_labels[bot] = status_label
 		
 		# --- FOLLOW BUTTON ---
 		var follow_btn = Button.new()
@@ -192,18 +226,15 @@ func _refresh_bot_tab():
 			var cam = get_tree().get_first_node_in_group("Camera")
 			if cam and cam.has_method("set_follow_target"):
 				cam.set_follow_target(bot)
-			close_menu() # Close the menu to see the bot immediately!
+			close_menu()
 		)
 		
-		# Assemble the row
 		row.add_child(name_label)
 		row.add_child(status_label)
 		row.add_child(follow_btn)
 		
-		var separator = HSeparator.new()
-		
 		bot_list_container.add_child(row)
-		bot_list_container.add_child(separator)
+		bot_list_container.add_child(HSeparator.new())
 		
 		bot_index += 1
 

@@ -170,7 +170,7 @@ offset_right = 23.5
 offset_bottom = 81.0
 grow_horizontal = 2
 
-[node name="PriorityMenu" parent="CanvasLayer/Popup_Layer" unique_id=1030070791 node_paths=PackedStringArray("building_manager") instance=ExtResource("36_c1pbi")]
+[node name="ManagementMenu" parent="CanvasLayer/Popup_Layer" unique_id=1030070791 node_paths=PackedStringArray("building_manager") instance=ExtResource("36_c1pbi")]
 layout_mode = 1
 offset_left = -402.0
 offset_top = -300.0

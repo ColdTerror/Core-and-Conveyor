@@ -10,7 +10,7 @@ extends Node2D
 @onready var hover_menu := $CanvasLayer/Popup_Layer/HoverMenu
 @onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
 @onready var detail_menu = $CanvasLayer/Popup_Layer/DetailMenu 
-@onready var priority_menu = $CanvasLayer/Popup_Layer/PriorityMenu
+@onready var management_menu = $CanvasLayer/Popup_Layer/ManagementMenu
 @onready var stat_menu = $CanvasLayer/Popup_Layer/StatisticsMenu
 
 @onready var building_manager: BuildingManager = $BuildingManager
@@ -152,7 +152,7 @@ func _unhandled_input(event):
 				print("Entered Terrain Mode")
 				
 		if event.keycode == KEY_P:
-			priority_menu.toggle_menu()
+			management_menu.toggle_menu()
 			get_viewport().set_input_as_handled()
 		if event.keycode == KEY_L:
 			stat_menu.toggle_menu()
