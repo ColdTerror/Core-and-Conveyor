@@ -15,6 +15,7 @@ class_name TowerBuilding
 @export var spread_degrees: float = 0.0 
 
 # Internal State
+var base_damage_multiplier: float = 1.0
 var ammo_inventory: Array[ItemResource] = []
 var attack_cooldown: float = 0.0
 var current_target: Node2D = null
@@ -38,8 +39,10 @@ var show_range_overlay := false:
 
 func _ready():
 	super()
+	base_damage_multiplier = damage_multiplier
 	_cached_range_tiles = _get_local_range_tiles()
 	add_to_group("Towers")
+	apply_research_buffs()
 
 func setup(level_instance: Node2D):
 	level_ref = level_instance
@@ -47,7 +50,9 @@ func setup(level_instance: Node2D):
 
 
 func apply_research_buffs():
-	damage_multiplier = ResearchManager.tower_damage_mult
+	# Calculate the final multiplier cleanly from the base stat.
+	# Example: 1.25 + (1.15 - 1.0) = 1.40
+	damage_multiplier = base_damage_multiplier + (ResearchManager.tower_damage_mult - 1.0)
 
 
 # ============================================================
