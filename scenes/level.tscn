@@ -39,7 +39,7 @@
 [ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/Enemy & Related/wave_manager.tscn" id="32_2e2fo"]
 [ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/Enemy & Related/corruption_manager.gd" id="34_v3why"]
 [ext_resource type="PackedScene" uid="uid://cdmxyx00rhtcw" path="res://scenes/research/research_screen.tscn" id="35_asl66"]
-[ext_resource type="PackedScene" uid="uid://b0e2y87cv1d35" path="res://scenes/ui/priority_menu.tscn" id="36_c1pbi"]
+[ext_resource type="PackedScene" uid="uid://b0e2y87cv1d35" path="res://scenes/ui/management_menu.tscn" id="36_c1pbi"]
 [ext_resource type="PackedScene" uid="uid://cmd0dxnybdaf8" path="res://scenes/ui/statistics_menu.tscn" id="38_50fbu"]
 
 [node name="Level" type="Node2D" unique_id=368109732]
