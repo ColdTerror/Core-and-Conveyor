@@ -46,6 +46,7 @@ var show_build_grid: bool = false
 var show_safe_grid: bool = false
 var show_attack_grid: bool = false
 var overlay_threshold: int = 1 
+var _auto_enabled_grids: Dictionary = {"build": false, "safe": false, "attack": false}
 
 # --- Placement ---
 var ghost_building: Building = null
@@ -117,6 +118,15 @@ func _handle_overlay_hotkeys(event):
 		KEY_P:
 			_debug_print_priority_queue()
 
+func _reset_auto_grids():
+	# Only turn off the grids that the game turned on automatically
+	if _auto_enabled_grids["build"]: show_build_grid = false
+	if _auto_enabled_grids["safe"]: show_safe_grid = false
+	if _auto_enabled_grids["attack"]: show_attack_grid = false
+	
+	# Reset the tracker
+	_auto_enabled_grids = {"build": false, "safe": false, "attack": false}
+	
 # ==========================================
 # PLACEMENT: PUBLIC API
 # ==========================================
@@ -139,6 +149,17 @@ func start_placing(scene: PackedScene):
 	placing_building = true
 	is_dragging = false
 	_clear_drag_ghosts()
+	
+	if not show_build_grid:
+		show_build_grid = true
+		_auto_enabled_grids["build"] = true
+		
+			
+	if "attack_range" in ghost_building:
+		if not show_attack_grid:
+			show_attack_grid = true
+			_auto_enabled_grids["attack"] = true
+			
 	
 	_update_ghost_position_to(_get_mouse_grid())
 
@@ -191,6 +212,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 				ghost_building = null
 				if not is_dragging:
 					placing_building = false
+					_reset_auto_grids()
 					queue_redraw()
 					placement_ended.emit()
 				return true
@@ -214,6 +236,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 
 	if not is_dragging:
 		placing_building = false
+		_reset_auto_grids()
 		queue_redraw()
 		placement_ended.emit()
 	
@@ -226,6 +249,7 @@ func cancel_placement():
 	_clear_drag_ghosts()
 	is_dragging = false
 	placing_building = false
+	_reset_auto_grids()
 	queue_redraw()
 	placement_ended.emit()
 
@@ -380,20 +404,20 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 	var base_cost = ghost_building.get_build_cost()
 	var total_cost = {}
 	
-	# Check if it is an instant building
 	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or base_cost.is_empty()
-	var missing_resources = false
 	
 	for res in base_cost:
 		var total_needed = base_cost[res] * display_count
 		total_cost[res] = total_needed
-		if EconomyManager.global_inventory.get(res, 0) < total_needed:
-			missing_resources = true
+		# We still calculate if we are missing resources, but we won't 
+		# necessarily force can_place to false if it's a drag operation.
 
-	# ONLY block placement (and turn the UI red) if it's an Instant building!
-	if is_instant and missing_resources:
+	# we only disable can_place if 
+	# the location itself is invalid (like dragging over water).
+	if not is_location_valid:
 		can_place = false
 
+	# (Keep your Building Limit check logic the same below)
 	var extra_stats = {}
 	if not (ghost_building is ConveyorBuilding) and not (ghost_building is WallBuilding) and not (ghost_building is TerraformSite):
 		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding) and not (b is TerraformSite))
@@ -402,7 +426,6 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 			can_place = false
 	
 	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place, extra_stats)
-
 func _on_inventory_changed():
 	# If we are currently holding a blueprint, re-check the tile we are hovering over!
 	if placing_building and is_instance_valid(ghost_building):
@@ -483,6 +506,7 @@ func _update_drag_line(current_grid: Vector2i):
 	
 	var current_drag_network: Array[Vector2i] = []
 	var chargeable_count: int = 0
+	var total_requested_count: int = 0
 	
 	for i in range(points.size()):
 		var pt = points[i]
@@ -503,7 +527,10 @@ func _update_drag_line(current_grid: Vector2i):
 			if existing is ConveyorBuilding and g is ConveyorBuilding:
 				if existing.building_name == g.building_name:
 					is_free_overwrite = true
-				
+		
+		if not is_free_overwrite:
+			total_requested_count += 1
+			
 		if is_valid and not is_free_overwrite:
 			if not base_cost.is_empty():
 				if not EconomyManager.can_afford(_calculate_cumulative_cost(base_cost, chargeable_count + 1)):
@@ -521,7 +548,7 @@ func _update_drag_line(current_grid: Vector2i):
 		else:
 			g.modulate = Color(0, 1, 0, 0.5) if is_valid else Color(1, 0, 0, 0.5)
 
-	update_placement_cost_ui(chargeable_count, current_drag_network.size() > 0)
+	update_placement_cost_ui(total_requested_count, current_drag_network.size() > 0)
 
 func _commit_drag_line():
 	if drag_ghosts.size() == 0: return
