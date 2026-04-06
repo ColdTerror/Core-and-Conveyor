@@ -481,18 +481,6 @@ func _update_drag_line(current_grid: Vector2i):
 	
 	var base_cost = ghost_building.get_build_cost()
 	
-	# Reverse build order if dragging inward
-	if points.size() > 1 and buildings.size() > 0:
-		var start_touches = false
-		var end_touches = false
-		for b in buildings:
-			var b_grid = object_layer.local_to_map(b.global_position)
-			if points[0].distance_to(b_grid) <= b.build_range: start_touches = true
-			if points[-1].distance_to(b_grid) <= b.build_range: end_touches = true
-		if end_touches and not start_touches:
-			points.reverse()
-			drag_ghosts.reverse()
-	
 	var current_drag_network: Array[Vector2i] = []
 	var chargeable_count: int = 0
 	
