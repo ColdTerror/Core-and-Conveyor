@@ -14,17 +14,18 @@
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
 				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
 				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
-				"214e766b-c6b2-4cbc-b5a6-b36c019515ce",
-				"a91074aa-c0bc-4620-80c9-3e7f14ef5b9e",
 				"95f4f13f-960a-4ece-bba8-12332a4663f6",
-				"c5b14a34-9caa-4b42-a10c-7739684fa129",
+				"a91074aa-c0bc-4620-80c9-3e7f14ef5b9e",
 				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"c5b14a34-9caa-4b42-a10c-7739684fa129",
+				"c82b32f7-5b32-4ab2-a20c-82b83f0298ad"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -33,6 +34,7 @@
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"cb8a602b-c1a2-4fc2-bc97-40c45b7c70d0",
 				"4b255627-e991-45d7-8648-afcf74e9cef5",
+				"214e766b-c6b2-4cbc-b5a6-b36c019515ce",
 				"568547de-e964-45d1-83fd-03ad3df134da",
 				"99c1dc1c-abaa-4f63-860d-7d62df1a7a88",
 				"70ab86c8-5353-4962-97a4-5027601c9581",
@@ -692,6 +694,13 @@
 		{
 			"uuid": "87500045-e6dd-4e89-92ee-2945819d9b56",
 			"title": "draggable building check for building range is inconsistent if dragging into range",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c82b32f7-5b32-4ab2-a20c-82b83f0298ad",
+			"title": "visualize the pathcost of each tile",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

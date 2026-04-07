@@ -27,7 +27,15 @@ func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Re
 			if not is_Walkable:
 				astar.set_point_solid(coords, true)
 				continue
-
+			
+			var is_water = tile_data.get_custom_data("is_water")
+			if is_water:
+				# A high weight means it will aggressively seek out bridges (which default to 1.0)
+				astar.set_point_weight_scale(coords, 5.0) 
+			else:
+				# Reset normal land to 1.0 just in case
+				astar.set_point_weight_scale(coords, 1.0)
+				
 			if object_layer.get_cell_source_id(coords) != -1:
 				astar.set_point_solid(coords, true)
 

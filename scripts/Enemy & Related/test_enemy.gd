@@ -68,7 +68,7 @@ func _physics_process(delta):
 		# --- IN RANGE ---
 		# Instead of completely stopping, let them keep pushing each other!
 		var separation = _calculate_separation()
-		velocity = separation * movement_speed
+		velocity = separation * _get_current_speed()
 		move_and_slide()
 		
 		# Ranged LOS Check
@@ -161,7 +161,7 @@ func _do_separation_calculation() -> Vector2:
 	return separation_vector
 	
 func _execute_movement(dir: Vector2):
-	velocity = dir * movement_speed
+	velocity = dir * _get_current_speed()
 	move_and_slide()
 	
 	# --- UNIFIED BUMP LOGIC  ---
@@ -223,7 +223,20 @@ func _spawn_projectile(target):
 # ---------------------------------------------------------
 # HELPERS
 # ---------------------------------------------------------
-
+func _get_current_speed() -> float:
+	var actual_speed = movement_speed
+	
+	# Ask the pathfinder's terrain layer what we are standing on
+	if pathfinder and pathfinder.main_layer:
+		var current_grid_pos = pathfinder.main_layer.local_to_map(global_position)
+		var tile_data = pathfinder.main_layer.get_cell_tile_data(current_grid_pos)
+		
+		# If it's water, apply the 40% speed penalty
+		if tile_data and tile_data.get_custom_data("is_water"):
+			actual_speed = movement_speed * 0.4 
+			
+	return actual_speed
+	
 func _get_target_radius(node) -> float:
 	if node and node.has_method("get_radius"):
 		return node.get_radius()

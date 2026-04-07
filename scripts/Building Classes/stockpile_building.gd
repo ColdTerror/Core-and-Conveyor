@@ -352,9 +352,13 @@ func _prune_available_types():
 	var current_names = []
 	for item in inventory.keys():
 		current_names.append(item.display_name)
+		
+	# 1. Always remember the currently selected output!
+	if selected_output_name != "" and not current_names.has(selected_output_name):
+		current_names.append(selected_output_name)
+		
+	# 2. Always remember the dedicated lock
+	if is_dedicated_mode and dedicated_item_name != "" and not current_names.has(dedicated_item_name):
+		current_names.append(dedicated_item_name)
+		
 	available_types = current_names
-	
-	# If selected output is no longer available, turn it off
-	if selected_output_name != "" and not selected_output_name in available_types:
-		selected_output_name = ""
-		print("Output auto-disabled: item no longer in inventory")

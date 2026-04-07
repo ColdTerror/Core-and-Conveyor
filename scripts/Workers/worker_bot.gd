@@ -117,6 +117,7 @@ func apply_research_buffs():
 # ==========================================
 
 func _process(delta):
+	
 	queue_redraw()
 	_handle_energy(delta)
 	
@@ -498,9 +499,19 @@ func _move_along_path(delta: float, next_state: State):
 		_start_action()
 		return
 		
+	var actual_speed = current_speed
+	
+	if level_ref and level_ref.terrain_layer:
+		var current_grid_pos = level_ref.terrain_layer.local_to_map(global_position)
+		var tile_data = level_ref.terrain_layer.get_cell_tile_data(current_grid_pos)
+		
+		# If the tile exists and is marked as water, apply the penalty!
+		if tile_data and tile_data.get_custom_data("is_water"):
+			actual_speed = current_speed * 0.4 # Move at 40% speed while in water
+			
 	var target_pos = current_path[0]
 	var dist = global_position.distance_to(target_pos)
-	var move_step = current_speed * delta
+	var move_step = actual_speed * delta
 	
 	if dist <= move_step:
 		global_position = target_pos
