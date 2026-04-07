@@ -3,9 +3,24 @@ class_name OverlayRenderer
 
 @onready var level = get_parent()
 
-func _process(_delta):
-	queue_redraw()
+# --- CACHING VARIABLES ---
+var cached_path_draws: Array = []
+var _was_showing_path_grid: bool = false
 
+
+func _process(_delta):
+	var bm = level.building_manager
+	if bm:
+		# If the grid is ON now, but was OFF last frame, the button was just pressed!
+		if bm.show_path_grid and not _was_showing_path_grid:
+			_rebuild_path_cost_cache()
+			
+		# Remember the state for the next frame
+		_was_showing_path_grid = bm.show_path_grid
+			
+	# Tell the engine to redraw
+	queue_redraw()
+	
 func _draw():
 	_draw_tool_highlight()
 	_draw_terrain_jobs()
@@ -108,7 +123,6 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 	var font = ThemeDB.fallback_font
 	
 	# 1. FILTER THE TILES
-	# Create a temporary dictionary of only the tiles that meet our current layer depth
 	var filtered_tiles = {}
 	for tile in tiles.keys():
 		if tiles[tile] >= threshold:
@@ -118,21 +132,17 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 	for tile in filtered_tiles.keys():
 		var overlaps = filtered_tiles[tile]
 		
-		# The alpha resets based on the threshold, so the base layer always looks clean!
 		var alpha = min(0.15 + ((overlaps - threshold) * 0.15), 0.7)
 		var fill = Color(base_color.r, base_color.g, base_color.b, alpha)
 		var local_pos = level.object_layer.map_to_local(tile) - half_offset
 		draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), fill)
 		
-		# Draw the exact number in the center of the tile!
 		var text = str(overlaps)
 		var text_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
 		var text_pos = local_pos + half_offset + Vector2(-text_size.x / 2.0, text_size.y / 3.0)
 		draw_string(font, text_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.8))
 
 	# 3. DRAW SHRINK-WRAPPED BORDERS
-	# Because we check against 'filtered_tiles.has()', the outer border will 
-	# dynamically redraw itself around whatever layer depth you are currently viewing!
 	for tile in filtered_tiles.keys():
 		var pos = level.object_layer.map_to_local(tile) - half_offset
 		var tl = pos
@@ -198,63 +208,64 @@ func _draw_ghost_previews():
 		var b_size = g.size if "size" in g else Vector2i(1, 1)
 		var footprint_px = Vector2(b_size.x * tile_size, b_size.y * tile_size)
 		
-		# The physical center of the building is exactly half the size up and left
 		var top_left = -footprint_px / 2.0 
-		
 		var is_valid = g.get_meta("is_valid", true)
 			
 		var border_color = Color(0.2, 1.0, 0.2, 0.9) if is_valid else Color(1.0, 0.2, 0.2, 0.9)
-		var grid_color = Color(border_color.r, border_color.g, border_color.b, 0.3) # Faint version
 		
-		# Align the Godot canvas to the ghost's exact position and rotation
 		draw_set_transform(to_local(g.global_position), g.rotation, g.scale)
-		
-		# 1. Draw the thick outer border
 		draw_rect(Rect2(top_left, footprint_px), border_color, false, 2.0)
 		
-			
-	# Reset the canvas transform so it doesn't mess up the rest of the game!
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1,1))
 
+# ==========================================
+# PATH COST CACHING & DRAWING
+# ==========================================
 
-func _draw_path_costs():
-	# Make sure we have a pathfinder to read from
+func _rebuild_path_cost_cache():
+	cached_path_draws.clear()
+	
 	var bm = level.building_manager
 	if not bm or not bm.pathfinder or not bm.pathfinder.astar: return
 	
-	if not bm.show_path_grid: return
-	
 	var astar = bm.pathfinder.astar
 	var region = astar.region
-	var font = ThemeDB.fallback_font # Grab Godot's default UI font
+	var font = ThemeDB.fallback_font 
 	var font_size = 14
 	
-	# Loop through every tile in the pathfinder's memory
 	for x in range(region.position.x, region.end.x):
 		for y in range(region.position.y, region.end.y):
 			var coords = Vector2i(x, y)
-			
-			# Get the pixel center of the tile
 			var center_px = bm.terrain_layer.map_to_local(coords)
 			
 			if astar.is_point_solid(coords):
-				# --- SOLID WALLS ---
+				# Cache a Red X
 				var text = "X"
 				var t_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-				# Draw a Red X
-				draw_string(font, center_px - Vector2(t_size.x/2.0, -t_size.y/3.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(1.0, 0.2, 0.2, 0.8))
+				var draw_pos = center_px - Vector2(t_size.x/2.0, -t_size.y/3.0)
 				
+				cached_path_draws.append({
+					"pos": draw_pos, "text": text, "color": Color(1.0, 0.2, 0.2, 0.8)
+				})
 			else:
-				# --- WALKABLE TILES ---
 				var cost = astar.get_point_weight_scale(coords)
-				var text = str(cost)
-				
-				# Default 1.0 cost gets faint, transparent white text so it's not distracting
-				var color = Color(1.0, 1.0, 1.0, 1.0) 
-				
+				# PRO OPTIMIZATION: Only cache and draw numbers greater than 1.0 (like Water)
+				# Skipping normal 1.0 grass tiles prevents Godot from rendering 10,000 strings!
 				if cost > 1.0:
-					# Expensive tiles (like our 10.0 Water) get bright blue text!
-					color = Color(1.0, 0.0, 0.0, 1.0) 
-				
-				var t_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-				draw_string(font, center_px - Vector2(t_size.x/2.0, -t_size.y/3.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+					var text = str(cost)
+					var t_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+					var draw_pos = center_px - Vector2(t_size.x/2.0, -t_size.y/3.0)
+					
+					cached_path_draws.append({
+						"pos": draw_pos, "text": text, "color": Color(1.0, 0.0, 0.0, 1.0) # Bright Red!
+					})
+
+func _draw_path_costs():
+	var bm = level.building_manager
+	if not bm or not bm.show_path_grid: return
+	
+	var font = ThemeDB.fallback_font 
+	
+	# Lightning fast draw! Just loop the small pre-calculated list.
+	for item in cached_path_draws:
+		draw_string(font, item["pos"], item["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, item["color"])
