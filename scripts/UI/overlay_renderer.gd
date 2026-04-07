@@ -11,6 +11,7 @@ func _draw():
 	_draw_terrain_jobs()
 	_draw_zone_overlays()
 	_draw_ghost_previews()
+	_draw_path_costs()
 
 # ==========================================
 # TOOL HIGHLIGHT (cursor indicator)
@@ -214,3 +215,46 @@ func _draw_ghost_previews():
 			
 	# Reset the canvas transform so it doesn't mess up the rest of the game!
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1,1))
+
+
+func _draw_path_costs():
+	# Make sure we have a pathfinder to read from
+	var bm = level.building_manager
+	if not bm or not bm.pathfinder or not bm.pathfinder.astar: return
+	
+	if not bm.show_path_grid: return
+	
+	var astar = bm.pathfinder.astar
+	var region = astar.region
+	var font = ThemeDB.fallback_font # Grab Godot's default UI font
+	var font_size = 14
+	
+	# Loop through every tile in the pathfinder's memory
+	for x in range(region.position.x, region.end.x):
+		for y in range(region.position.y, region.end.y):
+			var coords = Vector2i(x, y)
+			
+			# Get the pixel center of the tile
+			var center_px = bm.terrain_layer.map_to_local(coords)
+			
+			if astar.is_point_solid(coords):
+				# --- SOLID WALLS ---
+				var text = "X"
+				var t_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+				# Draw a Red X
+				draw_string(font, center_px - Vector2(t_size.x/2.0, -t_size.y/3.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(1.0, 0.2, 0.2, 0.8))
+				
+			else:
+				# --- WALKABLE TILES ---
+				var cost = astar.get_point_weight_scale(coords)
+				var text = str(cost)
+				
+				# Default 1.0 cost gets faint, transparent white text so it's not distracting
+				var color = Color(1.0, 1.0, 1.0, 1.0) 
+				
+				if cost > 1.0:
+					# Expensive tiles (like our 10.0 Water) get bright blue text!
+					color = Color(1.0, 0.0, 0.0, 1.0) 
+				
+				var t_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+				draw_string(font, center_px - Vector2(t_size.x/2.0, -t_size.y/3.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)

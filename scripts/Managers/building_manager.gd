@@ -45,6 +45,7 @@ var terraform_jobs: Dictionary = {} # Key: Vector2i, Value: TerraformSite.JobTyp
 var show_build_grid: bool = false
 var show_safe_grid: bool = false
 var show_attack_grid: bool = false
+var show_path_grid: bool = false
 var overlay_threshold: int = 1 
 var _auto_enabled_grids: Dictionary = {"build": false, "safe": false, "attack": false}
 
@@ -101,17 +102,20 @@ func _handle_overlay_hotkeys(event):
 	match event.keycode:
 		KEY_F1:
 			show_build_grid = not show_build_grid
-			queue_redraw()
+			#queue_redraw()
 		KEY_F2:
 			show_safe_grid = not show_safe_grid
-			queue_redraw()
+			#queue_redraw()
 		KEY_F3:
 			show_attack_grid = not show_attack_grid
-			queue_redraw()
+			#queue_redraw()
+		KEY_F4: # <--- NEW
+			show_path_grid = not show_path_grid
+			#queue_redraw()
 		KEY_EQUAL: # The '+' key 
 			overlay_threshold += 1
 			print("Overlay Threshold: ", overlay_threshold)
-			queue_redraw()
+			#queue_redraw()
 		KEY_MINUS: # The '-' key
 			overlay_threshold = max(1, overlay_threshold - 1)
 			print("Overlay Threshold: ", overlay_threshold)
