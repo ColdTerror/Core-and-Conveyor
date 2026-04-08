@@ -101,26 +101,36 @@ func _handle_overlay_hotkeys(event):
 	
 	match event.keycode:
 		KEY_F1:
-			show_build_grid = not show_build_grid
-			#queue_redraw()
+			var toggle = not show_build_grid
+			_clear_all_overlays()
+			show_build_grid = toggle
 		KEY_F2:
-			show_safe_grid = not show_safe_grid
-			#queue_redraw()
+			var toggle = not show_safe_grid
+			_clear_all_overlays()
+			show_safe_grid = toggle
 		KEY_F3:
-			show_attack_grid = not show_attack_grid
-			#queue_redraw()
-		KEY_F4: # <--- NEW
-			show_path_grid = not show_path_grid
-			#queue_redraw()
+			var toggle = not show_attack_grid
+			_clear_all_overlays()
+			show_attack_grid = toggle
+		KEY_F4: 
+			var toggle = not show_path_grid
+			_clear_all_overlays()
+			show_path_grid = toggle
 		KEY_EQUAL: # The '+' key 
 			overlay_threshold += 1
 			print("Overlay Threshold: ", overlay_threshold)
-			#queue_redraw()
 		KEY_MINUS: # The '-' key
 			overlay_threshold = max(1, overlay_threshold - 1)
 			print("Overlay Threshold: ", overlay_threshold)
 		KEY_P:
 			_debug_print_priority_queue()
+
+# --- NEW HELPER FUNCTION ---
+func _clear_all_overlays():
+	show_build_grid = false
+	show_safe_grid = false
+	show_attack_grid = false
+	show_path_grid = false
 
 func _reset_auto_grids():
 	# Only turn off the grids that the game turned on automatically
