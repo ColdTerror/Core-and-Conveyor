@@ -5,22 +5,72 @@ class_name OverlayRenderer
 
 # --- CACHING VARIABLES ---
 var cached_path_draws: Array = []
-var _was_showing_path_grid: bool = false
+var _font: Font
 
+# Track previous overlay states to detect toggles
+var _prev_show_build_grid: bool = false
+var _prev_show_safe_grid: bool = false
+var _prev_show_attack_grid: bool = false
+var _prev_show_path_grid: bool = false
+var _prev_placing_building: bool = false
+var _prev_terraform_jobs_empty: bool = true
+var _prev_overlay_threshold: int = 1
+var _prev_mode = null
 
-func _process(_delta):
+var _overlay_tick_timer: float = 0.0
+const OVERLAY_TICK_RATE: float = 1.0
+
+func _ready():
+	_font = ThemeDB.fallback_font
+
+func _process(delta):
 	var bm = level.building_manager
-	if bm:
-		# If the grid is ON now, but was OFF last frame, the button was just pressed!
-		if bm.show_path_grid and not _was_showing_path_grid:
-			_rebuild_path_cost_cache()
-			
-		# Remember the state for the next frame
-		_was_showing_path_grid = bm.show_path_grid
-			
-	# Tell the engine to redraw
-	queue_redraw()
-	
+	if not bm: return
+
+	var needs_redraw = false
+
+	# Path grid: rebuild cache on rising edge
+	if bm.show_path_grid and not _prev_show_path_grid:
+		_rebuild_path_cost_cache()
+
+	# State-diff check (toggle on/off always gets an instant redraw)
+	if (bm.show_build_grid   != _prev_show_build_grid   or \
+		bm.show_safe_grid    != _prev_show_safe_grid    or \
+		bm.show_attack_grid  != _prev_show_attack_grid  or \
+		bm.show_path_grid    != _prev_show_path_grid    or \
+		bm.placing_building  != _prev_placing_building  or \
+		bm.terraform_jobs.is_empty() != _prev_terraform_jobs_empty or \
+		bm.overlay_threshold != _prev_overlay_threshold or \
+		level.current_mode   != _prev_mode):
+		needs_redraw = true
+
+	# Ghost placement: always update instantly
+	if bm.placing_building:
+		needs_redraw = true
+
+	# Dynamic overlays: throttled to once per second
+	var has_slow_overlay = bm.show_build_grid or bm.show_safe_grid or \
+						   bm.show_attack_grid or not bm.terraform_jobs.is_empty() or \
+						   level.current_mode != level.InteractionMode.NONE
+	if has_slow_overlay:
+		_overlay_tick_timer += delta
+		if _overlay_tick_timer >= OVERLAY_TICK_RATE:
+			_overlay_tick_timer = 0.0
+			needs_redraw = true
+
+	# Save state
+	_prev_show_build_grid       = bm.show_build_grid
+	_prev_show_safe_grid        = bm.show_safe_grid
+	_prev_show_attack_grid      = bm.show_attack_grid
+	_prev_show_path_grid        = bm.show_path_grid
+	_prev_placing_building      = bm.placing_building
+	_prev_terraform_jobs_empty  = bm.terraform_jobs.is_empty()
+	_prev_overlay_threshold     = bm.overlay_threshold
+	_prev_mode                  = level.current_mode
+
+	if needs_redraw:
+		queue_redraw()
+
 func _draw():
 	_draw_tool_highlight()
 	_draw_terrain_jobs()
@@ -120,7 +170,7 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 	var bm = level.building_manager
 	var threshold = bm.overlay_threshold if bm else 1
 	var border = Color(base_color.r, base_color.g, base_color.b, 0.8)
-	var font = ThemeDB.fallback_font
+	var font = _font
 	
 	# 1. FILTER THE TILES
 	var filtered_tiles = {}
@@ -230,7 +280,7 @@ func _rebuild_path_cost_cache():
 	
 	var astar = bm.pathfinder.astar
 	var region = astar.region
-	var font = ThemeDB.fallback_font 
+	var font = _font
 	var font_size = 14
 	
 	for x in range(region.position.x, region.end.x):
@@ -264,7 +314,7 @@ func _draw_path_costs():
 	var bm = level.building_manager
 	if not bm or not bm.show_path_grid: return
 	
-	var font = ThemeDB.fallback_font 
+	var font = _font
 	
 	# Lightning fast draw! Just loop the small pre-calculated list.
 	for item in cached_path_draws:
