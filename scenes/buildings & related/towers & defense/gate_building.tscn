@@ -6,10 +6,12 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gxk2j"]
 size = Vector2(32, 32)
 
-[node name="Wall" type="Node2D" unique_id=1237469307 groups=["Structure"]]
+[node name="Gate" type="Node2D" unique_id=1237469307 groups=["Structure"]]
 modulate = Color(1, 0, 0, 1)
 script = ExtResource("1_m4s2e")
 is_solid_obstacle = false
+building_name = "Gate"
+build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413850]
 texture = ExtResource("2_gye0d")

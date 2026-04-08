@@ -12,6 +12,7 @@ func setup(level_instance: Node2D):
 	level_ref = level_instance
 	
 func _ready():
+	super()
 	is_solid_obstacle = false 
 	path_cost = float(health)
 	
