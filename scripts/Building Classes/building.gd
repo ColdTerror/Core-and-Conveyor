@@ -18,8 +18,7 @@ var is_ghost: bool = false
 
 
 
-# If not solid, how expensive is it?
-@export var path_cost: float = 10
+@export var path_cost: float = 10.0
 
 @export var is_draggable: bool = false
 
@@ -49,6 +48,7 @@ var occupied_tiles: Array[Vector2i] = []
 @export var upgrade_cost: Array[CostData] = []
 
 var grid_origin: Vector2i = Vector2i.ZERO
+
 
 # --- Ready ---
 func _ready():
@@ -111,16 +111,16 @@ func _update_collision(footprint_px: Vector2):
 		phys_shape.shape = RectangleShape2D.new()
 		static_body.add_child(phys_shape)
 		add_child(static_body)
-		
-		# Apply ghost physics rules
-		if "is_ghost" in self and is_ghost:
-			static_body.collision_layer = 0
-			static_body.collision_mask = 0
-		else:
-			static_body.collision_layer = 1
-			static_body.collision_mask = 1
 	else:
 		static_body = $AutoCollisionBody
+	
+	# Apply ghost physics rules
+	if "is_ghost" in self and is_ghost:
+		static_body.collision_layer = 0
+		static_body.collision_mask = 0
+	else:
+		static_body.collision_layer = 1
+		static_body.collision_mask = 1
 		
 	# Apply the exact pixel size!
 	var p_shape = static_body.get_child(0) as CollisionShape2D
@@ -134,7 +134,12 @@ func set_ghost(enabled: bool):
 	if has_node("Area2D"):
 		$Area2D.monitoring = not enabled
 		$Area2D.visible = not enabled
-		
+	
+	if has_node("AutoCollisionBody"):
+		var static_body = $AutoCollisionBody
+		static_body.collision_layer = 0 if enabled else 1
+		static_body.collision_mask = 0 if enabled else 1
+	
 	modulate = Color(1, 1, 1, 0.5 if enabled else 1)
 
 func set_valid_placement(valid: bool):
@@ -279,7 +284,8 @@ func take_damage(amount: int):
 	health -= amount
 	
 	health_changed.emit(health, max_health)
-	# Optional: Flash color to show damage
+	
+			
 	modulate = Color.RED
 	await get_tree().create_timer(0.1).timeout
 	modulate = Color.WHITE

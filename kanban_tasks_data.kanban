@@ -23,8 +23,8 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"c82b32f7-5b32-4ab2-a20c-82b83f0298ad",
-				"e1ffafcf-3beb-47c6-8ba5-f8be2a3c8c2d"
+				"5eefa9f8-ad79-4eee-b22e-5d333959abf9",
+				"85b8d63a-a890-4ddd-8868-904854d679c7"
 			]
 		},
 		{
@@ -33,6 +33,8 @@
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"cb8a602b-c1a2-4fc2-bc97-40c45b7c70d0",
+				"e1ffafcf-3beb-47c6-8ba5-f8be2a3c8c2d",
+				"c82b32f7-5b32-4ab2-a20c-82b83f0298ad",
 				"4b255627-e991-45d7-8648-afcf74e9cef5",
 				"c5b14a34-9caa-4b42-a10c-7739684fa129",
 				"214e766b-c6b2-4cbc-b5a6-b36c019515ce",
@@ -709,6 +711,20 @@
 		{
 			"uuid": "e1ffafcf-3beb-47c6-8ba5-f8be2a3c8c2d",
 			"title": "building pathcost should be the health",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "5eefa9f8-ad79-4eee-b22e-5d333959abf9",
+			"title": "gates",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "85b8d63a-a890-4ddd-8868-904854d679c7",
+			"title": "bot paths around walls but can still walk thru them if fully blocked off",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
