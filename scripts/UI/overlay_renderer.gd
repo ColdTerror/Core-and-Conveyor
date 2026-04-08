@@ -276,9 +276,9 @@ func _rebuild_path_cost_cache():
 	cached_path_draws.clear()
 	
 	var bm = level.building_manager
-	if not bm or not bm.pathfinder or not bm.pathfinder.astar: return
+	if not bm or not bm.pathfinder or not bm.pathfinder.bot_astar: return
 	
-	var astar = bm.pathfinder.astar
+	var astar = bm.pathfinder.bot_astar
 	var region = astar.region
 	var font = _font
 	var font_size = 14

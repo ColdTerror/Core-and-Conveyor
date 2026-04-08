@@ -307,7 +307,7 @@ func _recalculate_path():
 				var local = pathfinder.main_layer.to_local(world_point)
 				var map_coords = pathfinder.main_layer.local_to_map(local)
 
-				var weight = pathfinder.astar.get_point_weight_scale(map_coords)
+				var weight = pathfinder.enemy_astar.get_point_weight_scale(map_coords)
 				total_cost += weight
 
 			if best_path.is_empty() or total_cost < best_cost:

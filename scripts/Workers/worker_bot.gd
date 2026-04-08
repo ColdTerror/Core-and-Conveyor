@@ -464,7 +464,8 @@ func _request_path(target_tiles: Array, is_building: bool = false):
 		return
 		
 	var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(standing_tile))
-	var packed_path = pathfinder.get_path_route(global_position, target_world)
+	#use the bot astar grid
+	var packed_path = pathfinder.get_path_route(global_position, target_world, true)
 	
 	if packed_path.is_empty():
 		if not is_building:
@@ -481,11 +482,12 @@ func _request_path_exact(target_grid: Vector2i) -> bool:
 	var pathfinder = level_ref.building_manager.pathfinder
 	if not pathfinder: return false
 	
-	if pathfinder.astar.is_point_solid(target_grid):
+	if pathfinder.bot_astar.is_point_solid(target_grid):
 		return false
 		
 	var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(target_grid))
-	var packed_path = pathfinder.get_path_route(global_position, target_world)
+	#use the bot astar grid
+	var packed_path = pathfinder.get_path_route(global_position, target_world, true)
 	if packed_path.is_empty(): return false
 	
 	current_path.clear()
@@ -676,10 +678,10 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 			var test_tile = t_tile + offset
 			if test_tile in target_tiles: continue
 				
-			if pathfinder.astar.is_in_boundsv(test_tile) and not pathfinder.astar.is_point_solid(test_tile):
+			if pathfinder.bot_astar.is_in_boundsv(test_tile) and not pathfinder.bot_astar.is_point_solid(test_tile):
 				
 				# 1. Ask the pathfinder for the actual walking route!
-				var path_array = pathfinder.astar.get_id_path(my_grid, test_tile)
+				var path_array = pathfinder.bot_astar.get_id_path(my_grid, test_tile)
 				
 				# 2. If the array is empty, this tile is completely walled off. Skip it!
 				if path_array.is_empty() and my_grid != test_tile:
@@ -701,13 +703,13 @@ func _escape_trapped_tile() -> bool:
 	if not pathfinder: return false
 	
 	var my_grid = level_ref.object_layer.local_to_map(global_position)
-	if not pathfinder.astar.is_point_solid(my_grid): return false
+	if not pathfinder.bot_astar.is_point_solid(my_grid): return false
 	
 	for radius in range(1, 3):
 		for x in range(-radius, radius + 1):
 			for y in range(-radius, radius + 1):
 				var test_tile = my_grid + Vector2i(x, y)
-				if pathfinder.astar.is_in_boundsv(test_tile) and not pathfinder.astar.is_point_solid(test_tile):
+				if pathfinder.bot_astar.is_in_boundsv(test_tile) and not pathfinder.bot_astar.is_point_solid(test_tile):
 					global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(test_tile))
 					return true
 						
@@ -755,7 +757,7 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 		return false
 		
 	# 2. Cannot sleep inside a solid object (Wall, Tower, etc.)
-	if bm.pathfinder and bm.pathfinder.astar.is_point_solid(grid_pos):
+	if bm.pathfinder and bm.pathfinder.bot_astar.is_point_solid(grid_pos):
 		return false
 		
 	return true

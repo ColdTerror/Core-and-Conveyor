@@ -183,7 +183,7 @@ func get_radius() -> float:
 # Returns a list of world positions where an enemy can stand to hit this building
 func get_access_points(pathfinder_node: Pathfinder) -> Array[Vector2]:
 	var points: Array[Vector2] = []
-	var grid = pathfinder_node.astar
+	var grid = pathfinder_node.enemy_astar
 	
 	# Loop through every tile this building occupies
 	for tile_pos in occupied_tiles:

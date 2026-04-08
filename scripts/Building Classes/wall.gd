@@ -5,7 +5,6 @@ class_name WallBuilding
 var level_ref: Node2D
 
 func setup(level_instance: Node2D):
-	print("setup")
 	level_ref = level_instance
 	
 func _ready():
@@ -19,7 +18,7 @@ func _ready():
 	
 	if level_ref and level_ref.building_manager and (not is_ghost):
 		for tile in occupied_tiles:
-			level_ref.building_manager.pathfinder.set_weighted_obstacle(tile, path_cost)
+			level_ref.building_manager.pathfinder.set_weighted_obstacle(tile, path_cost, true)
 
 func take_damage(amount: int):
 	# 1. Run the base Building.gd script first! 
@@ -36,4 +35,4 @@ func take_damage(amount: int):
 	# 3. Immediately tell the pathfinder that this tile is now cheaper to walk on!
 	if level_ref and level_ref.building_manager:
 		for tile in occupied_tiles:
-			level_ref.building_manager.pathfinder.set_weighted_obstacle(tile, path_cost)
+			level_ref.building_manager.pathfinder.set_weighted_obstacle(tile, path_cost, true)
