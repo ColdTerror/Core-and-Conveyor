@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://2d6c3otixyl3"]
+
+[ext_resource type="Script" uid="uid://bsxdc72flxvir" path="res://scripts/Building Classes/gate_building.gd" id="1_m4s2e"]
+[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_gye0d"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gxk2j"]
+size = Vector2(32, 32)
+
+[node name="Gate" type="Node2D" unique_id=1237469307 groups=["Structure"]]
+modulate = Color(1, 0, 0, 1)
+script = ExtResource("1_m4s2e")
+is_solid_obstacle = false
+building_name = "Gate"
+build_range = 4.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413850]
+texture = ExtResource("2_gye0d")
+region_enabled = true
+region_rect = Rect2(64, 0, 32, 32)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1119633970]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=495812014]
+shape = SubResource("RectangleShape2D_gxk2j")

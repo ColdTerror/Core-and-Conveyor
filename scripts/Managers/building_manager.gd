@@ -310,7 +310,10 @@ func _place_instant(building: Building, grid_pos: Vector2i, cost: Dictionary):
 		if building.is_solid_obstacle:
 			for tile in footprint: pathfinder.set_obstacle(tile, true)
 		else:
-			for tile in footprint: pathfinder.set_weighted_obstacle(tile, building.path_cost)
+			if (building is WallBuilding):
+				for tile in footprint: pathfinder.set_weighted_obstacle(tile, building.path_cost, true)
+			else:
+				for tile in footprint: pathfinder.set_weighted_obstacle(tile, building.path_cost, false)
 	
 	ghost_building = null
 
@@ -327,8 +330,8 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	
 	if pathfinder:
 		for tile in site.occupied_tiles:
-			pathfinder.astar.set_point_solid(tile, false)
-			pathfinder.astar.set_point_weight_scale(tile, 50.0)
+			pathfinder.enemy_astar.set_point_solid(tile, false)
+			pathfinder.enemy_astar.set_point_weight_scale(tile, 50.0)
 			
 	building.queue_free()
 	ghost_building = null
@@ -659,7 +662,10 @@ func register_finished_building(new_building: Building, grid_pos: Vector2i):
 		if new_building.is_solid_obstacle:
 			for tile in footprint: pathfinder.set_obstacle(tile, true)
 		else:
-			for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost)
+			if (new_building is WallBuilding):
+				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
+			else:
+				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
 
 func select_building_at(grid_pos: Vector2i):
 	if occupied_tiles.has(grid_pos):
@@ -803,7 +809,10 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		if new_building.is_solid_obstacle:
 			for tile in footprint: pathfinder.set_obstacle(tile, true)
 		else:
-			for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost)
+			if (new_building is WallBuilding):
+				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
+			else:
+				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
 	
 	if not upgrade_cost_dict.is_empty():
 		EconomyManager.spend_resources(upgrade_cost_dict)
@@ -952,8 +961,8 @@ func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
 				var check_tile = Vector2i(x, y)
 				if building.occupied_tiles.has(check_tile): continue
 				if valid_tiles.has(check_tile): continue
-				if pathfinder and pathfinder.astar.is_in_boundsv(check_tile):
-					if not pathfinder.astar.is_point_solid(check_tile):
+				if pathfinder and pathfinder.enemy_astar.is_in_boundsv(check_tile):
+					if not pathfinder.enemy_astar.is_point_solid(check_tile):
 						valid_tiles.append(check_tile)
 						if valid_tiles.size() >= count: return valid_tiles
 		search_radius += 1

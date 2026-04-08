@@ -1,62 +1,83 @@
 extends Node
 class_name Pathfinder
 
-var astar = AStarGrid2D.new()
+# --- THE DUAL BRAINS ---
+var enemy_astar = AStarGrid2D.new()
+var bot_astar = AStarGrid2D.new()
 var main_layer: TileMapLayer 
 
 func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Rect2i):
-	print("Pathfinder: Setup...")
+	print("Pathfinder: Setup Dual-Brains...")
 	main_layer = terrain_layer
 	
-	astar.region = map_rect
-	astar.cell_size = Vector2(1, 1)
-	#astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
-	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
-	astar.update()
+	# Setup both grids exactly the same
+	for astar in [enemy_astar, bot_astar]:
+		astar.region = map_rect
+		astar.cell_size = Vector2(1, 1)
+		astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
+		astar.update()
 	
 	for x in range(map_rect.position.x, map_rect.end.x):
 		for y in range(map_rect.position.y, map_rect.end.y):
 			var coords = Vector2i(x, y)
 			var tile_data = terrain_layer.get_cell_tile_data(coords)
 			
-			if tile_data == null:
-				astar.set_point_solid(coords, true)
+			if tile_data == null or not tile_data.get_custom_data("is_Walkable"):
+				enemy_astar.set_point_solid(coords, true)
+				bot_astar.set_point_solid(coords, true)
 				continue
 				
-			var is_Walkable = tile_data.get_custom_data("is_Walkable")
-			if not is_Walkable:
-				astar.set_point_solid(coords, true)
-				continue
-			
 			var is_water = tile_data.get_custom_data("is_water")
 			if is_water:
-				# A high weight means it will aggressively seek out bridges (which default to 1.0)
-				astar.set_point_weight_scale(coords, 5.0) 
-			else:
-				# Reset normal land to 1.0 just in case
-				astar.set_point_weight_scale(coords, 1.0)
-				
+				enemy_astar.set_point_weight_scale(coords, 10.0)
+				bot_astar.set_point_weight_scale(coords, 10.0)
+
 			if object_layer.get_cell_source_id(coords) != -1:
-				astar.set_point_solid(coords, true)
+				enemy_astar.set_point_solid(coords, true)
+				bot_astar.set_point_solid(coords, true)
 
 func set_obstacle(coords: Vector2i, is_solid: bool):
-	if astar.is_in_boundsv(coords):
-		astar.set_point_solid(coords, is_solid)
+	if enemy_astar.is_in_boundsv(coords):
+		enemy_astar.set_point_solid(coords, is_solid)
+		bot_astar.set_point_solid(coords, is_solid)
 
-func set_weighted_obstacle(coords: Vector2i, cost: float):
-	if astar.is_in_boundsv(coords):
-		astar.set_point_solid(coords, false)
-		astar.set_point_weight_scale(coords, cost)
+func set_weighted_obstacle(coords: Vector2i, cost: float, is_solid_for_bots: bool = false):
+	if enemy_astar.is_in_boundsv(coords):
+		# 1. Enemies ALWAYS see it as a costly path (so they attack it or wade through it)
+		enemy_astar.set_point_solid(coords, false)
+		enemy_astar.set_point_weight_scale(coords, cost)
+		
+		# 2. Bots see it based on what you tell them!
+		if is_solid_for_bots:
+			# It's a Wall! Completely block the bot.
+			bot_astar.set_point_solid(coords, true)
+		else:
+			# It's Water/Mud! Let the bot walk through it, but apply the cost penalty.
+			bot_astar.set_point_solid(coords, false)
+			bot_astar.set_point_weight_scale(coords, cost)
+# ==========================================
+# NEW: THE GATE RULE
+# ==========================================
+func set_gate_obstacle(coords: Vector2i, cost: float, is_open: bool):
+	if enemy_astar.is_in_boundsv(coords):
+		# 1. Bots ALWAYS see gates as 1.0 cost (open doors)
+		bot_astar.set_point_solid(coords, false)
+		bot_astar.set_point_weight_scale(coords, 1.0)
+		
+		# 2. Enemies see the truth! 1.0 if open, HP Cost if closed.
+		enemy_astar.set_point_solid(coords, false)
+		enemy_astar.set_point_weight_scale(coords, 1.0 if is_open else cost)
 
-func get_path_route(start_world: Vector2, end_world: Vector2) -> PackedVector2Array:
+# Add an optional 'is_bot' parameter to choose which brain to use!
+func get_path_route(start_world: Vector2, end_world: Vector2, is_bot: bool = false) -> PackedVector2Array:
+	var active_astar = bot_astar if is_bot else enemy_astar
+	
 	var start_local = main_layer.to_local(start_world)
 	var end_local = main_layer.to_local(end_world)
-	
 	var start_grid = main_layer.local_to_map(start_local)
 	var end_grid = main_layer.local_to_map(end_local)
 	
-	# Just get the path! The Enemy has already decided the exact "end_grid" tile.
-	var path_points = astar.get_point_path(start_grid, end_grid)
+	var path_points = active_astar.get_point_path(start_grid, end_grid)
 	
 	var world_path = PackedVector2Array()
 	for point in path_points:

@@ -48,6 +48,7 @@ const RES_STONE := 4
 @export var sawmill_scene: PackedScene
 @export var bow_tower_scene: PackedScene
 @export var wall_scene: PackedScene
+@export var gate_scene: PackedScene
 @export var conveyor_scene: PackedScene 
 @export var router_scene: PackedScene 
 @export var filter_scene: PackedScene
@@ -273,6 +274,8 @@ func _add_unlocked_buildings():
 	_add_building_to_bar("Stockpile", stockpile_scene)
 	_add_building_to_bar("Bow Tower", bow_tower_scene)
 	_add_building_to_bar("Wall", wall_scene)
+	_add_building_to_bar("Gate", gate_scene)
+	
 	_add_building_to_bar("Mine", mine_scene)
 	_add_building_to_bar("Stonemason", stonemason_scene)
 	_add_building_to_bar("Fletcher", fletcher_scene)
