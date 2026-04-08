@@ -126,8 +126,12 @@ func _process(_delta):
 			waveLabel.modulate = Color(1.0, 0.4, 0.4) 
 		else:
 			var forecast = wave_manager.get_estimated_enemies()
-			waveLabel.text = "Enemies Spawning Tonight: ~%d" % forecast
-			waveLabel.modulate = Color.WHITE 
+			if forecast <= 0:
+				waveLabel.text = "Full Moon Tonight... The forest is quiet."
+				waveLabel.modulate = Color(0.6, 0.8, 1.0) # Soft moonlight blue!
+			else:
+				waveLabel.text = "Enemies Spawning Tonight: ~%d" % forecast
+				waveLabel.modulate = Color.WHITE
 			
 	# --- NEW: 3. UPDATE CORRUPTION UI ---
 	# We added safety checks (if corruptionLabel) so the game doesn't crash 

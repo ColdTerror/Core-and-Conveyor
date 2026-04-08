@@ -634,10 +634,11 @@ func _on_building_destroyed(b: Building):
 			pathfinder.set_obstacle(tile, false)
 			pathfinder.set_weighted_obstacle(tile, 1.0)
 
-	if b.has_method("get_economy_assets"):
-		var assets = b.get_economy_assets()
-		if not assets.is_empty():
-			EconomyManager.remove_resources_from_global(assets)
+	if not b.is_upgrading:
+		if b.has_method("get_economy_assets"):
+			var assets = b.get_economy_assets()
+			if not assets.is_empty():
+				EconomyManager.remove_resources_from_global(assets)
 
 func register_finished_building(new_building: Building, grid_pos: Vector2i):
 	var old_priority_index = -1
@@ -775,9 +776,15 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 
 	var old_priority_index = master_priority_queue.find(old_building)
 	
+	# EXTRACT DATA BEFORE DESTRUCTION
+	var saved_data = old_building.get_upgrade_data()
+	old_building.is_upgrading = true # Tell the system not to delete the global items!
+	
 	_on_building_destroyed(old_building)
 	old_building.queue_free()
 	
+	# SPAWN NEW BUILDING
+
 	var new_building = old_building.upgrades_to.instantiate() as Building
 	add_child(new_building)
 	new_building.place_at(true_origin, level_ref.object_layer)
@@ -789,16 +796,19 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		new_building.setup(level_ref, old_dir)
 	elif new_building.has_method("setup"):
 		new_building.setup(level_ref)
+		
+	# INJECT DATA INTO NEW BUILDING
+	new_building.apply_upgrade_data(saved_data)
 	
 	_register_building(new_building)
+	
 	if old_priority_index != -1 and not _is_grouped_type(new_building):
 		master_priority_queue.erase(new_building) # Take it off the bottom
 		master_priority_queue.insert(old_priority_index, new_building) # Put it in the old spot!
+		
 	_add_safe_zone(new_building)
 	_add_build_zone(new_building)
 	_add_attack_zone(new_building)
-	
-	
 	
 	if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
 		new_building.fired_projectile.connect(level_ref._on_tower_fired)
@@ -818,7 +828,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		EconomyManager.spend_resources(upgrade_cost_dict)
 		
 	return true
-
+	
 func show_upgrade_preview(grid_pos: Vector2i):
 	if not occupied_tiles.has(grid_pos):
 		placement_ended.emit()

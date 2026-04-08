@@ -49,6 +49,7 @@ var occupied_tiles: Array[Vector2i] = []
 
 var grid_origin: Vector2i = Vector2i.ZERO
 
+var is_upgrading: bool = false
 
 # --- Ready ---
 func _ready():
@@ -297,8 +298,6 @@ func die():
 	if is_ghost:
 		queue_free()
 		return
-	# We need to tell the pathfinder this tile is open again!
-	# (We will add a signal for this later, for now just free it)
 	destroyed.emit(self)
 	occupied_tiles.clear()
 	queue_free()
@@ -309,3 +308,43 @@ func die():
 # The building should subtract what it has, and lower the bill.
 func consume_resources(remaining_bill: Dictionary):
 	pass # Default behavior: Do nothing (Walls/Towers don't hold items)
+
+# ==========================================
+# UPGRADE STATE TRANSFER
+# ==========================================
+
+# Packs up important data before dying
+func get_upgrade_data() -> Dictionary:
+	var data = {}
+	
+	# Save the inventory (Deep copy so it doesn't get deleted!)
+	if "inventory" in self and typeof(self.get("inventory")) == TYPE_DICTIONARY:
+		data["inventory"] = self.get("inventory").duplicate(true)
+		
+	# Save Dedicated Stockpile filters (if you have them)
+	if "selected_output_name" in self:
+		data["selected_output_name"] = self.get("selected_output_name")
+		
+	
+	if "targeting_mode" in self:
+		data["targeting_mode"] = self.get("targeting_mode")
+	if "current_targeting_index" in self:
+		data["current_targeting_index"] = self.get("current_targeting_index")
+		
+	return data
+
+# Unpacks the data into the newly spawned building
+func apply_upgrade_data(data: Dictionary):
+	# Restore Inventory
+	if data.has("inventory") and "inventory" in self:
+		self.set("inventory", data["inventory"])
+		inventory_changed.emit() # Tell the UI to update!
+		
+	# Restore Filters
+	if data.has("selected_output_name") and "selected_output_name" in self:
+		self.set("selected_output_name", data["selected_output_name"])
+		
+	if data.has("targeting_mode") and "targeting_mode" in self:
+		self.set("targeting_mode", data["targeting_mode"])
+	if data.has("current_targeting_index") and "current_targeting_index" in self:
+		self.set("current_targeting_index", data["current_targeting_index"])
