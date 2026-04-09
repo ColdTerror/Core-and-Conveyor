@@ -17,6 +17,7 @@ class_name WaveManager
 @export_group("Wave Pacing")
 @export var initial_enemy_count: int = 4
 @export var difficulty_multiplier: float = 1.2 
+@export var corruption_penalty_factor: float = 0.02 # <--- NEW: 1 extra enemy per 50 tiles
 
 # --- SELECTION ---
 @export var enemy_popup: Control 
@@ -59,7 +60,15 @@ func _on_night_started(day_num: int):
 		
 	# Calculate the horde size
 	var base_enemies = initial_enemy_count * pow(difficulty_multiplier, current_wave - 1)
-	night_enemies_total = round(base_enemies * multiplier)
+	var extra_enemies = 0
+	if corruption_manager:
+		var land_size = corruption_manager.get_corruption_size()
+		extra_enemies = round(land_size * corruption_penalty_factor)
+		
+		if extra_enemies > 0:
+			print("The spreading Corruption spawned %d extra monsters!" % extra_enemies)
+			
+	night_enemies_total = round((base_enemies + extra_enemies) * multiplier)
 	enemies_to_spawn = night_enemies_total
 	
 	print("Night %d [%s]: %d enemies inbound." % [current_wave, night_type, enemies_to_spawn])
@@ -157,7 +166,12 @@ func get_estimated_enemies() -> int:
 	
 	var upcoming_wave = time_manager.current_day 
 	var base_enemies = initial_enemy_count * pow(difficulty_multiplier, upcoming_wave - 1)
-	return round(base_enemies)
+	var extra_enemies = 0
+	if corruption_manager:
+		var land_size = corruption_manager.get_corruption_size()
+		extra_enemies = round(land_size * corruption_penalty_factor)
+		
+	return round(base_enemies + extra_enemies)
 	
 # --- UI CLICKS ---
 func _on_enemy_clicked(enemy):

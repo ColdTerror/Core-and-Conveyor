@@ -12,10 +12,10 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
 				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
-				"a91074aa-c0bc-4620-80c9-3e7f14ef5b9e",
-				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2"
+				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2",
+				"be8062de-7177-4f01-8d23-d11e18de911e",
+				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c"
 			]
 		},
 		{
@@ -31,6 +31,7 @@
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"85b8d63a-a890-4ddd-8868-904854d679c7",
+				"a91074aa-c0bc-4620-80c9-3e7f14ef5b9e",
 				"5eefa9f8-ad79-4eee-b22e-5d333959abf9",
 				"95f4f13f-960a-4ece-bba8-12332a4663f6",
 				"cb8a602b-c1a2-4fc2-bc97-40c45b7c70d0",
@@ -734,6 +735,13 @@
 			"uuid": "752bf65f-0ba3-4d34-8a01-ddb69deb6fc6",
 			"title": "enemy forecast research",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "be8062de-7177-4f01-8d23-d11e18de911e",
+			"title": "sprites",
+			"description": "core\nwall, and gate\nmaybe upgrade variations",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

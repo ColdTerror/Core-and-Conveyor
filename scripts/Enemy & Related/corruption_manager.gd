@@ -195,6 +195,11 @@ func _add_pressure(amount: float):
 		print("!!! CORRUPTION MUTATED TO TIER %d !!!" % corruption_tier)
 		corruption_evolved.emit(corruption_tier)
 
+# Returns the total number of infected tiles on the map
+func get_corruption_size() -> int:
+	if not corruption_layer: return 0
+	return corruption_layer.get_used_cells().size()
+	
 func _corrupt_tile(tile: Vector2i):
 	corruption_layer.set_cell(tile, corruption_source_id, corruption_atlas)
 	if not active_edges.has(tile):  
