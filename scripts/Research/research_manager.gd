@@ -31,7 +31,10 @@ const TECH_TIERS: Dictionary = {
 }
 
 var unlocked_techs: Array[String] = []
+
+# --- INTEL TRACKERS ---
 var wave_measure: bool = false
+var moon_measure_level: int = 0
 
 # ==========================================
 # UNLOCK ROUTER
@@ -75,6 +78,8 @@ func complete_research(tech_name: String):
 			_update_living_towers()
 		"Wave Measurement":
 			wave_measure = true
+		"Moon Measurement 1":
+			moon_measure_level = 1
 		_:
 			print("WARNING: Unknown tech -> ", tech_name)
 	

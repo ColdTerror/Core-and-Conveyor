@@ -125,14 +125,52 @@ func _process(_delta):
 			]
 			waveLabel.modulate = Color(1.0, 0.4, 0.4) 
 		else:
-			var forecast = wave_manager.get_estimated_enemies()
-			if forecast <= 0:
-				waveLabel.text = "Full Moon Tonight... The forest is quiet."
-				waveLabel.modulate = Color(0.6, 0.8, 1.0) # Soft moonlight blue!
-			else:
-				waveLabel.text = "Enemies Spawning Tonight: ~%d" % forecast
-				waveLabel.modulate = Color.WHITE
+			# --- RESEARCH GATED FORECAST ---
 			
+			# NO RESEARCH: Completely blind!
+			if not ResearchManager.wave_measure:
+				waveLabel.text = "Night approaching..."
+				waveLabel.modulate = Color.WHITE
+				
+			# HAS RESEARCH: Show the forecast!
+			else:
+				var forecast = wave_manager.get_estimated_enemies()
+				var moon_status = ""
+				var is_full_moon = false
+				var is_blood_moon = false
+				
+				# Does the player have Moon Measurement tech?
+				if ResearchManager.moon_measure_level > 0 and time_manager:
+					var current_time = time_manager.current_time
+					
+					# Level 1 reveals at 16:00 (4 PM). Level 2 reveals instantly at 6:00 (Dawn).
+					var reveal_time = 16.0 if ResearchManager.moon_measure_level == 1 else 6.0
+					
+					if current_time >= reveal_time:
+						match time_manager.current_moon_phase:
+							TimeManager.MoonPhase.FULL:
+								moon_status = " [FULL MOON]"
+								is_full_moon = true
+							TimeManager.MoonPhase.BLOOD:
+								moon_status = " [BLOOD MOON]"
+								is_blood_moon = true
+							TimeManager.MoonPhase.NORMAL:
+								moon_status = " [Normal Moon]"
+					else:
+						moon_status = " [Calculating Lunar Phase...]"
+				
+				# Apply the text and colors!
+				if forecast <= 0 or is_full_moon:
+					waveLabel.text = "Full Moon Tonight... The forest is quiet."
+					waveLabel.modulate = Color(0.6, 0.8, 1.0) # Soft moonlight blue
+				else:
+					waveLabel.text = "Enemies Spawning Tonight: ~%d%s" % [forecast, moon_status]
+					
+					if is_blood_moon:
+						waveLabel.modulate = Color(1.0, 0.2, 0.2) # Deep Red for Blood Moon warning
+					else:
+						waveLabel.modulate = Color.WHITE
+						
 	# --- NEW: 3. UPDATE CORRUPTION UI ---
 	# We added safety checks (if corruptionLabel) so the game doesn't crash 
 	# if you haven't created the nodes in the editor yet!
