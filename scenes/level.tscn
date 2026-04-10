@@ -42,6 +42,7 @@
 [ext_resource type="PackedScene" uid="uid://cdmxyx00rhtcw" path="res://scenes/research/research_screen.tscn" id="35_asl66"]
 [ext_resource type="PackedScene" uid="uid://b0e2y87cv1d35" path="res://scenes/ui/management_menu.tscn" id="36_c1pbi"]
 [ext_resource type="PackedScene" uid="uid://cmd0dxnybdaf8" path="res://scenes/ui/statistics_menu.tscn" id="38_50fbu"]
+[ext_resource type="PackedScene" uid="uid://bks37kepe8vmk" path="res://scenes/ui/pause_menu.tscn" id="43_iafhg"]
 
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
@@ -245,4 +246,7 @@ layout_mode = 2
 text = "Exit"
 
 [node name="ResearchScreen" parent="CanvasLayer" unique_id=662735147 instance=ExtResource("35_asl66")]
+visible = false
+
+[node name="PauseMenu" parent="CanvasLayer" unique_id=713948548 instance=ExtResource("43_iafhg")]
 visible = false

@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://bks37kepe8vmk"]
+
+[ext_resource type="Script" uid="uid://sgk3wxjo4ths" path="res://scripts/UI/pause_menu.gd" id="1_6tw0m"]
+
+[node name="PauseMenu" type="CanvasLayer" unique_id=713948548]
+process_mode = 3
+script = ExtResource("1_6tw0m")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1854196599]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.39215687)
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1795082585]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=488715758]
+layout_mode = 2
+
+[node name="Resume" type="Button" parent="CenterContainer/VBoxContainer" unique_id=203638891]
+layout_mode = 2
+text = "Resume"
+
+[node name="QuickSave" type="Button" parent="CenterContainer/VBoxContainer" unique_id=2073860597]
+layout_mode = 2
+text = "Quick Save"
+
+[node name="Save1" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1369746609]
+layout_mode = 2
+text = "Save Slot 1"
+
+[node name="Save2" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1576784282]
+layout_mode = 2
+text = "Save Slot 2"
+
+[node name="Save3" type="Button" parent="CenterContainer/VBoxContainer" unique_id=529875874]
+layout_mode = 2
+text = "Save Slot 3"
+
+[node name="Load1" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1283957731]
+layout_mode = 2
+text = "Load Slot 1"
+
+[node name="Load2" type="Button" parent="CenterContainer/VBoxContainer" unique_id=969341166]
+layout_mode = 2
+text = "Load Slot 2"
+
+[node name="Load3" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1555002431]
+layout_mode = 2
+text = "Load Slot 3"
+
+[node name="Exit" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1974263859]
+layout_mode = 2
+text = "Exit Game"
