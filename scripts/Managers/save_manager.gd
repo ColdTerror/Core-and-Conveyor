@@ -65,7 +65,6 @@ func load_game(slot: int):
 	
 	
 	print("Game successfully loaded from Slot ", slot)
-	print(parsed_data)
 	return true
 	
 	
