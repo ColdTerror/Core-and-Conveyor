@@ -1,5 +1,6 @@
 extends Node
 
+#Saves to C:\Users\tcmar\AppData\Roaming\Godot\app_userdata\Core and Conveyor
 const SAVE_PATH_TEMPLATE = "user://save_slot_%d.save"
 var current_slot: int = 1 # Remembers the last slot used for "Quick Save"
 
@@ -10,9 +11,8 @@ func save_game(slot: int = current_slot):
 	current_slot = slot
 	var save_data = {}
 	
-	# --- PHASE 1: Pack the Managers ---
-	# We grab the global inventory dictionary and duplicate it so we don't accidentally link references
-	save_data["economy"] = EconomyManager.global_inventory.duplicate(true)
+	# --- PHASE 1: Pack the Economy Stats ---
+	save_data["economy_stats"] = EconomyManager.get_save_data()
 	
 	# Convert our beautiful dictionary into a JSON text string
 	var json_string = JSON.stringify(save_data)
@@ -53,10 +53,14 @@ func load_game(slot: int):
 	current_slot = slot
 	
 	# --- PHASE 1: Rebuild the Managers ---
-	if parsed_data.has("economy"):
-		EconomyManager.global_inventory = parsed_data["economy"]
-		EconomyManager.inventory_changed.emit() # Tell the UI to update!
+	if parsed_data.has("economy_stats"):
+		EconomyManager.load_save_data(parsed_data["economy_stats"])
 		
+	# (In Phase 3, this is where we will tell BuildingManager to spawn the buildings!)
+		
+	# Finally, do a roll call of the new physical buildings to rebuild the global UI numbers!
+	EconomyManager.recalculate_global_inventory()
+	
 	print("Game successfully loaded from Slot ", slot)
 	print(parsed_data)
 	return true

@@ -113,3 +113,32 @@ func archive_daily_stats(day_number: int):
 	
 	# We just emit stats_updated so the UI knows the "Today" column is now empty
 	stats_updated.emit()
+
+# ==========================================
+# SAVE / LOAD SYSTEM
+# ==========================================
+func get_save_data() -> Dictionary:
+	return {
+		"daily_production": daily_production,
+		"daily_consumption": daily_consumption,
+		"history_archive": history_archive
+	}
+
+func load_save_data(data: Dictionary):
+	daily_production = data.get("daily_production", {})
+	daily_consumption = data.get("daily_consumption", {})
+	history_archive = data.get("history_archive", [])
+	stats_updated.emit()
+
+# Called by SaveManager AFTER all buildings have been spawned and loaded
+func recalculate_global_inventory():
+	global_inventory.clear()
+	
+	for source in active_sources:
+		# Ask the building exactly what it holds right now
+		if source.has_method("get_economy_assets"):
+			var assets = source.get_economy_assets()
+			for item_name in assets:
+				global_inventory[item_name] = global_inventory.get(item_name, 0) + assets[item_name]
+				
+	inventory_changed.emit()
