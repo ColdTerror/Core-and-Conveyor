@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal save_requested(slot: int)
+
 func _ready():
 	# Hide the menu when the game starts
 	hide()
@@ -8,12 +10,10 @@ func _ready():
 	$CenterContainer/VBoxContainer/Resume.pressed.connect(resume_game)
 	$CenterContainer/VBoxContainer/Exit.pressed.connect(exit_game)
 	
-	$CenterContainer/VBoxContainer/QuickSave.pressed.connect(_on_quick_save)
-	
-	# Pass the slot numbers directly into the functions!
-	$CenterContainer/VBoxContainer/Save1.pressed.connect(func(): SaveManager.save_game(1))
-	$CenterContainer/VBoxContainer/Save2.pressed.connect(func(): SaveManager.save_game(2))
-	$CenterContainer/VBoxContainer/Save3.pressed.connect(func(): SaveManager.save_game(3))
+	$CenterContainer/VBoxContainer/QuickSave.pressed.connect(func(): save_requested.emit(SaveManager.current_slot))
+	$CenterContainer/VBoxContainer/Save1.pressed.connect(func(): save_requested.emit(1))
+	$CenterContainer/VBoxContainer/Save2.pressed.connect(func(): save_requested.emit(2))
+	$CenterContainer/VBoxContainer/Save3.pressed.connect(func(): save_requested.emit(3))
 	
 	$CenterContainer/VBoxContainer/Load1.pressed.connect(func(): _on_load_slot(1))
 	$CenterContainer/VBoxContainer/Load2.pressed.connect(func(): _on_load_slot(2))
@@ -40,10 +40,5 @@ func resume_game():
 func exit_game():
 	get_tree().quit()
 
-func _on_quick_save():
-	SaveManager.save_game() # Automatically uses current_slot
-
 func _on_load_slot(slot: int):
-	var success = SaveManager.load_game(slot)
-	if success:
-		resume_game()
+	SaveManager.load_game(slot)

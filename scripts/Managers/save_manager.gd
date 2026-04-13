@@ -10,12 +10,16 @@ var pending_load_data: Dictionary = {}
 # ==========================================
 # SAVE LOGIC
 # ==========================================
-func save_game(slot: int = current_slot):
+func save_game(level_ref: Node2D, slot: int = current_slot):
 	current_slot = slot
 	var save_data = {}
 	
 	# --- PHASE 1: Pack the Economy Stats ---
 	save_data["economy_stats"] = EconomyManager.get_save_data()
+	
+	# --- PHASE 2: Pack the Map! ---
+	if is_instance_valid(level_ref) and level_ref.has_method("get_map_save_data"):
+		save_data["map_data"] = level_ref.get_map_save_data()
 	
 	# Convert our beautiful dictionary into a JSON text string
 	var json_string = JSON.stringify(save_data)
@@ -75,7 +79,11 @@ func unpack_save(level_ref: Node2D):
 	print("SaveManager: Unpacking data into the new world...")
 	var data = pending_load_data
 	
-	# PHASE 1: Rebuild Economy Stats
+	# --- PHASE 2: Rebuild the Map! (Do this FIRST so buildings have ground to sit on) ---
+	if data.has("map_data") and level_ref.has_method("load_map_save_data"):
+		level_ref.load_map_save_data(data["map_data"])
+	
+	# --- PHASE 1: Rebuild Economy Stats ---
 	if data.has("economy_stats"):
 		EconomyManager.load_save_data(data["economy_stats"])
 		

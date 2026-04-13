@@ -75,15 +75,19 @@ var last_terrain_tile := Vector2i(-1, -1)
 
 func _ready():
 	if not SaveManager.pending_load_data.is_empty():
-		# Pass 'self' so the SaveManager has access to the BuildingManager, TileMaps, etc!
 		SaveManager.unpack_save(self)
-
-	generate_simple_map()
+	else:
+		generate_simple_map()
+		
 	hover_menu.hide()
 	
 	# Connect the resource signals
 	ResourceManager.resource_state_changed.connect(_on_resource_state_changed)
 	ResourceManager.resource_destroyed.connect(_on_resource_destroyed)
+	
+	#Setup pause menu signal
+	var pause_menu = $CanvasLayer/PauseMenu 
+	pause_menu.save_requested.connect(_on_pause_menu_save_requested)
 	
 	# Give the manager a reference to this Level node
 	building_manager.initialize(self)
@@ -479,3 +483,73 @@ func can_place_object(grid_pos: Vector2i) -> bool:
 	if building_manager.occupied_tiles.has(grid_pos): return false
 
 	return true
+
+# ==========================================
+# MAP SAVE / LOAD
+# ==========================================
+
+# Add this helper function at the bottom:
+func _on_pause_menu_save_requested(slot: int):
+	# The Level passes itself!
+	SaveManager.save_game(self, slot)
+	
+func get_map_save_data() -> Dictionary:
+	var terrain_data = {}
+	# 1. Save the floor (Grass, Sand, Water, etc.)
+	for pos in terrain_layer.get_used_cells():
+		var atlas = terrain_layer.get_cell_atlas_coords(pos)
+		terrain_data[var_to_str(pos)] = var_to_str(atlas)
+
+	var object_data = {}
+	# 2. Save the resources (Trees, Stone) and their current HP
+	for pos in active_grid_objects:
+		var obj = active_grid_objects[pos]
+		var correct_index = tile_library.find(obj["data"])
+		object_data[var_to_str(pos)] = {
+			"health": obj["health"],
+			"lib_index": correct_index
+		}
+
+	return {
+		"map_type": current_map_type,
+		"terrain": terrain_data,
+		"objects": object_data
+	}
+
+func load_map_save_data(data: Dictionary):
+	# 1. Wipe the current blank slate
+	terrain_layer.clear()
+	object_layer.clear()
+	active_grid_objects.clear()
+
+	current_map_type = data.get("map_type", 0)
+
+	# 2. Rebuild the Floor
+	var terrain_data = data.get("terrain", {})
+	for pos_str in terrain_data:
+		var pos = str_to_var(pos_str)
+		var atlas = str_to_var(terrain_data[pos_str])
+		terrain_layer.set_cell(pos, 0, atlas)
+
+	# 3. Rebuild the Trees and Rocks
+	var object_data = data.get("objects", {})
+	for pos_str in object_data:
+		var pos = str_to_var(pos_str)
+		var obj_info = object_data[pos_str]
+		var lib_idx = obj_info["lib_index"]
+
+		if lib_idx >= 0 and lib_idx < tile_library.size():
+			var tile_data = tile_library[lib_idx]
+			
+			# Check if it was partially harvested so we use the right sprite!
+			var final_coords = tile_data.atlas_coords_full
+			if obj_info["health"] < tile_data.total_resources and tile_data.atlas_coords_harvesting != Vector2i(-1, -1):
+				final_coords = tile_data.atlas_coords_harvesting
+				
+			object_layer.set_cell(pos, 0, final_coords)
+			active_grid_objects[pos] = {
+				"health": obj_info["health"],
+				"data": tile_data
+			}
+			
+	print("Map loaded successfully!")
