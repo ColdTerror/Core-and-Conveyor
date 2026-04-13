@@ -7,7 +7,6 @@ var bot_speed_mult: float = 1.0
 var max_buildings_allowed: int = 10
 var tower_damage_mult: float = 1.0
 
-
 signal research_unlocked
 
 # ==========================================
@@ -52,7 +51,16 @@ func complete_research(tech_name: String):
 	unlocked_techs.append(tech_name)
 	print("RESEARCH UNLOCKED: ", tech_name)
 	
+	# Apply the hard math
+	_apply_tech(tech_name)
+	
+	# Only notify living units and UI when researching during active gameplay
+	_update_living_bots()
+	_update_living_towers()
+	research_unlocked.emit()
 
+# --- NEW: Helper function to apply the stats silently ---
+func _apply_tech(tech_name: String):
 	match tech_name:
 		"Core Expansion 1":
 			tier_unlocked = 1
@@ -62,28 +70,22 @@ func complete_research(tech_name: String):
 			tier_unlocked = 3
 		"Bot Speed 1":
 			bot_speed_mult = 1.25
-			_update_living_bots()
 		"Bot Speed 2":
 			bot_speed_mult = 1.5
-			_update_living_bots()
 		"Building Limit 1":
-			max_buildings_allowed += 10
+			max_buildings_allowed = 20
 		"Building Limit 2":
-			max_buildings_allowed += 20
+			max_buildings_allowed = 40
 		"Tower Damage 1":
 			tower_damage_mult = 1.10
-			_update_living_towers()
 		"Tower Damage 2":
 			tower_damage_mult = 1.25
-			_update_living_towers()
 		"Wave Measurement":
 			wave_measure = true
-		"Moon Measurement 1":
+		"Moon Measurement", "Moon Measurement 1": # Catching both names just in case!
 			moon_measure_level = 1
 		_:
 			print("WARNING: Unknown tech -> ", tech_name)
-	
-	research_unlocked.emit()
 
 # ==========================================
 # NOTIFY EXISTING UNITS
@@ -93,3 +95,31 @@ func _update_living_bots():
 
 func _update_living_towers():
 	get_tree().call_group("Towers", "apply_research_buffs")
+
+
+# ==========================================
+# SAVE / LOAD SYSTEM
+# ==========================================
+func get_save_data() -> Dictionary:
+	return {
+		"unlocked_techs": unlocked_techs
+	}
+
+func load_save_data(data: Dictionary):
+	# 1. Reset all Autoload variables back to Day 1 defaults
+	tier_unlocked = 0
+	bot_speed_mult = 1.0
+	max_buildings_allowed = 10
+	tower_damage_mult = 1.0
+	wave_measure = false
+	moon_measure_level = 0
+	unlocked_techs.clear()
+	
+	# 2. Quietly "re-research" everything from the save file
+	if data.has("unlocked_techs"):
+		var saved_techs: Array[String] = []
+		saved_techs.assign(data["unlocked_techs"])
+		
+		for tech in saved_techs:
+			unlocked_techs.append(tech)
+			_apply_tech(tech)
