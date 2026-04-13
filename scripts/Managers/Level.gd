@@ -74,6 +74,10 @@ var last_terrain_tile := Vector2i(-1, -1)
 # ==========================================
 
 func _ready():
+	if not SaveManager.pending_load_data.is_empty():
+		# Pass 'self' so the SaveManager has access to the BuildingManager, TileMaps, etc!
+		SaveManager.unpack_save(self)
+
 	generate_simple_map()
 	hover_menu.hide()
 	

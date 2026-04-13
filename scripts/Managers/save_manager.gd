@@ -4,6 +4,9 @@ extends Node
 const SAVE_PATH_TEMPLATE = "user://save_slot_%d.save"
 var current_slot: int = 1 # Remembers the last slot used for "Quick Save"
 
+
+var pending_load_data: Dictionary = {}
+
 # ==========================================
 # SAVE LOGIC
 # ==========================================
@@ -52,15 +55,39 @@ func load_game(slot: int):
 		
 	current_slot = slot
 	
-	# --- PHASE 1: Rebuild the Managers ---
-	if parsed_data.has("economy_stats"):
-		EconomyManager.load_save_data(parsed_data["economy_stats"])
-		
-	# (In Phase 3, this is where we will tell BuildingManager to spawn the buildings!)
-		
-	# Finally, do a roll call of the new physical buildings to rebuild the global UI numbers!
-	EconomyManager.recalculate_global_inventory()
+	pending_load_data = parsed_data
+	get_tree().paused = false # Unpause in case they loaded from the pause menu!
+	get_tree().reload_current_scene()
+	
 	
 	print("Game successfully loaded from Slot ", slot)
 	print(parsed_data)
 	return true
+	
+	
+# ==========================================
+# UNPACKING SEQUENCE (Called by the new scene)
+# ==========================================
+func unpack_save(level_ref: Node2D):
+	if pending_load_data.is_empty():
+		return
+		
+	print("SaveManager: Unpacking data into the new world...")
+	var data = pending_load_data
+	
+	# PHASE 1: Rebuild Economy Stats
+	if data.has("economy_stats"):
+		EconomyManager.load_save_data(data["economy_stats"])
+		
+	# PHASE 2: (Coming soon) Time & Research Managers
+	
+	# PHASE 3: (Coming soon) Spawn the Buildings using level_ref.building_manager
+	
+	# PHASE 4: (Coming soon) Paint the Corruption & Spawn Bots using level_ref
+	
+	# Finally, do a roll call of the newly spawned physical buildings!
+	EconomyManager.recalculate_global_inventory()
+	
+	# Empty the briefcase so it doesn't accidentally load again!
+	pending_load_data.clear()
+	print("SaveManager: Unpacking complete!")

@@ -127,7 +127,9 @@ func get_save_data() -> Dictionary:
 func load_save_data(data: Dictionary):
 	daily_production = data.get("daily_production", {})
 	daily_consumption = data.get("daily_consumption", {})
-	history_archive = data.get("history_archive", [])
+	history_archive.clear()
+	if data.has("history_archive"):
+		history_archive.assign(data["history_archive"])
 	stats_updated.emit()
 
 # Called by SaveManager AFTER all buildings have been spawned and loaded
