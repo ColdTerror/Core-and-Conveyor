@@ -22,6 +22,9 @@ func save_game(level_ref: Node2D, slot: int = current_slot):
 		
 	save_data["research_manager"] = ResearchManager.get_save_data()
 	
+	if is_instance_valid(level_ref) and level_ref.has_node("TimeManager"):
+		save_data["time_manager"] = level_ref.get_node("TimeManager").get_save_data()
+	
 	# Convert our beautiful dictionary into a JSON text string
 	var json_string = JSON.stringify(save_data)
 	
@@ -91,7 +94,8 @@ func unpack_save(level_ref: Node2D):
 	if data.has("economy_stats"):
 		EconomyManager.load_save_data(data["economy_stats"])
 		
-
+	if data.has("time_manager") and level_ref.has_node("TimeManager"):
+		level_ref.get_node("TimeManager").load_save_data(data["time_manager"])
 	
 	# Finally, do a roll call of the newly spawned physical buildings!
 	EconomyManager.recalculate_global_inventory()

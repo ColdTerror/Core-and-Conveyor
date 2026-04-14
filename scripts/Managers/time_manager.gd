@@ -130,3 +130,29 @@ func _update_lighting():
 	else:
 		# Dead of night
 		lighting_modulate.color = target_night_color
+
+# ==========================================
+# SAVE / LOAD SYSTEM
+# ==========================================
+func get_save_data() -> Dictionary:
+	return {
+		"current_day": current_day,
+		"current_time": current_time,
+		"current_hour": current_hour,
+		"is_night": is_night,
+		"current_moon_phase": current_moon_phase # Enums automatically save as integers (0, 1, or 2)
+	}
+
+func load_save_data(data: Dictionary):
+	current_day = data.get("current_day", 1)
+	current_time = data.get("current_time", 6.0)
+	current_hour = data.get("current_hour", 6)
+	is_night = data.get("is_night", false)
+	
+	# Godot pulls the integer from the save file, and it slots perfectly back into the Enum!
+	current_moon_phase = data.get("current_moon_phase", MoonPhase.NORMAL)
+	
+	# Instantly snap the lighting to the correct color so we don't blind the player
+	# if they load into a midnight save!
+	_update_lighting()
+	
