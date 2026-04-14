@@ -17,7 +17,7 @@ class_name WaveManager
 @export_group("Wave Pacing")
 @export var initial_enemy_count: int = 4
 @export var difficulty_multiplier: float = 1.2 
-@export var corruption_penalty_factor: float = 0.02 # <--- NEW: 1 extra enemy per 50 tiles
+@export var corruption_penalty_factor: float = 0.01 # <--- NEW: 1 extra enemy per 100 tiles
 
 # --- SELECTION ---
 @export var enemy_popup: Control 
@@ -182,3 +182,51 @@ func deselect_enemy():
 	if selected_enemy:
 		selected_enemy = null
 		if enemy_popup: enemy_popup.hide_info()
+
+# ==========================================
+# SAVE / LOAD SYSTEM
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Loop through all living enemies and pack them into an array of boxes
+	var live_enemies_data = []
+	for enemy in get_tree().get_nodes_in_group("Enemies"):
+		if enemy.has_method("get_save_data"):
+			live_enemies_data.append(enemy.get_save_data())
+	
+	return {
+		"current_wave": current_wave,
+		"night_enemies_total": night_enemies_total,
+		"enemies_to_spawn": enemies_to_spawn, # Removed the + currently_alive refund!
+		"is_wave_active": is_wave_active,
+		"spawn_accumulator": spawn_accumulator,
+		"live_enemies": live_enemies_data # <--- NEW: Save the live horde!
+	}
+
+func load_save_data(data: Dictionary):
+	current_wave = data.get("current_wave", 0)
+	night_enemies_total = data.get("night_enemies_total", 0)
+	enemies_to_spawn = data.get("enemies_to_spawn", 0)
+	is_wave_active = data.get("is_wave_active", false)
+	spawn_accumulator = data.get("spawn_accumulator", 0.0)
+	
+	# --- NEW: SPAWN THE SAVED ENEMIES ---
+	if data.has("live_enemies") and enemy_scene:
+		var saved_enemies = data["live_enemies"]
+		
+		for enemy_data in saved_enemies:
+			var enemy = enemy_scene.instantiate()
+			enemy.add_to_group("Enemies")
+			
+			# Wire up signals
+			if enemy.has_signal("died"):
+				enemy.died.connect(_on_enemy_died)
+			if enemy.has_signal("enemy_clicked"): 
+				enemy.enemy_clicked.connect(_on_enemy_clicked)
+				
+			# Add them to the map
+			if level_ref: level_ref.add_child(enemy)
+			else: get_parent().add_child(enemy)
+				
+			# INJECT THE DATA (This instantly teleports them to their saved location!)
+			if enemy.has_method("load_save_data"):
+				enemy.load_save_data(enemy_data)

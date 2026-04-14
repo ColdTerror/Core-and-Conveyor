@@ -381,3 +381,30 @@ func _on_input_event(_viewport, event, _shape_idx):
 		# CRITICAL: This stops the event from bubbling up to the Level.
 		# This ensures clicking an enemy DOES NOT trigger "Deselect".
 		get_viewport().set_input_as_handled()
+		
+# ==========================================
+# SAVE / LOAD SYSTEM
+# ==========================================
+func get_save_data() -> Dictionary:
+	return {
+		"pos_x": global_position.x,
+		"pos_y": global_position.y,
+		"health": health,
+		"max_health": max_health,
+		"scale_x": scale.x,
+		"scale_y": scale.y,
+		"modulate": modulate.to_html() # Save the purple color as a string!
+	}
+
+func load_save_data(data: Dictionary):
+	# Snap to the exact saved position
+	global_position = Vector2(data.get("pos_x", 0), data.get("pos_y", 0))
+	
+	# Restore stats
+	max_health = data.get("max_health", max_health)
+	health = data.get("health", max_health)
+	
+	# Restore Elite visuals
+	scale = Vector2(data.get("scale_x", 1.0), data.get("scale_y", 1.0))
+	if data.has("modulate"):
+		modulate = Color(data["modulate"])
