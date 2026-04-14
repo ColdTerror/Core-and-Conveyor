@@ -30,7 +30,10 @@ func save_game(level_ref: Node2D, slot: int = current_slot):
 	
 	if level_ref.has_node("WaveManager"):
 			save_data["wave_manager"] = level_ref.get_node("WaveManager").get_save_data()
-			
+	
+	if level_ref.has_node("BuildingManager"):
+		save_data["building_manager"] = level_ref.get_node("BuildingManager").get_save_data()
+		
 	# Convert our beautiful dictionary into a JSON text string
 	var json_string = JSON.stringify(save_data)
 	
@@ -93,6 +96,9 @@ func unpack_save(level_ref: Node2D):
 	if data.has("map_data") and level_ref.has_method("load_map_save_data"):
 		level_ref.load_map_save_data(data["map_data"])
 	
+	if data.has("building_manager") and level_ref.has_node("BuildingManager"):
+		level_ref.get_node("BuildingManager").load_save_data(data["building_manager"])
+		
 	if data.has("research_manager"):
 		ResearchManager.load_save_data(data["research_manager"])
 	

@@ -121,3 +121,28 @@ func _try_route():
 func _finish_routing(index_used: int):
 	held_item = null
 	last_output_index = index_used
+	
+# ==========================================
+# SAVE / LOAD SYSTEM (Router)
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Grab everything from the Conveyor parent (including the physical item!)
+	var data = super.get_save_data()
+	
+	# 2. Add the Router's unique memory
+	data["last_output_index"] = last_output_index
+	data["input_direction"] = var_to_str(input_direction)
+	
+	return data
+
+func load_save_data(data: Dictionary):
+	# 1. Let the Conveyor script unpack the item, rotation, and base stats
+	super.load_save_data(data)
+	
+	# 2. Restore the Router's memory
+	last_output_index = data.get("last_output_index", 0)
+	
+	if data.has("input_direction"):
+		input_direction = str_to_var(data["input_direction"])
+	else:
+		input_direction = Vector2i.ZERO

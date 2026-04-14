@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b42i3e20qg8yw" path="res://scripts/Building Classes/conveyer_building.gd" id="1_34v7p"]
 [ext_resource type="Texture2D" uid="uid://ccb3pqwas4kud" path="res://assets/Tiles.png" id="1_yfprp"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_b8jsk"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_vllef"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_34v7p"]
@@ -18,6 +19,7 @@ size = Vector2(32, 32)
 
 [node name="Conveyer" type="Node2D" unique_id=134896756]
 script = ExtResource("1_34v7p")
+generic_item_scene = ExtResource("2_b8jsk")
 is_solid_obstacle = false
 is_draggable = true
 building_name = "Conveyer"

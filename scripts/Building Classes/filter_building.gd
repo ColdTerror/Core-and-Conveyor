@@ -1,10 +1,18 @@
 extends RouterBuilding
 class_name FilterBuilding
 
-var filter_options: Array[String] = ["None", "Wood", "Stone", "Plank", "Stone Brick", "Wooden Arrow", "Stone Arrow"]
+var filter_options: Array[String] = ["None"] # Will be filled dynamically!
 var current_filter_index: int = 0
 var is_split_mode: bool = true 
 var side_toggle: int = 0
+
+func _ready():
+	super()
+	
+	# Dynamically grab every item from the database!
+	for item_name in ItemDatabase.items.keys():
+		if not filter_options.has(item_name):
+			filter_options.append(item_name)
 
 # ==========================================
 # 1. SETUP: Lock the rotation visually!
@@ -110,3 +118,34 @@ func _animate_to_building(item, offset):
 		is_delivering = false
 		_finish_routing(0)
 	)
+	
+# ==========================================
+# SAVE / LOAD SYSTEM (Filter)
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Grab everything from the Router parent (item, cooldowns, router memory)
+	var data = super.get_save_data()
+	
+	# 2. Save the string name, NOT the index!
+	data["active_filter_name"] = filter_options[current_filter_index]
+	data["is_split_mode"] = is_split_mode
+	data["side_toggle"] = side_toggle
+	
+	return data
+
+func load_save_data(data: Dictionary):
+	# 1. Let the Router unpack the item and base stats
+	super.load_save_data(data)
+	
+	is_split_mode = data.get("is_split_mode", true)
+	side_toggle = data.get("side_toggle", 0)
+	
+	# 2. Safely find the index based on the saved string
+	var saved_filter = data.get("active_filter_name", "None")
+	var found_index = filter_options.find(saved_filter)
+	
+	if found_index != -1:
+		current_filter_index = found_index
+	else:
+		# Fallback to "None" just in case you ever delete an item from the game files!
+		current_filter_index = 0

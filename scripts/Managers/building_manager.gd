@@ -1041,3 +1041,83 @@ func _debug_print_priority_queue():
 		else:
 			print("Rank %d: [DELETED]" % rank)
 	print("=============================\n")
+	
+# ==========================================
+# SAVE / LOAD SYSTEM (BuildingManager)
+# ==========================================
+func get_save_data() -> Dictionary:
+	var saved_buildings = []
+
+	for b in buildings:
+		# Don't save transparent placement ghosts, and don't save half-finished construction sites (yet)
+		if not is_instance_valid(b) or b.is_ghost or b.building_name == "ConstructionSite": 
+			continue
+
+		# 1. Ask the specific building to pack its own unique data!
+		var b_data = b.get_save_data() if b.has_method("get_save_data") else {}
+
+		# 2. Stamp the Spawner Data on the outside of the box
+		b_data["scene_file_path"] = b.scene_file_path
+		b_data["grid_origin_x"] = b.grid_origin.x
+		b_data["grid_origin_y"] = b.grid_origin.y
+
+		saved_buildings.append(b_data)
+
+	return {
+		"is_core_placed": is_core_placed,
+		"buildings": saved_buildings
+	}
+
+func load_save_data(data: Dictionary):
+	is_core_placed = data.get("is_core_placed", false)
+
+	if not data.has("buildings"): return
+
+	for b_data in data["buildings"]:
+		var path = b_data.get("scene_file_path", "")
+		
+		if path == "" or not ResourceLoader.exists(path):
+			print("WARNING: Could not find scene file at: ", path)
+			continue
+
+		# 1. Spawn the blueprint!
+		var new_building = load(path).instantiate() as Building
+		add_child(new_building)
+
+		var grid_pos = Vector2i(b_data["grid_origin_x"], b_data["grid_origin_y"])
+		new_building.place_at(grid_pos, object_layer)
+		new_building.set_ghost(false)
+
+		# 2. Run the Initial Setup
+		if new_building is ConveyorBuilding:
+			# Conveyors need their direction *before* setup so they rotate correctly
+			var temp_dir = str_to_var(b_data.get("direction", "Vector2i(1, 0)"))
+			new_building.setup(level_ref, temp_dir)
+		elif new_building.has_method("setup"):
+			new_building.setup(level_ref)
+
+		# 3. Hand the packed box back to the building so it can unpack its health/inventory!
+		if new_building.has_method("load_save_data"):
+			new_building.load_save_data(b_data)
+
+		# 4. Silently register it to the map (Bypassing the economy spending!)
+		_register_building(new_building)
+		_add_safe_zone(new_building)
+		_add_build_zone(new_building)
+		_add_attack_zone(new_building)
+
+		if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
+			new_building.fired_projectile.connect(level_ref._on_tower_fired)
+			
+		new_building.destroyed.connect(_on_building_destroyed)
+
+		# 5. Tell the pathfinder to navigate around it
+		if pathfinder:
+			var footprint = new_building.get_footprint(grid_pos)
+			if new_building.is_solid_obstacle:
+				for tile in footprint: pathfinder.set_obstacle(tile, true)
+			else:
+				if (new_building is WallBuilding):
+					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
+				else:
+					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)

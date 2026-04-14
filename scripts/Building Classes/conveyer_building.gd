@@ -4,6 +4,7 @@ class_name ConveyorBuilding
 # ============================================================
 # EXPORTS & VARIABLES
 # ============================================================
+@export var generic_item_scene: PackedScene # <--- NEW: Needed to respawn items on load!
 
 @export var speed: float = 64.0  # Pixels per second the item travels
 
@@ -248,3 +249,59 @@ func _get_neighbor() -> Node:
 	
 	# Nothing there (empty space)
 	return null
+
+# ==========================================
+# SAVE / LOAD SYSTEM (Conveyor)
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Grab the base stats (health, building_name)
+	var data = super.get_save_data()
+	
+	# 2. Save Conveyor properties
+	data["direction"] = var_to_str(direction)
+	data["is_moving_to_edge"] = is_moving_to_edge
+	data["push_cooldown"] = push_cooldown
+	data["is_delivering"] = is_delivering
+	
+	# 3. Save the physical item!
+	if held_item and is_instance_valid(held_item) and "item_data" in held_item:
+		data["held_item_name"] = held_item.item_data.display_name
+		data["held_item_x"] = held_item.global_position.x
+		data["held_item_y"] = held_item.global_position.y
+		
+	return data
+
+func load_save_data(data: Dictionary):
+	# 1. Restore the base stats
+	super.load_save_data(data)
+	
+	# 2. Restore Conveyor properties
+	if data.has("direction"):
+		direction = str_to_var(data["direction"])
+		rotation = Vector2(direction).angle() # Snap the sprite to the right rotation!
+		
+	is_moving_to_edge = data.get("is_moving_to_edge", false)
+	push_cooldown = data.get("push_cooldown", 0.0)
+	is_delivering = data.get("is_delivering", false)
+	
+	# 3. Respawn the physical item!
+	if data.has("held_item_name"):
+		if not generic_item_scene:
+			print("ERROR: Conveyor cannot load item! Assign generic_item_scene in Inspector.")
+			return
+			
+		var item_res = ItemDatabase.get_item(data["held_item_name"])
+		if item_res:
+			# Instantiate the node
+			var new_item = generic_item_scene.instantiate()
+			if new_item.has_method("setup"): new_item.setup(level_ref)
+			if "item_data" in new_item: new_item.item_data = item_res
+			
+			# Teleport it to the exact pixel it was saved at
+			new_item.global_position = Vector2(data["held_item_x"], data["held_item_y"])
+			
+			if new_item.has_method("_ready"): new_item._ready()
+			
+			# Add to world and take ownership
+			level_ref.add_child(new_item)
+			held_item = new_item
