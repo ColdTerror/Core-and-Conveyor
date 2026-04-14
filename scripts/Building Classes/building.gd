@@ -348,3 +348,20 @@ func apply_upgrade_data(data: Dictionary):
 		self.set("targeting_mode", data["targeting_mode"])
 	if data.has("current_targeting_index") and "current_targeting_index" in self:
 		self.set("current_targeting_index", data["current_targeting_index"])
+
+# ==========================================
+# SAVE / LOAD SYSTEM (Base Class)
+# ==========================================
+func get_save_data() -> Dictionary:
+	return {
+		"building_name": building_name,
+		"health": health
+	}
+
+func load_save_data(data: Dictionary):
+	# 1. Restore the base stats
+	health = data.get("health", max_health)
+	
+	# 2. Trigger the UI to update the health bar if it took damage!
+	if health < max_health:
+		health_changed.emit(health, max_health)

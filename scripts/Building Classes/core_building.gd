@@ -221,3 +221,69 @@ func _trigger_game_over():
 	print("CORE DESTROYED! GAME OVER!")
 	core_destroyed.emit()
 	get_tree().paused = true
+	
+# ==========================================
+# SAVE / LOAD SYSTEM (Core)
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Grab the base stats (health, building_name)
+	var data = super.get_save_data()
+	
+	# 2. Translate the Inventory (Resources -> Strings)
+	var saved_inventory = {}
+	for item_res in inventory.keys():
+		saved_inventory[item_res.display_name] = inventory[item_res]
+	data["inventory"] = saved_inventory
+	
+	# 3. Translate the Active Research Bill
+	var saved_bill = {}
+	for item_res in research_bill.keys():
+		saved_bill[item_res.display_name] = research_bill[item_res]
+	data["research_bill"] = saved_bill
+		
+	# 4. Translate the Max Research Bill
+	var saved_bill_max = {}
+	for item_res in research_bill_max.keys():
+		saved_bill_max[item_res.display_name] = research_bill_max[item_res]
+	data["research_bill_max"] = saved_bill_max
+	
+	# 5. Save simple variables
+	data["active_research_name"] = active_research_name
+	
+	return data
+
+func load_save_data(data: Dictionary):
+	# 1. Restore the base stats
+	super.load_save_data(data)
+	
+	active_research_name = data.get("active_research_name", "")
+	
+	# 2. Rebuild the Inventory using the ItemDatabase
+	inventory.clear()
+	if data.has("inventory"):
+		var saved_inv = data["inventory"]
+		for item_name in saved_inv.keys():
+			var item_res = ItemDatabase.get_item(item_name)
+			if item_res:
+				inventory[item_res] = int(saved_inv[item_name])
+				
+	# 3. Rebuild the Research Bill
+	research_bill.clear()
+	if data.has("research_bill"):
+		var saved_bill = data["research_bill"]
+		for item_name in saved_bill.keys():
+			var item_res = ItemDatabase.get_item(item_name)
+			if item_res:
+				research_bill[item_res] = int(saved_bill[item_name])
+				
+	# 4. Rebuild the Max Research Bill
+	research_bill_max.clear()
+	if data.has("research_bill_max"):
+		var saved_bill_max = data["research_bill_max"]
+		for item_name in saved_bill_max.keys():
+			var item_res = ItemDatabase.get_item(item_name)
+			if item_res:
+				research_bill_max[item_res] = int(saved_bill_max[item_name])
+				
+	# 5. Tell the UI to update the Core panel!
+	inventory_changed.emit()

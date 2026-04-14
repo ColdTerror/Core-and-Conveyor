@@ -322,3 +322,47 @@ func cycle_targeting_mode():
 	current_target = null 
 	
 	print("Tower targeting set to: ", targeting_mode)
+	
+# ==========================================
+# SAVE / LOAD SYSTEM (Tower)
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Grab the base stats (health, building_name)
+	var data = super.get_save_data()
+	
+	# 2. Translate the Ammo Array (Resources -> Strings)
+	var saved_ammo = []
+	for ammo_res in ammo_inventory:
+		saved_ammo.append(ammo_res.display_name)
+	data["ammo_inventory"] = saved_ammo
+	
+	# 3. Save targeting logic and cooldowns
+	data["targeting_mode"] = targeting_mode
+	data["current_targeting_index"] = current_targeting_index
+	data["attack_cooldown"] = attack_cooldown
+	
+	return data
+
+func load_save_data(data: Dictionary):
+	# 1. Restore the base stats
+	super.load_save_data(data)
+	
+	# 2. Restore the simple variables
+	targeting_mode = data.get("targeting_mode", "Closest")
+	current_targeting_index = data.get("current_targeting_index", 0)
+	attack_cooldown = data.get("attack_cooldown", 0.0)
+	
+	# 3. Rebuild the Ammo Array using the ItemDatabase
+	ammo_inventory.clear()
+	if data.has("ammo_inventory"):
+		var saved_ammo_strings = data["ammo_inventory"]
+		for item_name in saved_ammo_strings:
+			var item_res = ItemDatabase.get_item(item_name)
+			if item_res:
+				ammo_inventory.append(item_res)
+				
+	# Clear the target so it instantly re-scans the area on load!
+	current_target = null
+				
+	# Tell the UI to update the ammo count!
+	inventory_changed.emit()

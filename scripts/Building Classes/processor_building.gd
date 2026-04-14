@@ -186,3 +186,46 @@ func cycle_recipe():
 	current_recipe_index = (current_recipe_index + 1) % recipes.size()
 	print("Switched to recipe: " + active_recipe.recipe_name)
 	inventory_changed.emit()
+	
+# ==========================================
+# SAVE / LOAD SYSTEM (Processor)
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Grab the base stats (health, building_name)
+	var data = super.get_save_data()
+	
+	# 2. Translate the input inventory (Resources -> Strings)
+	var saved_input = {}
+	for item_res in input_inventory.keys():
+		saved_input[item_res.display_name] = input_inventory[item_res]
+	data["input_inventory"] = saved_input
+	
+	# 3. Save the simple state variables
+	data["output_inventory"] = output_inventory
+	data["current_recipe_index"] = current_recipe_index
+	data["work_timer"] = work_timer
+	data["is_working"] = is_working
+	
+	return data
+
+func load_save_data(data: Dictionary):
+	# 1. Restore the base stats
+	super.load_save_data(data)
+	
+	# 2. Restore the simple variables
+	output_inventory = data.get("output_inventory", 0)
+	current_recipe_index = data.get("current_recipe_index", 0)
+	work_timer = data.get("work_timer", 0.0)
+	is_working = data.get("is_working", false)
+	
+	# 3. Rebuild the input inventory using the ItemDatabase
+	input_inventory.clear()
+	if data.has("input_inventory"):
+		var saved_inv = data["input_inventory"]
+		for item_name in saved_inv.keys():
+			var item_res = ItemDatabase.get_item(item_name)
+			if item_res:
+				input_inventory[item_res] = int(saved_inv[item_name])
+				
+	# Tell the UI to update!
+	inventory_changed.emit()

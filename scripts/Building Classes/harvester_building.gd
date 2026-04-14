@@ -270,4 +270,37 @@ func get_inventory_info() -> Dictionary:
 		return { target_resource.item_drop: stored_amount } 
 	return {}
 	
+# ==========================================
+# SAVE / LOAD SYSTEM (Harvester)
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Grab the base stats (health, building_name)
+	var data = super.get_save_data()
+	
+	# 2. Save the simple variables
+	data["stored_amount"] = stored_amount
+	data["work_timer"] = work_timer
+	
+	# 3. Save the exact tree/rock it was shooting at
+	data["current_target"] = var_to_str(current_target)
+	
+	return data
+
+func load_save_data(data: Dictionary):
+	# 1. Restore the base stats
+	super.load_save_data(data)
+	
+	# 2. Restore the inventory count
+	stored_amount = data.get("stored_amount", 0)
+	work_timer = data.get("work_timer", 0.0)
+	
+	# 3. Restore the target so the laser beam doesn't disconnect!
+	if data.has("current_target"):
+		current_target = str_to_var(data["current_target"])
+	else:
+		current_target = Vector2i.MAX
+		
+	# Tell the UI to update the capacity bar!
+	inventory_changed.emit()
+	
 	

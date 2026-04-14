@@ -362,3 +362,51 @@ func _prune_available_types():
 		current_names.append(dedicated_item_name)
 		
 	available_types = current_names
+	
+# ==========================================
+# SAVE / LOAD SYSTEM (Stockpile)
+# ==========================================
+func get_save_data() -> Dictionary:
+	# 1. Get the basic box from the parent (health, building_name)
+	var data = super.get_save_data()
+	
+	# 2. Translate the inventory (Resources -> Strings)
+	var saved_inventory = {}
+	for item_res in inventory.keys():
+		saved_inventory[item_res.display_name] = inventory[item_res]
+		
+	# 3. Add the Stockpile's unique data
+	data["inventory"] = saved_inventory
+	data["is_dedicated_mode"] = is_dedicated_mode
+	data["dedicated_item_name"] = dedicated_item_name
+	data["selected_output_name"] = selected_output_name
+	data["available_types"] = available_types
+	
+	return data
+
+func load_save_data(data: Dictionary):
+	# 1. Let the parent unpack the health!
+	super.load_save_data(data)
+	
+	# 2. Unpack the simple settings
+	is_dedicated_mode = data.get("is_dedicated_mode", false)
+	dedicated_item_name = data.get("dedicated_item_name", "")
+	selected_output_name = data.get("selected_output_name", "")
+	available_types = data.get("available_types", [])
+	
+	# 3. Rebuild the inventory (Strings -> Resources)
+	inventory.clear()
+	if data.has("inventory"):
+		var saved_inv = data["inventory"]
+		for item_name in saved_inv.keys():
+			# We need to find the actual Resource file based on its name!
+			var item_res = _load_item_resource_by_name(item_name)
+			if item_res:
+				inventory[item_res] = int(saved_inv[item_name])
+				
+	# Tell the UI to update the numbers!
+	inventory_changed.emit()
+
+# --- HELPER TO FIND THE ITEM FILE ---
+func _load_item_resource_by_name(item_name: String) -> ItemResource:
+	return ItemDatabase.get_item(item_name)
