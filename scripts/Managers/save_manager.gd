@@ -14,12 +14,13 @@ func save_game(level_ref: Node2D, slot: int = current_slot):
 	current_slot = slot
 	var save_data = {}
 	
-	# --- PHASE 1: Pack the Economy Stats ---
+	#Pack the Data
 	save_data["economy_stats"] = EconomyManager.get_save_data()
-	
-	# --- PHASE 2: Pack the Map! ---
+
 	if is_instance_valid(level_ref) and level_ref.has_method("get_map_save_data"):
 		save_data["map_data"] = level_ref.get_map_save_data()
+		
+	save_data["research_manager"] = ResearchManager.get_save_data()
 	
 	# Convert our beautiful dictionary into a JSON text string
 	var json_string = JSON.stringify(save_data)
@@ -78,19 +79,19 @@ func unpack_save(level_ref: Node2D):
 	print("SaveManager: Unpacking data into the new world...")
 	var data = pending_load_data
 	
-	# --- PHASE 2: Rebuild the Map! (Do this FIRST so buildings have ground to sit on) ---
+
+	#Unpack Data
 	if data.has("map_data") and level_ref.has_method("load_map_save_data"):
 		level_ref.load_map_save_data(data["map_data"])
 	
-	# --- PHASE 1: Rebuild Economy Stats ---
+	if data.has("research_manager"):
+		ResearchManager.load_save_data(data["research_manager"])
+	
+
 	if data.has("economy_stats"):
 		EconomyManager.load_save_data(data["economy_stats"])
 		
-	# PHASE 2: (Coming soon) Time & Research Managers
-	
-	# PHASE 3: (Coming soon) Spawn the Buildings using level_ref.building_manager
-	
-	# PHASE 4: (Coming soon) Paint the Corruption & Spawn Bots using level_ref
+
 	
 	# Finally, do a roll call of the newly spawned physical buildings!
 	EconomyManager.recalculate_global_inventory()
