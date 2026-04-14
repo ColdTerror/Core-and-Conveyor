@@ -97,7 +97,12 @@ func unpack_save(level_ref: Node2D):
 		level_ref.load_map_save_data(data["map_data"])
 	
 	if data.has("building_manager") and level_ref.has_node("BuildingManager"):
-		level_ref.get_node("BuildingManager").load_save_data(data["building_manager"])
+		var b_manager = level_ref.get_node("BuildingManager")
+		
+		# --- THE FIX: Force the manager to grab the level reference BEFORE loading! ---
+		b_manager.initialize(level_ref) 
+		
+		b_manager.load_save_data(data["building_manager"])
 		
 	if data.has("research_manager"):
 		ResearchManager.load_save_data(data["research_manager"])

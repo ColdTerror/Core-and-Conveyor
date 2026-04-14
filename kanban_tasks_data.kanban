@@ -21,7 +21,9 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2"
+				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2",
+				"8f72e2f8-bceb-4437-9ed7-456548f2cd67",
+				"b37c1dbf-958e-4ed2-8b6e-6da55fbdf71c"
 			]
 		},
 		{
@@ -742,6 +744,27 @@
 			"uuid": "be8062de-7177-4f01-8d23-d11e18de911e",
 			"title": "sprites",
 			"description": "core\nwall, and gate\nmaybe upgrade variations",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "bc593266-5c03-448b-8c63-579ceebd25a2",
+			"title": "level ref null when loading conveyer",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8f72e2f8-bceb-4437-9ed7-456548f2cd67",
+			"title": "add construction site and terraform site to save",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b37c1dbf-958e-4ed2-8b6e-6da55fbdf71c",
+			"title": "add worker bot to save",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
