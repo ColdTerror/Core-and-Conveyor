@@ -25,6 +25,9 @@ func save_game(level_ref: Node2D, slot: int = current_slot):
 	if is_instance_valid(level_ref) and level_ref.has_node("TimeManager"):
 		save_data["time_manager"] = level_ref.get_node("TimeManager").get_save_data()
 	
+	if level_ref.has_node("CorruptionManager"):
+			save_data["corruption_manager"] = level_ref.get_node("CorruptionManager").get_save_data()
+	
 	# Convert our beautiful dictionary into a JSON text string
 	var json_string = JSON.stringify(save_data)
 	
@@ -90,6 +93,8 @@ func unpack_save(level_ref: Node2D):
 	if data.has("research_manager"):
 		ResearchManager.load_save_data(data["research_manager"])
 	
+	if data.has("corruption_manager") and level_ref.has_node("CorruptionManager"):
+		level_ref.get_node("CorruptionManager").load_save_data(data["corruption_manager"])
 
 	if data.has("economy_stats"):
 		EconomyManager.load_save_data(data["economy_stats"])

@@ -204,3 +204,50 @@ func _corrupt_tile(tile: Vector2i):
 	corruption_layer.set_cell(tile, corruption_source_id, corruption_atlas)
 	if not active_edges.has(tile):  
 		active_edges.append(tile)
+		
+# ==========================================
+# SAVE / LOAD SYSTEM
+# ==========================================
+func get_save_data() -> Dictionary:
+	var active_edges_str = []
+	for edge in active_edges:
+		active_edges_str.append(var_to_str(edge))
+		
+	var infected_tiles_str = []
+	if corruption_layer:
+		for cell in corruption_layer.get_used_cells():
+			infected_tiles_str.append(var_to_str(cell))
+			
+	return {
+		"corruption_tier": corruption_tier,
+		"current_pressure": current_pressure,
+		"is_active": is_active,
+		"active_edges": active_edges_str,
+		"infected_tiles": infected_tiles_str
+	}
+
+func load_save_data(data: Dictionary):
+	corruption_tier = data.get("corruption_tier", 1)
+	current_pressure = data.get("current_pressure", 0.0)
+	is_active = data.get("is_active", false)
+	
+	# 1. Restore the active growing edges
+	active_edges.clear()
+	if data.has("active_edges"):
+		var saved_edges = data["active_edges"]
+		for edge_str in saved_edges:
+			active_edges.append(str_to_var(edge_str))
+			
+	# 2. Visually repaint the purple fog!
+	if corruption_layer:
+		corruption_layer.clear()
+		if data.has("infected_tiles"):
+			var saved_tiles = data["infected_tiles"]
+			for tile_str in saved_tiles:
+				var cell = str_to_var(tile_str)
+				corruption_layer.set_cell(cell, corruption_source_id, corruption_atlas)
+				
+	# 3. Resume the spread timer if the outbreak had already started
+	if is_active and spread_timer:
+		if spread_timer.is_stopped():
+			spread_timer.start()
