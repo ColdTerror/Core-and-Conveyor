@@ -1050,7 +1050,7 @@ func get_save_data() -> Dictionary:
 
 	for b in buildings:
 		# Don't save transparent placement ghosts, and don't save half-finished construction sites (yet)
-		if not is_instance_valid(b) or b.is_ghost or b.building_name == "ConstructionSite": 
+		if not is_instance_valid(b) or b.is_ghost: 
 			continue
 
 		# 1. Ask the specific building to pack its own unique data!

@@ -34,11 +34,6 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 	max_health = 100 
 	
 	queue_redraw()
-	
-	queue_redraw() # Tell Godot to run the _draw() function!
-
-
-
 
 # ==========================================
 # THE UNIFIED DOOR
@@ -97,7 +92,6 @@ func _finish_construction():
 	# 2. Get our exact grid coordinate before we delete ourselves
 	var my_grid = occupied_tiles[0]
 	
-	
 	# --- PROPER PLACEMENT ---
 	# Use the official place_at function so the building calculates its 
 	# center offsets and generates its own occupied_tiles perfectly!
@@ -108,7 +102,6 @@ func _finish_construction():
 	
 	# 3. Register the new building into the freshly emptied slots
 	level_ref.building_manager.register_finished_building(new_building, my_grid)
-	
 	
 	# 4. Safely destroy the blueprint node!
 	if has_signal("destroyed"):
@@ -153,3 +146,45 @@ func _draw():
 	# 3. Draw an "X" through it
 	draw_line(top_left, top_left + Vector2(w, h), Color(1.0, 0.2, 0.2, 0.4), 2.0)
 	draw_line(top_left + Vector2(w, 0), top_left + Vector2(0, h), Color(1.0, 0.2, 0.2, 0.4), 2.0)
+
+# ==========================================
+# SAVE / LOAD SYSTEM (Construction Site)
+# ==========================================
+func get_save_data() -> Dictionary:
+	var data = super.get_save_data()
+	
+	# 1. Save what we are building
+	if target_building_scene:
+		data["target_scene_path"] = target_building_scene.resource_path
+	
+	# 2. Save the string dictionaries directly! (No translation needed)
+	data["required_items"] = required_items
+	data["delivered_items"] = delivered_items
+	data["is_ready_to_build"] = is_ready_to_build
+	
+	# 3. Save size (for footprint calculations)
+	data["size_x"] = size.x
+	data["size_y"] = size.y
+	
+	return data
+
+func load_save_data(data: Dictionary):
+	super.load_save_data(data)
+	
+	# 1. Restore the blueprint
+	if data.has("target_scene_path"):
+		target_building_scene = load(data["target_scene_path"]) as PackedScene
+		
+	size = Vector2i(data.get("size_x", 1), data.get("size_y", 1))
+	blueprint_size = size # Keep the hologram visual in sync!
+	
+	# 2. Restore the dictionaries directly
+	if data.has("required_items"):
+		required_items = data["required_items"]
+	if data.has("delivered_items"):
+		delivered_items = data["delivered_items"]
+		
+	is_ready_to_build = data.get("is_ready_to_build", false)
+				
+	# Tell the UI to update the progress bar!
+	inventory_changed.emit()

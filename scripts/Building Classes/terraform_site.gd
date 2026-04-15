@@ -70,3 +70,15 @@ func _draw():
 	draw_rect(rect, color, false, 2.0)
 	draw_line(top_left, top_left + Vector2(tile_size, tile_size), color, 2.0)
 	draw_line(top_left + Vector2(tile_size, 0), top_left + Vector2(0, tile_size), color, 2.0)
+
+# ==========================================
+# SAVE / LOAD SYSTEM (Terraform Site)
+# ==========================================
+func get_save_data() -> Dictionary:
+	var data = super.get_save_data()
+	data["job_type"] = job_type # e.g., 0 for Remove Object, 1 for Convert Water
+	return data
+
+func load_save_data(data: Dictionary):
+	super.load_save_data(data)
+	job_type = data.get("job_type", 0)
