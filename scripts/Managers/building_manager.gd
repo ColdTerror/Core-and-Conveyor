@@ -1085,6 +1085,8 @@ func load_save_data(data: Dictionary):
 		add_child(new_building)
 
 		var grid_pos = Vector2i(b_data["grid_origin_x"], b_data["grid_origin_y"])
+		if b_data.has("size_x") and b_data.has("size_y"):
+			new_building.size = Vector2i(b_data["size_x"], b_data["size_y"])
 		new_building.place_at(grid_pos, object_layer)
 		new_building.set_ghost(false)
 
@@ -1121,3 +1123,6 @@ func load_save_data(data: Dictionary):
 					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
 				else:
 					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
+	if is_core_placed:
+		print_debug("load placed")
+		core_placed_event.emit()

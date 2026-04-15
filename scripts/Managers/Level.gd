@@ -74,10 +74,7 @@ var last_terrain_tile := Vector2i(-1, -1)
 # ==========================================
 
 func _ready():
-	if not SaveManager.pending_load_data.is_empty():
-		SaveManager.unpack_save(self)
-	else:
-		generate_simple_map()
+	
 		
 	hover_menu.hide()
 	
@@ -97,12 +94,19 @@ func _ready():
 		hotbar.item_selected.connect(_on_hotbar_item_selected)
 		_setup_hotbar_items()
 		
+	building_manager.building_selected.connect(detail_menu.open_menu)
+	building_manager.core_placed_event.connect(_on_core_placed)
+	
+	if not SaveManager.pending_load_data.is_empty():
+		SaveManager.unpack_save(self)
+	else:
+		generate_simple_map()
+		
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	building_manager.pathfinder = pathfinder
 	
-	building_manager.building_selected.connect(detail_menu.open_menu)
-	building_manager.core_placed_event.connect(_on_core_placed)
+	
 
 func _process(_delta):
 	var mouse_pos = get_global_mouse_position()
@@ -269,6 +273,7 @@ func _setup_hotbar_items():
 	_add_building_to_bar("Core", core_scene)
 
 func _on_core_placed():
+	print_debug("from level on core placed")
 	if hotbar and hotbar.has_method("remove_button"):
 		hotbar.remove_button("Core")
 	_add_unlocked_buildings()

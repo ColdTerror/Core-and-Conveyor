@@ -136,6 +136,7 @@ func _update_lighting():
 # ==========================================
 func get_save_data() -> Dictionary:
 	return {
+		"is_time_running": is_time_running,
 		"current_day": current_day,
 		"current_time": current_time,
 		"current_hour": current_hour,
@@ -144,6 +145,7 @@ func get_save_data() -> Dictionary:
 	}
 
 func load_save_data(data: Dictionary):
+	is_time_running = data.get("is_time_running", false)
 	current_day = data.get("current_day", 1)
 	current_time = data.get("current_time", 6.0)
 	current_hour = data.get("current_hour", 6)
