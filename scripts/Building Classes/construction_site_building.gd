@@ -153,6 +153,8 @@ func _draw():
 func get_save_data() -> Dictionary:
 	var data = super.get_save_data()
 	
+	data["building_name"] = building_name
+	
 	# 1. Save what we are building
 	if target_building_scene:
 		data["target_scene_path"] = target_building_scene.resource_path
@@ -171,6 +173,9 @@ func get_save_data() -> Dictionary:
 func load_save_data(data: Dictionary):
 	super.load_save_data(data)
 	
+	if data.has("building_name"):
+		building_name = data["building_name"]
+		
 	# 1. Restore the blueprint
 	if data.has("target_scene_path"):
 		target_building_scene = load(data["target_scene_path"]) as PackedScene
@@ -179,6 +184,7 @@ func load_save_data(data: Dictionary):
 	blueprint_size = size # Keep the hologram visual in sync!
 	
 	# 2. Restore the dictionaries directly
+	
 	if data.has("required_items"):
 		required_items = data["required_items"]
 	if data.has("delivered_items"):

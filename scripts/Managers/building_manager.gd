@@ -1095,6 +1095,10 @@ func load_save_data(data: Dictionary):
 			# Conveyors need their direction *before* setup so they rotate correctly
 			var temp_dir = str_to_var(b_data.get("direction", "Vector2i(1, 0)"))
 			new_building.setup(level_ref, temp_dir)
+		elif new_building is TerraformSite:
+			# It needs its grid_pos and job_type to initialize properly
+			var temp_type = b_data.get("job_type", 0)
+			new_building.setup(level_ref, grid_pos, temp_type)
 		elif new_building.has_method("setup"):
 			new_building.setup(level_ref)
 

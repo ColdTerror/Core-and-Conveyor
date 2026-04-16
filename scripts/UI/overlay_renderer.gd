@@ -45,13 +45,12 @@ func _process(delta):
 		needs_redraw = true
 
 	# Ghost placement: always update instantly
-	if bm.placing_building:
+	if bm.placing_building or level.current_mode != level.InteractionMode.NONE:
 		needs_redraw = true
 
 	# Dynamic overlays: throttled to once per second
 	var has_slow_overlay = bm.show_build_grid or bm.show_safe_grid or \
-						   bm.show_attack_grid or not bm.terraform_jobs.is_empty() or \
-						   level.current_mode != level.InteractionMode.NONE
+						   bm.show_attack_grid or not bm.terraform_jobs.is_empty()
 	if has_slow_overlay:
 		_overlay_tick_timer += delta
 		if _overlay_tick_timer >= OVERLAY_TICK_RATE:

@@ -16,6 +16,8 @@ func setup(level: Node2D, grid_pos: Vector2i, type: JobType):
 	job_type = type
 	occupied_tiles = [grid_pos]
 	
+	grid_origin = grid_pos
+	
 	building_name = "Clear Terrain" if type == JobType.REMOVE_OBJECT else "Fill Water"
 	
 	# We assign these here because the base Building class already created them for us!
