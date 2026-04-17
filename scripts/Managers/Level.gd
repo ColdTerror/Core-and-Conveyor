@@ -523,11 +523,19 @@ func get_map_save_data() -> Dictionary:
 	for bot in get_tree().get_nodes_in_group("WorkerBots"):
 		saved_bots.append(bot.get_save_data())
 		
+	# --- SAVE CAMERA ---
+	var current_camera = get_viewport().get_camera_2d()
+		
+		
 	return {
 		"map_type": current_map_type,
 		"terrain": terrain_data,
 		"objects": object_data,
-		"worker_bots": saved_bots
+		"worker_bots": saved_bots,
+		"camera_x": current_camera.global_position.x,
+		"camera_y": current_camera.global_position.y,
+		"camera_zoom_x": current_camera.zoom.x,
+		"camera_zoom_y": current_camera.zoom.y
 	}
 
 func load_map_save_data(data: Dictionary):
@@ -585,5 +593,12 @@ func load_map_save_data(data: Dictionary):
 			new_bot.clicked.connect(building_manager._on_bot_clicked)
 			new_bot.hovered.connect(building_manager._on_building_hovered)
 			new_bot.unhovered.connect(building_manager._on_building_unhovered)
-
+	
+	var current_camera = get_viewport().get_camera_2d()
+	if current_camera:
+		if data.has("camera_x") and data.has("camera_y"):
+			current_camera.global_position = Vector2(data["camera_x"], data["camera_y"])
+			
+		if data.has("camera_zoom_x") and data.has("camera_zoom_y"):
+			current_camera.zoom = Vector2(data["camera_zoom_x"], data["camera_zoom_y"])
 	print("Map loaded successfully!")
