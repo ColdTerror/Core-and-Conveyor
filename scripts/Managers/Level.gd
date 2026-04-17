@@ -515,10 +515,16 @@ func get_map_save_data() -> Dictionary:
 			"lib_index": correct_index
 		}
 
+	# --- SAVE BOTS ---
+	var saved_bots = []
+	for bot in get_tree().get_nodes_in_group("WorkerBots"):
+		saved_bots.append(bot.get_save_data())
+		
 	return {
 		"map_type": current_map_type,
 		"terrain": terrain_data,
-		"objects": object_data
+		"objects": object_data,
+		"worker_bots": saved_bots
 	}
 
 func load_map_save_data(data: Dictionary):
@@ -556,5 +562,20 @@ func load_map_save_data(data: Dictionary):
 				"health": obj_info["health"],
 				"data": tile_data
 			}
+	# --- LOAD BOTS ---
+	if data.has("worker_bots"):
+		var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
+		
+		for b_data in data["worker_bots"]:
+			var new_bot = bot_scene.instantiate()
+			object_layer.add_child(new_bot)
 			
+			new_bot.setup(self)
+			new_bot.load_save_data(b_data)
+			
+			# Re-connect the UI signals to the BuildingManager!
+			new_bot.clicked.connect(building_manager._on_bot_clicked)
+			new_bot.hovered.connect(building_manager._on_building_hovered)
+			new_bot.unhovered.connect(building_manager._on_building_unhovered)
+
 	print("Map loaded successfully!")

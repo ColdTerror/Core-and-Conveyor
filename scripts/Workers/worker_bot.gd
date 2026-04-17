@@ -944,3 +944,84 @@ func _draw_energy_bar():
 	draw_rect(Rect2(e_pos, Vector2(24.0, 4.0)), Color(0.1, 0.1, 0.1, 0.8), true)
 	draw_rect(Rect2(e_pos, Vector2(24.0 * (current_energy / max_energy), 4.0)), energy_color, true)
 	draw_rect(Rect2(e_pos, Vector2(24.0, 4.0)), Color(0.0, 0.0, 0.0, 1.0), false, 1.0)
+
+# ==========================================
+# SAVE / LOAD SYSTEM (Worker Bot)
+# ==========================================
+func get_save_data() -> Dictionary:
+	return {
+		# 1. Exact Pixel Position
+		"pos_x": global_position.x,
+		"pos_y": global_position.y,
+		
+		# 2. Grid Memory
+		"home_x": home_tile.x,
+		"home_y": home_tile.y,
+		"target_x": target_tile.x,
+		"target_y": target_tile.y,
+		
+		# 3. Brain State
+		"current_priority": current_priority,
+		"current_state": current_state,
+		"current_energy": current_energy,
+		"is_limping": is_limping,
+		
+		# 4. Inventory
+		"carried_item_name": carried_item_name,
+		"carried_amount": carried_amount,
+		
+		# 5. Action Progress (How much time is left on harvesting/repairing)
+		"timer_time_left": action_timer.time_left if not action_timer.is_stopped() else 0.0
+	}
+
+func load_save_data(data: Dictionary):
+	# 1. Restore Position
+	global_position = Vector2(data.get("pos_x", 0.0), data.get("pos_y", 0.0))
+	
+	# 2. Restore Grid Coordinates
+	home_tile = Vector2i(data.get("home_x", -1), data.get("home_y", -1))
+	target_tile = Vector2i(data.get("target_x", -1), data.get("target_y", -1))
+	
+	# 3. Restore State & Energy
+	current_priority = data.get("current_priority", TaskPriority.STOPPED) as TaskPriority
+	current_state = data.get("current_state", State.IDLE) as State
+	current_energy = data.get("current_energy", max_energy)
+	is_limping = data.get("is_limping", false)
+	
+	if is_limping:
+		current_speed = base_speed * 0.4
+		
+	# 4. Restore Inventory via ItemDatabase
+	carried_amount = data.get("carried_amount", 0)
+	carried_item_name = data.get("carried_item_name", "")
+	
+	if carried_amount > 0 and carried_item_name != "":
+		carried_item_res = ItemDatabase.get_item(carried_item_name)
+	else:
+		carried_item_res = null
+		
+	# 5. Restore Action Timer
+	var time_left = data.get("timer_time_left", 0.0)
+	if time_left > 0:
+		action_timer.start(time_left)
+		
+	# 6. Wipe volatile memory so the bot recalculates everything safely
+	current_path.clear()
+	unreachable_tiles.clear()
+	full_storages_ignored.clear()
+	unreachable_storages.clear()
+	
+	var transit_states = [
+		State.MOVING_TO_RESOURCE, State.MOVING_TO_INVENTORY,
+		State.MOVING_TO_REPAIR, State.MOVING_TO_BUILD,
+		State.MOVING_TO_FETCH, State.MOVING_HOME
+	]
+	
+	# If the bot was walking somewhere, cancel the walk and let the brain rethink!
+	if current_state in transit_states:
+		current_state = State.IDLE
+		target_tile = Vector2i(-1, -1)
+		action_timer.stop()
+	
+	# Wake up the UI
+	inventory_changed.emit()
