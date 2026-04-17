@@ -97,14 +97,14 @@ func _ready():
 	building_manager.building_selected.connect(detail_menu.open_menu)
 	building_manager.core_placed_event.connect(_on_core_placed)
 	
+	building_manager.pathfinder = pathfinder
+	
 	if not SaveManager.pending_load_data.is_empty():
 		SaveManager.unpack_save(self)
 	else:
 		generate_simple_map()
 		
-	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
-	pathfinder.setup(terrain_layer, object_layer, map_rect)
-	building_manager.pathfinder = pathfinder
+	
 	
 	
 
@@ -450,7 +450,10 @@ func generate_simple_map():
 				elif biome_val < -0.15:
 					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
 					if d_val > 0.60: place_resource_at(pos, RES_TREE)
-
+					
+	#setup pathfinder
+	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
+	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	print("Map generated: ", MapGenType.keys()[current_map_type])
 
 func place_resource_at(grid_pos: Vector2i, resource_index: int):
@@ -562,6 +565,11 @@ func load_map_save_data(data: Dictionary):
 				"health": obj_info["health"],
 				"data": tile_data
 			}
+			
+	#setup pathfinder
+	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
+	pathfinder.setup(terrain_layer, object_layer, map_rect)
+	
 	# --- LOAD BOTS ---
 	if data.has("worker_bots"):
 		var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
