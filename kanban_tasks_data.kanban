@@ -21,7 +21,10 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2"
+				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2",
+				"a45f5416-4548-425d-a4ed-b0a6cc27d35e",
+				"235b41e6-8c69-42c1-afc1-06ee66667bf3",
+				"1f1744f6-f0de-45bc-af03-722673ecc936"
 			]
 		},
 		{
@@ -631,7 +634,7 @@
 		{
 			"uuid": "4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2",
 			"title": "SAVE SYSTEM",
-			"description": "",
+			"description": "almost done, want to playtest before merging branch",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
@@ -814,6 +817,27 @@
 			"uuid": "20966452-4ff7-40a9-adbc-37553805502e",
 			"title": "bot starts task from to far when loading",
 			"description": "when loading the path is empty so it thinks it arrived at the destination",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a45f5416-4548-425d-a4ed-b0a6cc27d35e",
+			"title": "bot sometimes limps to work instead of always heading home",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "235b41e6-8c69-42c1-afc1-06ee66667bf3",
+			"title": "construction site visual for progress",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "1f1744f6-f0de-45bc-af03-722673ecc936",
+			"title": "build/corruption ranges not always correct",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
