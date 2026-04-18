@@ -33,6 +33,9 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 	health = 0 
 	max_health = 100 
 	
+	if "build_range" in self: build_range = 0
+	if "corruption_range" in self: corruption_range = 0
+	
 	queue_redraw()
 
 # ==========================================

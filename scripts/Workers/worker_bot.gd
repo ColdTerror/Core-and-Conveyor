@@ -723,20 +723,18 @@ func _escape_trapped_tile() -> bool:
 
 func toggle_set_home_mode(enabled: bool):
 	is_setting_home = enabled
-	
-	var reboot_cost = 50.0 # Cost is 50% of the max battery
-	current_energy = max(0.0, current_energy - (max_energy/2))
-	
-	# If this change killed the battery, instantly trigger the limp state!
-	if current_energy <= 0.0 and not is_limping:
-		is_limping = true
-		current_speed = base_speed * 0.4
-		current_energy = 0
 		
 	queue_redraw()
 	
 func set_home(grid_pos: Vector2i):
 	home_tile = grid_pos
+	
+	current_energy = max(0.0, current_energy - (max_energy / 2.0))
+	if current_energy <= 0.0 and not is_limping:
+		is_limping = true
+		current_speed = base_speed * 0.4
+		current_energy = 0.0
+		
 	inventory_changed.emit()
 	# Interrupt idle/resting states so the bot walks to the new home immediately
 	if current_state in [State.IDLE, State.ON_STANDBY, State.MOVING_HOME, State.RECHARGING]:

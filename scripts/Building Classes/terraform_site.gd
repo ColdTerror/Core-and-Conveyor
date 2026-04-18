@@ -25,6 +25,9 @@ func setup(level: Node2D, grid_pos: Vector2i, type: JobType):
 	max_health = 100
 	
 	global_position = level_ref.object_layer.map_to_local(grid_pos)
+	
+	if "build_range" in self: build_range = 0
+	if "corruption_range" in self: corruption_range = 0
 
 # --- DUCK TYPING FOR THE BOT ---
 func needs_materials() -> bool:

@@ -684,6 +684,10 @@ func deconstruct_building_at(grid_pos: Vector2i):
 # ZONE TRACKING
 # ==========================================
 
+# ==========================================
+# ZONE TRACKING
+# ==========================================
+
 func _get_tiles_in_radius(origin: Vector2i, building: Building, radius: float) -> Array[Vector2i]:
 	var tiles: Array[Vector2i] = []
 	var tile_size = 32.0
@@ -721,7 +725,8 @@ func _add_safe_zone(building: Building):
 
 func _remove_safe_zone(building: Building):
 	if not "corruption_range" in building or building.corruption_range <= 0: return
-	for tile in _get_tiles_in_radius(building.grid_origin, building, building.corruption_range):
+	var origin = object_layer.local_to_map(building.global_position)
+	for tile in _get_tiles_in_radius(origin, building, building.corruption_range):
 		if safe_tiles.has(tile):
 			safe_tiles[tile] -= 1
 			if safe_tiles[tile] <= 0: safe_tiles.erase(tile)
@@ -734,7 +739,8 @@ func _add_build_zone(building: Building):
 
 func _remove_build_zone(building: Building):
 	if not "build_range" in building or building.build_range <= 0: return
-	for tile in _get_tiles_in_radius(building.grid_origin, building, building.build_range):
+	var origin = object_layer.local_to_map(building.global_position)
+	for tile in _get_tiles_in_radius(origin, building, building.build_range):
 		if buildable_tiles.has(tile):
 			buildable_tiles[tile] -= 1
 			if buildable_tiles[tile] <= 0: buildable_tiles.erase(tile)
@@ -748,12 +754,13 @@ func _add_attack_zone(building: Building):
 
 func _remove_attack_zone(building: Building):
 	if not "attack_range" in building or not "_cached_range_tiles" in building: return
+	var origin = object_layer.local_to_map(building.global_position)
 	for offset in building._cached_range_tiles.keys():
-		var tile = building.grid_origin + offset
+		var tile = origin + offset
 		if attack_tiles.has(tile):
 			attack_tiles[tile] -= 1
 			if attack_tiles[tile] <= 0: attack_tiles.erase(tile)
-
+			
 # ==========================================
 # UPGRADE SYSTEM
 # ==========================================
