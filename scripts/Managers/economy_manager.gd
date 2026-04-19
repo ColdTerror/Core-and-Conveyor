@@ -11,6 +11,10 @@ signal stats_updated
 # ==========================================
 var global_inventory: Dictionary = {"Wood": 0, "Stone": 0}
 
+
+# The max 10 slots the player wants to see on the top bar
+var pinned_resources: Array[String] = ["Wood", "Stone"]
+
 # --- TRACKING SOURCES ---d
 var active_sources: Array[Node] = []
 

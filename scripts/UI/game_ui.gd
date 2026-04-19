@@ -93,13 +93,29 @@ func _on_inventory_changed():
 	update_labels()
 
 func update_labels():
-	for resource_name in EconomyManager.global_inventory:
-		var amount = EconomyManager.global_inventory[resource_name]
+	# 1. Hide all existing labels first so unpinned items vanish
+	for key in resource_labels.keys():
+		resource_labels[key].hide()
+
+	# 2. Loop through ONLY the pinned list (capped at 10 items)
+	var max_slots = min(EconomyManager.pinned_resources.size(), 10)
+	for i in range(max_slots):
+		var resource_name = EconomyManager.pinned_resources[i]
+		
+		# Safely grab the amount, defaulting to 0 if we've never collected it
+		var amount = EconomyManager.global_inventory.get(resource_name, 0)
+
+		# Create the label if it doesn't exist yet
 		if not resource_labels.has(resource_name):
 			var new_label = Label.new()
 			inventoryContainer.add_child(new_label)
 			resource_labels[resource_name] = new_label
-		resource_labels[resource_name].text = "  %s: %d  " % [resource_name, amount]
+
+		# Update the text, show it, and force it into the correct visual order!
+		var lbl = resource_labels[resource_name]
+		lbl.text = "  %s: %d  " % [resource_name, amount]
+		lbl.show()
+		inventoryContainer.move_child(lbl, i)
 
 
 # --- PROCESS LOOP (UI UPDATES) ---

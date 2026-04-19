@@ -14,6 +14,9 @@ extends Control
 # Workers Tab
 @onready var bot_list_container = $PanelContainer/TabContainer/Workers/VBoxContainer/ScrollContainer/ListContainer
 
+# Resources Tab
+@onready var resource_list_container = $PanelContainer/TabContainer/Resources/VBoxContainer/ScrollContainer/ListContainer
+
 # Floating Close Button
 @onready var close_button = $PanelContainer/Close
 
@@ -56,6 +59,8 @@ func _on_tab_clicked(tab_index):
 		_refresh_priority_tab()
 	elif target_tab == 1:
 		_refresh_bot_tab(true) # Force rebuild = true
+	elif target_tab == 2:
+		_refresh_resource_tab()
 		
 	# Force the tab to stay on the index the user clicked
 	tab_container.call_deferred("set_current_tab", target_tab)
@@ -238,6 +243,96 @@ func _rebuild_bot_list(bots: Array):
 		
 		bot_index += 1
 
+# ==========================================
+# RESOURCES TAB LOGIC
+# ==========================================
+
+func _refresh_resource_tab():
+	print('refresh resource')
+	if not resource_list_container: return
+	
+	# 1. Clean up old rows
+	for child in resource_list_container.get_children():
+		child.queue_free()
+		
+	# 2. Add a Header Row
+	var header = Label.new()
+	header.text = "Top Bar Pinned Resources (Max 10)"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.modulate = Color(0.8, 0.8, 0.8)
+	resource_list_container.add_child(header)
+	resource_list_container.add_child(HSeparator.new())
+	
+	# 3. Get all discovered items from the EconomyManager
+	var all_items = EconomyManager.global_inventory.keys()
+	
+	# Optional: You can sort them alphabetically so the list is always clean!
+	all_items.sort()
+	
+	if all_items.is_empty():
+		var empty_label = Label.new()
+		empty_label.text = "No resources discovered yet."
+		resource_list_container.add_child(empty_label)
+		return
+
+	# 4. Build a row for every item
+	for item_name in all_items:
+		var amount = EconomyManager.global_inventory[item_name]
+		var is_pinned = EconomyManager.pinned_resources.has(item_name)
+		_create_resource_row(item_name, amount, is_pinned)
+
+func _create_resource_row(item_name: String, amount: int, is_pinned: bool):
+	var row = HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	
+	# --- PIN BUTTON ---
+	var pin_btn = Button.new()
+	
+	# If pinned, it shows a solid square/star. If unpinned, it shows empty.
+	pin_btn.text = " [\u2605] " if is_pinned else " [  ] " 
+	
+	# Color it gold if pinned, grey if unpinned
+	pin_btn.modulate = Color(1.0, 0.8, 0.2) if is_pinned else Color(0.5, 0.5, 0.5)
+	
+	pin_btn.pressed.connect(func():
+		_toggle_pin(item_name)
+	)
+	
+	# --- NAME LABEL ---
+	var name_label = Label.new()
+	name_label.text = item_name
+	name_label.custom_minimum_size = Vector2(150, 0)
+	
+	# --- AMOUNT LABEL ---
+	var amount_label = Label.new()
+	amount_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	amount_label.text = "In Storage: %d" % amount
+	amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	
+	# Assemble the row
+	row.add_child(pin_btn)
+	row.add_child(name_label)
+	row.add_child(amount_label)
+	
+	resource_list_container.add_child(row)
+	resource_list_container.add_child(HSeparator.new())
+
+func _toggle_pin(item_name: String):
+	# If it's already pinned, remove it
+	if EconomyManager.pinned_resources.has(item_name):
+		EconomyManager.pinned_resources.erase(item_name)
+	# If it's not pinned, add it (but enforce the 10 item max limit!)
+	else:
+		if EconomyManager.pinned_resources.size() < 10:
+			EconomyManager.pinned_resources.append(item_name)
+		else:
+			print("Pin limit reached! Unpin something else first.")
+			# Optional: You could spawn a floating text here to warn the player!
+			return
+			
+	# Tell the UI to immediately redraw both the tab and the top bar!
+	EconomyManager.inventory_changed.emit()
+	_refresh_resource_tab()
 # ==========================================
 # INPUT LOGIC
 # ==========================================

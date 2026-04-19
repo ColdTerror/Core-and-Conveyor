@@ -36,7 +36,7 @@ grow_vertical = 2
 
 [node name="TabContainer" type="TabContainer" parent="PanelContainer" unique_id=466723622]
 layout_mode = 2
-current_tab = 1
+current_tab = 2
 
 [node name="Priorities" type="MarginContainer" parent="PanelContainer/TabContainer" unique_id=1696144382]
 visible = false
@@ -47,6 +47,7 @@ metadata/_tab_index = 0
 layout_mode = 2
 
 [node name="Header" type="HBoxContainer" parent="PanelContainer/TabContainer/Priorities/VBoxContainer" unique_id=304942268]
+visible = false
 layout_mode = 2
 
 [node name="Label" type="Label" parent="PanelContainer/TabContainer/Priorities/VBoxContainer/Header" unique_id=1502384625]
@@ -69,6 +70,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Workers" type="MarginContainer" parent="PanelContainer/TabContainer" unique_id=635120371]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
@@ -76,6 +78,7 @@ metadata/_tab_index = 1
 layout_mode = 2
 
 [node name="Header" type="HBoxContainer" parent="PanelContainer/TabContainer/Workers/VBoxContainer" unique_id=1016422107]
+visible = false
 layout_mode = 2
 
 [node name="Label" type="Label" parent="PanelContainer/TabContainer/Workers/VBoxContainer/Header" unique_id=1883700128]
@@ -93,6 +96,35 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
 [node name="ListContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Workers/VBoxContainer/ScrollContainer" unique_id=1540172013]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Resources" type="MarginContainer" parent="PanelContainer/TabContainer" unique_id=688048178]
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Resources" unique_id=694815851]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="PanelContainer/TabContainer/Resources/VBoxContainer" unique_id=1966337576]
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/TabContainer/Resources/VBoxContainer/Header" unique_id=1085420814]
+layout_mode = 2
+text = "Resources"
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/TabContainer/Resources/VBoxContainer" unique_id=2126129182]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/TabContainer/Resources/VBoxContainer" unique_id=888441456]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ListContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Resources/VBoxContainer/ScrollContainer" unique_id=1648455030]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
