@@ -125,8 +125,6 @@ func _handle_overlay_hotkeys(event):
 		KEY_MINUS: # The '-' key
 			overlay_threshold = max(1, overlay_threshold - 1)
 			print("Overlay Threshold: ", overlay_threshold)
-		KEY_P:
-			_debug_print_priority_queue()
 
 # --- NEW HELPER FUNCTION ---
 func _clear_all_overlays():
@@ -1072,22 +1070,6 @@ func _on_building_unhovered(building: Node2D):
 func _on_bot_clicked(bot: Node2D):
 	building_selected.emit(bot)
 
-# ==========================================
-# DEBUG
-# ==========================================
-
-func _debug_print_priority_queue():
-	print("\n=== MASTER PRIORITY QUEUE ===")
-	for i in range(master_priority_queue.size()):
-		var item = master_priority_queue[i]
-		var rank = i + 1
-		if typeof(item) == TYPE_STRING:
-			print("Rank %d: [GROUP] %s" % [rank, item])
-		elif is_instance_valid(item):
-			print("Rank %d: %s at %s" % [rank, item.building_name, item.global_position])
-		else:
-			print("Rank %d: [DELETED]" % rank)
-	print("=============================\n")
 	
 # ==========================================
 # SAVE / LOAD SYSTEM (BuildingManager)

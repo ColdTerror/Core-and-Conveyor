@@ -76,6 +76,7 @@ func open_menu():
 	GameState.is_menu_open = true
 	_refresh_priority_tab()
 	_refresh_bot_tab(true) # Force rebuild when opening
+	_refresh_resource_tab()
 	show()
 
 func close_menu():
@@ -282,40 +283,120 @@ func _refresh_resource_tab():
 		_create_resource_row(item_name, amount, is_pinned)
 
 func _create_resource_row(item_name: String, amount: int, is_pinned: bool):
-	var row = HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	# The wrapper holds the main row AND the hidden dropdown list
+	var wrapper = VBoxContainer.new()
+	
+	var main_row = HBoxContainer.new()
+	main_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	
 	# --- PIN BUTTON ---
 	var pin_btn = Button.new()
-	
-	# If pinned, it shows a solid square/star. If unpinned, it shows empty.
 	pin_btn.text = " [\u2605] " if is_pinned else " [  ] " 
-	
-	# Color it gold if pinned, grey if unpinned
 	pin_btn.modulate = Color(1.0, 0.8, 0.2) if is_pinned else Color(0.5, 0.5, 0.5)
+	pin_btn.pressed.connect(func(): _toggle_pin(item_name))
 	
-	pin_btn.pressed.connect(func():
-		_toggle_pin(item_name)
-	)
-	
-	# --- NAME LABEL ---
-	var name_label = Label.new()
-	name_label.text = item_name
-	name_label.custom_minimum_size = Vector2(150, 0)
+	# --- NAME BUTTON (Replacing the Label) ---
+	var name_btn = Button.new()
+	name_btn.text = item_name + " \u25BC" # Adds a little down arrow!
+	name_btn.custom_minimum_size = Vector2(150, 0)
+	name_btn.flat = true # Makes it look like normal text until you hover over it
+	name_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	
 	# --- AMOUNT LABEL ---
 	var amount_label = Label.new()
 	amount_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	amount_label.text = "In Storage: %d" % amount
+	amount_label.text = "Total: %d" % amount
 	amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	
-	# Assemble the row
-	row.add_child(pin_btn)
-	row.add_child(name_label)
-	row.add_child(amount_label)
+	# Assemble the main row
+	main_row.add_child(pin_btn)
+	main_row.add_child(name_btn)
+	main_row.add_child(amount_label)
 	
-	resource_list_container.add_child(row)
+	# --- THE HIDDEN DROPDOWN ---
+	var details_vbox = VBoxContainer.new()
+	details_vbox.hide()
+	
+	# Wire up the dropdown toggle!
+	name_btn.pressed.connect(func():
+		_toggle_resource_details(item_name, details_vbox, name_btn)
+	)
+	
+	# Put it all together
+	wrapper.add_child(main_row)
+	wrapper.add_child(details_vbox)
+	
+	resource_list_container.add_child(wrapper)
 	resource_list_container.add_child(HSeparator.new())
+
+func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: Button):
+	# If it's already open, close it!
+	if container.visible:
+		container.hide()
+		btn.text = item_name + " \u25BC" # Down arrow
+		return
+		
+	# If it's closed, open it and change the arrow!
+	container.show()
+	btn.text = item_name + " \u25B2" # Up arrow
+	
+	# Clear old data
+	for child in container.get_children():
+		child.queue_free()
+		
+	var found_any = false
+	
+	# Scan every building on the map!
+	for b in building_manager.buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
+		
+		var b_amount = 0
+		
+		# Type 1: Standard dictionary inventory (Stockpiles, Processors)
+		if "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
+			for key in b.inventory.keys():
+				if key is ItemResource and key.display_name == item_name:
+					b_amount += b.inventory[key]
+				elif typeof(key) == TYPE_STRING and key == item_name:
+					b_amount += b.inventory[key]
+					
+		# Type 2: Economy Assets (Mines that generate items directly)
+		if b_amount == 0 and b.has_method("get_economy_assets"):
+			var assets = b.get_economy_assets()
+			if assets.has(item_name):
+				b_amount += assets[item_name]
+				
+		# If this building has the item, spawn a row for it!
+		if b_amount > 0:
+			found_any = true
+			var b_row = HBoxContainer.new()
+			b_row.alignment = BoxContainer.ALIGNMENT_END
+			
+			var b_label = Label.new()
+			b_label.text = "   \u2514 %s: %d" % [b.building_name, b_amount] # Creates an L-bracket tree look
+			b_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			b_label.modulate = Color(0.8, 0.8, 0.8)
+			
+			var locate_btn = Button.new()
+			locate_btn.text = " Locate "
+			locate_btn.modulate = Color(0.3, 0.8, 1.0)
+			locate_btn.pressed.connect(func():
+				var cam = get_tree().get_first_node_in_group("Camera")
+				if cam and cam.has_method("set_follow_target"):
+					cam.set_follow_target(b)
+				close_menu()
+			)
+			
+			b_row.add_child(b_label)
+			b_row.add_child(locate_btn)
+			container.add_child(b_row)
+			
+	# If the item only exists in Worker Bot hands or the void
+	if not found_any:
+		var empty = Label.new()
+		empty.text = "   \u2514 Not currently stored in any building."
+		empty.modulate = Color(0.5, 0.5, 0.5)
+		container.add_child(empty)
 
 func _toggle_pin(item_name: String):
 	# If it's already pinned, remove it
