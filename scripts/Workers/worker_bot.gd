@@ -126,6 +126,10 @@ func _process(delta):
 			if _escape_trapped_tile():
 				return
 			
+			if is_limping:
+				_go_home_or_standby(STANDBY_IDLE)
+				return
+			
 			# Throttle brain to 5 times per second instead of every frame
 			_think_cooldown -= delta
 			if _think_cooldown > 0:
@@ -736,6 +740,18 @@ func set_home(grid_pos: Vector2i):
 		current_energy = 0.0
 		
 	inventory_changed.emit()
+	
+	if is_limping:
+		_clear_reservation()
+		action_timer.stop()
+		target_tile = Vector2i(-1, -1)
+		
+		if _request_path_exact(home_tile):
+			current_state = State.MOVING_HOME
+		else:
+			current_state = State.RECHARGING
+		return # Exit the function so we don't accidentally set it to IDLE below!
+	
 	# Interrupt idle/resting states so the bot walks to the new home immediately
 	if current_state in [State.IDLE, State.ON_STANDBY, State.MOVING_HOME, State.RECHARGING]:
 		current_path.clear()

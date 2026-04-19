@@ -71,8 +71,15 @@ func refresh_ui():
 	# --- UNIVERSAL RELOCATE BUTTON ---
 	# ==========================================
 	# Exclude Cores, Filters, and Bots from being relocated
-	var can_relocate = not (current_building is CoreBuilding or current_building is TerraformSite or current_building is ConstructionSite or current_building is WallBuilding or current_building is ConveyorBuilding or current_building.has_method("set_priority"))
-	
+	var can_relocate = not (
+		current_building is CoreBuilding or 
+		current_building is GateBuilding or 
+		current_building is TerraformSite or 
+		current_building is ConstructionSite or 
+		current_building is WallBuilding or 
+		current_building is ConveyorBuilding or 
+		current_building.has_method("set_priority")
+	)
 	if can_relocate:
 		_create_button("Relocate (Lose Inventory)", Color(0.8, 0.4, 1.0), func():
 			if building_manager.has_method("start_relocating"):
