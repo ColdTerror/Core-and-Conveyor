@@ -57,6 +57,7 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	delivered_items[item_name] = amount_we_have + amount_to_take # Save it under the String!
 	inventory_changed.emit()
 	
+	queue_redraw()
 	_check_if_fully_stocked()
 	return amount_to_take
 
@@ -80,6 +81,8 @@ func add_build_progress(amount: int):
 	inventory_changed.emit()
 	if has_signal("health_changed"):
 		health_changed.emit(health, max_health)
+	
+	queue_redraw()
 	
 	if health >= max_health:
 		_finish_construction()
@@ -132,24 +135,61 @@ func get_inventory_info() -> Dictionary:
 # ==========================================
 # VISUALS
 # ==========================================
+# ==========================================
+# VISUALS
+# ==========================================
 func _draw():
 	var w = blueprint_size.x * 32.0
 	var h = blueprint_size.y * 32.0
-	
-	# THE FIX: To center a drawing, you start exactly half the width left, and half the height up.
 	var top_left = Vector2(-w / 2.0, -h / 2.0)
-	
-	var rect = Rect2(top_left, Vector2(w, h))
+	var full_rect = Rect2(top_left, Vector2(w, h))
 
-	# 1. Faint red fill (looks like a hologram)
-	draw_rect(rect, Color(1.0, 0.2, 0.2, 0.15), true)
-	
-	# 2. Solid red border
-	draw_rect(rect, Color(1.0, 0.2, 0.2, 0.8), false, 2.0)
-	
-	# 3. Draw an "X" through it
-	draw_line(top_left, top_left + Vector2(w, h), Color(1.0, 0.2, 0.2, 0.4), 2.0)
-	draw_line(top_left + Vector2(w, 0), top_left + Vector2(0, h), Color(1.0, 0.2, 0.2, 0.4), 2.0)
+	if not is_ready_to_build:
+		# --- PHASE 1: WAITING FOR MATERIALS ---
+		
+		# 1. Base hologram (faint red)
+		draw_rect(full_rect, Color(1.0, 0.2, 0.2, 0.15), true)
+		
+		# 2. Calculate Delivery Percentage
+		var total_req = 0.0
+		var total_del = 0.0
+		for item in required_items.keys():
+			total_req += required_items[item]
+			total_del += delivered_items.get(item, 0)
+			
+		var delivery_pct = 0.0
+		if total_req > 0:
+			delivery_pct = float(total_del) / total_req
+			
+		# 3. Draw Delivery Progress (Orange fill rising from bottom)
+		if delivery_pct > 0:
+			var fill_h = h * delivery_pct
+			var fill_rect = Rect2(Vector2(top_left.x, top_left.y + h - fill_h), Vector2(w, fill_h))
+			draw_rect(fill_rect, Color(1.0, 0.6, 0.0, 0.4), true) 
+
+		# 4. Draw the "X" and border
+		draw_line(top_left, top_left + Vector2(w, h), Color(1.0, 0.2, 0.2, 0.4), 2.0)
+		draw_line(top_left + Vector2(w, 0), top_left + Vector2(0, h), Color(1.0, 0.2, 0.2, 0.4), 2.0)
+		draw_rect(full_rect, Color(1.0, 0.2, 0.2, 0.8), false, 2.0)
+
+	else:
+		# --- PHASE 2: ACTIVELY BEING BUILT ---
+		
+		# 1. Base background (faint yellow to show it's stocked)
+		draw_rect(full_rect, Color(1.0, 0.8, 0.2, 0.15), true)
+		
+		# 2. Calculate Build Percentage
+		var build_pct = clamp(float(health) / float(max_health), 0.0, 1.0)
+		
+		# 3. Draw Build Progress (Green fill rising from bottom)
+		if build_pct > 0:
+			var fill_h = h * build_pct
+			var fill_rect = Rect2(Vector2(top_left.x, top_left.y + h - fill_h), Vector2(w, fill_h))
+			draw_rect(fill_rect, Color(0.2, 1.0, 0.2, 0.5), true)
+			
+		# 4. Draw border (Transitions from Yellow to Green as it builds!)
+		var border_color = Color(1.0, 0.8, 0.2, 0.8).lerp(Color(0.2, 1.0, 0.2, 0.8), build_pct)
+		draw_rect(full_rect, border_color, false, 2.0)
 
 # ==========================================
 # SAVE / LOAD SYSTEM (Construction Site)
