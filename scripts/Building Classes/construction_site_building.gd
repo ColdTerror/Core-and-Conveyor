@@ -91,7 +91,8 @@ func _finish_construction():
 	var new_building = target_building_scene.instantiate()
 	if new_building.has_method("setup"):
 		new_building.setup(level_ref)
-		
+	
+	
 	# 2. Get our exact grid coordinate before we delete ourselves
 	var my_grid = occupied_tiles[0]
 	
@@ -170,6 +171,7 @@ func get_save_data() -> Dictionary:
 	# 3. Save size (for footprint calculations)
 	data["size_x"] = size.x
 	data["size_y"] = size.y
+
 	
 	return data
 
@@ -194,6 +196,7 @@ func load_save_data(data: Dictionary):
 		delivered_items = data["delivered_items"]
 		
 	is_ready_to_build = data.get("is_ready_to_build", false)
+	
 				
 	# Tell the UI to update the progress bar!
 	inventory_changed.emit()

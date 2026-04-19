@@ -54,7 +54,7 @@ func refresh_ui():
 	info_label.visible = true
 
 	# ==========================================
-	# NEW: UNIVERSAL FOCUS/FOLLOW BUTTON
+	# UNIVERSAL FOCUS/FOLLOW BUTTON
 	# ==========================================
 	# Duck-type check: Is it a bot or a building?
 	var focus_text = "Follow Bot" if current_building.has_method("set_priority") else "Center Camera"
@@ -64,6 +64,21 @@ func refresh_ui():
 		if cam and cam.has_method("set_follow_target"):
 			cam.set_follow_target(current_building)
 	)
+	# ==========================================
+	
+	
+	# ==========================================
+	# --- UNIVERSAL RELOCATE BUTTON ---
+	# ==========================================
+	# Exclude Cores, Filters, and Bots from being relocated
+	var can_relocate = not (current_building is CoreBuilding or current_building is TerraformSite or current_building is ConstructionSite or current_building is WallBuilding or current_building is ConveyorBuilding or current_building.has_method("set_priority"))
+	
+	if can_relocate:
+		_create_button("Relocate (Lose Inventory)", Color(0.8, 0.4, 1.0), func():
+			if building_manager.has_method("start_relocating"):
+				building_manager.start_relocating(current_building)
+				close_menu() # Close the menu so they can place the ghost!
+		)
 	# ==========================================
 	
 	# 2. Route to the correct UI builder

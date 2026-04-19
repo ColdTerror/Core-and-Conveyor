@@ -56,6 +56,9 @@ var is_dragging: bool = false
 var drag_start: Vector2i
 var drag_ghosts: Array[Node2D] = []
 
+# --- Relocation Tracking ---
+var is_relocating: bool = false
+
 # ==========================================
 # PRIORITY SYSTEM
 # ==========================================
@@ -164,6 +167,9 @@ func start_placing(scene: PackedScene):
 	is_dragging = false
 	_clear_drag_ghosts()
 	
+	if level_ref and "current_mode" in level_ref:
+		level_ref.current_mode = level_ref.InteractionMode.PLACE_BUILDING
+		
 	if not show_build_grid:
 		show_build_grid = true
 		_auto_enabled_grids["build"] = true
@@ -177,6 +183,24 @@ func start_placing(scene: PackedScene):
 	
 	_update_ghost_position_to(_get_mouse_grid())
 
+func start_relocating(building: Building):
+	if not is_instance_valid(building): return
+	
+	var scene_path = building.scene_file_path
+	var target_scene = load(scene_path)
+	
+		
+	# 2. Tell the system it is "upgrading" so it doesn't refund global assets
+	building.is_upgrading = true
+	
+	# 3. Cleanly remove the old building to enforce the Teleport Tax
+	_on_building_destroyed(building)
+	building.queue_free()
+	
+	# 4. Trigger standard placement with our special flags active!
+	start_placing(target_scene)
+	is_relocating = true
+	
 func handle_input(event, raw_grid_pos: Vector2i) -> bool:
 	if not ghost_building: return false
 	
@@ -263,6 +287,7 @@ func cancel_placement():
 	_clear_drag_ghosts()
 	is_dragging = false
 	placing_building = false
+	is_relocating = false
 	_reset_auto_grids()
 	queue_redraw()
 	placement_ended.emit()
@@ -323,6 +348,20 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 
 	add_child(site)
 	site.setup_blueprint(level_ref, target_scene, cost, building.size, building.building_name)
+	
+	# ==========================================
+	# --- THE WEAR AND TEAR TAX ---
+	# ==========================================
+	if is_relocating:
+		for item_name in site.required_items.keys():
+			var total_needed = site.required_items[item_name]
+			# Pre-fill exactly half the cost!
+			site.delivered_items[item_name] = floor(total_needed / 2.0)
+			
+			
+		is_relocating = false
+	# ==========================================
+	
 	site.place_at(grid_pos, object_layer)
 
 	_register_building(site)
@@ -786,6 +825,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	# EXTRACT DATA BEFORE DESTRUCTION
 	var saved_data = old_building.get_upgrade_data()
 	old_building.is_upgrading = true # Tell the system not to delete the global items!
+	
 	
 	_on_building_destroyed(old_building)
 	old_building.queue_free()

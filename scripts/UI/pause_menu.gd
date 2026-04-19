@@ -63,7 +63,10 @@ func _perform_manual_save(slot: int, button: Button):
 	_flash_button_success(button)
 
 func _flash_button_success(button: Button):
+	if button.disabled: return
+	
 	# Remember what the button originally looked like
+	button.disabled = true
 	var original_text = button.text
 	var original_color = button.modulate
 	
@@ -78,6 +81,7 @@ func _flash_button_success(button: Button):
 	if is_instance_valid(button):
 		button.text = original_text
 		button.modulate = original_color
+		button.disabled = false
 	
 func _perform_manual_load(slot: int, button: Button):
 	# SaveManager.load_game returns a boolean!
@@ -89,11 +93,13 @@ func _perform_manual_load(slot: int, button: Button):
 		_flash_button_error(button)
 
 func _flash_button_error(button: Button):
+	if button.disabled: return
 	# Remember what the button originally looked like
 	var original_text = button.text
 	var original_color = button.modulate
 	
 	# Change it to an error state!
+	button.disabled = true
 	button.text = original_text + "  [ EMPTY \u2717 ]" # \u2717 is a Unicode 'X'!
 	button.modulate = Color(1.0, 0.4, 0.4) # Bright Red
 	
@@ -104,6 +110,7 @@ func _flash_button_error(button: Button):
 	if is_instance_valid(button):
 		button.text = original_text
 		button.modulate = original_color
+		button.disabled = false
 		
 func _on_load_slot(slot: int):
 	SaveManager.load_game(slot)
