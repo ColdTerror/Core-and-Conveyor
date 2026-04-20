@@ -370,6 +370,9 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 			pathfinder.enemy_astar.set_point_solid(tile, false)
 			pathfinder.enemy_astar.set_point_weight_scale(tile, 50.0)
 			
+			pathfinder.bot_astar.set_point_solid(tile, false)
+			pathfinder.bot_astar.set_point_weight_scale(tile, 50.0)
+			
 	building.queue_free()
 	ghost_building = null
 
@@ -668,8 +671,11 @@ func _on_building_destroyed(b: Building):
 	
 	if pathfinder:
 		for tile in b.occupied_tiles:
-			pathfinder.set_obstacle(tile, false)
-			pathfinder.set_weighted_obstacle(tile, 1.0)
+			# Only clear the pathfinder if the tile is completely empty.
+			# If a new building took this spot, leave its pathing alone!
+			if not occupied_tiles.has(tile):
+				pathfinder.set_obstacle(tile, false)
+				pathfinder.set_weighted_obstacle(tile, 1.0)
 
 	if not b.is_upgrading:
 		if b.has_method("get_economy_assets"):

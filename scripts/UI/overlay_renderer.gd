@@ -277,6 +277,7 @@ func _rebuild_path_cost_cache():
 	var bm = level.building_manager
 	if not bm or not bm.pathfinder or not bm.pathfinder.enemy_astar: return
 	#bot_astar
+	#enemy_astar
 	var astar = bm.pathfinder.enemy_astar
 	var region = astar.region
 	var font = _font
