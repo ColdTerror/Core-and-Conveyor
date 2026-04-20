@@ -12,6 +12,11 @@ region = Rect2(32, 32, 32, 32)
 script = ExtResource("3_hdl5s")
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
+[sub_resource type="Resource" id="Resource_v6thk"]
+script = ExtResource("3_hdl5s")
+item_name = "Stone"
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y4pf7"]
 size = Vector2(32, 32)
 
@@ -19,7 +24,7 @@ size = Vector2(32, 32)
 script = ExtResource("1_y4pf7")
 building_name = "Router"
 icon = SubResource("AtlasTexture_y4pf7")
-build_costs = Array[ExtResource("3_hdl5s")]([SubResource("Resource_axnho")])
+build_costs = Array[ExtResource("3_hdl5s")]([SubResource("Resource_axnho"), SubResource("Resource_v6thk")])
 build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1421611039]

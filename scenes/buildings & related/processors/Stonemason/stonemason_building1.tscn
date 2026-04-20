@@ -17,6 +17,29 @@ script = ExtResource("8_4evbc")
 amount = 25
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
+[sub_resource type="Resource" id="Resource_wvx6s"]
+script = ExtResource("8_4evbc")
+item_name = "Stone"
+amount = 50
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_52blk"]
+script = ExtResource("8_4evbc")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_khruj"]
+script = ExtResource("8_4evbc")
+item_name = "Stone"
+amount = 50
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_b2tah"]
+script = ExtResource("8_4evbc")
+item_name = "Stone Bricks"
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
 size = Vector2(192, 128)
 
@@ -27,10 +50,11 @@ generic_item_scene = ExtResource("6_j51oa")
 building_name = "Stone Mason"
 size = Vector2i(6, 4)
 icon = SubResource("AtlasTexture_5rwt6")
-build_costs = Array[ExtResource("8_4evbc")]([SubResource("Resource_axv5i")])
+build_costs = Array[ExtResource("8_4evbc")]([SubResource("Resource_axv5i"), SubResource("Resource_wvx6s")])
 build_range = 8.0
 corruption_range = 10.0
 upgrades_to = ExtResource("7_wvx6s")
+upgrade_cost = Array[ExtResource("8_4evbc")]([SubResource("Resource_52blk"), SubResource("Resource_khruj"), SubResource("Resource_b2tah")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
 texture = ExtResource("7_sekjx")

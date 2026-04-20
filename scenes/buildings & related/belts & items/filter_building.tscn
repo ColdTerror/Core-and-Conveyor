@@ -1,7 +1,17 @@
 [gd_scene format=3 uid="uid://cayduqk5ki558"]
 
 [ext_resource type="Script" uid="uid://dm0dn7doslq6j" path="res://scripts/Building Classes/filter_building.gd" id="1_cfo5c"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="2_d342g"]
 [ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="2_uxved"]
+
+[sub_resource type="Resource" id="Resource_uxved"]
+script = ExtResource("2_d342g")
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_pykma"]
+script = ExtResource("2_d342g")
+item_name = "Stone"
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y4pf7"]
 size = Vector2(32, 32)
@@ -10,6 +20,7 @@ size = Vector2(32, 32)
 self_modulate = Color(0.2090604, 0.47490835, 0.2549174, 1)
 script = ExtResource("1_cfo5c")
 building_name = "Filter"
+build_costs = Array[ExtResource("2_d342g")]([SubResource("Resource_uxved"), SubResource("Resource_pykma")])
 build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1421611039]

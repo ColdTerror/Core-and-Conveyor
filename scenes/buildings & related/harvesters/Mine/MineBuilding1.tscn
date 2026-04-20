@@ -5,10 +5,27 @@
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_ush8g"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_wcq7w"]
 [ext_resource type="PackedScene" uid="uid://esdoasxvtl4i" path="res://scenes/buildings & related/harvesters/Mine/MineBuilding2.tscn" id="5_4xj7m"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="5_dp64x"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cawij"]
 atlas = ExtResource("2_ush8g")
 region = Rect2(640, 0, 96, 128)
+
+[sub_resource type="Resource" id="Resource_u4cs1"]
+script = ExtResource("5_dp64x")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_dp64x"]
+script = ExtResource("5_dp64x")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_fby2o"]
+script = ExtResource("5_dp64x")
+item_name = "Stone"
+amount = 50
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wcq7w"]
 size = Vector2(96, 128)
@@ -20,9 +37,11 @@ generic_item_scene = ExtResource("2_wcq7w")
 building_name = "Mine"
 size = Vector2i(3, 4)
 icon = SubResource("AtlasTexture_cawij")
+build_costs = Array[ExtResource("5_dp64x")]([SubResource("Resource_u4cs1")])
 build_range = 8.0
 corruption_range = 10.0
 upgrades_to = ExtResource("5_4xj7m")
+upgrade_cost = Array[ExtResource("5_dp64x")]([SubResource("Resource_dp64x"), SubResource("Resource_fby2o")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
 texture = ExtResource("2_ush8g")

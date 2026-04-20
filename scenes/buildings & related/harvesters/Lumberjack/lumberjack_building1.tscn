@@ -13,6 +13,12 @@ region = Rect2(128, 0, 128, 128)
 
 [sub_resource type="Resource" id="Resource_3ltmk"]
 script = ExtResource("5_e6wq2")
+amount = 10
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_w0gcj"]
+script = ExtResource("5_e6wq2")
+amount = 50
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
@@ -29,6 +35,7 @@ build_costs = Array[ExtResource("5_e6wq2")]([SubResource("Resource_3ltmk")])
 build_range = 8.0
 corruption_range = 10.0
 upgrades_to = ExtResource("6_w0gcj")
+upgrade_cost = Array[ExtResource("5_e6wq2")]([SubResource("Resource_w0gcj")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
 texture = ExtResource("1_0p6bf")

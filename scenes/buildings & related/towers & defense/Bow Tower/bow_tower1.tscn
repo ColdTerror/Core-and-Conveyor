@@ -14,8 +14,33 @@ script = ExtResource("3_fp6y0")
 amount = 25
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
+[sub_resource type="Resource" id="Resource_8sn43"]
+script = ExtResource("3_fp6y0")
+item_name = "Stone"
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
 [sub_resource type="Resource" id="Resource_lsqhb"]
 script = ExtResource("3_fp6y0")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_y77tm"]
+script = ExtResource("3_fp6y0")
+item_name = "Stone"
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_vun2g"]
+script = ExtResource("3_fp6y0")
+item_name = "Planks"
+amount = 10
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_ieft0"]
+script = ExtResource("3_fp6y0")
+item_name = "Stone Mason"
+amount = 10
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nr8e2"]
@@ -31,11 +56,11 @@ attack_range = 256.0
 building_name = "Bow Tower"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_fp6y0")
-build_costs = Array[ExtResource("3_fp6y0")]([SubResource("Resource_nr8e2")])
+build_costs = Array[ExtResource("3_fp6y0")]([SubResource("Resource_nr8e2"), SubResource("Resource_8sn43")])
 build_range = 6.0
 corruption_range = 8.0
 upgrades_to = ExtResource("4_nr8e2")
-upgrade_cost = Array[ExtResource("3_fp6y0")]([SubResource("Resource_lsqhb")])
+upgrade_cost = Array[ExtResource("3_fp6y0")]([SubResource("Resource_lsqhb"), SubResource("Resource_y77tm"), SubResource("Resource_vun2g"), SubResource("Resource_ieft0")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156622]
 texture = SubResource("AtlasTexture_nr8e2")

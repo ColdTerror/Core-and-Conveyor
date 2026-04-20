@@ -21,7 +21,8 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"1f1bf576-e9e0-4cfc-8db2-d717bdcb592c"
+				"8610a1c0-09d8-452d-92de-3f603f880918",
+				"8f825bdc-0652-4811-bb65-88a41be5e9c0"
 			]
 		},
 		{
@@ -31,6 +32,7 @@
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"85b8d63a-a890-4ddd-8868-904854d679c7",
 				"a45f5416-4548-425d-a4ed-b0a6cc27d35e",
+				"1f1bf576-e9e0-4cfc-8db2-d717bdcb592c",
 				"235b41e6-8c69-42c1-afc1-06ee66667bf3",
 				"4e3d083a-5180-4f44-b6fa-b44ea5bf6bc2",
 				"7e14c975-a4a5-4189-a1ab-6e46c1ec0094",
@@ -877,6 +879,20 @@
 		{
 			"uuid": "5469ea9a-5701-4ea3-aa54-62aca479e781",
 			"title": "bot when setting home when limping it continues working instead of limping to new home",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8610a1c0-09d8-452d-92de-3f603f880918",
+			"title": "upgrades as construction sites",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8f825bdc-0652-4811-bb65-88a41be5e9c0",
+			"title": "conveyer speed upgrade (either upgrade or research)",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
