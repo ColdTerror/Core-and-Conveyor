@@ -325,11 +325,18 @@ func get_upgrade_data() -> Dictionary:
 	if "selected_output_name" in self:
 		data["selected_output_name"] = self.get("selected_output_name")
 		
-	
+	# Save Tower logic
 	if "targeting_mode" in self:
 		data["targeting_mode"] = self.get("targeting_mode")
 	if "current_targeting_index" in self:
 		data["current_targeting_index"] = self.get("current_targeting_index")
+	
+	# --- Save Conveyor / Directional Logic ---
+	if "direction" in self:
+		data["direction"] = self.get("direction")
+	if "rotation" in self:
+		data["rotation"] = self.get("rotation")
+		
 		
 	return data
 
@@ -343,11 +350,19 @@ func apply_upgrade_data(data: Dictionary):
 	# Restore Filters
 	if data.has("selected_output_name") and "selected_output_name" in self:
 		self.set("selected_output_name", data["selected_output_name"])
-		
+	
+	# Restore Tower logic
 	if data.has("targeting_mode") and "targeting_mode" in self:
 		self.set("targeting_mode", data["targeting_mode"])
 	if data.has("current_targeting_index") and "current_targeting_index" in self:
 		self.set("current_targeting_index", data["current_targeting_index"])
+		
+	# --- Restore Conveyor / Directional Logic ---
+	if data.has("direction") and "direction" in self:
+		self.set("direction", data["direction"])
+	if data.has("rotation") and "rotation" in self:
+		self.set("rotation", data["rotation"])
+	
 
 # ==========================================
 # SAVE / LOAD SYSTEM (Base Class)

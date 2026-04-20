@@ -22,7 +22,10 @@
 			"title": "Doing",
 			"tasks": [
 				"8610a1c0-09d8-452d-92de-3f603f880918",
-				"8f825bdc-0652-4811-bb65-88a41be5e9c0"
+				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
+				"30993a38-c2d2-4bf3-a797-b23b4b08e66a",
+				"dbbc215c-2bf3-433c-aed4-a57db4baed0c",
+				"49c494d1-c91b-49ab-bb6c-d0de3e187e10"
 			]
 		},
 		{
@@ -893,6 +896,27 @@
 		{
 			"uuid": "8f825bdc-0652-4811-bb65-88a41be5e9c0",
 			"title": "conveyer speed upgrade (either upgrade or research)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "30993a38-c2d2-4bf3-a797-b23b4b08e66a",
+			"title": "belts inputting into building isnt smooth due to animation",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "dbbc215c-2bf3-433c-aed4-a57db4baed0c",
+			"title": "construction sites are 50 path and dont mark solid when finishing",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "49c494d1-c91b-49ab-bb6c-d0de3e187e10",
+			"title": "cant upgrade without full amount",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

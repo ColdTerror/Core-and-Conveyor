@@ -811,69 +811,97 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	for cost in old_building.upgrade_cost:
 		upgrade_cost_dict[cost.item_name] = cost.amount
 	
-	if not upgrade_cost_dict.is_empty() and not EconomyManager.can_afford(upgrade_cost_dict):
-		return false
-	
-	var old_dir = old_building.direction if "direction" in old_building else Vector2i.RIGHT
-	var old_rot = old_building.rotation
-	var true_origin = old_building.grid_origin
 
+	var is_instant = old_building is ConveyorBuilding or old_building is WallBuilding
+	
+	if is_instant and not upgrade_cost_dict.is_empty():
+		if not EconomyManager.can_afford(upgrade_cost_dict):
+			return false # Only block instant upgrades if unaffordable
+	
+	var true_origin = old_building.grid_origin
 	var old_priority_index = master_priority_queue.find(old_building)
 	
-	# EXTRACT DATA BEFORE DESTRUCTION
-	var saved_data = old_building.get_upgrade_data()
+	# 1. EXTRACT DATA BEFORE DESTRUCTION
+	var saved_data = {}
+	if old_building.has_method("get_upgrade_data"):
+		saved_data = old_building.get_upgrade_data()
+		
+	if "direction" in old_building: saved_data["direction"] = old_building.direction
+	if "rotation" in old_building: saved_data["rotation"] = old_building.rotation
+		
 	old_building.is_upgrading = true # Tell the system not to delete the global items!
-	
 	
 	_on_building_destroyed(old_building)
 	old_building.queue_free()
 	
-	# SPAWN NEW BUILDING
-
-	var new_building = old_building.upgrades_to.instantiate() as Building
-	add_child(new_building)
-	new_building.place_at(true_origin, level_ref.object_layer)
-	new_building.set_ghost(false)
-	
-	if new_building is ConveyorBuilding:
-		new_building.direction = old_dir
-		new_building.rotation = old_rot
-		new_building.setup(level_ref, old_dir)
-	elif new_building.has_method("setup"):
-		new_building.setup(level_ref)
+	if is_instant:
+		# --- FAST TRACK: INSTANT UPGRADE ---
+		var new_building = old_building.upgrades_to.instantiate() as Building
+		add_child(new_building)
 		
-	# INJECT DATA INTO NEW BUILDING
-	new_building.apply_upgrade_data(saved_data)
-	
-	_register_building(new_building)
-	
-	if old_priority_index != -1 and not _is_grouped_type(new_building):
-		master_priority_queue.erase(new_building) # Take it off the bottom
-		master_priority_queue.insert(old_priority_index, new_building) # Put it in the old spot!
+		# Inject data first so conveyors know which way to face!
+		if new_building.has_method("apply_upgrade_data"):
+			new_building.apply_upgrade_data(saved_data)
+			
+		new_building.place_at(true_origin, level_ref.object_layer)
+		new_building.set_ghost(false)
 		
-	_add_safe_zone(new_building)
-	_add_build_zone(new_building)
-	_add_attack_zone(new_building)
-	
-	if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
-		new_building.fired_projectile.connect(level_ref._on_tower_fired)
-	new_building.destroyed.connect(_on_building_destroyed)
-	
-	if pathfinder:
-		var footprint = new_building.get_footprint(grid_pos)
-		if new_building.is_solid_obstacle:
-			for tile in footprint: pathfinder.set_obstacle(tile, true)
-		else:
-			if (new_building is WallBuilding):
-				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
+		if new_building is ConveyorBuilding:
+			new_building.setup(level_ref, new_building.direction)
+		elif new_building.has_method("setup"):
+			new_building.setup(level_ref)
+			
+		_register_building(new_building)
+		
+		if old_priority_index != -1 and not _is_grouped_type(new_building):
+			master_priority_queue.erase(new_building)
+			master_priority_queue.insert(old_priority_index, new_building)
+			
+		_add_safe_zone(new_building)
+		_add_build_zone(new_building)
+		_add_attack_zone(new_building)
+		
+		if new_building.has_signal("fired_projectile") and level_ref.has_method("_on_tower_fired"):
+			new_building.fired_projectile.connect(level_ref._on_tower_fired)
+		new_building.destroyed.connect(_on_building_destroyed)
+		
+		if pathfinder:
+			var footprint = new_building.get_footprint(grid_pos)
+			if new_building.is_solid_obstacle:
+				for tile in footprint: pathfinder.set_obstacle(tile, true)
 			else:
-				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
-	
-	if not upgrade_cost_dict.is_empty():
-		EconomyManager.spend_resources(upgrade_cost_dict)
+				if (new_building is WallBuilding):
+					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
+				else:
+					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
 		
+		# Spend the resources instantly!
+		if not upgrade_cost_dict.is_empty():
+			EconomyManager.spend_resources(upgrade_cost_dict)
+			
+	else:
+		# --- SLOW TRACK: BLUEPRINT UPGRADE ---
+		var site = construction_site_scene.instantiate() as ConstructionSite
+		add_child(site)
+		
+		var target_name = old_building.building_name + " (Upgrading)"
+		site.setup_blueprint(level_ref, old_building.upgrades_to, upgrade_cost_dict, old_building.size, target_name)
+		
+		if not saved_data.is_empty():
+			site.set_meta("relocation_data", saved_data)
+			
+		site.place_at(true_origin, level_ref.object_layer)
+		
+		_register_building(site)
+		site.destroyed.connect(_on_building_destroyed)
+		
+		if pathfinder:
+			for tile in site.occupied_tiles:
+				pathfinder.enemy_astar.set_point_solid(tile, false)
+				pathfinder.enemy_astar.set_point_weight_scale(tile, 50.0)
+				
 	return true
-	
+
 func show_upgrade_preview(grid_pos: Vector2i):
 	if not occupied_tiles.has(grid_pos):
 		placement_ended.emit()
@@ -889,7 +917,13 @@ func show_upgrade_preview(grid_pos: Vector2i):
 	for cost in b.upgrade_cost:
 		upgrade_cost_dict[cost.item_name if "item_name" in cost else cost] = cost.amount if "amount" in cost else b.upgrade_cost[cost]
 	
-	var can_afford = upgrade_cost_dict.is_empty() or EconomyManager.can_afford(upgrade_cost_dict)
+	var is_instant = b is ConveyorBuilding or b is WallBuilding
+	var can_afford = true # Assume we can place it as a blueprint by default
+	
+	# Only force it to red if it's an instant building and we are broke
+	if is_instant and not upgrade_cost_dict.is_empty():
+		can_afford = EconomyManager.can_afford(upgrade_cost_dict)
+		
 	var stats = _get_upgrade_stats(b)
 	
 	placement_cost_updated.emit("Upgrade " + b.building_name, upgrade_cost_dict, can_afford, stats)
