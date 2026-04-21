@@ -20,6 +20,7 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 		return false
 	
 	held_item = item_node
+	is_moving_to_edge = false # Start in Phase 1 (Moving to center)
 	
 	# Remember where this came from so we don't accidentally push it backwards!
 	if source_belt:
@@ -29,33 +30,57 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 	else:
 		input_direction = Vector2i.ZERO
 	
-	# Parenting Logic (Same as normal belt)
+	# Parenting Logic
 	var old_parent = item_node.get_parent()
 	if old_parent and old_parent != level_ref:
 		old_parent.remove_child(item_node)
 	if not item_node.get_parent():
 		level_ref.add_child(item_node)
 	
-	# Notice we DON'T snap to the edge here. 
-	# We let the item glide smoothly from the previous belt directly into the center.
 	return true
 
 func _process(delta):
-	if is_delivering: return
-	
 	if held_item == null: return
 	if not is_instance_valid(held_item):
 		held_item = null
 		return
 
-	# Always pull the item to the absolute center of the router
-	var target_pos = global_position
-	held_item.global_position = held_item.global_position.move_toward(target_pos, speed * delta)
-	
-	# Once it reaches the center, decide where it goes
-	if held_item.global_position.distance_to(target_pos) < 1.0:
-		held_item.global_position = target_pos # Snap exactly to center
-		_try_route()
+	# --- HANDLE COOLDOWN ---
+	if push_cooldown > 0:
+		push_cooldown -= delta
+		return
+
+	# ========================================
+	# PHASE 1: Pull to the absolute center
+	# ========================================
+	if not is_moving_to_edge:
+		var target_pos = global_position
+		held_item.global_position = held_item.global_position.move_toward(target_pos, speed * delta)
+		
+		# Once it reaches the center, decide where it goes
+		if held_item.global_position.distance_to(target_pos) < 1.0:
+			held_item.global_position = target_pos # Snap exactly to center
+			_try_route()
+			
+	# ========================================
+	# PHASE 2: Push to the chosen edge
+	# ========================================
+	else:
+		var target_pos = global_position + (Vector2(direction) * 16.0)
+		
+		# Use the base class function to check if the route is still open!
+		if not _can_push_to_neighbor():
+			push_cooldown = 0.5 
+			return
+			
+		held_item.global_position = held_item.global_position.move_toward(target_pos, speed * delta)
+		
+		if held_item.global_position.distance_to(target_pos) < 1.0:
+			# Use the base class function to physically push it!
+			if _push_to_neighbor():
+				pass # Success! (Base class handles clearing held_item)
+			else:
+				push_cooldown = 0.5
 
 # --- THE SMART ROUTING LOGIC ---
 
@@ -77,50 +102,32 @@ func _try_route():
 		
 		if manager.occupied_tiles.has(target_pos):
 			var neighbor = manager.occupied_tiles[target_pos]
+			var can_push = false
 			
 			# CASE A: Output to a normal Conveyor
 			if neighbor is ConveyorBuilding and not neighbor is RouterBuilding:
-				# Only output if the belt is pointing AWAY from the router
-				if neighbor.direction == offset:
-					if neighbor.accepts_item_at(Vector2i.ZERO):
-						if neighbor.accept_item_node(held_item, self):
-							_finish_routing(check_idx)
-							return
-							
+				if neighbor.direction == offset and (neighbor.held_item == null or neighbor.is_moving_to_edge):
+					can_push = true
+						
 			# CASE B: Output to another Router (Routers can feed Routers!)
 			elif neighbor is RouterBuilding:
-				if neighbor.accepts_item_at(Vector2i.ZERO):
-					if neighbor.accept_item_node(held_item, self):
-						_finish_routing(check_idx)
-						return
-						
+				if neighbor.held_item == null or neighbor.is_moving_to_edge:
+					can_push = true
+					
 			# CASE C: Output to Factory/Stockpile
 			elif neighbor.has_method("add_item") and "item_data" in held_item:
+				can_push = true
 				
-				# Try to give the building 1 item. If it returns > 0, it took it!
-				if neighbor.add_item(held_item.item_data, 1) > 0:
-					
-					# --- THE FIX: Animate instead of teleporting ---
-					is_delivering = true # Lock the router!
-					
-					# Slide it in the direction of the offset we are currently checking
-					var slide_target = global_position + (Vector2(offset) * 16.0)
-					var tween = create_tween()
-					tween.tween_property(held_item, "global_position", slide_target, 0.2)
-					
-					# Wait for the animation to finish before cleaning up
-					tween.tween_callback(func():
-						if is_instance_valid(held_item):
-							held_item.queue_free()
-						is_delivering = false # Unlock the router
-						_finish_routing(check_idx) # Clear the held_item and update the index
-					)
-					return
-					# -----------------------------------------------
-
-func _finish_routing(index_used: int):
-	held_item = null
-	last_output_index = index_used
+			if can_push:
+				# --- THE FIX: Transition to Phase 2 ---
+				direction = offset # Temporarily use the inherited direction variable!
+				is_moving_to_edge = true 
+				last_output_index = check_idx
+				return
+				# --------------------------------------
+				
+	# If all valid outputs are blocked, pause briefly before checking again
+	push_cooldown = 0.5
 	
 # ==========================================
 # SAVE / LOAD SYSTEM (Router)
@@ -132,6 +139,8 @@ func get_save_data() -> Dictionary:
 	# 2. Add the Router's unique memory
 	data["last_output_index"] = last_output_index
 	data["input_direction"] = var_to_str(input_direction)
+	
+	# Note: We removed data["is_delivering"]!
 	
 	return data
 

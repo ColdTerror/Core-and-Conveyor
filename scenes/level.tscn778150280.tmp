@@ -1,0 +1,252 @@
+[gd_scene format=3 uid="uid://dm3jfmd14wxsf"]
+
+[ext_resource type="Script" uid="uid://b6kxlovwh8gyn" path="res://scripts/Managers/Level.gd" id="1_olg7q"]
+[ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="2_olg7q"]
+[ext_resource type="TileSet" uid="uid://b0t0rlqy43s6j" path="res://assets/tilesets/Tiles.tres" id="2_w8frs"]
+[ext_resource type="Resource" uid="uid://tcmc1jpf0sr1" path="res://resources/tiles/0_Dirt.tres" id="3_t1rx8"]
+[ext_resource type="Resource" uid="uid://cng2dakx3krgl" path="res://resources/tiles/1_Water.tres" id="4_8iemx"]
+[ext_resource type="Resource" uid="uid://bmhgfl07ob50b" path="res://resources/tiles/2_Sand.tres" id="5_64w2a"]
+[ext_resource type="Resource" uid="uid://cwk72joli5ujg" path="res://resources/tiles/3_Forest.tres" id="6_fpun6"]
+[ext_resource type="Resource" uid="uid://reqe4t0u3m16" path="res://resources/tiles/4_Stone.tres" id="7_wc255"]
+[ext_resource type="Script" uid="uid://c800uxnceihnq" path="res://scripts/Managers/camera_controller.gd" id="9_8iemx"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="13_arp2o"]
+[ext_resource type="PackedScene" uid="uid://2d6c3otixyl3" path="res://scenes/buildings & related/towers & defense/gate_building.tscn" id="14_0fmhk"]
+[ext_resource type="PackedScene" uid="uid://cs65262rv84b4" path="res://scenes/buildings & related/belts & items/stockpile_building.tscn" id="14_ux5qa"]
+[ext_resource type="PackedScene" uid="uid://dupuw0x1fcxf2" path="res://scenes/buildings & related/harvesters/Lumberjack/lumberjack_building1.tscn" id="15_8gofh"]
+[ext_resource type="Script" uid="uid://y8ifotnqs7ch" path="res://scripts/Managers/building_manager.gd" id="15_gunhw"]
+[ext_resource type="PackedScene" uid="uid://cayduqk5ki558" path="res://scenes/buildings & related/belts & items/filter_building.tscn" id="16_535f6"]
+[ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/buildings & related/processors/Sawmill/sawmill_building1.tscn" id="16_pqd0y"]
+[ext_resource type="PackedScene" uid="uid://datlui80eimn3" path="res://scenes/buildings & related/harvesters/Mine/MineBuilding1.tscn" id="17_w3o6u"]
+[ext_resource type="PackedScene" uid="uid://u8dr3txp3net" path="res://scenes/buildings & related/towers & defense/Bow Tower/bow_tower1.tscn" id="17_xy2fk"]
+[ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/hover_menu.tscn" id="18_82cfe"]
+[ext_resource type="PackedScene" uid="uid://cg13cd0e8r5ne" path="res://scenes/buildings & related/towers & defense/projectile.tscn" id="18_cmcjb"]
+[ext_resource type="PackedScene" uid="uid://do66a1tmnwe8j" path="res://scenes/buildings & related/processors/Stonemason/stonemason_building1.tscn" id="18_gur6y"]
+[ext_resource type="PackedScene" uid="uid://c0fjlwuepy3iy" path="res://scenes/buildings & related/towers & defense/wall.tscn" id="18_kih21"]
+[ext_resource type="PackedScene" uid="uid://dtgqlytnlxmmy" path="res://scenes/buildings & related/belts & items/conveyer.tscn" id="19_gur6y"]
+[ext_resource type="PackedScene" uid="uid://4cbh1hhyn6y" path="res://scenes/buildings & related/processors/Fletcher/fletcher_building1.tscn" id="19_v3why"]
+[ext_resource type="PackedScene" uid="uid://bscvnmiqn3de6" path="res://scenes/buildings & related/belts & items/router_building.tscn" id="20_2e2fo"]
+[ext_resource type="PackedScene" uid="uid://dstw12awamhw8" path="res://scenes/buildings & related/core_building.tscn" id="21_gur6y"]
+[ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
+[ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/detail_menu.tscn" id="21_wu01b"]
+[ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
+[ext_resource type="Script" uid="uid://derk5dx603k7c" path="res://scripts/Managers/time_manager.gd" id="23_asl66"]
+[ext_resource type="Script" uid="uid://bdgkdni8jfnax" path="res://scripts/UI/overlay_renderer.gd" id="25_svjb4"]
+[ext_resource type="PackedScene" uid="uid://ce1ik2gwvn5dc" path="res://scenes/buildings & related/construction_site_building.tscn" id="26_v3why"]
+[ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/test_enemy.tscn" id="27_cmcjb"]
+[ext_resource type="PackedScene" uid="uid://bc7bv1elbmh38" path="res://scenes/buildings & related/terraform_site.tscn" id="27_q4oe8"]
+[ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/Managers/pathfinder.gd" id="29_7agi7"]
+[ext_resource type="PackedScene" uid="uid://mc4h1u2qxbyd" path="res://scenes/ui/enemy_info_popup.tscn" id="29_w3o6u"]
+[ext_resource type="Script" uid="uid://cp1a4u82js3m8" path="res://scripts/UI/MainHUD.gd" id="30_2jdvr"]
+[ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/Enemy & Related/wave_manager.tscn" id="32_2e2fo"]
+[ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/Enemy & Related/corruption_manager.gd" id="34_v3why"]
+[ext_resource type="PackedScene" uid="uid://cdmxyx00rhtcw" path="res://scenes/research/research_screen.tscn" id="35_asl66"]
+[ext_resource type="PackedScene" uid="uid://b0e2y87cv1d35" path="res://scenes/ui/management_menu.tscn" id="36_c1pbi"]
+[ext_resource type="PackedScene" uid="uid://cmd0dxnybdaf8" path="res://scenes/ui/statistics_menu.tscn" id="38_50fbu"]
+[ext_resource type="PackedScene" uid="uid://bks37kepe8vmk" path="res://scenes/ui/pause_menu.tscn" id="43_iafhg"]
+
+[node name="Level" type="Node2D" unique_id=368109732]
+script = ExtResource("1_olg7q")
+tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255")])
+item_scene = ExtResource("13_arp2o")
+stockpile_scene = ExtResource("14_ux5qa")
+lumberjack_scene = ExtResource("15_8gofh")
+sawmill_scene = ExtResource("16_pqd0y")
+bow_tower_scene = ExtResource("17_xy2fk")
+wall_scene = ExtResource("18_kih21")
+gate_scene = ExtResource("14_0fmhk")
+conveyor_scene = ExtResource("19_gur6y")
+router_scene = ExtResource("20_2e2fo")
+filter_scene = ExtResource("16_535f6")
+core_scene = ExtResource("21_gur6y")
+mine_scene = ExtResource("17_w3o6u")
+stonemason_scene = ExtResource("18_gur6y")
+fletcher_scene = ExtResource("19_v3why")
+projectile_scene = ExtResource("18_cmcjb")
+
+[node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "time_manager", "corruption_manager", "enemy_popup") instance=ExtResource("32_2e2fo")]
+level_ref = NodePath("..")
+corruption_layer = NodePath("../CorruptionLayer")
+enemy_scene = ExtResource("27_cmcjb")
+time_manager = NodePath("../TimeManager")
+corruption_manager = NodePath("../CorruptionManager")
+fallback_spawn_radius = 100.0
+enemy_popup = NodePath("../CanvasLayer/Popup_Layer/EnemyInfoPopup")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
+position = Vector2(640, 360)
+script = ExtResource("9_8iemx")
+edge_pan_margin = 5
+zoom_speed = 0.25
+min_zoom = 0.1
+max_zoom = 5.0
+pan_smoothing = 0.0
+
+[node name="TerrainLayer" type="TileMapLayer" parent="." unique_id=20833604]
+z_index = -2
+tile_set = ExtResource("2_w8frs")
+
+[node name="CorruptionLayer" type="TileMapLayer" parent="." unique_id=1141556788]
+z_index = -1
+tile_set = ExtResource("2_w8frs")
+
+[node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "terrain_layer", "corruption_layer", "hover_popup")]
+script = ExtResource("15_gunhw")
+object_layer = NodePath("../ObjectLayer")
+terrain_layer = NodePath("../TerrainLayer")
+corruption_layer = NodePath("../CorruptionLayer")
+hover_popup = NodePath("../CanvasLayer/Popup_Layer/HoverMenu")
+construction_site_scene = ExtResource("26_v3why")
+terraform_site_scene = ExtResource("27_q4oe8")
+
+[node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
+tile_set = ExtResource("2_w8frs")
+
+[node name="OverlayRenderer" type="Node2D" parent="." unique_id=826390895]
+script = ExtResource("25_svjb4")
+
+[node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager", "wave_manager", "time_manager")]
+script = ExtResource("34_v3why")
+corruption_layer = NodePath("../CorruptionLayer")
+terrain_layer = NodePath("../TerrainLayer")
+object_layer = NodePath("../ObjectLayer")
+building_manager = NodePath("../BuildingManager")
+wave_manager = NodePath("../WaveManager")
+time_manager = NodePath("../TimeManager")
+corruption_atlas = Vector2i(2, 1)
+
+[node name="Pathfinder" type="Node2D" parent="." unique_id=1266074560]
+script = ExtResource("29_7agi7")
+
+[node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
+script = ExtResource("23_asl66")
+lighting_modulate = NodePath("../DayNightLighting")
+real_minutes_per_day = 50.0
+
+[node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
+color = Color(1, 1, 1, 0)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1762792378]
+script = ExtResource("30_2jdvr")
+
+[node name="Popup_Layer" type="Control" parent="CanvasLayer" unique_id=1765369194]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DetailMenu" parent="CanvasLayer/Popup_Layer" unique_id=1200069952 node_paths=PackedStringArray("building_manager") instance=ExtResource("21_wu01b")]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -136.0
+offset_right = 60.0
+offset_bottom = 0.0
+grow_vertical = 0
+building_manager = NodePath("../../../BuildingManager")
+
+[node name="HoverMenu" parent="CanvasLayer/Popup_Layer" unique_id=545312411 instance=ExtResource("18_82cfe")]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -130.0
+offset_top = -72.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="EnemyInfoPopup" parent="CanvasLayer/Popup_Layer" unique_id=1317129203 instance=ExtResource("29_w3o6u")]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -23.5
+offset_right = 23.5
+offset_bottom = 81.0
+grow_horizontal = 2
+
+[node name="ManagementMenu" parent="CanvasLayer/Popup_Layer" unique_id=1030070791 node_paths=PackedStringArray("building_manager") instance=ExtResource("36_c1pbi")]
+layout_mode = 1
+offset_left = -402.0
+offset_top = -300.0
+offset_right = 402.0
+offset_bottom = 300.0
+building_manager = NodePath("../../../BuildingManager")
+
+[node name="StatisticsMenu" parent="CanvasLayer/Popup_Layer" unique_id=768049291 node_paths=PackedStringArray("time_manager") instance=ExtResource("38_50fbu")]
+layout_mode = 1
+time_manager = NodePath("../../../TimeManager")
+
+[node name="Hud_Layer" type="Control" parent="CanvasLayer" unique_id=1589356399]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HotBar_UI" parent="CanvasLayer/Hud_Layer" unique_id=1026067039 node_paths=PackedStringArray("building_manager") instance=ExtResource("23_5k0ak")]
+layout_mode = 1
+mouse_filter = 2
+building_manager = NodePath("../../../BuildingManager")
+
+[node name="GameUI" parent="CanvasLayer/Hud_Layer" unique_id=678937411 node_paths=PackedStringArray("wave_manager", "time_manager", "building_manager", "corruption_manager") groups=["GameUI"] instance=ExtResource("21_h6wmr")]
+layout_mode = 1
+wave_manager = NodePath("../../../WaveManager")
+time_manager = NodePath("../../../TimeManager")
+building_manager = NodePath("../../../BuildingManager")
+corruption_manager = NodePath("../../../CorruptionManager")
+
+[node name="GameOverPanel" type="PanelContainer" parent="CanvasLayer" unique_id=124325744]
+process_mode = 3
+visible = false
+modulate = Color(0.5385206, 0.5385206, 0.5385206, 1)
+self_modulate = Color(0.5370987, 0.5370987, 0.5370987, 1)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/GameOverPanel" unique_id=1070113219]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="Factory Overrun" type="Label" parent="CanvasLayer/GameOverPanel/VBoxContainer" unique_id=1983253095]
+layout_mode = 2
+text = "Factory Overrun"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Stats" type="Label" parent="CanvasLayer/GameOverPanel/VBoxContainer" unique_id=1310377526]
+layout_mode = 2
+text = "Wave: 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Restart" type="Button" parent="CanvasLayer/GameOverPanel/VBoxContainer" unique_id=813455380]
+layout_mode = 2
+text = "Restart
+"
+
+[node name="Exit" type="Button" parent="CanvasLayer/GameOverPanel/VBoxContainer" unique_id=1944556398]
+layout_mode = 2
+text = "Exit"
+
+[node name="ResearchScreen" parent="CanvasLayer" unique_id=662735147 instance=ExtResource("35_asl66")]
+visible = false
+
+[node name="PauseMenu" parent="CanvasLayer" unique_id=713948548 instance=ExtResource("43_iafhg")]
+visible = false

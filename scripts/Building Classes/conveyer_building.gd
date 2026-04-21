@@ -15,7 +15,7 @@ var level_ref: Node2D  # Reference to the level/world node
 # State tracking for two-phase movement system
 var is_moving_to_edge: bool = false  # false = moving to center, true = moving to edge
 var push_cooldown: float = 0.0
-var is_delivering: bool = false
+
 
 # ============================================================
 # SETUP & CLEANUP
@@ -81,9 +81,10 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 	
 	# === POSITION SNAPPING ===
 	if perpendicular_transfer:
-		# Item is turning a corner - DON'T snap position, let it move smoothly to center
-		# The item will naturally continue from its current position toward our center
-		pass
+		# --- THE FIX: Snap exactly to the side it entered from! ---
+		# This eliminates the 0.99 pixel desync that causes the stutter.
+		var entry_edge = global_position - (Vector2(source_belt.direction) * 16.0)
+		item_node.global_position = entry_edge
 	else:
 		# Item is continuing straight (or coming from non-belt) - snap to back edge
 		var back_edge = global_position - (Vector2(direction) * 16.0)
@@ -92,13 +93,12 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 	return true  # Success!
 
 
+
 # ============================================================
 # MOVEMENT LOOP (runs every frame)
 # ============================================================
 
 func _process(delta):
-	if is_delivering: return
-	
 	# Early exit: Nothing to move if belt is empty
 	if held_item == null: 
 		return
@@ -129,55 +129,40 @@ func _process(delta):
 		if held_item.global_position.distance_to(target_pos) < 1.0:
 			held_item.global_position = target_pos # Snap to exact center
 			
-			var neighbor = _get_neighbor()
-			
-			# CASE A: Neighbor is a Belt. Do the normal 2-phase edge handoff.
-			if neighbor and neighbor is ConveyorBuilding:
-				if _can_push_to_neighbor():
-					is_moving_to_edge = true 
-					
-			# CASE B: Neighbor is a Building. Push directly from the center!
-			elif neighbor and neighbor.has_method("add_item") and "item_data" in held_item:
-				if neighbor.add_item(held_item.item_data, 1) > 0:
-					# Success! Lock the belt so the item behind it waits.
-					is_delivering = true 
-					
-					var slide_target = global_position + (Vector2(direction) * 16.0)
-					var tween = create_tween()
-					tween.tween_property(held_item, "global_position", slide_target, 0.2)
-					
-					# --- NEW: Clean up ONLY when the animation finishes ---
-					tween.tween_callback(func():
-						if is_instance_valid(held_item):
-							held_item.queue_free()
-						held_item = null # Now the belt is actually empty!
-						is_delivering = false # Unlock the belt!
-					)
-					# ------------------------------------------------------
+			if _can_push_to_neighbor():
+				is_moving_to_edge = true 
+			else:
+				# --- THE FIX: No naps for belts! ---
+				var neighbor = _get_neighbor()
+				if neighbor is ConveyorBuilding:
+					pass # Wait patiently, check again next frame!
 				else:
-					# The building is full! 
-					push_cooldown = 0.5
+					push_cooldown = 0.5 # Give the building time to process
 	
 	# ========================================
-	# PHASE 2: Moving to Edge (Only used for Belt-to-Belt)
+	# PHASE 2: Moving to Edge (Used for Belts AND Buildings!)
 	# ========================================
 	else:
 		target_pos = global_position + (Vector2(direction) * 16.0)
 		
 		if not _can_push_to_neighbor():
-			# Belt ahead filled up while we were moving. Sit at edge and wait.
-			push_cooldown = 0.5 
+			# --- THE FIX: No naps for belts! ---
+			var neighbor = _get_neighbor()
+			if neighbor is ConveyorBuilding:
+				pass # Wait patiently, check again next frame!
+			else:
+				push_cooldown = 0.5 
 			return
 			
 		var move_step = speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
 		if held_item.global_position.distance_to(target_pos) < 1.0:
+			# _push_to_neighbor already successfully handles both belts and buildings!
 			if _push_to_neighbor():
 				pass # Success! Item is gone.
 			else:
 				push_cooldown = 0.5
-
 	
 # ============================================================
 # NEIGHBOR INTERACTION
@@ -261,7 +246,6 @@ func get_save_data() -> Dictionary:
 	data["direction"] = var_to_str(direction)
 	data["is_moving_to_edge"] = is_moving_to_edge
 	data["push_cooldown"] = push_cooldown
-	data["is_delivering"] = is_delivering
 	
 	# 3. Save the physical item!
 	if held_item and is_instance_valid(held_item) and "item_data" in held_item:
@@ -282,7 +266,6 @@ func load_save_data(data: Dictionary):
 		
 	is_moving_to_edge = data.get("is_moving_to_edge", false)
 	push_cooldown = data.get("push_cooldown", 0.0)
-	is_delivering = data.get("is_delivering", false)
 	
 	# 3. Respawn the physical item!
 	if data.has("held_item_name"):
