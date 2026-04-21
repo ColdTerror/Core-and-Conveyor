@@ -6,7 +6,8 @@ class_name ConveyorBuilding
 # ============================================================
 @export var generic_item_scene: PackedScene # <--- NEW: Needed to respawn items on load!
 
-@export var speed: float = 64.0  # Pixels per second the item travels
+@export var base_speed: float = 64.0  # Pixels per second the item travels
+var current_speed: float = 64.0
 
 var direction: Vector2i = Vector2i.RIGHT  # Grid direction (UP, DOWN, LEFT, RIGHT)
 var held_item: Node2D = null  # The item currently on this belt (null = empty)
@@ -21,6 +22,16 @@ var push_cooldown: float = 0.0
 # SETUP & CLEANUP
 # ============================================================
 
+func _ready():
+	super()
+	add_to_group("Conveyors")
+	apply_research_buffs()
+
+# Called when the belt is placed, AND when a global research finishes!
+func apply_research_buffs():
+	# If the multiplier is 1.5, a 64 speed belt instantly becomes 96!
+	current_speed = base_speed * ResearchManager.belt_speed_mult
+	
 # Called by BuildingManager when belt is placed
 func setup(level_instance: Node2D, dir: Vector2i):
 	level_ref = level_instance
@@ -122,7 +133,7 @@ func _process(delta):
 		target_pos = global_position
 		
 		# Move item toward center
-		var move_step = speed * delta
+		var move_step = current_speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
 		# Check if we've reached the center
@@ -154,7 +165,7 @@ func _process(delta):
 				push_cooldown = 0.5 
 			return
 			
-		var move_step = speed * delta
+		var move_step = current_speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
 		if held_item.global_position.distance_to(target_pos) < 1.0:

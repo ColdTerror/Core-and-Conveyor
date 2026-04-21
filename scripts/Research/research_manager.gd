@@ -4,6 +4,7 @@ extends Node
 # GLOBAL MULTIPLIERS
 # ==========================================
 var bot_speed_mult: float = 1.0
+var belt_speed_mult: float = 1.0 
 var max_buildings_allowed: int = 10
 var tower_damage_mult: float = 1.0
 
@@ -18,11 +19,13 @@ var tier_unlocked: int = 0  # 0 = nothing, 1 = tier 1 unlocked, 2 = tier 2, etc.
 const TECH_TIERS: Dictionary = {
 	"Core Expansion 1": 0,   # Tier 0 — always researchable, unlocks tier 1
 	"Bot Speed 1":      1,
+	"Belt Speed 1":     1,   
 	"Building Limit 1": 1,
 	"Tower Damage 1":   1,
 	"Wave Measurement": 1,
 	"Core Expansion 2": 1,   # Requires tier 1, unlocks tier 2
 	"Bot Speed 2":      2,
+	"Belt Speed 2":     2,   
 	"Building Limit 2": 2,
 	"Tower Damage 2":   2,
 	"Moon Measurement": 2,
@@ -57,9 +60,10 @@ func complete_research(tech_name: String):
 	# Only notify living units and UI when researching during active gameplay
 	_update_living_bots()
 	_update_living_towers()
+	_update_living_belts() 
 	research_unlocked.emit()
 
-# --- NEW: Helper function to apply the stats silently ---
+# --- Helper function to apply the stats silently ---
 func _apply_tech(tech_name: String):
 	match tech_name:
 		"Core Expansion 1":
@@ -72,6 +76,10 @@ func _apply_tech(tech_name: String):
 			bot_speed_mult = 1.25
 		"Bot Speed 2":
 			bot_speed_mult = 1.5
+		"Belt Speed 1":          
+			belt_speed_mult = 1.25
+		"Belt Speed 2":          
+			belt_speed_mult = 1.50
 		"Building Limit 1":
 			max_buildings_allowed = 20
 		"Building Limit 2":
@@ -82,7 +90,7 @@ func _apply_tech(tech_name: String):
 			tower_damage_mult = 1.25
 		"Wave Measurement":
 			wave_measure = true
-		"Moon Measurement", "Moon Measurement 1": # Catching both names just in case!
+		"Moon Measurement", "Moon Measurement 1": 
 			moon_measure_level = 1
 		_:
 			print("WARNING: Unknown tech -> ", tech_name)
@@ -96,6 +104,8 @@ func _update_living_bots():
 func _update_living_towers():
 	get_tree().call_group("Towers", "apply_research_buffs")
 
+func _update_living_belts():
+	get_tree().call_group("Conveyors", "apply_research_buffs")
 
 # ==========================================
 # SAVE / LOAD SYSTEM
@@ -109,6 +119,7 @@ func load_save_data(data: Dictionary):
 	# 1. Reset all Autoload variables back to Day 1 defaults
 	tier_unlocked = 0
 	bot_speed_mult = 1.0
+	belt_speed_mult = 1.0
 	max_buildings_allowed = 10
 	tower_damage_mult = 1.0
 	wave_measure = false

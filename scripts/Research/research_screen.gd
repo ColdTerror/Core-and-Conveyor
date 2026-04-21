@@ -26,6 +26,7 @@ func _ready():
 	var row_buildings = 400
 	var row_towers   = 600
 	var row_global   = 800
+	var row_belt   = 1000
 	
 	
 	# ==========================================
@@ -48,6 +49,8 @@ func _ready():
 	_place("Global1", col_0, row_global)
 	_place("Global2", col_1, row_global)
 	
+	_place("Belt1", col_0, row_belt)
+	_place("Belt2", col_1, row_belt)
 	# ==========================================
 	# WIRE THE CONNECTIONS
 	# ==========================================
@@ -60,6 +63,8 @@ func _ready():
 	graph_edit.connect_node("Tower1", 0, "Tower2", 0)
 	
 	graph_edit.connect_node("Global1", 0, "Global2", 0)
+	
+	graph_edit.connect_node("Belt1", 0, "Belt2", 0)
 
 	
 

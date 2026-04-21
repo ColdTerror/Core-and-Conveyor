@@ -350,6 +350,9 @@ func _find_nearest_storage():
 	if not _any_storage_has_space():
 		full_storages_ignored.clear()
 		unreachable_storages.clear()
+		if current_priority == TaskPriority.MAINTAIN:
+			_drop_inventory_and_work()
+			return
 		_go_home_or_standby(STANDBY_STORAGE_FULL)
 		return
 	
@@ -391,6 +394,9 @@ func _find_nearest_storage():
 	# All candidates exhausted — wait and retry
 	full_storages_ignored.clear()
 	unreachable_storages.clear()
+	if current_priority == TaskPriority.MAINTAIN:
+		_drop_inventory_and_work()
+		return
 	_go_home_or_standby(STANDBY_STORAGE_FULL)
 
 # Scans all buildings to find a stockpile that holds the requested item
@@ -660,6 +666,13 @@ func _do_standby_wake():
 	unreachable_tiles.clear()
 	current_state = State.IDLE
 
+# Instantly deletes whatever the bot is holding and resets its brain
+func _drop_inventory_and_work():
+	carried_amount = 0
+	carried_item_name = ""
+	carried_item_res = null
+	inventory_changed.emit()
+	current_state = State.IDLE
 # ==========================================
 # TILE MATH HELPERS
 # ==========================================

@@ -55,7 +55,7 @@ func _process(delta):
 	# ========================================
 	if not is_moving_to_edge:
 		var target_pos = global_position
-		held_item.global_position = held_item.global_position.move_toward(target_pos, speed * delta)
+		held_item.global_position = held_item.global_position.move_toward(target_pos, current_speed * delta)
 		
 		# Once it reaches the center, decide where it goes
 		if held_item.global_position.distance_to(target_pos) < 1.0:
@@ -73,7 +73,7 @@ func _process(delta):
 			push_cooldown = 0.5 
 			return
 			
-		held_item.global_position = held_item.global_position.move_toward(target_pos, speed * delta)
+		held_item.global_position = held_item.global_position.move_toward(target_pos, current_speed * delta)
 		
 		if held_item.global_position.distance_to(target_pos) < 1.0:
 			# Use the base class function to physically push it!

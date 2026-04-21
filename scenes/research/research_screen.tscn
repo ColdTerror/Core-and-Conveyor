@@ -77,8 +77,8 @@ ExtResource("3_xgb3y"): 25
 layout_mode = 0
 offset_left = 296.25
 offset_top = 47.25
-offset_right = 646.25
-offset_bottom = 197.25
+offset_right = 682.25
+offset_bottom = 335.25
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(395, 63)
@@ -134,6 +134,23 @@ position_offset = Vector2(1173, 63)
 title = "Tower Branch"
 research_name = "Tower Damage 1"
 desc = "Increase all Tower Damage by 10%"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Belt1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=780544748 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 879.75
+offset_top = 47.25
+offset_right = 1229.75
+offset_bottom = 197.25
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1173, 63)
+title = "Tower Branch"
+research_name = "Belt Speed 1"
+desc = "Sets Belt Speed to 1.25x"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
@@ -217,6 +234,23 @@ position_offset = Vector2(1173, 63)
 title = "Tower Branch"
 research_name = "Tower Damage 2"
 desc = "Increase all Tower Damage by 15%"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Belt2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1969009587 instance=ExtResource("2_l6ox2")]
+layout_mode = 0
+offset_left = 879.75
+offset_top = 47.25
+offset_right = 1229.75
+offset_bottom = 197.25
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1173, 63)
+title = "Tower Branch"
+research_name = "Belt Speed 2"
+desc = "Sets Belt Speed to 1.5x"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
