@@ -4,7 +4,6 @@ class_name WorkerBot
 # ==========================================
 # SIGNALS
 # ==========================================
-signal clicked(bot: WorkerBot)
 signal inventory_changed
 signal hovered(bot: WorkerBot)
 signal unhovered(bot: WorkerBot)
@@ -95,7 +94,6 @@ func setup(level: Node2D):
 	action_timer.timeout.connect(_on_action_timer_timeout)
 	
 	if has_node("Area2D"):
-		$Area2D.input_event.connect(_on_input_event)
 		$Area2D.mouse_entered.connect(_on_mouse_entered)
 		$Area2D.mouse_exited.connect(_on_mouse_exited)
 		
@@ -818,14 +816,13 @@ func _clear_reservation():
 
 func _on_mouse_entered():
 	hovered.emit(self)
+	InputManager.hovered_bot = self
 
 func _on_mouse_exited():
 	unhovered.emit(self)
+	if InputManager.hovered_bot == self:
+		InputManager.hovered_bot = null
 
-func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int):
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		get_viewport().set_input_as_handled()
-		clicked.emit(self)
 		
 func set_priority(new_priority: int):
 	if current_priority == new_priority: return

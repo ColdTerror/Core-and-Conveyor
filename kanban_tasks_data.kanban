@@ -21,7 +21,8 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"8f825bdc-0652-4811-bb65-88a41be5e9c0"
+				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
+				"840275de-0df5-40d1-beef-af8fd9d375c1"
 			]
 		},
 		{
@@ -925,6 +926,13 @@
 		{
 			"uuid": "5da6a58c-7d54-426e-8587-7f0ff8ba2efe",
 			"title": "bot wont maintain if it has wrong material in hand",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "840275de-0df5-40d1-beef-af8fd9d375c1",
+			"title": "camera input ",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

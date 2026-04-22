@@ -15,7 +15,9 @@ var _prev_show_path_grid: bool = false
 var _prev_placing_building: bool = false
 var _prev_terraform_jobs_empty: bool = true
 var _prev_overlay_threshold: int = 1
-var _prev_mode = null
+
+# --- THE FIX: We don't care about the Level's mode anymore, we care about the Controller's mode!
+var _prev_mode: int = 0 
 
 var _overlay_tick_timer: float = 0.0
 const OVERLAY_TICK_RATE: float = 1.0
@@ -26,6 +28,9 @@ func _ready():
 func _process(delta):
 	var bm = level.building_manager
 	if not bm: return
+	
+	
+	var current_mode = InputManager.current_mode
 
 	var needs_redraw = false
 
@@ -34,18 +39,19 @@ func _process(delta):
 		_rebuild_path_cost_cache()
 
 	# State-diff check (toggle on/off always gets an instant redraw)
-	if (bm.show_build_grid   != _prev_show_build_grid   or \
-		bm.show_safe_grid    != _prev_show_safe_grid    or \
-		bm.show_attack_grid  != _prev_show_attack_grid  or \
-		bm.show_path_grid    != _prev_show_path_grid    or \
-		bm.placing_building  != _prev_placing_building  or \
+	if (bm.show_build_grid    != _prev_show_build_grid    or \
+		bm.show_safe_grid     != _prev_show_safe_grid     or \
+		bm.show_attack_grid   != _prev_show_attack_grid   or \
+		bm.show_path_grid     != _prev_show_path_grid     or \
+		bm.placing_building   != _prev_placing_building   or \
 		bm.terraform_jobs.is_empty() != _prev_terraform_jobs_empty or \
 		bm.overlay_threshold != _prev_overlay_threshold or \
-		level.current_mode   != _prev_mode):
+		current_mode         != _prev_mode): # <- Updated to check Controller mode
 		needs_redraw = true
 
 	# Ghost placement: always update instantly
-	if bm.placing_building or level.current_mode != level.InteractionMode.NONE:
+	# Note: 0 is InteractionMode.NONE
+	if bm.placing_building or current_mode != 0: 
 		needs_redraw = true
 
 	# Dynamic overlays: throttled to once per second
@@ -58,14 +64,14 @@ func _process(delta):
 			needs_redraw = true
 
 	# Save state
-	_prev_show_build_grid       = bm.show_build_grid
-	_prev_show_safe_grid        = bm.show_safe_grid
-	_prev_show_attack_grid      = bm.show_attack_grid
-	_prev_show_path_grid        = bm.show_path_grid
-	_prev_placing_building      = bm.placing_building
-	_prev_terraform_jobs_empty  = bm.terraform_jobs.is_empty()
-	_prev_overlay_threshold     = bm.overlay_threshold
-	_prev_mode                  = level.current_mode
+	_prev_show_build_grid        = bm.show_build_grid
+	_prev_show_safe_grid         = bm.show_safe_grid
+	_prev_show_attack_grid       = bm.show_attack_grid
+	_prev_show_path_grid         = bm.show_path_grid
+	_prev_placing_building       = bm.placing_building
+	_prev_terraform_jobs_empty   = bm.terraform_jobs.is_empty()
+	_prev_overlay_threshold      = bm.overlay_threshold
+	_prev_mode                   = current_mode # <- Save the Controller mode
 
 	if needs_redraw:
 		queue_redraw()
@@ -82,12 +88,12 @@ func _draw():
 # ==========================================
 
 func _draw_tool_highlight():
-	match level.current_mode:
-		level.InteractionMode.DECONSTRUCT:
+	match InputManager.current_mode:
+		InputManager.InteractionMode.DECONSTRUCT:
 			_draw_grid_highlight(Color(1.0, 0.2, 0.2, 0.3), Color(1.0, 0.2, 0.2, 0.8))
-		level.InteractionMode.UPGRADE:
+		InputManager.InteractionMode.UPGRADE:
 			_draw_grid_highlight(Color(0.2, 0.8, 1.0, 0.3), Color(0.2, 0.8, 1.0, 0.8))
-		level.InteractionMode.TERRAFORM:
+		InputManager.InteractionMode.TERRAFORM:
 			_draw_grid_highlight(Color(1.0, 0.6, 0.0, 0.3), Color(1.0, 0.6, 0.0, 0.8))
 
 func _draw_grid_highlight(fill_color: Color, outline_color: Color):
@@ -276,8 +282,7 @@ func _rebuild_path_cost_cache():
 	
 	var bm = level.building_manager
 	if not bm or not bm.pathfinder or not bm.pathfinder.enemy_astar: return
-	#bot_astar
-	#enemy_astar
+
 	var astar = bm.pathfinder.enemy_astar
 	var region = astar.region
 	var font = _font
@@ -299,15 +304,13 @@ func _rebuild_path_cost_cache():
 				})
 			else:
 				var cost = astar.get_point_weight_scale(coords)
-				# PRO OPTIMIZATION: Only cache and draw numbers greater than 1.0 (like Water)
-				# Skipping normal 1.0 grass tiles prevents Godot from rendering 10,000 strings!
 				if cost > 1.0:
 					var text = str(cost)
 					var t_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 					var draw_pos = center_px - Vector2(t_size.x/2.0, -t_size.y/3.0)
 					
 					cached_path_draws.append({
-						"pos": draw_pos, "text": text, "color": Color(1.0, 0.0, 0.0, 1.0) # Bright Red!
+						"pos": draw_pos, "text": text, "color": Color(1.0, 0.0, 0.0, 1.0)
 					})
 
 func _draw_path_costs():
@@ -316,6 +319,5 @@ func _draw_path_costs():
 	
 	var font = _font
 	
-	# Lightning fast draw! Just loop the small pre-calculated list.
 	for item in cached_path_draws:
 		draw_string(font, item["pos"], item["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, item["color"])

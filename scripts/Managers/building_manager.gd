@@ -92,17 +92,9 @@ func _process(delta):
 	if placing_building:
 		queue_redraw()
 
-func _unhandled_input(event):
-	_handle_overlay_hotkeys(event)
-	
-	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
-		if ghost_building != null:
-			cancel_placement()
 
-func _handle_overlay_hotkeys(event):
-	if not event is InputEventKey or not event.is_pressed() or event.is_echo(): return
-	
-	match event.keycode:
+func handle_overlay_hotkeys(keycode: int):
+	match keycode:
 		KEY_F1:
 			var toggle = not show_build_grid
 			_clear_all_overlays()
@@ -386,7 +378,6 @@ func _on_core_placed(building: Building, grid_pos: Vector2i):
 		level_ref.object_layer.add_child(new_bot)
 		new_bot.global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(tile))
 		new_bot.setup(level_ref)
-		new_bot.clicked.connect(_on_bot_clicked)
 		new_bot.hovered.connect(_on_building_hovered)
 		new_bot.unhovered.connect(_on_building_unhovered)
 	
@@ -711,9 +702,6 @@ func register_finished_building(new_building: Building, grid_pos: Vector2i):
 			else:
 				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
 
-func select_building_at(grid_pos: Vector2i):
-	if occupied_tiles.has(grid_pos):
-		building_selected.emit(occupied_tiles[grid_pos])
 
 func deconstruct_building_at(grid_pos: Vector2i):
 	if not occupied_tiles.has(grid_pos): return
@@ -723,9 +711,6 @@ func deconstruct_building_at(grid_pos: Vector2i):
 		return
 	building.die()
 
-# ==========================================
-# ZONE TRACKING
-# ==========================================
 
 # ==========================================
 # ZONE TRACKING

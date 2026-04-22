@@ -15,8 +15,11 @@ enum ViewMode { TODAY, YESTERDAY, WEEK }
 var current_mode: ViewMode = ViewMode.TODAY
 
 func _ready():
+	GameState.menu_changed.connect(_on_global_menu_changed)
 	hide() 
-	close_button.pressed.connect(toggle_menu)
+	
+	# --- UPDATE: Point to close_screen ---
+	close_button.pressed.connect(close_screen)
 	
 	btn_today.pressed.connect(func(): _set_mode(ViewMode.TODAY))
 	btn_yesterday.pressed.connect(func(): _set_mode(ViewMode.YESTERDAY))
@@ -25,16 +28,33 @@ func _ready():
 	if EconomyManager.has_signal("stats_updated"):
 		EconomyManager.stats_updated.connect(refresh_ui)
 
+# ==========================================
+# UI STATE MACHINE ROUTING
+# ==========================================
 func toggle_menu():
 	if visible: 
-		GameState.is_menu_open = false
-		hide()
+		close_screen()
 	else:
-		if not GameState.is_menu_open:
-			GameState.is_menu_open = true
-			refresh_ui()
-			show()
+		open_screen()
 
+func open_screen():
+	# Ask GameState for permission. If it returns true, no other menus are blocking us!
+	if GameState.open_menu(GameState.MenuType.STATS):
+		refresh_ui()
+		show()
+
+func close_screen():
+	# Tell GameState to clear out
+	GameState.close_menu()
+
+func _on_global_menu_changed(active_menu):
+	# If the active menu is NO LONGER the Stats menu, hide ourselves!
+	if active_menu != GameState.MenuType.STATS:
+		hide()
+
+# ==========================================
+# DATA & REFRESH LOGIC
+# ==========================================
 func _set_mode(new_mode: ViewMode):
 	current_mode = new_mode
 	refresh_ui()
@@ -51,9 +71,6 @@ func refresh_ui():
 	btn_yesterday.modulate = Color(0.4, 1.0, 0.4) if current_mode == ViewMode.YESTERDAY else Color.WHITE
 	btn_week.modulate = Color(0.4, 1.0, 0.4) if current_mode == ViewMode.WEEK else Color.WHITE
 
-	# ==========================================
-	# THE FIX: Calculate the mathematical range
-	# ==========================================
 	var start_day = 1
 	var end_day = display_day
 
@@ -71,20 +88,15 @@ func refresh_ui():
 			start_day = display_day - 6
 			end_day = display_day
 
-	# Call our single, universal function!
 	var combined = _get_stats_for_range(start_day, end_day)
 	var prod_data = combined.prod
 	var cons_data = combined.cons
 
-	# Build Rows
 	if prod_data.is_empty():
 		_create_stat_row(prod_list, "Nothing produced.", "", Color(0.5, 0.5, 0.5))
 	else:
-		# 1. Get an array of just the item names
 		var prod_keys = prod_data.keys()
-		# 2. Sort the array based on the numbers inside the dictionary
 		prod_keys.sort_custom(func(a, b): return prod_data[a] > prod_data[b])
-		# 3. Build the rows using the newly sorted array!
 		for item_name in prod_keys:
 			_create_stat_row(prod_list, item_name, "+%d" % prod_data[item_name], Color(0.4, 1.0, 0.4))
 			
@@ -96,20 +108,15 @@ func refresh_ui():
 		for item_name in cons_keys:
 			_create_stat_row(cons_list, item_name, "-%d" % cons_data[item_name], Color(1.0, 0.4, 0.4))
 
-# ==========================================================
-# THE UNIVERSAL AGGREGATOR
-# ==========================================================
 func _get_stats_for_range(start_day: int, end_day: int) -> Dictionary:
 	var total_prod = {}
 	var total_cons = {}
 	
-	# 1. Grab data from the active, unfinished day (if it falls in our range)
 	var display_day = time_manager.current_day if is_instance_valid(time_manager) else 1
 	if display_day >= start_day and display_day <= end_day:
 		_add_to_dict(total_prod, EconomyManager.daily_production)
 		_add_to_dict(total_cons, EconomyManager.daily_consumption)
 
-	# 2. Grab data from the history archive
 	for entry in EconomyManager.history_archive:
 		if entry.day >= start_day and entry.day <= end_day:
 			_add_to_dict(total_prod, entry.produced)
@@ -117,7 +124,6 @@ func _get_stats_for_range(start_day: int, end_day: int) -> Dictionary:
 			
 	return {"prod": total_prod, "cons": total_cons}
 
-# Quick helper to merge dictionaries and add their numbers together
 func _add_to_dict(target: Dictionary, source: Dictionary):
 	for item in source:
 		target[item] = target.get(item, 0) + source[item]
@@ -133,13 +139,3 @@ func _create_stat_row(parent_container: Control, text_left: String, text_right: 
 	hbox.add_child(name_label)
 	hbox.add_child(val_label)
 	parent_container.add_child(hbox)
-
-func _unhandled_input(event):
-	# If the user presses Escape, AND this specific menu is currently open on screen...
-	if event.is_action_pressed("ui_cancel") and visible:
-		
-		# 1. Close the menu! 
-		hide() 
-		# 2. Consume the input so it doesn't leak into the game world
-		get_viewport().set_input_as_handled()
-		

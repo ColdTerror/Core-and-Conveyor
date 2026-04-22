@@ -14,12 +14,12 @@ extends Node2D
 @onready var stat_menu = $CanvasLayer/Popup_Layer/StatisticsMenu
 
 @onready var building_manager: BuildingManager = $BuildingManager
+@onready var wave_manager: WaveManager = $WaveManager
 @onready var pathfinder = $Pathfinder
 
 # ==========================================
 # ENUMS & CONSTANTS
 # ==========================================
-enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM }
 enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
 
 const ATLAS_COLUMNS := 3
@@ -61,7 +61,6 @@ const RES_STONE := 4
 # ==========================================
 # RUNTIME STATE
 # ==========================================
-var current_mode = InteractionMode.NONE
 var active_grid_objects := {}
 
 # Tool Trackers
@@ -74,6 +73,13 @@ var last_terrain_tile := Vector2i(-1, -1)
 # ==========================================
 
 func _ready():
+	
+	# Push all the necessary references up to the Autoload!
+	InputManager.level_ref = self
+	InputManager.building_manager = building_manager
+	InputManager.wave_manager = wave_manager
+	InputManager.management_menu = management_menu
+	InputManager.stat_menu = stat_menu
 	
 		
 	hover_menu.hide()
@@ -113,7 +119,7 @@ func _process(_delta):
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
 	# --- UPGRADE HOVER UI ---
-	if current_mode == InteractionMode.UPGRADE:
+	if InputManager.current_mode == InputManager.InteractionMode.UPGRADE:
 		# Only update the UI if the mouse moved to a NEW tile
 		if grid_pos != last_hovered_upgrade_tile:
 			last_hovered_upgrade_tile = grid_pos
@@ -124,146 +130,6 @@ func _process(_delta):
 			last_hovered_upgrade_tile = Vector2i(-1, -1)
 			building_manager.placement_ended.emit() 
 
-# ==========================================
-# STATE MACHINE: INPUT HANDLING
-# ==========================================
-
-func _unhandled_input(event):
-	var mouse_pos = get_global_mouse_position()
-	var grid_pos = terrain_layer.local_to_map(mouse_pos)
-
-	# ---------------------------------------------------------
-	# 1. HOTKEYS & MODE SWITCHING
-	# ---------------------------------------------------------
-	if event.is_action_pressed("rotate_tile"):
-		if current_mode == InteractionMode.PLACE_BUILDING:
-			building_manager.rotate_ghost()
-		return
-	
-	if event.is_action_pressed("deconstruct_hotkey"): 
-		building_manager.cancel_placement()
-		current_mode = InteractionMode.DECONSTRUCT
-		print("Entered Deconstruct Mode")
-		
-	if event.is_action_pressed("upgrade_hotkey"): 
-		building_manager.cancel_placement()
-		if current_mode == InteractionMode.UPGRADE:
-			current_mode = InteractionMode.NONE
-			print("Exited Upgrade Mode")
-		else:
-			current_mode = InteractionMode.UPGRADE
-			print("Entered Upgrade Mode")
-		
-	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		if event.keycode == KEY_T:
-			building_manager.cancel_placement()
-			if current_mode == InteractionMode.TERRAFORM:
-				current_mode = InteractionMode.NONE
-				print("Exited Terrain Mode")
-			else:
-				current_mode = InteractionMode.TERRAFORM
-				print("Entered Terrain Mode")
-				
-		if event.keycode == KEY_P:
-			management_menu.toggle_menu()
-			get_viewport().set_input_as_handled()
-		if event.keycode == KEY_L:
-			stat_menu.toggle_menu()
-			get_viewport().set_input_as_handled()
-	# ---------------------------------------------------------
-	# 2. BUILDING MODE (Delegated to Manager)
-	# ---------------------------------------------------------
-	if current_mode == InteractionMode.PLACE_BUILDING:
-		
-		#Catch the cancel placement before sending it to building manager
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
-			building_manager.cancel_placement()
-			current_mode = InteractionMode.NONE
-			return
-			
-			
-		if event is InputEventMouse: 
-			var finished = building_manager.handle_input(event, grid_pos)
-			if finished:
-				current_mode = InteractionMode.NONE
-			return 
-
-	# ---------------------------------------------------------
-	# 3. DECONSTRUCT MODE
-	# ---------------------------------------------------------
-	if current_mode == InteractionMode.DECONSTRUCT:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			building_manager.deconstruct_building_at(grid_pos)
-		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			building_manager.deconstruct_building_at(grid_pos)
-			
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
-			current_mode = InteractionMode.NONE
-			print("Exited Deconstruct Mode")
-		return 
-		
-	# ---------------------------------------------------------
-	# 4. UPGRADE MODE
-	# ---------------------------------------------------------
-	if current_mode == InteractionMode.UPGRADE:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			if building_manager.upgrade_building_at(grid_pos):
-				last_hovered_upgrade_tile = Vector2i(-1, -1)
-		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			if building_manager.upgrade_building_at(grid_pos):
-				last_hovered_upgrade_tile = Vector2i(-1, -1)
-			
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
-			current_mode = InteractionMode.NONE
-			if last_hovered_upgrade_tile != Vector2i(-1, -1):
-				last_hovered_upgrade_tile = Vector2i(-1, -1)
-				building_manager.placement_ended.emit() 
-			print("Exited Upgrade Mode")
-		return 
-
-	# ---------------------------------------------------------
-	# 5. TERRAFORM MODE
-	# ---------------------------------------------------------
-	if current_mode == InteractionMode.TERRAFORM:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				last_terrain_tile = grid_pos
-				if building_manager.occupied_tiles.has(grid_pos) and building_manager.occupied_tiles[grid_pos] is TerraformSite:
-					is_terrain_remove_brush = true
-					building_manager.deconstruct_building_at(grid_pos)
-				else:
-					is_terrain_remove_brush = false
-					building_manager._try_add_terrain_job(grid_pos)
-			else:
-				last_terrain_tile = Vector2i(-1, -1)
-				
-		elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			if grid_pos != last_terrain_tile:
-				last_terrain_tile = grid_pos
-				if is_terrain_remove_brush:
-					if building_manager.occupied_tiles.has(grid_pos) and building_manager.occupied_tiles[grid_pos] is TerraformSite:
-						building_manager.deconstruct_building_at(grid_pos)
-				else:
-					building_manager._try_add_terrain_job(grid_pos)
-			
-		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
-			current_mode = InteractionMode.NONE
-			last_terrain_tile = Vector2i(-1, -1)
-			print("Exited Terrain Mode")
-		return 
-		
-	# ---------------------------------------------------------
-	# 6. DEFAULT SELECTION & CANCEL
-	# ---------------------------------------------------------
-	if event.is_action_pressed("ui_left"):
-		if current_mode == InteractionMode.NONE:
-			building_manager.select_building_at(grid_pos)
-			if has_node("WaveManager"):
-				$WaveManager.deselect_enemy()
-
-	elif event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
-		building_manager.cancel_placement()
-		current_mode = InteractionMode.NONE
 
 # ==========================================
 # HOTBAR & UI
@@ -303,7 +169,7 @@ func _add_building_to_bar(name: String, packed_scene: PackedScene):
 func _on_hotbar_item_selected(data, is_building):
 	building_manager.cancel_placement()
 	if is_building:
-		current_mode = InteractionMode.PLACE_BUILDING
+		InputManager.current_mode = InputManager.InteractionMode.PLACE_BUILDING
 		building_manager.start_placing(data)
 
 # ==========================================
