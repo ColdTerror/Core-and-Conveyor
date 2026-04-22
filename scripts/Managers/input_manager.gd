@@ -13,11 +13,12 @@ var stat_menu: Control
 # ==========================================
 # STATE & TRACKERS
 # ==========================================
-enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM }
+enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM, SET_HOME }
 var current_mode: InteractionMode = InteractionMode.NONE
 
 var hovered_bot: WorkerBot = null
 var hovered_building: Building = null
+var bot_awaiting_home: Node2D = null
 
 var last_hovered_upgrade_tile: Vector2i = Vector2i(-1, -1)
 var last_terrain_tile: Vector2i = Vector2i(-1, -1)
@@ -109,7 +110,8 @@ func _unhandled_input(event: InputEvent):
 	if not level_ref or not building_manager: return
 	
 	# --- 1. THE GATEKEEPER: Block World Clicks ---
-	if GameState.is_menu_open:
+	# Block clicks UNLESS we are specifically trying to click the grid for a bot!
+	if GameState.is_menu_open and current_mode != InteractionMode.SET_HOME:
 		if event is InputEventMouseButton:
 			get_viewport().set_input_as_handled()
 		return
@@ -169,7 +171,23 @@ func _unhandled_input(event: InputEvent):
 
 		InteractionMode.TERRAFORM:
 			_handle_terraform_input(event, grid_pos)
-
+			
+		InteractionMode.SET_HOME:
+			if _is_left_clicking(event):
+				if is_instance_valid(bot_awaiting_home):
+					if bot_awaiting_home.has_method("is_valid_home_tile"):
+						if not bot_awaiting_home.is_valid_home_tile(grid_pos):
+							get_viewport().set_input_as_handled()
+							return # Invalid tile, keep trying!
+							
+					bot_awaiting_home.set_home(grid_pos)
+					if bot_awaiting_home.has_method("toggle_set_home_mode"):
+						bot_awaiting_home.toggle_set_home_mode(false)
+						
+				bot_awaiting_home = null
+				current_mode = InteractionMode.NONE
+				get_viewport().set_input_as_handled()
+		
 		InteractionMode.NONE:
 			if event.is_action_pressed("ui_left"):
 				_handle_default_selection(grid_pos)
@@ -179,6 +197,15 @@ func _unhandled_input(event: InputEvent):
 # ==========================================
 func _cancel_current_action():
 	building_manager.cancel_placement()
+	
+	if building_manager:
+		building_manager.building_selected.emit(null)
+		
+	if current_mode == InteractionMode.SET_HOME and is_instance_valid(bot_awaiting_home):
+		if bot_awaiting_home.has_method("toggle_set_home_mode"):
+			bot_awaiting_home.toggle_set_home_mode(false)
+		bot_awaiting_home = null
+		
 	current_mode = InteractionMode.NONE
 	last_hovered_upgrade_tile = Vector2i(-1, -1)
 	last_terrain_tile = Vector2i(-1, -1)
