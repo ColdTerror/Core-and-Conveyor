@@ -7,7 +7,10 @@ extends CanvasLayer
 signal close_research_tree
 
 func _ready():
-	#hide() # Hide when the game starts
+	# Listen to the GameState. If another menu opens, check if we need to hide!
+	GameState.menu_changed.connect(_on_global_menu_changed)
+	
+	hide() # Hide when the game starts
 	close_button.pressed.connect(close_screen)
 	
 	for node in graph_edit.get_children():
@@ -80,21 +83,15 @@ func _place(node_name: String, x: float, y: float):
 		push_warning("Research node not found: " + node_name)
 
 func open_screen():
-	GameState.is_menu_open = true
-	show()
+	if GameState.open_menu(GameState.MenuType.RESEARCH):
+		show()
 
 func close_screen():
-	GameState.is_menu_open = false
-	close_research_tree.emit()
-	hide()
-	
-func _unhandled_input(event):
-	# If the user presses Escape, AND this specific menu is currently open on screen...
-	if event.is_action_pressed("ui_cancel") and visible:
-		
-		# 1. Close the menu! 
-		# (Change 'hide()' to 'close_menu()' if your script has a custom cleanup function)
-		close_screen()
-		
-		# 2. Consume the input so it doesn't leak into the game world
-		get_viewport().set_input_as_handled()
+	GameState.close_menu()
+
+func _on_global_menu_changed(active_menu):
+	# If the active menu is NO LONGER the Research menu, hide ourselves!
+	if active_menu != GameState.MenuType.RESEARCH:
+		hide()
+		# Emit any signals you need when closing, like:
+		# close_research_tree.emit()

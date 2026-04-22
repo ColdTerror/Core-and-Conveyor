@@ -30,20 +30,50 @@ func _ready():
 # ==========================================
 # KEYBOARD INPUT (Menus & Mode Toggles)
 # ==========================================
+# ==========================================
+# KEYBOARD INPUT (Menus & Mode Toggles)
+# ==========================================
 func _unhandled_key_input(event: InputEvent):
 	if not event.is_pressed() or event.is_echo(): return
 
+	# --- 1. GLOBAL UI HOTKEYS (Allowed even if a menu is open!) ---
+	match event.keycode:
+		KEY_P:
+			if management_menu: management_menu.toggle_menu()
+			get_viewport().set_input_as_handled()
+			return
+		KEY_L:
+			if stat_menu: stat_menu.toggle_menu()
+			get_viewport().set_input_as_handled()
+			return
+
+	# --- 2. THE GATEKEEPER: Menu Routing ---
+	if GameState.is_menu_open:
+		# Universal Close Menu button
+		if event.is_action_pressed("ui_cancel"):
+			GameState.close_menu()
+			get_viewport().set_input_as_handled()
+			return
+			
+		# Example: Routing a specific key to a specific menu
+		if GameState.current_menu == GameState.MenuType.RESEARCH:
+			if event.keycode == KEY_R: 
+				print("Special Research Hotkey Pressed!")
+				get_viewport().set_input_as_handled()
+				return
+				
+		# If a menu is open and the key wasn't caught above, swallow it!
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- 3. WORLD ACTIONS (Only run if NO menus are open) ---
 	match event.keycode:
 		KEY_T:
 			_cancel_current_action()
 			current_mode = InteractionMode.NONE if current_mode == InteractionMode.TERRAFORM else InteractionMode.TERRAFORM
 			get_viewport().set_input_as_handled()
-		KEY_P:
-			if management_menu: management_menu.toggle_menu()
-			get_viewport().set_input_as_handled()
-		KEY_L:
-			if stat_menu: stat_menu.toggle_menu()
-			get_viewport().set_input_as_handled()
+			
+		# Pass overlay hotkeys to BuildingManager!
 		KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_EQUAL, KEY_MINUS:
 			if building_manager:
 				building_manager.handle_overlay_hotkeys(event.keycode)
@@ -55,6 +85,15 @@ func _unhandled_key_input(event: InputEvent):
 func _unhandled_input(event: InputEvent):
 	if not level_ref or not building_manager: return
 	
+	# --- 1. THE GATEKEEPER: Block World Clicks ---
+	if GameState.is_menu_open:
+		# If you click the screen while a menu is open, consume the click so
+		# you don't accidentally place a building behind the UI!
+		if event is InputEventMouseButton:
+			get_viewport().set_input_as_handled()
+		return
+
+	# --- 2. NORMAL WORLD CLICKS ---
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = level_ref.terrain_layer.local_to_map(mouse_pos)
 

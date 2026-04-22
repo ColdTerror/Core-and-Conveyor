@@ -26,6 +26,9 @@ var update_interval: float = 0.5
 var bot_status_labels: Dictionary = {}
 
 func _ready():
+	# --- NEW: Listen to the global UI state machine ---
+	GameState.menu_changed.connect(_on_global_menu_changed)
+	
 	hide()
 		
 	if close_button:
@@ -65,23 +68,31 @@ func _on_tab_clicked(tab_index):
 	# Force the tab to stay on the index the user clicked
 	tab_container.call_deferred("set_current_tab", target_tab)
 
+# ==========================================
+# UI STATE MACHINE ROUTING
+# ==========================================
 func toggle_menu():
 	if visible:
 		close_menu()
 	else:
-		if not GameState.is_menu_open:
-			open_menu()
+		open_menu()
 
 func open_menu():
-	GameState.is_menu_open = true
-	_refresh_priority_tab()
-	_refresh_bot_tab(true) # Force rebuild when opening
-	_refresh_resource_tab()
-	show()
+	# Ask GameState for permission!
+	if GameState.open_menu(GameState.MenuType.MANAGEMENT):
+		_refresh_priority_tab()
+		_refresh_bot_tab(true) # Force rebuild when opening
+		_refresh_resource_tab()
+		show()
 
 func close_menu():
-	GameState.is_menu_open = false
-	hide()
+	# Tell GameState to clear out
+	GameState.close_menu()
+
+func _on_global_menu_changed(active_menu):
+	# If the active menu is NO LONGER the Management menu, hide ourselves!
+	if active_menu != GameState.MenuType.MANAGEMENT:
+		hide()
 
 # ==========================================
 # PRIORITIES TAB LOGIC
@@ -249,7 +260,6 @@ func _rebuild_bot_list(bots: Array):
 # ==========================================
 
 func _refresh_resource_tab():
-	print('refresh resource')
 	if not resource_list_container: return
 	
 	# 1. Clean up old rows
@@ -414,12 +424,3 @@ func _toggle_pin(item_name: String):
 	# Tell the UI to immediately redraw both the tab and the top bar!
 	EconomyManager.inventory_changed.emit()
 	_refresh_resource_tab()
-# ==========================================
-# INPUT LOGIC
-# ==========================================
-
-func _unhandled_input(event):
-	# Escape to close
-	if event.is_action_pressed("ui_cancel") and visible:
-		close_menu()
-		get_viewport().set_input_as_handled()

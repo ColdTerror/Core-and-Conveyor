@@ -712,9 +712,6 @@ func deconstruct_building_at(grid_pos: Vector2i):
 		return
 	building.die()
 
-# ==========================================
-# ZONE TRACKING
-# ==========================================
 
 # ==========================================
 # ZONE TRACKING
