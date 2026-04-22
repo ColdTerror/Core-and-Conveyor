@@ -80,6 +80,29 @@ func _unhandled_key_input(event: InputEvent):
 			get_viewport().set_input_as_handled()
 
 # ==========================================
+# CONTINUOUS INPUT (WASD Camera Panning)
+# ==========================================
+func _process(delta):
+	# Gatekeeper: Don't allow camera panning if a menu is open!
+	if GameState.is_menu_open: return
+	
+	var move_dir := Vector2.ZERO
+	
+	if Input.is_key_pressed(KEY_D):
+		move_dir.x += 1
+	if Input.is_key_pressed(KEY_A):
+		move_dir.x -= 1
+	if Input.is_key_pressed(KEY_S):
+		move_dir.y += 1
+	if  Input.is_key_pressed(KEY_W):
+		move_dir.y -= 1
+		
+	if move_dir != Vector2.ZERO:
+		var cam = get_tree().get_first_node_in_group("Camera")
+		if cam and cam.has_method("apply_pan"):
+			cam.apply_pan(move_dir, delta)
+
+# ==========================================
 # MOUSE INPUT (The State Machine)
 # ==========================================
 func _unhandled_input(event: InputEvent):
@@ -87,17 +110,29 @@ func _unhandled_input(event: InputEvent):
 	
 	# --- 1. THE GATEKEEPER: Block World Clicks ---
 	if GameState.is_menu_open:
-		# If you click the screen while a menu is open, consume the click so
-		# you don't accidentally place a building behind the UI!
 		if event is InputEventMouseButton:
 			get_viewport().set_input_as_handled()
 		return
 
-	# --- 2. NORMAL WORLD CLICKS ---
+	# --- 2. CAMERA ZOOM ---
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+			var cam = get_tree().get_first_node_in_group("Camera")
+			if cam: cam.apply_zoom(event.position, 1 + cam.zoom_speed)
+			get_viewport().set_input_as_handled()
+			return
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			var cam = get_tree().get_first_node_in_group("Camera")
+			if cam: cam.apply_zoom(event.position, 1 - cam.zoom_speed)
+			get_viewport().set_input_as_handled()
+			return
+
+	# --- 3. NORMAL WORLD CLICKS ---
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = level_ref.terrain_layer.local_to_map(mouse_pos)
 
-	# --- 1. GLOBAL CANCEL & HOTKEYS ---
+
+	# --- 4. GLOBAL CANCEL & HOTKEYS ---
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 		_cancel_current_action()
 		return
@@ -116,7 +151,7 @@ func _unhandled_input(event: InputEvent):
 		current_mode = InteractionMode.NONE if current_mode == InteractionMode.UPGRADE else InteractionMode.UPGRADE
 		return
 
-	# --- 2. STATE MACHINE ROUTING ---
+	# --- 5. STATE MACHINE ROUTING ---
 	match current_mode:
 		InteractionMode.PLACE_BUILDING:
 			if event is InputEventMouse:
