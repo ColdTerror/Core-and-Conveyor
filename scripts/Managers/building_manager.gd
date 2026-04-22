@@ -378,7 +378,6 @@ func _on_core_placed(building: Building, grid_pos: Vector2i):
 		level_ref.object_layer.add_child(new_bot)
 		new_bot.global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(tile))
 		new_bot.setup(level_ref)
-		new_bot.clicked.connect(_on_bot_clicked)
 		new_bot.hovered.connect(_on_building_hovered)
 		new_bot.unhovered.connect(_on_building_unhovered)
 	
