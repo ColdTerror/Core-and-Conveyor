@@ -227,9 +227,13 @@ func place_at(origin: Vector2i, object_layer: TileMapLayer):
 # --- Signals ---
 func _on_mouse_entered():
 	hovered.emit(self)
+	InputManager.hovered_building = self
 
 func _on_mouse_exited():
 	unhovered.emit(self)
+	# Only clear it if we are still the currently hovered building!
+	if  InputManager and InputManager.hovered_building == self:
+		InputManager.hovered_building = null
 	
 # --- Building Functions ---
 func building_tick(delta: float) -> void:

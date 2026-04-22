@@ -818,9 +818,12 @@ func _clear_reservation():
 
 func _on_mouse_entered():
 	hovered.emit(self)
+	InputManager.hovered_bot = self
 
 func _on_mouse_exited():
 	unhovered.emit(self)
+	if InputManager.hovered_bot == self:
+		InputManager.hovered_bot = null
 
 func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

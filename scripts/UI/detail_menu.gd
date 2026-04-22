@@ -21,6 +21,10 @@ func _ready():
 	info_label.custom_minimum_size = Vector2(225, 50) 
 
 func open_menu(building: Node2D):
+	if building == null:
+		hide() # Close the menu!
+		return
+		
 	if is_instance_valid(current_building) and current_building != building:
 		if "is_selected" in current_building:
 			current_building.is_selected = false
