@@ -16,7 +16,7 @@ extends Control
 @export var wave_manager: WaveManager 
 @export var time_manager: TimeManager
 @export var building_manager: BuildingManager
-@export var corruption_manager: CorruptionManager # <--- DRAG YOUR CORRUPTION MANAGER HERE!
+@export var corruption_manager: CorruptionManager
 
 # --- GAME OVER REFERENCES ---
 @onready var game_over_panel = $"../../GameOverPanel"

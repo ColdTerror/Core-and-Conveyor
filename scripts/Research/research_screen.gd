@@ -84,8 +84,14 @@ func _place(node_name: String, x: float, y: float):
 
 func open_screen():
 	if GameState.open_menu(GameState.MenuType.RESEARCH):
+		_refresh_all_nodes()
 		show()
-
+		
+func _refresh_all_nodes():
+	for node in graph_edit.get_children():
+		if node is GraphNode and node.has_method("_refresh_button"):
+			node._refresh_button()
+			
 func close_screen():
 	GameState.close_menu()
 
@@ -94,4 +100,4 @@ func _on_global_menu_changed(active_menu):
 	if active_menu != GameState.MenuType.RESEARCH:
 		hide()
 		# Emit any signals you need when closing, like:
-		# close_research_tree.emit()
+		close_research_tree.emit()

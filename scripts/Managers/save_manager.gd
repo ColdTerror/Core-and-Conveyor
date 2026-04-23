@@ -125,3 +125,19 @@ func unpack_save(level_ref: Node2D):
 	# Empty the briefcase so it doesn't accidentally load again!
 	pending_load_data.clear()
 	print("SaveManager: Unpacking complete!")
+
+# ==========================================
+# UTILITY FUNCTIONS
+# ==========================================
+func does_save_exist(slot: int) -> bool:
+	var file_path = SAVE_PATH_TEMPLATE % slot
+	return FileAccess.file_exists(file_path)
+
+func delete_save(slot: int) -> bool:
+	var file_path = SAVE_PATH_TEMPLATE % slot
+	if FileAccess.file_exists(file_path):
+		# Delete the file using DirAccess
+		DirAccess.remove_absolute(file_path)
+		print("Deleted save file in Slot ", slot)
+		return true
+	return false

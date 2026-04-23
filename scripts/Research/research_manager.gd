@@ -94,6 +94,7 @@ func _apply_tech(tech_name: String):
 			moon_measure_level = 1
 		_:
 			print("WARNING: Unknown tech -> ", tech_name)
+	print(tech_name)
 
 # ==========================================
 # NOTIFY EXISTING UNITS
@@ -128,9 +129,9 @@ func load_save_data(data: Dictionary):
 	
 	# 2. Quietly "re-research" everything from the save file
 	if data.has("unlocked_techs"):
+		
 		var saved_techs: Array[String] = []
 		saved_techs.assign(data["unlocked_techs"])
-		
 		for tech in saved_techs:
 			unlocked_techs.append(tech)
 			_apply_tech(tech)

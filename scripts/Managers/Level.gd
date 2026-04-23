@@ -456,7 +456,6 @@ func load_map_save_data(data: Dictionary):
 			new_bot.load_save_data(b_data)
 			
 			# Re-connect the UI signals to the BuildingManager!
-			new_bot.clicked.connect(building_manager._on_bot_clicked)
 			new_bot.hovered.connect(building_manager._on_building_hovered)
 			new_bot.unhovered.connect(building_manager._on_building_unhovered)
 	

@@ -22,6 +22,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=488715758]
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 
 [node name="Resume" type="Button" parent="CenterContainer/VBoxContainer" unique_id=203638891]
@@ -44,17 +45,47 @@ text = "Save Slot 2"
 layout_mode = 2
 text = "Save Slot 3"
 
-[node name="Load1" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1283957731]
+[node name="Load1Bar" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=1302769520]
+layout_mode = 2
+
+[node name="Load1" type="Button" parent="CenterContainer/VBoxContainer/Load1Bar" unique_id=1283957731]
+custom_minimum_size = Vector2(125, 0)
 layout_mode = 2
 text = "Load Slot 1"
 
-[node name="Load2" type="Button" parent="CenterContainer/VBoxContainer" unique_id=969341166]
+[node name="Del1" type="Button" parent="CenterContainer/VBoxContainer/Load1Bar" unique_id=197990222]
+self_modulate = Color(1, 0, 0, 1)
+custom_minimum_size = Vector2(25, 0)
+layout_mode = 2
+text = "X"
+
+[node name="Load2Bar" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=448345495]
+layout_mode = 2
+
+[node name="Load2" type="Button" parent="CenterContainer/VBoxContainer/Load2Bar" unique_id=969341166]
+custom_minimum_size = Vector2(125, 0)
 layout_mode = 2
 text = "Load Slot 2"
 
-[node name="Load3" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1555002431]
+[node name="Del2" type="Button" parent="CenterContainer/VBoxContainer/Load2Bar" unique_id=119043271]
+self_modulate = Color(1, 0, 0, 1)
+custom_minimum_size = Vector2(25, 0)
+layout_mode = 2
+text = "X"
+
+[node name="Load3Bar" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=864772601]
+layout_mode = 2
+
+[node name="Load3" type="Button" parent="CenterContainer/VBoxContainer/Load3Bar" unique_id=1555002431]
+custom_minimum_size = Vector2(125, 0)
 layout_mode = 2
 text = "Load Slot 3"
+
+[node name="Del3" type="Button" parent="CenterContainer/VBoxContainer/Load3Bar" unique_id=1450328116]
+self_modulate = Color(1, 0, 0, 1)
+custom_minimum_size = Vector2(25, 0)
+layout_mode = 2
+text = "X"
 
 [node name="Exit" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1974263859]
 layout_mode = 2

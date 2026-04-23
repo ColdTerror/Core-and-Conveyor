@@ -7,9 +7,13 @@ signal save_requested(slot: int)
 @onready var save_2_btn = $CenterContainer/VBoxContainer/Save2
 @onready var save_3_btn = $CenterContainer/VBoxContainer/Save3
 
-@onready var load_1_btn = $CenterContainer/VBoxContainer/Load1
-@onready var load_2_btn = $CenterContainer/VBoxContainer/Load2
-@onready var load_3_btn = $CenterContainer/VBoxContainer/Load3
+@onready var load_1_btn = $CenterContainer/VBoxContainer/Load1Bar/Load1
+@onready var load_2_btn = $CenterContainer/VBoxContainer/Load2Bar/Load2
+@onready var load_3_btn = $CenterContainer/VBoxContainer/Load3Bar/Load3
+
+@onready var del_1_btn = $CenterContainer/VBoxContainer/Load1Bar/Del1
+@onready var del_2_btn = $CenterContainer/VBoxContainer/Load2Bar/Del2
+@onready var del_3_btn = $CenterContainer/VBoxContainer/Load3Bar/Del3
 
 func _ready():
 	# Hide the menu when the game starts
@@ -33,6 +37,11 @@ func _ready():
 	load_1_btn.pressed.connect(func(): _perform_manual_load(1, load_1_btn))
 	load_2_btn.pressed.connect(func(): _perform_manual_load(2, load_2_btn))
 	load_3_btn.pressed.connect(func(): _perform_manual_load(3, load_3_btn))
+	
+	# Wire up the Delete buttons
+	del_1_btn.pressed.connect(func(): _perform_delete(1))
+	del_2_btn.pressed.connect(func(): _perform_delete(2))
+	del_3_btn.pressed.connect(func(): _perform_delete(3))
 
 func _input(event):
 	# Assuming you have an input action mapped to the Escape key called "ui_cancel"
@@ -47,6 +56,7 @@ func pause_game():
 	get_tree().paused = true
 	# Update the quick save button text so the player knows which slot it will use
 	$CenterContainer/VBoxContainer/QuickSave.text = "Quick Save (Slot %d)" % SaveManager.current_slot
+	_refresh_menu_state()
 
 func resume_game():
 	hide()
@@ -55,12 +65,44 @@ func resume_game():
 func exit_game():
 	get_tree().quit()
 
+# ==========================================
+# THE MAGIC REFRESH FUNCTION
+# ==========================================
+func _refresh_menu_state():
+	# Loop through all 3 slots and check if they exist
+	_update_load_slot_ui(1, load_1_btn, del_1_btn)
+	_update_load_slot_ui(2, load_2_btn, del_2_btn)
+	_update_load_slot_ui(3, load_3_btn, del_3_btn)
+
+func _update_load_slot_ui(slot: int, load_btn: Button, del_btn: Button):
+	var exists = SaveManager.does_save_exist(slot)
+	
+	if exists:
+		load_btn.disabled = false
+		load_btn.text = "Load Game %d" % slot
+		load_btn.modulate = Color.WHITE
+		del_btn.show() # Show the X button!
+	else:
+		load_btn.disabled = true
+		load_btn.text = "[ Empty Slot %d ]" % slot
+		load_btn.modulate = Color(0.5, 0.5, 0.5) # Gray it out
+		del_btn.hide() # Hide the X button
+
+func _perform_delete(slot: int):
+	# Tell the manager to delete the file
+	SaveManager.delete_save(slot)
+	
+	# Instantly refresh the UI so the button grays out!
+	_refresh_menu_state()
+	
 func _perform_manual_save(slot: int, button: Button):
 	# 1. Tell the Level to save the game
 	save_requested.emit(slot)
 	
 	# 2. Trigger the visual feedback
 	_flash_button_success(button)
+	
+	_refresh_menu_state()
 
 func _flash_button_success(button: Button):
 	if button.disabled: return
