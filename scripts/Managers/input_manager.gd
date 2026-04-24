@@ -9,6 +9,7 @@ var building_manager: Node2D
 var wave_manager: Node2D
 var management_menu: Control
 var stat_menu: Control
+var hover_popup: Control
 
 # ==========================================
 # STATE & TRACKERS
@@ -25,6 +26,8 @@ var last_hovered_upgrade_tile: Vector2i = Vector2i(-1, -1)
 var last_terrain_tile: Vector2i = Vector2i(-1, -1)
 var is_terrain_remove_brush: bool = false
 
+# Signals
+signal object_selected(target: Node2D)
 
 func _ready():
 	add_to_group("InputManager")
@@ -199,8 +202,7 @@ func _unhandled_input(event: InputEvent):
 func _cancel_current_action():
 	building_manager.cancel_placement()
 	
-	if building_manager:
-		building_manager.building_selected.emit(null)
+	object_selected.emit(null)
 		
 	if current_mode == InteractionMode.SET_HOME and is_instance_valid(bot_awaiting_home):
 		if bot_awaiting_home.has_method("toggle_set_home_mode"):
@@ -223,33 +225,25 @@ func _is_left_dragging(event: InputEvent) -> bool:
 func _handle_default_selection(grid_pos: Vector2i):
 	# 1. Did we click a bot?
 	if is_instance_valid(hovered_bot):
-		# Pass it directly to your existing function!
-		if building_manager and building_manager.has_method("_on_bot_clicked"):
-			building_manager._on_bot_clicked(hovered_bot)
+		object_selected.emit(hovered_bot)
 			
 		get_viewport().set_input_as_handled()
 		return
 		
 	# 2. Did we click an Enemy?
 	if is_instance_valid(hovered_enemy):
-		if building_manager:
-			# Just pass the enemy right into the building selection signal!
-			building_manager.building_selected.emit(hovered_enemy) 
+		object_selected.emit(hovered_enemy)
 		get_viewport().set_input_as_handled()
 		return
 	
 	# 3. Did we click a building's Area2D?
 	if is_instance_valid(hovered_building):
-		# We already have the exact building node, so we can just emit the signal directly!
-		if building_manager:
-			building_manager.building_selected.emit(hovered_building)
-			
+		object_selected.emit(hovered_building)
 		get_viewport().set_input_as_handled()
 		return
 
 	# 4. We clicked empty terrain or grid!
-	if building_manager:
-		building_manager.building_selected.emit(null)
+	object_selected.emit(null)
 		
 func _handle_terraform_input(event: InputEvent, grid_pos: Vector2i):
 	if _is_left_clicking(event):
@@ -274,3 +268,30 @@ func _handle_terraform_input(event: InputEvent, grid_pos: Vector2i):
 					building_manager.deconstruct_building_at(grid_pos)
 			else:
 				building_manager._try_add_terrain_job(grid_pos)
+
+# ==========================================
+# UNIVERSAL HOVER LOGIC
+# ==========================================
+func _on_object_hovered(object: Node2D):
+	# 1. Update our state trackers so the click logic knows what we are looking at!
+	if object.has_method("set_priority"): # Duck-typing for WorkerBot
+		hovered_bot = object
+	elif object is Building:
+		hovered_building = object
+	elif object is Enemy:
+		hovered_enemy = object
+
+	# 2. Show the tooltip popup!
+	if hover_popup and hover_popup.has_method("show_building_info"):
+		hover_popup.show_building_info(object)
+
+func _on_object_unhovered(object: Node2D):
+	# 1. Clear our state trackers safely
+	if hovered_bot == object: hovered_bot = null
+	if hovered_building == object: hovered_building = null
+	if hovered_enemy == object: hovered_enemy = null
+
+	# 2. Hide the tooltip popup!
+	if hover_popup and "current_building" in hover_popup:
+		if hover_popup.current_building == object:
+			hover_popup.hide()

@@ -100,7 +100,7 @@ func _ready():
 		hotbar.item_selected.connect(_on_hotbar_item_selected)
 		_setup_hotbar_items()
 		
-	building_manager.building_selected.connect(detail_menu.open_menu)
+	InputManager.object_selected.connect(detail_menu.open_menu)
 	building_manager.core_placed_event.connect(_on_core_placed)
 	
 	building_manager.pathfinder = pathfinder
@@ -456,8 +456,8 @@ func load_map_save_data(data: Dictionary):
 			new_bot.load_save_data(b_data)
 			
 			# Re-connect the UI signals to the BuildingManager!
-			new_bot.hovered.connect(building_manager._on_building_hovered)
-			new_bot.unhovered.connect(building_manager._on_building_unhovered)
+			new_bot.hovered.connect(InputManager._on_object_hovered)
+			new_bot.unhovered.connect(InputManager._on_object_unhovered)
 	
 	var current_camera = get_viewport().get_camera_2d()
 	if current_camera:

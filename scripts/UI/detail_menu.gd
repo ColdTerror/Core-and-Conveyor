@@ -8,7 +8,7 @@ extends PanelContainer
 
 @export var building_manager: BuildingManager
 
-var current_building: Node2D = null
+var selected_object: Node2D = null
 
 signal menu_closed
 signal research_button_clicked
@@ -21,68 +21,68 @@ func _ready():
 
 # --- NEW: Live HP updating! ---
 func _process(_delta):
-	if visible and current_building is Enemy:
-		if is_instance_valid(current_building):
-			info_label.text = "Health: %d / %d\nDamage: %d" % [current_building.health, current_building.max_health, current_building.damage]
+	if visible and selected_object is Enemy:
+		if is_instance_valid(selected_object):
+			info_label.text = "Health: %d / %d\nDamage: %d" % [selected_object.health, selected_object.max_health, selected_object.damage]
 		else:
 			# The enemy died while we were looking at it!
 			close_menu()
 
-func open_menu(building: Node2D):
-	if building == null:
+func open_menu(target: Node2D):
+	if target == null:
 		close_menu()
 		return
 		
 	
-	if is_instance_valid(current_building) and current_building != building:
-		if "is_selected" in current_building:
-			current_building.is_selected = false
-			current_building.queue_redraw()
+	if is_instance_valid(selected_object) and selected_object != target:
+		if "is_selected" in selected_object:
+			selected_object.is_selected = false
+			selected_object.queue_redraw()
 	
-	current_building = building
+	selected_object = target
 	
 	# --- UPDATE: Handle Enemy vs Building names ---
-	if current_building is Enemy:
-		title_label.text = current_building.enemy_name
-	elif "building_name" in current_building:
-		title_label.text = current_building.building_name
+	if selected_object is Enemy:
+		title_label.text = selected_object.enemy_name
+	elif "building_name" in selected_object:
+		title_label.text = selected_object.building_name
 	else:
 		title_label.text = "Unknown Entity"
 	# ----------------------------------------------
 	
-	if "is_selected" in current_building:
-		current_building.is_selected = true
-		current_building.queue_redraw()
+	if "is_selected" in selected_object:
+		selected_object.is_selected = true
+		selected_object.queue_redraw()
 		
-	if current_building.has_signal("inventory_changed"):
-		if not current_building.inventory_changed.is_connected(refresh_ui):
-			current_building.inventory_changed.connect(refresh_ui)
+	if selected_object.has_signal("inventory_changed"):
+		if not selected_object.inventory_changed.is_connected(refresh_ui):
+			selected_object.inventory_changed.connect(refresh_ui)
 
 	refresh_ui()
 	show()
 
 func close_menu():
 	
-	if is_instance_valid(current_building):
-		if current_building.has_signal("inventory_changed"):
-			if current_building.inventory_changed.is_connected(refresh_ui):
-				current_building.inventory_changed.disconnect(refresh_ui)
+	if is_instance_valid(selected_object):
+		if selected_object.has_signal("inventory_changed"):
+			if selected_object.inventory_changed.is_connected(refresh_ui):
+				selected_object.inventory_changed.disconnect(refresh_ui)
 		
-		if "is_selected" in current_building:
-			current_building.is_selected = false
-			current_building.queue_redraw()
+		if "is_selected" in selected_object:
+			selected_object.is_selected = false
+			selected_object.queue_redraw()
 	
 	var cam = get_tree().get_first_node_in_group("Camera")
 	if cam and cam.has_method("set_follow_target"):
 		cam.set_follow_target(null)
 	
-	current_building = null
+	selected_object = null
 	hide()
 	menu_closed.emit()
 
 
 func refresh_ui():
-	if not is_instance_valid(current_building): return
+	if not is_instance_valid(selected_object): return
 	
 	for child in action_container.get_children():
 		child.queue_free()
@@ -92,54 +92,54 @@ func refresh_ui():
 
 	# --- Change the focus text based on what we clicked! ---
 	var focus_text = "Center Camera"
-	if current_building.has_method("set_priority"):
+	if selected_object.has_method("set_priority"):
 		focus_text = "Follow Bot"
-	elif current_building is Enemy:
+	elif selected_object is Enemy:
 		focus_text = "Follow Enemy"
 		
 		
 	_create_button(focus_text, Color(0.9, 0.9, 0.9), func():
 		var cam = get_tree().get_first_node_in_group("Camera")
 		if cam and cam.has_method("set_follow_target"):
-			cam.set_follow_target(current_building)
+			cam.set_follow_target(selected_object)
 	)
 	
 	var can_relocate = not (
-		current_building is CoreBuilding or 
-		current_building is GateBuilding or 
-		current_building is TerraformSite or 
-		current_building is ConstructionSite or 
-		current_building is WallBuilding or 
-		current_building is ConveyorBuilding or
-		current_building is Enemy or 
-		current_building.has_method("set_priority")
+		selected_object is CoreBuilding or 
+		selected_object is GateBuilding or 
+		selected_object is TerraformSite or 
+		selected_object is ConstructionSite or 
+		selected_object is WallBuilding or 
+		selected_object is ConveyorBuilding or
+		selected_object is Enemy or 
+		selected_object.has_method("set_priority")
 	)
 	if can_relocate:
 		_create_button("Relocate (Lose Inventory)", Color(0.8, 0.4, 1.0), func():
 			if building_manager.has_method("start_relocating"):
-				building_manager.start_relocating(current_building)
+				building_manager.start_relocating(selected_object)
 				close_menu()
 		)
 	
-	if current_building is ProcessorBuilding:
-		_setup_processor_ui(current_building as ProcessorBuilding)
-	elif current_building is StockpileBuilding:
-		_setup_stockpile_ui(current_building as StockpileBuilding)
-	elif current_building is TowerBuilding:
-		_setup_tower_ui(current_building as TowerBuilding)
-	elif current_building is CoreBuilding:
-		_setup_core_ui(current_building as CoreBuilding)
-	elif current_building.has_method("set_priority"):
-		_setup_bot_ui(current_building)
-	elif current_building is Enemy:
-		_setup_enemy_ui(current_building)
-	elif current_building is FilterBuilding:
-		_setup_filter_ui(current_building as FilterBuilding)
+	if selected_object is ProcessorBuilding:
+		_setup_processor_ui(selected_object as ProcessorBuilding)
+	elif selected_object is StockpileBuilding:
+		_setup_stockpile_ui(selected_object as StockpileBuilding)
+	elif selected_object is TowerBuilding:
+		_setup_tower_ui(selected_object as TowerBuilding)
+	elif selected_object is CoreBuilding:
+		_setup_core_ui(selected_object as CoreBuilding)
+	elif selected_object.has_method("set_priority"):
+		_setup_bot_ui(selected_object)
+	elif selected_object is Enemy:
+		_setup_enemy_ui(selected_object)
+	elif selected_object is FilterBuilding:
+		_setup_filter_ui(selected_object as FilterBuilding)
 	else:
 		info_label.text = "No configurable options."
 		
-	if not current_building.has_method("set_priority"):
-		_build_priority_widget(current_building)
+	if not selected_object.has_method("set_priority"):
+		_build_priority_widget(selected_object)
 
 func _create_button(btn_text: String, btn_color: Color, action_callable: Callable):
 	var btn = Button.new()

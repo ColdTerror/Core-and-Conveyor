@@ -4,7 +4,6 @@ class_name BuildingManager
 # ==========================================
 # SIGNALS
 # ==========================================
-signal building_selected(building: Building)
 signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary)
 signal placement_ended
 signal core_placed_event
@@ -378,8 +377,8 @@ func _on_core_placed(building: Building, grid_pos: Vector2i):
 		level_ref.object_layer.add_child(new_bot)
 		new_bot.global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(tile))
 		new_bot.setup(level_ref)
-		new_bot.hovered.connect(_on_building_hovered)
-		new_bot.unhovered.connect(_on_building_unhovered)
+		new_bot.hovered.connect(InputManager._on_object_hovered)
+		new_bot.unhovered.connect(InputManager._on_object_unhovered)
 	
 	if level_ref and level_ref.has_node("CorruptionManager"):
 		level_ref.get_node("CorruptionManager").start_outbreak(object_layer.local_to_map(building.global_position))
@@ -641,8 +640,8 @@ func _register_building(building: Building):
 		if not master_priority_queue.has(building):
 			master_priority_queue.append(building)
 		
-	building.hovered.connect(_on_building_hovered)
-	building.unhovered.connect(_on_building_unhovered)
+	building.hovered.connect(InputManager._on_object_hovered)
+	building.unhovered.connect(InputManager._on_object_unhovered)
 
 func _register_occupied_tiles(building: Building):
 	for tile in building.occupied_tiles:
@@ -1079,21 +1078,6 @@ func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Diction
 	for resource_name in base_cost:
 		total[resource_name] = base_cost[resource_name] * quantity
 	return total
-
-# ==========================================
-# UI & HOVER EVENTS
-# ==========================================
-
-func _on_building_hovered(building: Node2D):
-	if hover_popup:
-		hover_popup.show_building_info(building)
-
-func _on_building_unhovered(building: Node2D):
-	if hover_popup and hover_popup.current_building == building:
-		hover_popup.hide_popup()
-
-func _on_bot_clicked(bot: Node2D):
-	building_selected.emit(bot)
 
 	
 # ==========================================
