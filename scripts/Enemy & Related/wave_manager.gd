@@ -19,9 +19,6 @@ class_name WaveManager
 @export var difficulty_multiplier: float = 1.2 
 @export var corruption_penalty_factor: float = 0.01 # <--- NEW: 1 extra enemy per 100 tiles
 
-# --- SELECTION ---
-@export var enemy_popup: Control 
-var selected_enemy: Enemy = null
 
 # --- STATE ---
 var current_wave: int = 0
@@ -145,8 +142,6 @@ func _do_spawn():
 	
 	if enemy.has_signal("died"):
 		enemy.died.connect(_on_enemy_died)
-	if enemy.has_signal("enemy_clicked"): 
-		enemy.enemy_clicked.connect(_on_enemy_clicked)
 
 func _on_enemy_died(_enemy_instance):
 	pass
@@ -173,15 +168,6 @@ func get_estimated_enemies() -> int:
 		
 	return round(base_enemies + extra_enemies)
 	
-# --- UI CLICKS ---
-func _on_enemy_clicked(enemy):
-	selected_enemy = enemy
-	if enemy_popup: enemy_popup.show_info(enemy)
-
-func deselect_enemy():
-	if selected_enemy:
-		selected_enemy = null
-		if enemy_popup: enemy_popup.hide_info()
 
 # ==========================================
 # SAVE / LOAD SYSTEM
@@ -220,8 +206,6 @@ func load_save_data(data: Dictionary):
 			# Wire up signals
 			if enemy.has_signal("died"):
 				enemy.died.connect(_on_enemy_died)
-			if enemy.has_signal("enemy_clicked"): 
-				enemy.enemy_clicked.connect(_on_enemy_clicked)
 				
 			# Add them to the map
 			if level_ref: level_ref.add_child(enemy)

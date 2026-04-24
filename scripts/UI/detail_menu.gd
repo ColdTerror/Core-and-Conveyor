@@ -19,6 +19,15 @@ func _ready():
 	info_label.custom_minimum_size = Vector2(225, 50) 
 	
 
+# --- NEW: Live HP updating! ---
+func _process(_delta):
+	if visible and current_building is Enemy:
+		if is_instance_valid(current_building):
+			info_label.text = "Health: %d / %d\nDamage: %d" % [current_building.health, current_building.max_health, current_building.damage]
+		else:
+			# The enemy died while we were looking at it!
+			close_menu()
+
 func open_menu(building: Node2D):
 	if building == null:
 		close_menu()
@@ -31,7 +40,15 @@ func open_menu(building: Node2D):
 			current_building.queue_redraw()
 	
 	current_building = building
-	title_label.text = building.building_name
+	
+	# --- UPDATE: Handle Enemy vs Building names ---
+	if current_building is Enemy:
+		title_label.text = current_building.enemy_name
+	elif "building_name" in current_building:
+		title_label.text = current_building.building_name
+	else:
+		title_label.text = "Unknown Entity"
+	# ----------------------------------------------
 	
 	if "is_selected" in current_building:
 		current_building.is_selected = true
@@ -73,7 +90,14 @@ func refresh_ui():
 	info_label.modulate = Color.WHITE
 	info_label.visible = true
 
-	var focus_text = "Follow Bot" if current_building.has_method("set_priority") else "Center Camera"
+	# --- Change the focus text based on what we clicked! ---
+	var focus_text = "Center Camera"
+	if current_building.has_method("set_priority"):
+		focus_text = "Follow Bot"
+	elif current_building is Enemy:
+		focus_text = "Follow Enemy"
+		
+		
 	_create_button(focus_text, Color(0.9, 0.9, 0.9), func():
 		var cam = get_tree().get_first_node_in_group("Camera")
 		if cam and cam.has_method("set_follow_target"):
@@ -86,7 +110,8 @@ func refresh_ui():
 		current_building is TerraformSite or 
 		current_building is ConstructionSite or 
 		current_building is WallBuilding or 
-		current_building is ConveyorBuilding or 
+		current_building is ConveyorBuilding or
+		current_building is Enemy or 
 		current_building.has_method("set_priority")
 	)
 	if can_relocate:
@@ -106,6 +131,8 @@ func refresh_ui():
 		_setup_core_ui(current_building as CoreBuilding)
 	elif current_building.has_method("set_priority"):
 		_setup_bot_ui(current_building)
+	elif current_building is Enemy:
+		_setup_enemy_ui(current_building)
 	elif current_building is FilterBuilding:
 		_setup_filter_ui(current_building as FilterBuilding)
 	else:
@@ -225,6 +252,13 @@ func _setup_bot_ui(b: Node2D):
 		if b.has_method("toggle_set_home_mode"):
 			b.toggle_set_home_mode(true)
 	)
+
+# --- Enemy UI Helper ---
+func _setup_enemy_ui(e: Enemy):
+	# We leave info_label blank here because _process() is updating it!
+	info_label.modulate = Color(1.0, 0.4, 0.4) # Red text!
+	
+	# Optional: You could add a button here to "Mark Priority Target" for towers later!
 
 func _setup_filter_ui(b: FilterBuilding):
 	var current_filter = b.filter_options[b.current_filter_index]

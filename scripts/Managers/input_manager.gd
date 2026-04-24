@@ -18,6 +18,7 @@ var current_mode: InteractionMode = InteractionMode.NONE
 
 var hovered_bot: WorkerBot = null
 var hovered_building: Building = null
+var hovered_enemy: Node2D = null
 var bot_awaiting_home: Node2D = null
 
 var last_hovered_upgrade_tile: Vector2i = Vector2i(-1, -1)
@@ -228,8 +229,16 @@ func _handle_default_selection(grid_pos: Vector2i):
 			
 		get_viewport().set_input_as_handled()
 		return
-
-	# 2. Did we click a building's Area2D?
+		
+	# 2. Did we click an Enemy?
+	if is_instance_valid(hovered_enemy):
+		if building_manager:
+			# Just pass the enemy right into the building selection signal!
+			building_manager.building_selected.emit(hovered_enemy) 
+		get_viewport().set_input_as_handled()
+		return
+	
+	# 3. Did we click a building's Area2D?
 	if is_instance_valid(hovered_building):
 		# We already have the exact building node, so we can just emit the signal directly!
 		if building_manager:
@@ -238,12 +247,10 @@ func _handle_default_selection(grid_pos: Vector2i):
 		get_viewport().set_input_as_handled()
 		return
 
-	# 3. We clicked empty terrain or grid!
+	# 4. We clicked empty terrain or grid!
 	if building_manager:
 		building_manager.building_selected.emit(null)
 		
-	if wave_manager:
-		wave_manager.deselect_enemy()
 func _handle_terraform_input(event: InputEvent, grid_pos: Vector2i):
 	if _is_left_clicking(event):
 		last_terrain_tile = grid_pos

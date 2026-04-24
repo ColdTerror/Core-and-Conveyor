@@ -14,15 +14,19 @@
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
 				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
 				"be8062de-7177-4f01-8d23-d11e18de911e",
-				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c"
+				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
+				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
+				"057fd75c-a745-46a8-a1b6-20581f73fec1",
+				"a54d47a6-89e7-4dac-b69d-db4d8e925f7c",
+				"21ad038e-bdf9-4bff-a1fb-f13b6589cef5",
+				"f9ecb4c8-b933-4e19-8cf9-edd862e4866f"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
-				"840275de-0df5-40d1-beef-af8fd9d375c1"
+				"6215c2a1-2e55-464f-991f-722ed866be0c"
 			]
 		},
 		{
@@ -31,6 +35,9 @@
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
 				"8610a1c0-09d8-452d-92de-3f603f880918",
+				"370423d9-50f2-4905-877d-0b620e3468cf",
+				"3cddb52c-07b3-4c6e-9f6e-9a66d0dbae48",
+				"840275de-0df5-40d1-beef-af8fd9d375c1",
 				"30993a38-c2d2-4bf3-a797-b23b4b08e66a",
 				"5da6a58c-7d54-426e-8587-7f0ff8ba2efe",
 				"85b8d63a-a890-4ddd-8868-904854d679c7",
@@ -933,6 +940,55 @@
 		{
 			"uuid": "840275de-0df5-40d1-beef-af8fd9d375c1",
 			"title": "camera input ",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "057fd75c-a745-46a8-a1b6-20581f73fec1",
+			"title": "bot upgrades",
+			"description": "bots level up when doing work, research is for max bots, or increasing lvl cap or minimum lvl when spawning",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a54d47a6-89e7-4dac-b69d-db4d8e925f7c",
+			"title": "bots take damage",
+			"description": "have enemies be able to attack bots, when bots are attacked they go into panic mode, running home and healing, then waiting a settable time before going back to work",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "21ad038e-bdf9-4bff-a1fb-f13b6589cef5",
+			"title": "new building menu ui",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f9ecb4c8-b933-4e19-8cf9-edd862e4866f",
+			"title": "fireplace/lookout tower for building/corruption range",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "3cddb52c-07b3-4c6e-9f6e-9a66d0dbae48",
+			"title": "enemy clicks",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "6215c2a1-2e55-464f-991f-722ed866be0c",
+			"title": "update building selected to object selected",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "370423d9-50f2-4905-877d-0b620e3468cf",
+			"title": "enemy name",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

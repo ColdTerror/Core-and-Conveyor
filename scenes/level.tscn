@@ -35,7 +35,6 @@
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/test_enemy.tscn" id="27_cmcjb"]
 [ext_resource type="PackedScene" uid="uid://bc7bv1elbmh38" path="res://scenes/buildings & related/terraform_site.tscn" id="27_q4oe8"]
 [ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/Managers/pathfinder.gd" id="29_7agi7"]
-[ext_resource type="PackedScene" uid="uid://mc4h1u2qxbyd" path="res://scenes/ui/enemy_info_popup.tscn" id="29_w3o6u"]
 [ext_resource type="Script" uid="uid://cp1a4u82js3m8" path="res://scripts/UI/MainHUD.gd" id="30_2jdvr"]
 [ext_resource type="PackedScene" uid="uid://b0rrk8021htay" path="res://scenes/Enemy & Related/wave_manager.tscn" id="32_2e2fo"]
 [ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/Enemy & Related/corruption_manager.gd" id="34_v3why"]
@@ -63,14 +62,13 @@ stonemason_scene = ExtResource("18_gur6y")
 fletcher_scene = ExtResource("19_v3why")
 projectile_scene = ExtResource("18_cmcjb")
 
-[node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "time_manager", "corruption_manager", "enemy_popup") instance=ExtResource("32_2e2fo")]
+[node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "time_manager", "corruption_manager") instance=ExtResource("32_2e2fo")]
 level_ref = NodePath("..")
 corruption_layer = NodePath("../CorruptionLayer")
 enemy_scene = ExtResource("27_cmcjb")
 time_manager = NodePath("../TimeManager")
 corruption_manager = NodePath("../CorruptionManager")
 fallback_spawn_radius = 100.0
-enemy_popup = NodePath("../CanvasLayer/Popup_Layer/EnemyInfoPopup")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
 position = Vector2(640, 360)
@@ -120,7 +118,6 @@ script = ExtResource("29_7agi7")
 [node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
-real_minutes_per_day = 24.0
 
 [node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
 color = Color(1, 1, 1, 0)
@@ -162,17 +159,6 @@ offset_bottom = 0.0
 grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
-
-[node name="EnemyInfoPopup" parent="CanvasLayer/Popup_Layer" unique_id=1317129203 instance=ExtResource("29_w3o6u")]
-visible = false
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -23.5
-offset_right = 23.5
-offset_bottom = 81.0
-grow_horizontal = 2
 
 [node name="ManagementMenu" parent="CanvasLayer/Popup_Layer" unique_id=1030070791 node_paths=PackedStringArray("building_manager") instance=ExtResource("36_c1pbi")]
 layout_mode = 1

@@ -2,6 +2,7 @@ extends CharacterBody2D
 class_name Enemy
 
 # --- CONFIGURATION ---
+@export var enemy_name: String = "Enemy"
 @export_group("Stats")
 @export var max_health: int = 50
 var health: int = max_health
@@ -30,7 +31,6 @@ var find_target_timer: float = .5
 var attack_cooldown: float = 0.0
 
 
-signal enemy_clicked(enemy: Enemy) 
 signal died(enemy_instance: Enemy) 
 
 var is_target_locked: bool = false
@@ -43,13 +43,16 @@ func _ready():
 	await get_tree().physics_frame
 	_find_target()
 	
-	# 1. Enable Physics Clicking
-	input_pickable = true 
-	
-	# 2. Connect the built-in click detector
-	input_event.connect(_on_input_event)
-	
 	separation_update_timer = randf_range(0.0, 0.1)
+	
+	# --- Hover Detection for the InputController ---
+	input_pickable = true
+	mouse_entered.connect(func():
+		InputManager.hovered_enemy = self
+	)
+	mouse_exited.connect(func():
+		if InputManager.hovered_enemy == self: InputManager.hovered_enemy = null
+	)
 	
 func _physics_process(delta):
 	if health <= 0: return
@@ -89,7 +92,6 @@ func _process_movement(delta):
 	path_update_timer -= delta
 	if path_update_timer <= 0.0:
 		_recalculate_path()
-		# TODO : UPDATE THIS TO USE SIGNAL
 		path_update_timer = 5
 
 	var move_dir = Vector2.ZERO
@@ -371,16 +373,6 @@ func die():
 	died.emit(self)
 	queue_free()
 	
-# --- THE CLICK LOGIC ---
-func _on_input_event(_viewport, event, _shape_idx):
-	# Check for Left Click
-	if event.is_action_pressed("ui_left"): # Or "click"
-		
-		enemy_clicked.emit(self)
-		
-		# CRITICAL: This stops the event from bubbling up to the Level.
-		# This ensures clicking an enemy DOES NOT trigger "Deselect".
-		get_viewport().set_input_as_handled()
 		
 # ==========================================
 # SAVE / LOAD SYSTEM

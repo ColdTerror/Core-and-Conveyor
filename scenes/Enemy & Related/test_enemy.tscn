@@ -10,6 +10,7 @@ radius = 14.0
 collision_layer = 2
 input_pickable = true
 script = ExtResource("1_mkyue")
+enemy_name = "Test Enemy"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1688166691]
 self_modulate = Color(0, 0.5573105, 1.92523e-07, 1)
