@@ -32,6 +32,9 @@ func open_menu(target: Node2D):
 	if target == null:
 		close_menu()
 		return
+	
+	var is_new_target = (selected_object != target)
+	var was_closed = not visible
 		
 	
 	if is_instance_valid(selected_object) and selected_object != target:
@@ -60,6 +63,10 @@ func open_menu(target: Node2D):
 
 	refresh_ui()
 	show()
+	
+	#only play the flash when switching targets or opening menu
+	if is_new_target or was_closed:
+		_play_refresh_flash()
 
 func close_menu():
 	
@@ -311,3 +318,13 @@ func _build_priority_widget(b: Node):
 	hbox.add_child(rank_label)
 	hbox.add_child(down_btn)
 	action_container.add_child(hbox)
+	
+func _play_refresh_flash():
+	# Kill any ongoing flashes so they don't overlap if the player clicks super fast
+	var tween = create_tween()
+	
+	# Start the menu at 50% opacity and slightly brighter
+	modulate = Color(1.2, 1.2, 1.2, 0.5) 
+	
+	# Tween it back to pure white and 100% solid over 0.25 seconds
+	tween.tween_property(self, "modulate", Color.WHITE, 0.25).set_trans(Tween.TRANS_SINE)
