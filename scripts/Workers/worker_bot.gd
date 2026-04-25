@@ -57,12 +57,23 @@ const XP_THRESHOLDS: Array[int] = [0, 50, 150, 300] # Levels 1, 2, 3, 4
 var current_priority: TaskPriority = TaskPriority.STOPPED
 var current_state: State = State.IDLE
 var current_speed: float
+
+# Single source of truth for the bot's fully-buffed normal speed.
+# All speed states (limp, panic, water, normal) derive from this value.
+# It is set once in _recalculate_stats() and never written anywhere else.
+var _normal_speed: float
+
 var _think_cooldown: float = 0.0
 
 # --- Standby Durations ---
 const STANDBY_IDLE: float = 1.0       # Nothing to do, check soon
 const STANDBY_WAITING: float = 2.0    # Waiting for jobs or materials
 const STANDBY_STORAGE_FULL: float = 5.0 # All storage full, wait for space
+
+# --- Speed Multipliers (applied to _normal_speed) ---
+const SPEED_MULT_LIMP: float = 0.4
+const SPEED_MULT_PANIC: float = 1.5
+const SPEED_MULT_WATER: float = 0.4
 
 # --- Inventory ---
 var carried_item_name: String = ""
@@ -111,18 +122,16 @@ func setup(level: Node2D):
 func _ready():
 	if ResearchManager.has_method("get_bot_start_level"):
 		bot_level = ResearchManager.get_bot_start_level()
-		current_xp = XP_THRESHOLDS[bot_level - 1] # Give them the minimum XP for their level
+		current_xp = XP_THRESHOLDS[bot_level - 1]
 		
 	current_energy = max_energy
-	current_speed = base_speed
 	add_to_group("WorkerBots")
 	_recalculate_stats()
 
-# --- REPLACED: apply_research_buffs() is now _recalculate_stats() ---
 func _recalculate_stats():
 	# 1. Start with Baseline Stats
 	var calc_speed = base_speed
-	var calc_carry = 5 # Default carry
+	var calc_carry = 5
 	var calc_max_hp = 100
 	
 	# 2. Apply Level Modifiers
@@ -138,8 +147,19 @@ func _recalculate_stats():
 	# 3. Apply Global Research Modifiers
 	calc_speed *= ResearchManager.bot_speed_mult
 	
-	# 4. Save the calculated stats
-	current_speed = calc_speed
+	# 4. Store the fully-buffed normal speed as the single source of truth.
+	_normal_speed = calc_speed
+
+	# 5. Update current_speed to match the bot's current movement mode.
+	# A recalculation during a limp or panic preserves the correct reduced speed
+	# rather than snapping the bot back to full speed mid-action.
+	if is_limping:
+		current_speed = _normal_speed * SPEED_MULT_LIMP
+	elif current_state == State.PANIC_MOVING_HOME:
+		current_speed = _normal_speed * SPEED_MULT_PANIC
+	else:
+		current_speed = _normal_speed
+
 	carry_capacity = calc_carry
 	
 	# Handle Max HP updates gracefully so we don't accidentally heal/damage the bot
@@ -148,33 +168,25 @@ func _recalculate_stats():
 	health = int(max_health * hp_ratio)
 
 func _add_xp(amount: int):
-	# 1. Find the absolute max level the factory currently allows
-	var global_max = 2 # Default fallback
+	var global_max = 2
 	if ResearchManager.has_method("get_bot_max_level"):
 		global_max = ResearchManager.get_bot_max_level()
 		
-	# 2. If we are already at the global max, do nothing!
 	if bot_level >= global_max:
 		return
 		
-	# 3. Add the XP
 	current_xp += amount
 	
-	# 4. Check for Level Up!
 	var next_level_threshold = XP_THRESHOLDS[bot_level]
 	if current_xp >= next_level_threshold:
 		bot_level += 1
-		
-		# Optional: Add a visual effect here later! (e.g., spawn a little "Level Up!" particle)
-		
-		# Recalculate stats immediately!
 		_recalculate_stats()
+
 # ==========================================
 # MAIN LOOP
 # ==========================================
 
 func _process(delta):
-	
 	queue_redraw()
 	_handle_energy(delta)
 	
@@ -187,7 +199,6 @@ func _process(delta):
 				_go_home_or_standby(STANDBY_IDLE)
 				return
 			
-			# Throttle brain to 5 times per second instead of every frame
 			_think_cooldown -= delta
 			if _think_cooldown > 0:
 				return
@@ -238,12 +249,11 @@ func _handle_energy(delta: float):
 		if current_energy >= max_energy:
 			current_energy = max_energy
 			is_limping = false
-			current_speed = base_speed * ResearchManager.bot_speed_mult
+			current_speed = _normal_speed
 			current_state = State.IDLE
 		return
 
 	# --- DRAINING: Lose energy while actively working or travelling ---
-	# Limping bots don't drain — they are already at 0 and guaranteed to make it home
 	var active_states = [
 		State.MOVING_TO_RESOURCE, State.HARVESTING, 
 		State.MOVING_TO_INVENTORY, State.DEPOSITING, 
@@ -260,7 +270,7 @@ func _handle_energy(delta: float):
 		if current_energy <= 0:
 			current_energy = 0
 			is_limping = true
-			current_speed = base_speed * 0.4
+			current_speed = _normal_speed * SPEED_MULT_LIMP
 			
 			_clear_reservation()
 			action_timer.stop()
@@ -269,14 +279,12 @@ func _handle_energy(delta: float):
 			if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
 				current_state = State.MOVING_HOME
 			else:
-				# No home set or path is blocked — recharge on the spot
 				current_state = State.RECHARGING
 
 # ==========================================
 # BRAIN: DECISION MAKING
 # ==========================================
 
-# Entry point for gather modes — finds the nearest unclaimed resource tile
 func _find_nearest_resource():
 	if carried_amount >= carry_capacity:
 		_find_nearest_storage()
@@ -297,25 +305,21 @@ func _find_nearest_resource():
 		
 		var info = level_ref.active_grid_objects[tile]
 		
-		# Skip dead or machine-claimed resources
 		if info["health"] <= 0:
 			continue
 		if info.get("harvester_claim_count", 0) > 0:
 			continue
 			
-		# Skip tiles claimed by another bot
 		if info.has("reserved_by") and is_instance_valid(info["reserved_by"]) and info["reserved_by"] != self:
 			continue
 		
 		var item_name = info["data"].item_drop.display_name
 		
-		# Filter by current gather priority
 		if current_priority == TaskPriority.GATHER_WOOD and item_name != "Wood":
 			continue
 		if current_priority == TaskPriority.GATHER_STONE and item_name != "Stone":
 			continue
 
-		# If already carrying something, only top up the same item
 		if carried_amount > 0 and item_name != carried_item_name:
 			continue
 			
@@ -332,20 +336,17 @@ func _find_nearest_resource():
 		else:
 			current_state = State.IDLE
 	else:
-		# No resources found — deposit if carrying something, otherwise wait
 		if carried_amount > 0:
 			_find_nearest_storage()
 		else:
 			current_state = State.IDLE
 
-# Entry point for MAINTAIN mode — asks the BuildingManager for the highest priority job
 func _find_priority_job():
 	_clear_reservation()
 	if not level_ref or not level_ref.building_manager: return
 
 	var best_job = level_ref.building_manager.get_highest_priority_job(global_position)
 
-	# No jobs exist right now
 	if best_job == null:
 		if carried_amount > 0:
 			_find_nearest_storage()
@@ -353,7 +354,6 @@ func _find_priority_job():
 			_go_home_or_standby(STANDBY_WAITING)
 		return
 
-	# We have a job but are holding the wrong item — go deposit first
 	if carried_amount > 0:
 		var holding_wrong_item = true
 		
@@ -368,10 +368,8 @@ func _find_priority_job():
 			_find_nearest_storage()
 			return
 
-	# Execute the job based on what type it is and what state we're in
 	if best_job is ConstructionSite or best_job is TerraformSite:
 		if carried_amount > 0:
-			# Hands full of the right material — deliver it
 			_request_path(best_job.occupied_tiles, true)
 			if not current_path.is_empty():
 				current_state = State.MOVING_TO_INVENTORY
@@ -379,7 +377,6 @@ func _find_priority_job():
 				current_state = State.IDLE
 				
 		elif not best_job.is_ready_to_build:
-			# Blueprint needs materials — go fetch them
 			var item_to_fetch = ""
 			for req_name in best_job.required_items.keys():
 				var needed = best_job.required_items[req_name]
@@ -394,7 +391,6 @@ func _find_priority_job():
 				current_state = State.IDLE
 				
 		else:
-			# Fully stocked — hammer it
 			_request_path(best_job.occupied_tiles, true)
 			if not current_path.is_empty():
 				current_state = State.MOVING_TO_BUILD
@@ -402,19 +398,16 @@ func _find_priority_job():
 				current_state = State.IDLE
 				
 	else:
-		# Damaged building — repair it
 		_request_path(best_job.occupied_tiles, true)
 		if not current_path.is_empty():
 			current_state = State.MOVING_TO_REPAIR
 		else:
 			current_state = State.IDLE
 
-# Finds the nearest storage with space for our carried item
 func _find_nearest_storage():
 	_clear_reservation()
 	if not level_ref or not level_ref.building_manager: return
 	
-	# Quick inventory scan before any pathfinding — stay home if everything is full
 	if not _any_storage_has_space():
 		full_storages_ignored.clear()
 		unreachable_storages.clear()
@@ -435,7 +428,6 @@ func _find_nearest_storage():
 		if b in full_storages_ignored: continue
 		if b in unreachable_storages: continue
 
-		# Respect dedicated storage filters
 		if "is_dedicated_mode" in b and "selected_output_name" in b:
 			if b.is_dedicated_mode and b.selected_output_name != "" and b.selected_output_name != carried_item_name:
 				continue
@@ -447,7 +439,6 @@ func _find_nearest_storage():
 				"dist": my_pos.distance_squared_to(b.occupied_tiles[0]) 
 			})
 
-	# Try candidates closest first, blacklisting any that can't be pathed to
 	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
 
 	for candidate in candidates:
@@ -459,7 +450,6 @@ func _find_nearest_storage():
 		else:
 			unreachable_storages.append(b_node)
 
-	# All candidates exhausted — wait and retry
 	full_storages_ignored.clear()
 	unreachable_storages.clear()
 	if current_priority == TaskPriority.MAINTAIN:
@@ -467,7 +457,6 @@ func _find_nearest_storage():
 		return
 	_go_home_or_standby(STANDBY_STORAGE_FULL)
 
-# Scans all buildings to find a stockpile that holds the requested item
 func _find_stockpile_with_item(item_name: String):
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
 	var best_tile = Vector2i(-1, -1)
@@ -503,7 +492,6 @@ func _find_stockpile_with_item(item_name: String):
 	else:
 		_go_home_or_standby(STANDBY_WAITING)
 
-# Returns true if any valid storage building has space for our carried item
 func _any_storage_has_space() -> bool:
 	if not level_ref or not level_ref.building_manager: return false
 	
@@ -526,7 +514,6 @@ func _any_storage_has_space() -> bool:
 # LEGS: MOVEMENT
 # ==========================================
 
-# Calculates a path to the nearest standable tile adjacent to the target footprint
 func _request_path(target_tiles: Array, is_building: bool = false):
 	var pathfinder = level_ref.building_manager.pathfinder
 	if not pathfinder: return
@@ -542,7 +529,6 @@ func _request_path(target_tiles: Array, is_building: bool = false):
 		return
 		
 	var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(standing_tile))
-	#use the bot astar grid
 	var packed_path = pathfinder.get_path_route(global_position, target_world, true)
 	
 	if packed_path.is_empty():
@@ -555,7 +541,6 @@ func _request_path(target_tiles: Array, is_building: bool = false):
 	current_path.append_array(packed_path)
 	target_tile = interaction_tile
 
-# Calculates a direct path to an exact grid tile (used for home)
 func _request_path_exact(target_grid: Vector2i) -> bool:
 	var pathfinder = level_ref.building_manager.pathfinder
 	if not pathfinder: return false
@@ -564,7 +549,6 @@ func _request_path_exact(target_grid: Vector2i) -> bool:
 		return false
 		
 	var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(target_grid))
-	#use the bot astar grid
 	var packed_path = pathfinder.get_path_route(global_position, target_world, true)
 	if packed_path.is_empty(): return false
 	
@@ -572,7 +556,6 @@ func _request_path_exact(target_grid: Vector2i) -> bool:
 	current_path.append_array(packed_path)
 	return true
 
-# Steps the bot along its current path, transitioning to next_state on arrival
 func _move_along_path(delta: float, next_state: State):
 	if current_path.is_empty():
 		current_state = next_state
@@ -585,9 +568,8 @@ func _move_along_path(delta: float, next_state: State):
 		var current_grid_pos = level_ref.terrain_layer.local_to_map(global_position)
 		var tile_data = level_ref.terrain_layer.get_cell_tile_data(current_grid_pos)
 		
-		# If the tile exists and is marked as water, apply the penalty!
 		if tile_data and tile_data.get_custom_data("is_water"):
-			actual_speed = current_speed * 0.4 # Move at 40% speed while in water
+			actual_speed = _normal_speed * SPEED_MULT_WATER
 			
 	var target_pos = current_path[0]
 	var dist = global_position.distance_to(target_pos)
@@ -603,7 +585,6 @@ func _move_along_path(delta: float, next_state: State):
 # HANDS: ACTIONS
 # ==========================================
 
-# Starts the action timer for whatever state we just arrived at
 func _start_action():
 	match current_state:
 		State.HARVESTING:  action_timer.start(harvest_time)
@@ -612,8 +593,7 @@ func _start_action():
 		State.BUILDING:    action_timer.start(1.0)
 		State.FETCHING:    action_timer.start(1.0)
 		State.PANIC_WAITING: 
-			#reset speed and start waiting timer
-			current_speed = base_speed * ResearchManager.bot_speed_mult
+			current_speed = _normal_speed
 			action_timer.start(30.0)
 
 func _on_action_timer_timeout():
@@ -648,7 +628,7 @@ func _do_harvest():
 		if carried_amount > 0: _find_nearest_storage()
 		else: current_state = State.IDLE
 	else:
-		action_timer.start(harvest_time) # Keep swinging
+		action_timer.start(harvest_time)
 
 func _do_fetch():
 	var storage = level_ref.building_manager.occupied_tiles.get(target_tile, null)
@@ -664,9 +644,8 @@ func _do_fetch():
 		carried_amount = result["amount"]
 		carried_item_res = result["resource"]
 		inventory_changed.emit()
-		current_state = State.IDLE # Brain will route us to the blueprint next tick
+		current_state = State.IDLE
 	else:
-		# Another bot grabbed the last item before us
 		carried_item_name = ""
 		current_state = State.IDLE
 
@@ -686,7 +665,6 @@ func _do_deposit():
 	inventory_changed.emit()
 	
 	if carried_amount <= 0:
-		# Successfully deposited everything
 		carried_item_name = ""
 		carried_item_res = null
 		full_storages_ignored.clear()
@@ -694,7 +672,6 @@ func _do_deposit():
 		current_state = State.IDLE
 		_add_xp(1)
 	else:
-		# Storage was full — blacklist it and try the next one
 		full_storages_ignored.append(storage)
 		_find_nearest_storage()
 
@@ -702,11 +679,11 @@ func _do_repair():
 	var building = level_ref.building_manager.occupied_tiles.get(target_tile, null)
 		
 	if not building or not "health" in building or not "max_health" in building:
-		current_state = State.IDLE # Building was destroyed
+		current_state = State.IDLE
 		return
 		
 	if building.health >= building.max_health:
-		current_state = State.IDLE # Already fully healed
+		current_state = State.IDLE
 		return
 		
 	building.health = min(building.health + 5, building.max_health)
@@ -717,9 +694,9 @@ func _do_repair():
 	_add_xp(1)
 		
 	if building.health >= building.max_health:
-		current_state = State.IDLE # Done!
+		current_state = State.IDLE
 	else:
-		action_timer.start(1.0) # Keep hammering
+		action_timer.start(1.0)
 
 func _do_build():
 	var building = level_ref.building_manager.occupied_tiles.get(target_tile, null)
@@ -731,31 +708,28 @@ func _do_build():
 	building.add_build_progress(10)
 	_add_xp(1)
 	
-	# Construction site replaces itself when complete — old reference becomes invalid
 	if not is_instance_valid(building) or building.is_queued_for_deletion():
 		current_state = State.IDLE
 	else:
-		action_timer.start(1.0) # Keep hammering
+		action_timer.start(1.0)
 
 func _do_standby_wake():
-	# Standby timer expired — clear all blacklists and try again with fresh eyes
 	full_storages_ignored.clear()
 	unreachable_storages.clear()
 	unreachable_tiles.clear()
 	current_state = State.IDLE
 
-# Instantly deletes whatever the bot is holding and resets its brain
 func _drop_inventory_and_work():
 	carried_amount = 0
 	carried_item_name = ""
 	carried_item_res = null
 	inventory_changed.emit()
 	current_state = State.IDLE
+
 # ==========================================
 # TILE MATH HELPERS
 # ==========================================
 
-# Finds the closest walkable tile adjacent to a building footprint
 func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 	var pathfinder = level_ref.building_manager.pathfinder
 	if not pathfinder: return {"stand": Vector2i(-1, -1), "target": Vector2i(-1, -1)}
@@ -765,7 +739,6 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 	var best_target = Vector2i(-1, -1)
 	var my_grid = level_ref.object_layer.local_to_map(global_position)
 	
-	# --- THE FIX: Track Path Length instead of straight-line distance ---
 	var shortest_path_length = INF
 	
 	for t_tile in target_tiles:
@@ -774,15 +747,11 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 			if test_tile in target_tiles: continue
 				
 			if pathfinder.bot_astar.is_in_boundsv(test_tile) and not pathfinder.bot_astar.is_point_solid(test_tile):
-				
-				# 1. Ask the pathfinder for the actual walking route!
 				var path_array = pathfinder.bot_astar.get_id_path(my_grid, test_tile)
 				
-				# 2. If the array is empty, this tile is completely walled off. Skip it!
 				if path_array.is_empty() and my_grid != test_tile:
 					continue
 					
-				# 3. Use the length of the actual path to determine the best tile
 				var path_length = path_array.size()
 				
 				if path_length < shortest_path_length:
@@ -792,7 +761,6 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 					
 	return {"stand": best_stand, "target": best_target}
 	
-# If the bot is inside a solid tile (e.g. a building was placed on top of it), pop it out
 func _escape_trapped_tile() -> bool:
 	var pathfinder = level_ref.building_manager.pathfinder
 	if not pathfinder: return false
@@ -814,11 +782,8 @@ func _escape_trapped_tile() -> bool:
 # HOME SYSTEM
 # ==========================================
 
-
-
 func toggle_set_home_mode(enabled: bool):
 	is_setting_home = enabled
-		
 	queue_redraw()
 	
 func set_home(grid_pos: Vector2i):
@@ -827,7 +792,7 @@ func set_home(grid_pos: Vector2i):
 	current_energy = max(0.0, current_energy - (max_energy / 2.0))
 	if current_energy <= 0.0 and not is_limping:
 		is_limping = true
-		current_speed = base_speed * 0.4
+		current_speed = _normal_speed * SPEED_MULT_LIMP
 		current_energy = 0.0
 		
 	inventory_changed.emit()
@@ -841,9 +806,8 @@ func set_home(grid_pos: Vector2i):
 			current_state = State.MOVING_HOME
 		else:
 			current_state = State.RECHARGING
-		return # Exit the function so we don't accidentally set it to IDLE below!
+		return
 	
-	# Interrupt idle/resting states so the bot walks to the new home immediately
 	if current_state in [State.IDLE, State.ON_STANDBY, State.MOVING_HOME, State.RECHARGING]:
 		current_path.clear()
 		action_timer.stop()
@@ -853,35 +817,30 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	if not level_ref or not level_ref.building_manager: return false
 	var bm = level_ref.building_manager
 	
-	# Be inside buildable range
 	if not bm.buildable_tiles.has(grid_pos):
 		return false
 		
-	# Cannot sleep in the Corruption!
 	if bm.corruption_layer and bm.corruption_layer.get_cell_source_id(grid_pos) != -1:
 		return false
 		
-	# 2. Cannot sleep inside a solid object (Wall, Tower, etc.)
 	if bm.pathfinder and bm.pathfinder.bot_astar.is_point_solid(grid_pos):
 		return false
 		
 	return true
 
-# Sends the bot home if possible, otherwise puts it on a timed standby
 func _go_home_or_standby(wait_time: float):
 	if home_tile != Vector2i(-1, -1):
 		var my_grid = level_ref.object_layer.local_to_map(global_position)
 		if my_grid != home_tile and _request_path_exact(home_tile):
 			current_state = State.MOVING_HOME
 			return
-	# Already home, no home set, or path is blocked
 	current_state = State.ON_STANDBY
 	action_timer.start(wait_time)
-
 
 # ==========================================
 # COMBAT & PANIC
 # ==========================================
+
 func take_damage(damage: int, source: Node2D = null):
 	health -= damage
 	
@@ -889,36 +848,29 @@ func take_damage(damage: int, source: Node2D = null):
 		die()
 		return
 		
-	# Trigger Adrenaline Panic!
 	if current_state != State.PANIC_MOVING_HOME and current_state != State.PANIC_WAITING:
-		_drop_inventory_and_work() # Drop what we are holding so we can run fast
-		is_limping = false # Ignore exhaustion
+		_drop_inventory_and_work()
+		is_limping = false
 		
-		# --- NEW: Check where we are right now! ---
 		var my_grid = Vector2i(-1, -1)
 		if level_ref and level_ref.object_layer:
 			my_grid = level_ref.object_layer.local_to_map(global_position)
 			
-		# If we are already home, just cower. No speed boost needed!
 		if home_tile != Vector2i(-1, -1) and my_grid == home_tile:
 			current_state = State.PANIC_WAITING
 			_start_action()
 		else:
-			# We are caught outside! Apply the Adrenaline boost!
-			current_speed = base_speed * ResearchManager.bot_speed_mult * 1.5 
+			current_speed = _normal_speed * SPEED_MULT_PANIC
 			
 			if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
 				current_state = State.PANIC_MOVING_HOME
 			else:
-				# No home set, or path is completely blocked! Cower in place!
 				current_state = State.PANIC_WAITING
 				_start_action()
 
 func die():
 	_clear_reservation()
 	unhovered.emit(self)
-	
-	# Safely clear from the InputManager if the player was looking at it
 	
 	if InputManager.hovered_bot == self:
 		InputManager.hovered_bot = null
@@ -928,21 +880,18 @@ func die():
 	queue_free()
 
 func _end_panic():
-	# They calmed down. Reset speed, heal them to full, and get back to work
-	current_speed = base_speed * ResearchManager.bot_speed_mult
+	current_speed = _normal_speed
 	current_state = State.IDLE
-	
+
 # ==========================================
 # RESERVATION SYSTEM
 # ==========================================
 
-# Releases our claim on the current resource tile so other bots can take it
 func _clear_reservation():
 	if target_tile != Vector2i(-1, -1) and level_ref and level_ref.active_grid_objects.has(target_tile):
 		var info = level_ref.active_grid_objects[target_tile]
 		if info.has("reserved_by") and info["reserved_by"] == self:
 			info["reserved_by"] = null
-
 
 # ==========================================
 # UI INTERACTION & PRIORITY LOGIC
@@ -957,14 +906,12 @@ func _on_mouse_exited():
 	if InputManager.hovered_bot == self:
 		InputManager.hovered_bot = null
 
-		
 func set_priority(new_priority: int):
 	if current_priority == new_priority: return
 	
 	current_priority = new_priority as TaskPriority
 	_clear_reservation()
 	
-	# Void carried items that don't match the new priority
 	if carried_amount > 0:
 		if current_priority == TaskPriority.GATHER_WOOD and carried_item_name != "Wood":
 			carried_amount = 0
@@ -981,7 +928,6 @@ func set_priority(new_priority: int):
 		action_timer.stop()
 		current_state = State.IDLE
 	else:
-		# Interrupt any gather/deposit work in progress
 		var interruptible_states = [
 			State.IDLE, 
 			State.MOVING_TO_RESOURCE, State.HARVESTING,
@@ -1044,16 +990,13 @@ func _draw_set_home_preview():
 	if not is_setting_home: return
 	if not level_ref or not level_ref.object_layer: return
 	
-	# Follow the mouse and snap to grid
 	var mouse_global = get_global_mouse_position()
 	var mouse_grid = level_ref.object_layer.local_to_map(level_ref.object_layer.to_local(mouse_global))
 	var preview_local = to_local(level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(mouse_grid)))
 	
-	# Draw the ghost box
 	var is_valid = is_valid_home_tile(mouse_grid)
-	var box_color = Color(0.2, 0.8, 1.0, 0.8) if is_valid else Color(1.0, 0.2, 0.2) # Green or Red
+	var box_color = Color(0.2, 0.8, 1.0, 0.8) if is_valid else Color(1.0, 0.2, 0.2)
 	
-	# Draw the colored ghost box
 	var rect = Rect2(preview_local - Vector2(16, 16), Vector2(32, 32))
 	draw_rect(rect, Color(box_color.r, box_color.g, box_color.b, 0.2), true)
 	draw_rect(rect, Color(box_color.r, box_color.g, box_color.b, 0.8), false, 2.0)
@@ -1092,8 +1035,8 @@ func _draw_energy_bar():
 	
 	var e_pos = Vector2(-12.0, 18.0)
 	var energy_colors = {
-		true: Color(1.0, 0.2, 0.2),   # Limping
-		false: Color(1.0, 0.8, 0.2)   # Normal drain
+		true: Color(1.0, 0.2, 0.2),
+		false: Color(1.0, 0.8, 0.2)
 	}
 	var energy_color = energy_colors.get(is_limping, Color(1.0, 0.8, 0.2))
 	if current_state == State.RECHARGING:
@@ -1106,51 +1049,36 @@ func _draw_energy_bar():
 # ==========================================
 # SAVE / LOAD SYSTEM (Worker Bot)
 # ==========================================
+
 func get_save_data() -> Dictionary:
 	return {
-		# 1. Exact Pixel Position
 		"pos_x": global_position.x,
 		"pos_y": global_position.y,
-		
-		# 2. Grid Memory
 		"home_x": home_tile.x,
 		"home_y": home_tile.y,
 		"target_x": target_tile.x,
 		"target_y": target_tile.y,
-		
-		# 3. Brain State & Health
 		"current_priority": current_priority,
 		"current_state": current_state,
 		"current_energy": current_energy,
 		"is_limping": is_limping,
 		"health": health,
-		
-		# 4. Veterancy
 		"bot_level": bot_level,
 		"current_xp": current_xp,
-		
-		# 5. Inventory
 		"carried_item_name": carried_item_name,
 		"carried_amount": carried_amount,
-		
-		# 6. Action Progress (How much time is left on harvesting/repairing)
 		"timer_time_left": action_timer.time_left if not action_timer.is_stopped() else 0.0
 	}
 
 func load_save_data(data: Dictionary):
-	# 1. Restore Position
 	global_position = Vector2(data.get("pos_x", 0.0), data.get("pos_y", 0.0))
-	
-	# 2. Restore Grid Coordinates
 	home_tile = Vector2i(data.get("home_x", -1), data.get("home_y", -1))
 	target_tile = Vector2i(data.get("target_x", -1), data.get("target_y", -1))
 	
-	# 3. Restore Veterancy & Recalculate Stats BEFORE loading health
 	bot_level = data.get("bot_level", 1)
 	current_xp = data.get("current_xp", 0)
-	_recalculate_stats() # This securely sets max_health, speed, and carry_capacity based on level!
+	_recalculate_stats() # Sets _normal_speed, max_health, carry_capacity
 	
-	# 4. Restore State, Health & Energy
 	current_priority = data.get("current_priority", TaskPriority.STOPPED) as TaskPriority
 	current_state = data.get("current_state", State.IDLE) as State
 	current_energy = data.get("current_energy", max_energy)
@@ -1158,9 +1086,8 @@ func load_save_data(data: Dictionary):
 	is_limping = data.get("is_limping", false)
 	
 	if is_limping:
-		current_speed = base_speed * 0.4
+		current_speed = _normal_speed * SPEED_MULT_LIMP
 		
-	# 5. Restore Inventory via ItemDatabase
 	carried_amount = data.get("carried_amount", 0)
 	carried_item_name = data.get("carried_item_name", "")
 	
@@ -1169,12 +1096,10 @@ func load_save_data(data: Dictionary):
 	else:
 		carried_item_res = null
 		
-	# 6. Restore Action Timer
 	var time_left = data.get("timer_time_left", 0.0)
 	if time_left > 0:
 		action_timer.start(time_left)
 		
-	# 7. Wipe volatile memory so the bot recalculates everything safely
 	current_path.clear()
 	unreachable_tiles.clear()
 	full_storages_ignored.clear()
@@ -1184,14 +1109,12 @@ func load_save_data(data: Dictionary):
 		State.MOVING_TO_RESOURCE, State.MOVING_TO_INVENTORY,
 		State.MOVING_TO_REPAIR, State.MOVING_TO_BUILD,
 		State.MOVING_TO_FETCH, State.MOVING_HOME,
-		State.PANIC_MOVING_HOME # Caught in a panic run during the save
+		State.PANIC_MOVING_HOME
 	]
 	
-	# If the bot was walking somewhere, cancel the walk and let the brain rethink!
 	if current_state in transit_states:
 		current_state = State.IDLE
 		target_tile = Vector2i(-1, -1)
 		action_timer.stop()
 	
-	# Wake up the UI
 	inventory_changed.emit()
