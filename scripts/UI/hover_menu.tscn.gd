@@ -205,6 +205,22 @@ func _refresh_stats_ui(b: Node2D):
 		stats_box.add_child(row)
 
 func _collect_bot_stats(b: Node2D, stats: Array):
+	# --- Veterancy Stats ---
+	if "bot_level" in b and "current_xp" in b and "XP_THRESHOLDS" in b:
+		var global_max = 2 # Default fallback
+		
+		# Safely query the ResearchManager if it exists
+		if ResearchManager.has_method("get_bot_max_level"):
+			global_max = ResearchManager.get_bot_max_level()
+				
+		stats.append("Level: %d / %d" % [b.bot_level, global_max])
+		
+		if b.bot_level >= global_max:
+			stats.append("XP: MAX")
+		else:
+			var next_threshold = b.XP_THRESHOLDS[b.bot_level]
+			stats.append("XP: %d / %d" % [b.current_xp, next_threshold])
+			
 	if "current_speed" in b: stats.append("Speed: %.0f" % b.current_speed)
 	if "carry_capacity" in b: stats.append("Carry Cap: %d" % b.carry_capacity)
 	if "current_energy" in b and "max_energy" in b:

@@ -33,8 +33,24 @@ func _process(_delta):
 		# 3. Live update for Worker Bots
 		elif selected_object.has_method("set_priority"): 
 			var info = selected_object.get_inventory_info()
-			info_label.text = "Health: %d / %d\nTarget: %s\nCarrying: %s" % [selected_object.health, selected_object.max_health, info["Target"], info["Carrying"]]
-
+			
+			# --- Live-update the Level & XP string ---
+			var level_str = ""
+			if "bot_level" in selected_object and "current_xp" in selected_object and "XP_THRESHOLDS" in selected_object:
+				var global_max = 2
+				if ClassDB.class_exists("ResearchManager") or Engine.has_singleton("ResearchManager"):
+					if ResearchManager.has_method("get_bot_max_level"):
+						global_max = ResearchManager.get_bot_max_level()
+						
+				level_str = "Level: %d / %d | " % [selected_object.bot_level, global_max]
+				if selected_object.bot_level >= global_max:
+					level_str += "XP: MAX\n"
+				else:
+					var next_threshold = selected_object.XP_THRESHOLDS[selected_object.bot_level]
+					level_str += "XP: %d / %d\n" % [selected_object.current_xp, next_threshold]
+			# ----------------------------------------------
+			
+			info_label.text = "%sHealth: %d / %d\nTarget: %s\nCarrying: %s" % [level_str, selected_object.health, selected_object.max_health, info["Target"], info["Carrying"]]
 func open_menu(target: Node2D):
 	if target == null:
 		close_menu()
@@ -243,7 +259,24 @@ func _setup_core_ui(b: CoreBuilding):
 
 func _setup_bot_ui(b: Node2D):
 	var info = b.get_inventory_info()
-	info_label.text = "Health: %d / %d\nTarget: %s\nCarrying: %s" % [b.health, b.max_health, info["Target"], info["Carrying"]]
+	# --- NEW: Build the Level & XP string ---
+	var level_str = ""
+	if "bot_level" in b and "current_xp" in b and "XP_THRESHOLDS" in b:
+		var global_max = 2
+		if ClassDB.class_exists("ResearchManager") or Engine.has_singleton("ResearchManager"):
+			if ResearchManager.has_method("get_bot_max_level"):
+				global_max = ResearchManager.get_bot_max_level()
+				
+		level_str = "Level: %d / %d | " % [b.bot_level, global_max]
+		if b.bot_level >= global_max:
+			level_str += "XP: MAX\n"
+		else:
+			var next_threshold = b.XP_THRESHOLDS[b.bot_level]
+			level_str += "XP: %d / %d\n" % [b.current_xp, next_threshold]
+	# ----------------------------------------
+
+	# Inject the level_str at the very beginning of the label
+	info_label.text = "%sHealth: %d / %d\nTarget: %s\nCarrying: %s" % [level_str, b.health, b.max_health, info["Target"], info["Carrying"]]
 	
 	if info["Target"] == "Wood Only": info_label.modulate = Color(0.6, 1.0, 0.6)
 	elif info["Target"] == "Stone Only": info_label.modulate = Color(0.785, 0.785, 0.785, 1.0)

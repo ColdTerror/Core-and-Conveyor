@@ -100,7 +100,7 @@ func _apply_tech(tech_name: String):
 # NOTIFY EXISTING UNITS
 # ==========================================
 func _update_living_bots():
-	get_tree().call_group("WorkerBots", "apply_research_buffs")
+	get_tree().call_group("WorkerBots", "_recalculate_stats")
 
 func _update_living_towers():
 	get_tree().call_group("Towers", "apply_research_buffs")

@@ -31,6 +31,11 @@ var building_name: String = "Worker Bot"
 var health: int = 100
 var max_health: int = 100
 
+# --- VETERANCY SYSTEM ---
+var bot_level: int = 1
+var current_xp: int = 0
+const XP_THRESHOLDS: Array[int] = [0, 50, 150, 300] # Levels 1, 2, 3, 4
+
 # ==========================================
 # CONFIGURATION (Tweak these in the inspector)
 # ==========================================
@@ -104,15 +109,66 @@ func setup(level: Node2D):
 		home_tile = level_ref.object_layer.local_to_map(global_position)
 
 func _ready():
+	if ResearchManager.has_method("get_bot_start_level"):
+		bot_level = ResearchManager.get_bot_start_level()
+		current_xp = XP_THRESHOLDS[bot_level - 1] # Give them the minimum XP for their level
+		
 	current_energy = max_energy
 	current_speed = base_speed
 	add_to_group("WorkerBots")
-	apply_research_buffs()
+	_recalculate_stats()
 
-# Called by ResearchManager when an upgrade completes
-func apply_research_buffs():
-	current_speed = base_speed * ResearchManager.bot_speed_mult
+# --- REPLACED: apply_research_buffs() is now _recalculate_stats() ---
+func _recalculate_stats():
+	# 1. Start with Baseline Stats
+	var calc_speed = base_speed
+	var calc_carry = 5 # Default carry
+	var calc_max_hp = 100
+	
+	# 2. Apply Level Modifiers
+	if bot_level >= 2:
+		calc_speed *= 1.25 
+	if bot_level >= 3:
+		calc_speed *= 1.5
+		calc_carry += 2
+	if bot_level >= 4:
+		calc_carry += 3 
+		calc_max_hp += 50
+		
+	# 3. Apply Global Research Modifiers
+	calc_speed *= ResearchManager.bot_speed_mult
+	
+	# 4. Save the calculated stats
+	current_speed = calc_speed
+	carry_capacity = calc_carry
+	
+	# Handle Max HP updates gracefully so we don't accidentally heal/damage the bot
+	var hp_ratio = float(health) / float(max_health)
+	max_health = calc_max_hp
+	health = int(max_health * hp_ratio)
 
+func _add_xp(amount: int):
+	# 1. Find the absolute max level the factory currently allows
+	var global_max = 2 # Default fallback
+	if ResearchManager.has_method("get_bot_max_level"):
+		global_max = ResearchManager.get_bot_max_level()
+		
+	# 2. If we are already at the global max, do nothing!
+	if bot_level >= global_max:
+		return
+		
+	# 3. Add the XP
+	current_xp += amount
+	
+	# 4. Check for Level Up!
+	var next_level_threshold = XP_THRESHOLDS[bot_level]
+	if current_xp >= next_level_threshold:
+		bot_level += 1
+		
+		# Optional: Add a visual effect here later! (e.g., spawn a little "Level Up!" particle)
+		
+		# Recalculate stats immediately!
+		_recalculate_stats()
 # ==========================================
 # MAIN LOOP
 # ==========================================
@@ -584,6 +640,7 @@ func _do_harvest():
 		carried_item_name = carried_item_res.display_name
 		carried_amount += harvested_amount
 		inventory_changed.emit()
+		_add_xp(1)
 	
 	if carried_amount >= carry_capacity:
 		_find_nearest_storage()
@@ -635,6 +692,7 @@ func _do_deposit():
 		full_storages_ignored.clear()
 		unreachable_storages.clear()
 		current_state = State.IDLE
+		_add_xp(1)
 	else:
 		# Storage was full — blacklist it and try the next one
 		full_storages_ignored.append(storage)
@@ -655,6 +713,8 @@ func _do_repair():
 	
 	if building.has_signal("health_changed"):
 		building.health_changed.emit(building.health, building.max_health)
+	
+	_add_xp(1)
 		
 	if building.health >= building.max_health:
 		current_state = State.IDLE # Done!
@@ -669,6 +729,7 @@ func _do_build():
 		return
 		
 	building.add_build_progress(10)
+	_add_xp(1)
 	
 	# Construction site replaces itself when complete — old reference becomes invalid
 	if not is_instance_valid(building) or building.is_queued_for_deletion():
@@ -1057,17 +1118,22 @@ func get_save_data() -> Dictionary:
 		"target_x": target_tile.x,
 		"target_y": target_tile.y,
 		
-		# 3. Brain State
+		# 3. Brain State & Health
 		"current_priority": current_priority,
 		"current_state": current_state,
 		"current_energy": current_energy,
 		"is_limping": is_limping,
+		"health": health,
 		
-		# 4. Inventory
+		# 4. Veterancy
+		"bot_level": bot_level,
+		"current_xp": current_xp,
+		
+		# 5. Inventory
 		"carried_item_name": carried_item_name,
 		"carried_amount": carried_amount,
 		
-		# 5. Action Progress (How much time is left on harvesting/repairing)
+		# 6. Action Progress (How much time is left on harvesting/repairing)
 		"timer_time_left": action_timer.time_left if not action_timer.is_stopped() else 0.0
 	}
 
@@ -1079,16 +1145,22 @@ func load_save_data(data: Dictionary):
 	home_tile = Vector2i(data.get("home_x", -1), data.get("home_y", -1))
 	target_tile = Vector2i(data.get("target_x", -1), data.get("target_y", -1))
 	
-	# 3. Restore State & Energy
+	# 3. Restore Veterancy & Recalculate Stats BEFORE loading health
+	bot_level = data.get("bot_level", 1)
+	current_xp = data.get("current_xp", 0)
+	_recalculate_stats() # This securely sets max_health, speed, and carry_capacity based on level!
+	
+	# 4. Restore State, Health & Energy
 	current_priority = data.get("current_priority", TaskPriority.STOPPED) as TaskPriority
 	current_state = data.get("current_state", State.IDLE) as State
 	current_energy = data.get("current_energy", max_energy)
+	health = data.get("health", max_health)
 	is_limping = data.get("is_limping", false)
 	
 	if is_limping:
 		current_speed = base_speed * 0.4
 		
-	# 4. Restore Inventory via ItemDatabase
+	# 5. Restore Inventory via ItemDatabase
 	carried_amount = data.get("carried_amount", 0)
 	carried_item_name = data.get("carried_item_name", "")
 	
@@ -1097,12 +1169,12 @@ func load_save_data(data: Dictionary):
 	else:
 		carried_item_res = null
 		
-	# 5. Restore Action Timer
+	# 6. Restore Action Timer
 	var time_left = data.get("timer_time_left", 0.0)
 	if time_left > 0:
 		action_timer.start(time_left)
 		
-	# 6. Wipe volatile memory so the bot recalculates everything safely
+	# 7. Wipe volatile memory so the bot recalculates everything safely
 	current_path.clear()
 	unreachable_tiles.clear()
 	full_storages_ignored.clear()
@@ -1111,7 +1183,8 @@ func load_save_data(data: Dictionary):
 	var transit_states = [
 		State.MOVING_TO_RESOURCE, State.MOVING_TO_INVENTORY,
 		State.MOVING_TO_REPAIR, State.MOVING_TO_BUILD,
-		State.MOVING_TO_FETCH, State.MOVING_HOME
+		State.MOVING_TO_FETCH, State.MOVING_HOME,
+		State.PANIC_MOVING_HOME # Caught in a panic run during the save
 	]
 	
 	# If the bot was walking somewhere, cancel the walk and let the brain rethink!
