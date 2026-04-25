@@ -71,7 +71,6 @@ const XP_THRESHOLDS: Array[int] = [0, 50, 150, 300] # Thresholds for levels 1, 2
 # --- Task & Movement ---
 var current_priority: TaskPriority = TaskPriority.STOPPED
 var current_state: State = State.IDLE
-var current_speed: float  # The speed actually used this frame (affected by limp/panic/water)
 
 # Single source of truth for the bot's fully-buffed normal speed.
 # _recalculate_stats() is the ONLY place this is written to.
@@ -192,15 +191,6 @@ func _recalculate_stats():
 	# Store as the authoritative normal speed. Nothing else should write to _normal_speed.
 	_normal_speed = calc_speed
 
-	# Update current_speed to match whatever movement mode the bot is currently in.
-	# If we just blindly set current_speed = _normal_speed here, a bot mid-limp would
-	# suddenly snap to full speed when a research upgrade fires _recalculate_stats().
-	if is_limping:
-		current_speed = _normal_speed * SPEED_MULT_LIMP
-	elif current_state == State.PANIC_MOVING_HOME:
-		current_speed = _normal_speed * SPEED_MULT_PANIC
-	else:
-		current_speed = _normal_speed
 
 	carry_capacity = calc_carry
 	
@@ -231,6 +221,24 @@ func _add_xp(amount: int):
 	if current_xp >= next_level_threshold:
 		bot_level += 1
 		_recalculate_stats() # Immediately apply stat bonuses for the new level
+		
+func _get_speed() -> float:
+	var mult := 1.0
+
+	# State modifiers
+	if is_limping:
+		mult *= SPEED_MULT_LIMP
+	elif current_state == State.PANIC_MOVING_HOME:
+		mult *= SPEED_MULT_PANIC
+
+	# Terrain modifier
+	if level_ref and level_ref.terrain_layer:
+		var grid = level_ref.terrain_layer.local_to_map(global_position)
+		var tile = level_ref.terrain_layer.get_cell_tile_data(grid)
+		if tile and tile.get_custom_data("is_water"):
+			mult *= SPEED_MULT_WATER
+
+	return _normal_speed * mult
 # ==========================================
 # MAIN LOOP
 # _process runs every frame. It handles energy drain and drives the state machine.
@@ -308,7 +316,6 @@ func _handle_energy(delta: float):
 		if current_energy >= max_energy:
 			current_energy = max_energy
 			is_limping = false
-			current_speed = _normal_speed  # Restore full speed after rest
 			current_state = State.IDLE     # Wake up and get back to work
 		return  # No drain logic while recharging
 
@@ -332,8 +339,6 @@ func _handle_energy(delta: float):
 			is_limping = true
 			# Limping speed is slower, but energy will NOT drain anymore (guard above),
 			# so the bot is guaranteed to complete the walk home without stopping.
-			current_speed = _normal_speed * SPEED_MULT_LIMP
-			
 			# Abandon the current task cleanly
 			_clear_reservation()
 			action_timer.stop()
@@ -683,21 +688,16 @@ func _move_along_path(delta: float, next_state: State):
 		_start_action()
 		return
 		
-	# Water tiles slow the bot down. We apply this to _normal_speed rather than
-	# current_speed to avoid compounding with the limp/panic multiplier already
-	# baked into current_speed. The result is a local "this frame only" speed.
-	var actual_speed = current_speed
 	
 	if level_ref and level_ref.terrain_layer:
 		var current_grid_pos = level_ref.terrain_layer.local_to_map(global_position)
 		var tile_data = level_ref.terrain_layer.get_cell_tile_data(current_grid_pos)
 		
-		if tile_data and tile_data.get_custom_data("is_water"):
-			actual_speed = _normal_speed * SPEED_MULT_WATER
+
 			
 	var target_pos = current_path[0]
 	var dist = global_position.distance_to(target_pos)
-	var move_step = actual_speed * delta
+	var move_step = _get_speed() * delta
 	
 	if dist <= move_step:
 		# Close enough — snap to the waypoint exactly, then advance to the next one
@@ -720,10 +720,7 @@ func _start_action():
 		State.REPAIRING:   action_timer.start(1.0)
 		State.BUILDING:    action_timer.start(1.0)
 		State.FETCHING:    action_timer.start(1.0)
-		State.PANIC_WAITING:
-			# Bot arrived home mid-panic — restore normal speed and hunker down for 30 seconds
-			current_speed = _normal_speed
-			action_timer.start(30.0)
+		State.PANIC_WAITING: action_timer.start(30.0)
 
 func _on_action_timer_timeout():
 	match current_state:
@@ -964,7 +961,6 @@ func set_home(grid_pos: Vector2i):
 	current_energy = max(0.0, current_energy - (max_energy / 2.0))
 	if current_energy <= 0.0 and not is_limping:
 		is_limping = true
-		current_speed = _normal_speed * SPEED_MULT_LIMP
 		current_energy = 0.0
 		
 	inventory_changed.emit()
@@ -1045,9 +1041,7 @@ func take_damage(damage: int, source: Node2D = null):
 			current_state = State.PANIC_WAITING
 			_start_action()
 		else:
-			# Apply the adrenaline speed boost and sprint home
-			current_speed = _normal_speed * SPEED_MULT_PANIC
-			
+			#sprint home	
 			if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
 				current_state = State.PANIC_MOVING_HOME
 			else:
@@ -1069,7 +1063,6 @@ func die():
 
 # Called when the PANIC_WAITING timer expires — the bot has calmed down and is ready to work.
 func _end_panic():
-	current_speed = _normal_speed
 	current_state = State.IDLE
 
 # ==========================================
@@ -1315,11 +1308,7 @@ func load_save_data(data: Dictionary):
 	current_energy = data.get("current_energy", max_energy)
 	health = data.get("health", max_health)
 	is_limping = data.get("is_limping", false)
-	
-	# _recalculate_stats() ran before is_limping was restored, so current_speed
-	# may be wrong. Fix it now that we know the real limping state.
-	if is_limping:
-		current_speed = _normal_speed * SPEED_MULT_LIMP
+
 		
 	# 5. Restore inventory — look up the ItemResource from the saved display name
 	carried_amount = data.get("carried_amount", 0)
