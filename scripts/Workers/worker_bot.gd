@@ -20,7 +20,8 @@ enum State {
 	MOVING_TO_REPAIR, REPAIRING, 
 	MOVING_TO_BUILD, BUILDING,
 	MOVING_TO_FETCH, FETCHING,
-	MOVING_HOME, RECHARGING
+	MOVING_HOME, RECHARGING,
+	PANIC_MOVING_HOME, PANIC_WAITING
 }
 
 # ==========================================
@@ -41,6 +42,7 @@ var max_health: int = 100
 @export var max_energy: float = 100.0
 @export var energy_drain_rate: float = 2.0   # Per second while working
 @export var energy_recharge_rate: float = 25.0 # Per second while recharging at home
+@export var health_recharge_rate: float = 10.0
 
 # ==========================================
 # RUNTIME STATE
@@ -65,6 +67,7 @@ var carried_item_res: Resource = null
 # --- Energy ---
 var current_energy: float = 100.0
 var is_limping: bool = false
+var _health_accumulator: float = 0.0
 
 # --- Navigation ---
 var target_tile: Vector2i = Vector2i(-1, -1)
@@ -154,7 +157,9 @@ func _process(delta):
 			_move_along_path(delta, State.FETCHING)
 		State.MOVING_HOME:
 			_move_along_path(delta, State.RECHARGING)
-		State.RECHARGING:
+		State.PANIC_MOVING_HOME: 
+			_move_along_path(delta, State.PANIC_WAITING)
+		State.RECHARGING, State.PANIC_WAITING:
 			pass # Handled entirely in _handle_energy
 
 # ==========================================
@@ -163,8 +168,17 @@ func _process(delta):
 
 func _handle_energy(delta: float):
 	# --- RECHARGING: Refill energy at home tile ---
-	if current_state == State.RECHARGING:
+	if current_state == State.RECHARGING or current_state == State.PANIC_WAITING:
 		current_energy += energy_recharge_rate * delta
+		
+		# Restore Health
+		if health < max_health:
+			_health_accumulator += health_recharge_rate * delta
+			if _health_accumulator >= 1.0:
+				var heal_amount = int(_health_accumulator)
+				health = min(health + heal_amount, max_health)
+				_health_accumulator -= heal_amount
+				
 		if current_energy >= max_energy:
 			current_energy = max_energy
 			is_limping = false
@@ -541,6 +555,7 @@ func _start_action():
 		State.REPAIRING:   action_timer.start(1.0)
 		State.BUILDING:    action_timer.start(1.0)
 		State.FETCHING:    action_timer.start(1.0)
+		State.PANIC_WAITING: action_timer.start(30.0)
 
 func _on_action_timer_timeout():
 	match current_state:
@@ -550,6 +565,7 @@ func _on_action_timer_timeout():
 		State.REPAIRING:   _do_repair()
 		State.BUILDING:    _do_build()
 		State.ON_STANDBY:  _do_standby_wake()
+		State.PANIC_WAITING: _end_panic()
 
 func _do_harvest():
 	if not level_ref.active_grid_objects.has(target_tile):
@@ -798,6 +814,48 @@ func _go_home_or_standby(wait_time: float):
 	current_state = State.ON_STANDBY
 	action_timer.start(wait_time)
 
+
+# ==========================================
+# COMBAT & PANIC
+# ==========================================
+func take_damage(damage: int, source: Node2D = null):
+	health -= damage
+	
+	if health <= 0:
+		die()
+		return
+		
+	# Trigger Adrenaline Panic!
+	if current_state != State.PANIC_MOVING_HOME and current_state != State.PANIC_WAITING:
+		_drop_inventory_and_work() # Drop what we are holding so we can run fast
+		is_limping = false # Ignore exhaustion
+		current_speed = base_speed * ResearchManager.bot_speed_mult * 1.5 # 1.5x Adrenaline boost!
+		
+		if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
+			current_state = State.PANIC_MOVING_HOME
+		else:
+			# No home set, or path is completely blocked! Cower in place!
+			current_state = State.PANIC_WAITING
+			_start_action()
+
+func die():
+	_clear_reservation()
+	unhovered.emit(self)
+	
+	# Safely clear from the InputManager if the player was looking at it
+	
+	if InputManager.hovered_bot == self:
+		InputManager.hovered_bot = null
+	if is_selected:
+		InputManager.object_selected.emit(null) 
+			
+	queue_free()
+
+func _end_panic():
+	# They calmed down. Reset speed, heal them to full, and get back to work
+	current_speed = base_speed * ResearchManager.bot_speed_mult
+	current_state = State.IDLE
+	
 # ==========================================
 # RESERVATION SYSTEM
 # ==========================================

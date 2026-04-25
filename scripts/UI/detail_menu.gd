@@ -19,14 +19,21 @@ func _ready():
 	info_label.custom_minimum_size = Vector2(225, 50) 
 	
 
-# --- NEW: Live HP updating! ---
 func _process(_delta):
-	if visible and selected_object is Enemy:
-		if is_instance_valid(selected_object):
-			info_label.text = "Health: %d / %d\nDamage: %d" % [selected_object.health, selected_object.max_health, selected_object.damage]
-		else:
-			# The enemy died while we were looking at it!
+	if visible:
+		# 1. Safely close if the target was destroyed while we were looking at it
+		if not is_instance_valid(selected_object):
 			close_menu()
+			return
+			
+		# 2. Live update for Enemies
+		if selected_object is Enemy:
+			info_label.text = "Health: %d / %d\nDamage: %d" % [selected_object.health, selected_object.max_health, selected_object.damage]
+			
+		# 3. Live update for Worker Bots
+		elif selected_object.has_method("set_priority"): 
+			var info = selected_object.get_inventory_info()
+			info_label.text = "Health: %d / %d\nTarget: %s\nCarrying: %s" % [selected_object.health, selected_object.max_health, info["Target"], info["Carrying"]]
 
 func open_menu(target: Node2D):
 	if target == null:
@@ -236,7 +243,7 @@ func _setup_core_ui(b: CoreBuilding):
 
 func _setup_bot_ui(b: Node2D):
 	var info = b.get_inventory_info()
-	info_label.text = "Target: %s\nCarrying: %s" % [info["Target"], info["Carrying"]]
+	info_label.text = "Health: %d / %d\nTarget: %s\nCarrying: %s" % [b.health, b.max_health, info["Target"], info["Carrying"]]
 	
 	if info["Target"] == "Wood Only": info_label.modulate = Color(0.6, 1.0, 0.6)
 	elif info["Target"] == "Stone Only": info_label.modulate = Color(0.785, 0.785, 0.785, 1.0)
