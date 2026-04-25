@@ -20,6 +20,11 @@ var health: int = max_health
 @export var separation_radius: float = 24.0 # How close before they push
 @export var separation_force: float = 30.0  # How hard they push apart
 
+# --- NEW: AGGRO CONFIG ---
+@export_subgroup("Aggro Logic")
+@export var bot_aggro_radius: float = 100.0 # How close a bot has to be to distract them
+@export var bot_leash_radius: float = 250.0 # How far the bot has to run to make them give up
+
 # --- STATE ---
 var pathfinder: Pathfinder 
 var current_target: Node2D
@@ -249,23 +254,54 @@ func _validate_target(delta) -> bool:
 		if current_target is Building and current_target.is_ghost:
 			_reset_target()
 			return false
+			
+		# --- THE LEASH LOGIC ---
+		if current_target.has_method("set_priority"): 
+			if global_position.distance_to(current_target.global_position) > bot_leash_radius:
+				is_target_locked = false 
+				_reset_target()
+				return false
+		# ------------------------------
+		
+		if is_target_locked:
+			return true
+			
+		# --- THE FIX: ACTIVE DISTRACTION RADAR ---
+		# Even if we have a valid building target, scan for bots every 0.5s!
+		find_target_timer -= delta
+		if find_target_timer <= 0.0:
+			find_target_timer = 0.5
+			
+			# Only scan for distractions if we aren't ALREADY chasing a bot!
+			if not current_target.has_method("set_priority"):
+				_scan_for_nearby_bots()
+		# -----------------------------------------
+		
 		return true
 		
-	# Search cooldown
+	# Search cooldown (when we have no target at all)
 	find_target_timer -= delta
 	if find_target_timer <= 0.0:
 		_reset_target()
-		find_target_timer = .5
+		find_target_timer = 0.5
 	return false
-
 func _reset_target():
 	current_target = null
 	current_path = []
 	path_update_timer = 0.0
 	is_target_locked = false
 	_find_target()
-
+	
 func _find_target():
+	# 1. DISTRACTION CHECK
+	if not is_target_locked:
+		_scan_for_nearby_bots()
+		
+		# If the scanner found a bot, stop looking for buildings!
+		if current_target != null and current_target.has_method("set_priority"):
+			return 
+
+	# 2. GLOBAL RADAR (Look for priority targets/buildings)
 	var targets = get_tree().get_nodes_in_group("PriorityTarget")
 	var nearest: Node2D = null
 	var min_dist = INF
@@ -276,9 +312,26 @@ func _find_target():
 		if d < min_dist:
 			min_dist = d
 			nearest = t
+			
 	current_target = nearest
 
-# Enemy.gd
+func _scan_for_nearby_bots():
+	var bots = get_tree().get_nodes_in_group("WorkerBots")
+	var nearest_bot: Node2D = null
+	var min_bot_dist = bot_aggro_radius * bot_aggro_radius 
+	
+	for b in bots:
+		if not is_instance_valid(b) or b.health <= 0: continue
+		
+		var d = global_position.distance_squared_to(b.global_position)
+		if d < min_bot_dist:
+			min_bot_dist = d
+			nearest_bot = b
+			
+	if nearest_bot != null:
+		# Distraction successful! Switch target and instantly turn!
+		current_target = nearest_bot
+		_recalculate_path()
 
 func _recalculate_path():
 	if not pathfinder or not is_instance_valid(current_target): return

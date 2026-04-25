@@ -29,6 +29,7 @@ func _process(_delta):
 	# Live-refresh bot stats since energy changes every frame
 	if is_instance_valid(current_building) and current_building.building_name == "Worker Bot":
 		_refresh_stats_ui(current_building)
+		_update_health_text(current_building.health, current_building.max_health)
 
 
 func show_building_info(b: Node2D):

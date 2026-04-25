@@ -555,7 +555,10 @@ func _start_action():
 		State.REPAIRING:   action_timer.start(1.0)
 		State.BUILDING:    action_timer.start(1.0)
 		State.FETCHING:    action_timer.start(1.0)
-		State.PANIC_WAITING: action_timer.start(30.0)
+		State.PANIC_WAITING: 
+			#reset speed and start waiting timer
+			current_speed = base_speed * ResearchManager.bot_speed_mult
+			action_timer.start(30.0)
 
 func _on_action_timer_timeout():
 	match current_state:
@@ -829,14 +832,26 @@ func take_damage(damage: int, source: Node2D = null):
 	if current_state != State.PANIC_MOVING_HOME and current_state != State.PANIC_WAITING:
 		_drop_inventory_and_work() # Drop what we are holding so we can run fast
 		is_limping = false # Ignore exhaustion
-		current_speed = base_speed * ResearchManager.bot_speed_mult * 1.5 # 1.5x Adrenaline boost!
 		
-		if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
-			current_state = State.PANIC_MOVING_HOME
-		else:
-			# No home set, or path is completely blocked! Cower in place!
+		# --- NEW: Check where we are right now! ---
+		var my_grid = Vector2i(-1, -1)
+		if level_ref and level_ref.object_layer:
+			my_grid = level_ref.object_layer.local_to_map(global_position)
+			
+		# If we are already home, just cower. No speed boost needed!
+		if home_tile != Vector2i(-1, -1) and my_grid == home_tile:
 			current_state = State.PANIC_WAITING
 			_start_action()
+		else:
+			# We are caught outside! Apply the Adrenaline boost!
+			current_speed = base_speed * ResearchManager.bot_speed_mult * 1.5 
+			
+			if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
+				current_state = State.PANIC_MOVING_HOME
+			else:
+				# No home set, or path is completely blocked! Cower in place!
+				current_state = State.PANIC_WAITING
+				_start_action()
 
 func die():
 	_clear_reservation()
