@@ -80,6 +80,7 @@ func _ready():
 	InputManager.wave_manager = wave_manager
 	InputManager.management_menu = management_menu
 	InputManager.stat_menu = stat_menu
+	InputManager.hover_popup = hover_menu
 	
 		
 	hover_menu.hide()
@@ -455,7 +456,7 @@ func load_map_save_data(data: Dictionary):
 			new_bot.setup(self)
 			new_bot.load_save_data(b_data)
 			
-			# Re-connect the UI signals to the BuildingManager!
+			# Re-connect the UI signals 
 			new_bot.hovered.connect(InputManager._on_object_hovered)
 			new_bot.unhovered.connect(InputManager._on_object_unhovered)
 	
