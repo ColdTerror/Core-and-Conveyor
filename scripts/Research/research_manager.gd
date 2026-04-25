@@ -1,9 +1,12 @@
 extends Node
 
 # ==========================================
-# GLOBAL MULTIPLIERS
+# GLOBAL MULTIPLIERS & LIMITS
 # ==========================================
-var bot_speed_mult: float = 1.0
+var max_bots_allowed: int = 2     # --- Starts at 2, goes to 5 ---
+var bot_start_level: int = 1      # --- For future bots ---
+var bot_max_level: int = 2        # ---  Starts at 2, goes to 4 ---
+
 var belt_speed_mult: float = 1.0 
 var max_buildings_allowed: int = 10
 var tower_damage_mult: float = 1.0
@@ -18,13 +21,13 @@ var tier_unlocked: int = 0  # 0 = nothing, 1 = tier 1 unlocked, 2 = tier 2, etc.
 # Which tier does each tech belong to?
 const TECH_TIERS: Dictionary = {
 	"Core Expansion 1": 0,   # Tier 0 — always researchable, unlocks tier 1
-	"Bot Speed 1":      1,
+	"Fleet Expansion":  1,  
 	"Belt Speed 1":     1,   
 	"Building Limit 1": 1,
 	"Tower Damage 1":   1,
 	"Wave Measurement": 1,
 	"Core Expansion 2": 1,   # Requires tier 1, unlocks tier 2
-	"Bot Speed 2":      2,
+	"Advanced Tooling": 2,   
 	"Belt Speed 2":     2,   
 	"Building Limit 2": 2,
 	"Tower Damage 2":   2,
@@ -37,6 +40,15 @@ var unlocked_techs: Array[String] = []
 # --- INTEL TRACKERS ---
 var wave_measure: bool = false
 var moon_measure_level: int = 0
+
+# ==========================================
+# PUBLIC GETTERS (For Bots)
+# ==========================================
+func get_bot_start_level() -> int:
+	return bot_start_level
+	
+func get_bot_max_level() -> int:
+	return bot_max_level
 
 # ==========================================
 # UNLOCK ROUTER
@@ -72,10 +84,10 @@ func _apply_tech(tech_name: String):
 			tier_unlocked = 2
 		"Core Expansion 3":
 			tier_unlocked = 3
-		"Bot Speed 1":
-			bot_speed_mult = 1.25
-		"Bot Speed 2":
-			bot_speed_mult = 1.5
+		"Fleet Expansion":      
+			max_bots_allowed = 5
+		"Advanced Tooling":      
+			bot_max_level = 4
 		"Belt Speed 1":          
 			belt_speed_mult = 1.25
 		"Belt Speed 2":          
@@ -119,7 +131,9 @@ func get_save_data() -> Dictionary:
 func load_save_data(data: Dictionary):
 	# 1. Reset all Autoload variables back to Day 1 defaults
 	tier_unlocked = 0
-	bot_speed_mult = 1.0
+	max_bots_allowed = 2 
+	bot_start_level = 1 
+	bot_max_level = 2    
 	belt_speed_mult = 1.0
 	max_buildings_allowed = 10
 	tower_damage_mult = 1.0

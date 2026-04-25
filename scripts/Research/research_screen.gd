@@ -1,4 +1,11 @@
+@tool # <--- 1. Tell Godot to run this in the editor!
 extends CanvasLayer
+
+# --- 2. THE MAGIC BUTTON ---
+# Clicking this checkbox in the Inspector triggers the layout function!
+@export var click_to_arrange_tree: bool = false:
+	set(value):
+		_arrange_nodes()
 
 # Make sure this path points exactly to your GraphEdit node!
 @onready var graph_edit = $BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit
@@ -7,16 +14,33 @@ extends CanvasLayer
 signal close_research_tree
 
 func _ready():
-	# Listen to the GameState. If another menu opens, check if we need to hide!
+	# --- 3. EDITOR SAFETY CHECK ---
+	# We don't want to connect game signals or hide the UI while we are working in the editor!
+	if Engine.is_editor_hint():
+		return 
+		
+	# --- NORMAL GAME RUNTIME LOGIC ---
 	GameState.menu_changed.connect(_on_global_menu_changed)
-	
 	hide() # Hide when the game starts
 	close_button.pressed.connect(close_screen)
 	
 	for node in graph_edit.get_children():
 		if node is GraphNode and node.has_signal("research_started"):
 			node.research_started.connect(close_screen)
-	
+
+# ==========================================
+# EDITOR LAYOUT TOOL
+# ==========================================
+func _arrange_nodes():
+	# Safely grab the GraphEdit (since @onready vars aren't always ready for @tool setters)
+	var ge = get_node_or_null("BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit")
+	if not ge:
+		print("Could not find GraphEdit node to arrange!")
+		return
+		
+	# Clear existing connections so Godot doesn't throw errors if you click the button twice
+	ge.clear_connections()
+
 	# COLUMN X POSITIONS (left to right = tier depth)
 	var col_0 = 0    # Branch headers (parents)
 	var col_1 = 500  # Tier 1 children
@@ -29,59 +53,55 @@ func _ready():
 	var row_buildings = 400
 	var row_towers   = 600
 	var row_global   = 800
-	var row_belt   = 1000
-	
+	var row_belt     = 1000
 	
 	# ==========================================
 	# POSITION EACH NODE
 	# ==========================================
+	_place(ge, "Core1", col_0, row_core)
+	_place(ge, "Core2", col_1, row_core)
 	
-	_place("Core1", col_0, row_core)
-	_place("Core2", col_1, row_core)
+	_place(ge, "Bot1", col_0, row_bots)
+	_place(ge, "Bot2", col_1, row_bots)
 	
+	_place(ge, "Building1", col_0, row_buildings)
+	_place(ge, "Building2", col_1, row_buildings)
 	
-	_place("Bot1", col_0, row_bots)
-	_place("Bot2", col_1, row_bots)
+	_place(ge, "Tower1", col_0, row_towers)
+	_place(ge, "Tower2", col_1, row_towers)
 	
-	_place("Building1", col_0, row_buildings)
-	_place("Building2", col_1, row_buildings)
+	_place(ge, "Global1", col_0, row_global)
+	_place(ge, "Global2", col_1, row_global)
 	
-	_place("Tower1", col_0, row_towers)
-	_place("Tower2", col_1, row_towers)
-	
-	_place("Global1", col_0, row_global)
-	_place("Global2", col_1, row_global)
-	
-	_place("Belt1", col_0, row_belt)
-	_place("Belt2", col_1, row_belt)
+	_place(ge, "Belt1", col_0, row_belt)
+	_place(ge, "Belt2", col_1, row_belt)
+
 	# ==========================================
 	# WIRE THE CONNECTIONS
 	# ==========================================
-	graph_edit.connect_node("Core1", 0, "Core2", 0)
+	ge.connect_node("Core1", 0, "Core2", 0)
+	ge.connect_node("Bot1", 0, "Bot2", 0)
+	ge.connect_node("Building1", 0, "Building2", 0)
+	ge.connect_node("Tower1", 0, "Tower2", 0)
+	ge.connect_node("Global1", 0, "Global2", 0)
+	ge.connect_node("Belt1", 0, "Belt2", 0)
 	
-	graph_edit.connect_node("Bot1", 0, "Bot2", 0)
-	
-	graph_edit.connect_node("Building1", 0, "Building2", 0)
-	
-	graph_edit.connect_node("Tower1", 0, "Tower2", 0)
-	
-	graph_edit.connect_node("Global1", 0, "Global2", 0)
-	
-	graph_edit.connect_node("Belt1", 0, "Belt2", 0)
-
-	
+	print("Research Tree Successfully Arranged!")
 
 # ==========================================
 # HELPER
 # ==========================================
-func _place(node_name: String, x: float, y: float):
-	var node = graph_edit.get_node(node_name)
+func _place(ge: GraphEdit, node_name: String, x: float, y: float):
+	var node = ge.get_node_or_null(node_name)
 	if node:
 		node.position_offset = Vector2(x, y)
-		node.draggable = false  # ← Add this
+		node.draggable = false 
 	else:
 		push_warning("Research node not found: " + node_name)
 
+# ==========================================
+# UI LOGIC
+# ==========================================
 func open_screen():
 	if GameState.open_menu(GameState.MenuType.RESEARCH):
 		_refresh_all_nodes()
@@ -96,8 +116,6 @@ func close_screen():
 	GameState.close_menu()
 
 func _on_global_menu_changed(active_menu):
-	# If the active menu is NO LONGER the Research menu, hide ourselves!
 	if active_menu != GameState.MenuType.RESEARCH:
 		hide()
-		# Emit any signals you need when closing, like:
 		close_research_tree.emit()

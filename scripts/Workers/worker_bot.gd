@@ -188,8 +188,6 @@ func _recalculate_stats():
 		calc_carry += 3
 		calc_max_hp += 50
 		
-	# Apply the global research multiplier on top of the levelled speed
-	calc_speed *= ResearchManager.bot_speed_mult
 	
 	# Store as the authoritative normal speed. Nothing else should write to _normal_speed.
 	_normal_speed = calc_speed
@@ -233,7 +231,6 @@ func _add_xp(amount: int):
 	if current_xp >= next_level_threshold:
 		bot_level += 1
 		_recalculate_stats() # Immediately apply stat bonuses for the new level
-
 # ==========================================
 # MAIN LOOP
 # _process runs every frame. It handles energy drain and drives the state machine.
