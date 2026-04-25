@@ -56,7 +56,10 @@ const RES_STONE := 4
 @export var mine_scene: PackedScene
 @export var stonemason_scene: PackedScene
 @export var fletcher_scene: PackedScene
+@export var firepit_scene: PackedScene
+
 @export var projectile_scene: PackedScene
+
 
 # ==========================================
 # RUNTIME STATE
@@ -155,11 +158,11 @@ func _add_unlocked_buildings():
 	_add_building_to_bar("Bow Tower", bow_tower_scene)
 	_add_building_to_bar("Wall", wall_scene)
 	_add_building_to_bar("Gate", gate_scene)
-	
 	_add_building_to_bar("Mine", mine_scene)
 	_add_building_to_bar("Stonemason", stonemason_scene)
 	_add_building_to_bar("Fletcher", fletcher_scene)
-
+	_add_building_to_bar("Firepit", firepit_scene)
+	
 func _add_building_to_bar(name: String, packed_scene: PackedScene):
 	if not packed_scene: return
 	var temp = packed_scene.instantiate()

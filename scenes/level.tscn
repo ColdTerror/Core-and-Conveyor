@@ -28,6 +28,7 @@
 [ext_resource type="PackedScene" uid="uid://dstw12awamhw8" path="res://scenes/buildings & related/core_building.tscn" id="21_gur6y"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
 [ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/detail_menu.tscn" id="21_wu01b"]
+[ext_resource type="PackedScene" uid="uid://0u5oiw0srd4h" path="res://scenes/buildings & related/firepit_building.tscn" id="22_iafhg"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
 [ext_resource type="Script" uid="uid://derk5dx603k7c" path="res://scripts/Managers/time_manager.gd" id="23_asl66"]
 [ext_resource type="Script" uid="uid://bdgkdni8jfnax" path="res://scripts/UI/overlay_renderer.gd" id="25_svjb4"]
@@ -60,6 +61,7 @@ core_scene = ExtResource("21_gur6y")
 mine_scene = ExtResource("17_w3o6u")
 stonemason_scene = ExtResource("18_gur6y")
 fletcher_scene = ExtResource("19_v3why")
+firepit_scene = ExtResource("22_iafhg")
 projectile_scene = ExtResource("18_cmcjb")
 
 [node name="WaveManager" parent="." unique_id=2093612804 node_paths=PackedStringArray("level_ref", "corruption_layer", "time_manager", "corruption_manager") instance=ExtResource("32_2e2fo")]

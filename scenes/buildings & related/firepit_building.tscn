@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://0u5oiw0srd4h"]
+
+[ext_resource type="Script" uid="uid://bo3c62pg4cx7v" path="res://scripts/Building Classes/building.gd" id="1_56aoo"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="2_chqqx"]
+[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="2_oetil"]
+
+[sub_resource type="Resource" id="Resource_426dl"]
+script = ExtResource("2_chqqx")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[node name="FirepitBuilding" type="Node2D" unique_id=649498052]
+script = ExtResource("1_56aoo")
+building_name = "Firepit"
+size = Vector2i(2, 2)
+max_health = 10
+build_costs = Array[ExtResource("2_chqqx")]([SubResource("Resource_426dl")])
+build_range = 14.0
+corruption_range = 16.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=460788050]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_oetil")
