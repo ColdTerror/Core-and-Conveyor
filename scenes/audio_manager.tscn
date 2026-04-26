@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://b62cdiulu7kma"]
+
+[ext_resource type="Script" uid="uid://b1t1yjr13oirl" path="res://scripts/Managers/audio_manager.gd" id="1_8qd8g"]
+
+[node name="AudioManager" type="Node2D" unique_id=1217077936]
+script = ExtResource("1_8qd8g")
+
+[node name="MusicPlayer" type="AudioStreamPlayer2D" parent="." unique_id=1637698141]
+
+[node name="SFXPool" type="Node" parent="." unique_id=4857135]
+
+[node name="SFXPlayer1" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=143611587]
+
+[node name="SFXPlayer2" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1464740797]
+
+[node name="SFXPlayer3" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1471111550]
+
+[node name="SFXPlayer4" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=621450391]
+
+[node name="SFXPlayer5" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1154297634]

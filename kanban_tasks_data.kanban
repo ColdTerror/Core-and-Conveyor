@@ -22,7 +22,9 @@
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"ea14879c-67ff-409c-8283-708d3dccaebf"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -996,6 +998,13 @@
 		{
 			"uuid": "1119a81c-5924-421a-957f-6bf4a01bd6d5",
 			"title": "export building for required tasks like satisfactory?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "ea14879c-67ff-409c-8283-708d3dccaebf",
+			"title": "add music/sound volume settings",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
