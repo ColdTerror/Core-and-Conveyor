@@ -138,31 +138,66 @@ func _process(_delta):
 # ==========================================
 # HOTBAR & UI
 # ==========================================
+var categorized_buildings := {}
 
 func _setup_hotbar_items():
+	# 1. Define the Nested Folders
+	categorized_buildings = {
+		"Logistics": [
+			{"name": "Belt", "scene": conveyor_scene},
+			{"name": "Router", "scene": router_scene},
+			{"name": "Filter", "scene": filter_scene}
+		],
+		"Production": [
+			{"name": "Hut", "scene": lumberjack_scene},
+			{"name": "Sawmill", "scene": sawmill_scene},
+			{"name": "Mine", "scene": mine_scene},
+			{"name": "Stonemason", "scene": stonemason_scene},
+			{"name": "Fletcher", "scene": fletcher_scene}
+		],
+		"Defense": [
+			{"name": "Bow Tower", "scene": bow_tower_scene},
+			{"name": "Wall", "scene": wall_scene},
+			{"name": "Gate", "scene": gate_scene}
+		],
+		"Infrastructure": [
+			{"name": "Stockpile", "scene": stockpile_scene},
+			{"name": "Firepit", "scene": firepit_scene}
+		]
+	}
+	
+	# 2. Start the game with just the Core button
 	_add_building_to_bar("Core", core_scene)
 
 func _on_core_placed():
 	print_debug("from level on core placed")
-	if hotbar and hotbar.has_method("remove_button"):
-		hotbar.remove_button("Core")
-	_add_unlocked_buildings()
+	_show_main_categories()
 	
-func _add_unlocked_buildings():
-	_add_building_to_bar("Belt", conveyor_scene)
-	_add_building_to_bar("Router", router_scene)
-	_add_building_to_bar("Filter", filter_scene)
-	_add_building_to_bar("Hut", lumberjack_scene)
-	_add_building_to_bar("Sawmill", sawmill_scene)
-	_add_building_to_bar("Stockpile", stockpile_scene)
-	_add_building_to_bar("Bow Tower", bow_tower_scene)
-	_add_building_to_bar("Wall", wall_scene)
-	_add_building_to_bar("Gate", gate_scene)
-	_add_building_to_bar("Mine", mine_scene)
-	_add_building_to_bar("Stonemason", stonemason_scene)
-	_add_building_to_bar("Fletcher", fletcher_scene)
-	_add_building_to_bar("Firepit", firepit_scene)
+func _show_main_categories():
+	if hotbar.has_method("clear_buttons"):
+		hotbar.clear_buttons()
+		
+	_add_category_button("Logistics")
+	_add_category_button("Production")
+	_add_category_button("Defense")
+	_add_category_button("Infrastructure")
+
+func _show_category(category_name: String):
+	if hotbar.has_method("clear_buttons"):
+		hotbar.clear_buttons()
+		
+	# Add a "Back" button first
+	hotbar.add_button("Back", null, "ACTION_BACK", false)
 	
+	# Populate the buildings for this category
+	var items = categorized_buildings[category_name]
+	for item in items:
+		_add_building_to_bar(item["name"], item["scene"])
+
+func _add_category_button(category_name: String):
+	# We pass a custom string starting with "CAT_" as the data, and 'false' for is_building
+	hotbar.add_button(category_name, null, "CAT_" + category_name, false)
+
 func _add_building_to_bar(name: String, packed_scene: PackedScene):
 	if not packed_scene: return
 	var temp = packed_scene.instantiate()
@@ -172,9 +207,19 @@ func _add_building_to_bar(name: String, packed_scene: PackedScene):
 	
 func _on_hotbar_item_selected(data, is_building):
 	building_manager.cancel_placement()
+	
 	if is_building:
+		# It's a real building blueprint
 		InputManager.current_mode = InputManager.InteractionMode.PLACE_BUILDING
 		building_manager.start_placing(data)
+	else:
+		# It's a UI Navigation button (Category or Back)
+		if typeof(data) == TYPE_STRING:
+			if data.begins_with("CAT_"):
+				var cat_name = data.replace("CAT_", "")
+				_show_category(cat_name)
+			elif data == "ACTION_BACK":
+				_show_main_categories()
 
 # ==========================================
 # RESOURCES & ENVIRONMENT

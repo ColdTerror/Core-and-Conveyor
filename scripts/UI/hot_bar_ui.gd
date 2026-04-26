@@ -45,6 +45,11 @@ func add_button(label_text: String, icon_texture: Texture2D, data, is_building: 
 		_start_core_flash()
 	# ----------------------------------
 
+
+func clear_buttons():
+	for child in container.get_children():
+		child.queue_free()
+
 func _on_button_pressed(data, is_building):
 	item_selected.emit(data, is_building)
 
