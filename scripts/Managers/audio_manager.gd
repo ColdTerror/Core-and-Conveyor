@@ -24,7 +24,7 @@ var sfx_tracks: Dictionary = {
 func _ready():
 	# --- NEW: Tell the player to run a function when the song ends ---
 	music_player.finished.connect(_on_music_finished)
-	# We don't play a track here anymore. TimeManager will tell us what to play when it loads!
+	AudioManager.play_next_track_with_fade("Sunrise", 0.5)
 
 # ==========================================
 # MUSIC LOGIC
