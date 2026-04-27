@@ -30,6 +30,7 @@ func _ready():
 # MUSIC LOGIC
 # ==========================================
 func play_music(track_name: String):
+	print("playing music: " + track_name)
 	if not music_tracks.has(track_name):
 		push_warning("Music track not found: " + track_name)
 		return
@@ -44,6 +45,7 @@ func play_music(track_name: String):
 	music_player.play()
 
 func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0):
+	print("playing music with fade: " + track_name)
 	if not music_tracks.has(track_name):
 		push_warning("Music track not found: " + track_name)
 		return
@@ -79,6 +81,7 @@ func stop_music():
 # PLAYLIST SEQUENCING (Time-Based Looping)
 # ==========================================
 func _on_music_finished():
+	print("music finished signal")
 	# Safely find the TimeManager anywhere in the active scene tree
 	var time_manager = get_tree().root.find_child("TimeManager", true, false)
 	
