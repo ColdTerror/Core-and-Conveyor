@@ -85,6 +85,9 @@ func _check_day_night_triggers():
 		current_moon_phase = MoonPhase.NORMAL # Reset for the day
 		day_started.emit(current_day)
 		
+		# --- NEW: Fade into morning! ---
+		AudioManager.play_next_track_with_fade("Sunrise", 3.0)
+		
 	# --- SUNSET ---
 	elif current_hour == sunset_hour and not is_night:
 		is_night = true
@@ -99,7 +102,10 @@ func _check_day_night_triggers():
 			current_moon_phase = MoonPhase.NORMAL
 			
 		night_started.emit(current_day)
-
+		
+		# --- NEW: Fade into night! ---
+		AudioManager.play_next_track_with_fade("NightTime", 3.0)
+		
 # ==========================================
 # VISUALS & LIGHTING
 # ==========================================
@@ -151,10 +157,15 @@ func load_save_data(data: Dictionary):
 	current_hour = data.get("current_hour", 6)
 	is_night = data.get("is_night", false)
 	
-	# Godot pulls the integer from the save file, and it slots perfectly back into the Enum!
 	current_moon_phase = data.get("current_moon_phase", MoonPhase.NORMAL)
 	
-	# Instantly snap the lighting to the correct color so we don't blind the player
-	# if they load into a midnight save!
 	_update_lighting()
+	
+	# --- NEW: Snap the music to the loaded time of day! ---
+	if is_night:
+		AudioManager.play_next_track_with_fade("NightTime", 0.5)
+	elif current_time >= 6.0 and current_time < 8.0:
+		AudioManager.play_next_track_with_fade("Sunrise", 0.5)
+	else:
+		AudioManager.play_next_track_with_fade("Forest_Ambience", 0.5)
 	

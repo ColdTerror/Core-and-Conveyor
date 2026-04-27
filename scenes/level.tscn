@@ -117,9 +117,8 @@ corruption_atlas = Vector2i(2, 1)
 [node name="Pathfinder" type="Node2D" parent="." unique_id=1266074560]
 script = ExtResource("29_7agi7")
 
-[node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
+[node name="TimeManager" type="Node2D" parent="." unique_id=1909731771]
 script = ExtResource("23_asl66")
-lighting_modulate = NodePath("../DayNightLighting")
 
 [node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
 color = Color(1, 1, 1, 0)
