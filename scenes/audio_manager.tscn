@@ -7,6 +7,7 @@ process_mode = 3
 script = ExtResource("1_8qd8g")
 
 [node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1098141626]
+bus = &"Music"
 
 [node name="SFXPool" type="Node" parent="." unique_id=4857135]
 

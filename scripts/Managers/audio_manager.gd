@@ -15,6 +15,9 @@ var current_track_name: String = ""
 var is_jukebox_enabled: bool = false 
 signal track_changed(track_name: String)
 
+# --- BUS INDICES ---
+var music_bus_index: int
+
 # ==========================================
 # AUDIO DICTIONARIES (Future-Proofed)
 # ==========================================
@@ -24,6 +27,15 @@ var music_tracks: Dictionary = {
 	"NightTime": preload("res://audio/Music/NightTime.wav")
 }
 
+# PLAYLISTS: Grouping the names of the tracks together
+var playlists: Dictionary = {
+	"Sunrise": ["Sunrise"],
+	"Day": ["Forest_Ambience"],
+	"Night_Normal": ["NightTime"],
+	"Night_Full": ["NightTime"], # Placeholder until you add full moon tracks!
+	"Night_Blood": ["NightTime"] # Placeholder until you add blood moon tracks!
+}
+
 var sfx_tracks: Dictionary = {
 	# "hammer": preload("res://audio/hammer.wav"),
 	# "bow_shoot": preload("res://audio/bow.wav")
@@ -31,8 +43,13 @@ var sfx_tracks: Dictionary = {
 
 func _ready():
 	music_player.finished.connect(_on_music_finished)
+	
+	music_bus_index = AudioServer.get_bus_index("Music")
+	
 	# We use play_next_track_with_fade so it broadcasts the track_changed signal right away!
 	play_next_track_with_fade("Sunrise", 0.5)
+	
+	
 
 # ==========================================
 # MUSIC LOGIC
@@ -91,6 +108,24 @@ func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0, i
 		fade_in_tween.tween_property(music_player, "volume_db", target_vol, fade_duration)
 	)
 
+
+# --- NEW HELPER FUNCTION ---
+# Call this instead of play_next_track_with_fade when relying on the time of day
+func play_playlist_track(playlist_name: String, fade_duration: float = 2.0):
+	if not playlists.has(playlist_name):
+		push_warning("Playlist not found: " + playlist_name)
+		return
+		
+	var tracks = playlists[playlist_name]
+	if tracks.is_empty():
+		return
+		
+	# Pick a random song from the array!
+	var random_track_name = tracks.pick_random()
+	
+	# Pass it off to our existing fader function
+	play_next_track_with_fade(random_track_name, fade_duration)
+	
 func stop_music():
 	music_player.stop()
 
@@ -98,8 +133,8 @@ func stop_music():
 # PLAYLIST SEQUENCING (Time-Based Looping)
 # ==========================================
 func _on_music_finished():
+	print("music finished signal")
 	
-	# --- If the Jukebox is on, loop the forced track forever! ---
 	if is_jukebox_enabled:
 		music_player.play()
 		return
@@ -111,11 +146,19 @@ func _on_music_finished():
 		return
 		
 	if time_manager.is_night:
-		play_next_track_with_fade("NightTime", 0.1) 
+		# Check the specific moon phase enum!
+		match time_manager.current_moon_phase:
+			TimeManager.MoonPhase.BLOOD:
+				play_playlist_track("Night_Blood", 0.25)
+			TimeManager.MoonPhase.FULL:
+				play_playlist_track("Night_Full", 0.25)
+			_: # Normal Night (Default)
+				play_playlist_track("Night_Normal", 0.25)
+				
 	elif time_manager.current_time >= 6.0 and time_manager.current_time < 8.0:
-		play_next_track_with_fade("Sunrise", 0.1)
+		play_playlist_track("Sunrise", 0.25)
 	else:
-		play_next_track_with_fade("Forest_Ambience", 0.1)
+		play_playlist_track("Day", 0.25)
 
 # ==========================================
 # JUKEBOX CONTROLS
@@ -177,3 +220,10 @@ func set_sfx_muted(muted: bool):
 	var target_vol = -80.0 if is_sfx_muted else default_sfx_volume_db
 	for player in sfx_pool.get_children():
 		player.volume_db = target_vol
+		
+# ==========================================
+# AUDIO EFFECTS
+# ==========================================
+func set_music_muffled(is_muffled: bool):
+	# The '0' means we are targeting the very first effect added to the bus
+	AudioServer.set_bus_effect_enabled(music_bus_index, 0, is_muffled)

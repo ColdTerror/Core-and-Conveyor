@@ -77,10 +77,12 @@ func pause_game():
 	# Update the quick save button text so the player knows which slot it will use
 	$CenterContainer/VBoxContainer/QuickSave.text = "Quick Save (Slot %d)" % SaveManager.current_slot
 	_refresh_menu_state()
+	AudioManager.set_music_muffled(true)
 
 func resume_game():
 	hide()
 	get_tree().paused = false
+	AudioManager.set_music_muffled(false)
 
 func exit_game():
 	get_tree().quit()

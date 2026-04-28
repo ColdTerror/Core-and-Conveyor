@@ -85,8 +85,8 @@ func _check_day_night_triggers():
 		current_moon_phase = MoonPhase.NORMAL # Reset for the day
 		day_started.emit(current_day)
 		
-		# --- NEW: Fade into morning! ---
-		AudioManager.play_next_track_with_fade("Sunrise", 3.0)
+		# Pull from the Sunrise playlist!
+		AudioManager.play_playlist_track("Sunrise", 3.0)
 		
 	# --- SUNSET ---
 	elif current_hour == sunset_hour and not is_night:
@@ -103,8 +103,14 @@ func _check_day_night_triggers():
 			
 		night_started.emit(current_day)
 		
-		# --- NEW: Fade into night! ---
-		AudioManager.play_next_track_with_fade("NightTime", 3.0)
+		# Pull from the correct Night playlist based on the roll!
+		match current_moon_phase:
+			MoonPhase.BLOOD:
+				AudioManager.play_playlist_track("Night_Blood", 3.0)
+			MoonPhase.FULL:
+				AudioManager.play_playlist_track("Night_Full", 3.0)
+			_:
+				AudioManager.play_playlist_track("Night_Normal", 3.0)
 		
 # ==========================================
 # VISUALS & LIGHTING
@@ -161,11 +167,18 @@ func load_save_data(data: Dictionary):
 	
 	_update_lighting()
 	
-	# --- NEW: Snap the music to the loaded time of day! ---
+	# Snap the music to the correct loaded playlist!
 	if is_night:
-		AudioManager.play_next_track_with_fade("NightTime", 0.5)
+		match current_moon_phase:
+			MoonPhase.BLOOD:
+				AudioManager.play_playlist_track("Night_Blood", 0.5)
+			MoonPhase.FULL:
+				AudioManager.play_playlist_track("Night_Full", 0.5)
+			_:
+				AudioManager.play_playlist_track("Night_Normal", 0.5)
+				
 	elif current_time >= 6.0 and current_time < 8.0:
-		AudioManager.play_next_track_with_fade("Sunrise", 0.5)
+		AudioManager.play_playlist_track("Sunrise", 0.5)
 	else:
-		AudioManager.play_next_track_with_fade("Forest_Ambience", 0.5)
+		AudioManager.play_playlist_track("Day", 0.5)
 	
