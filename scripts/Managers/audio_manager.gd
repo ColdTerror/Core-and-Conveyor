@@ -11,6 +11,10 @@ var is_music_muted: bool = false
 var is_sfx_muted: bool = false
 var current_track_name: String = ""
 
+# --- JUKEBOX STATE ---
+var is_jukebox_enabled: bool = false 
+signal track_changed(track_name: String)
+
 # ==========================================
 # AUDIO DICTIONARIES (Future-Proofed)
 # ==========================================
@@ -26,15 +30,14 @@ var sfx_tracks: Dictionary = {
 }
 
 func _ready():
-	# --- NEW: Tell the player to run a function when the song ends ---
 	music_player.finished.connect(_on_music_finished)
-	AudioManager.play_next_track_with_fade("Sunrise", 0.5)
+	# We use play_next_track_with_fade so it broadcasts the track_changed signal right away!
+	play_next_track_with_fade("Sunrise", 0.5)
 
 # ==========================================
 # MUSIC LOGIC
 # ==========================================
 func play_music(track_name: String):
-	print("playing music: " + track_name)
 	if not music_tracks.has(track_name):
 		push_warning("Music track not found: " + track_name)
 		return
@@ -44,12 +47,19 @@ func play_music(track_name: String):
 	if music_player.stream == stream and music_player.playing:
 		return 
 		
-	current_track_name = track_name # --- NEW: Track the current song ---
+	current_track_name = track_name 
+	track_changed.emit(current_track_name) # Let the UI know!
+	
 	music_player.stream = stream
 	music_player.play()
 
-func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0):
-	print("playing music with fade: " + track_name)
+# Added 'is_jukebox_override' so the UI can force a track, but the TimeManager gets blocked!
+func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0, is_jukebox_override: bool = false):
+	
+	# Block the TimeManager from interrupting the player's chosen song!
+	if is_jukebox_enabled and not is_jukebox_override:
+		return
+		
 	if not music_tracks.has(track_name):
 		push_warning("Music track not found: " + track_name)
 		return
@@ -59,7 +69,8 @@ func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0):
 	if music_player.stream == next_stream and music_player.playing:
 		return 
 		
-	current_track_name = track_name # --- NEW: Track the current song ---
+	current_track_name = track_name 
+	track_changed.emit(current_track_name) # Let the UI know!
 		
 	if not music_player.playing:
 		music_player.stream = next_stream
@@ -87,21 +98,40 @@ func stop_music():
 # PLAYLIST SEQUENCING (Time-Based Looping)
 # ==========================================
 func _on_music_finished():
-	print("music finished signal")
-	# Safely find the TimeManager anywhere in the active scene tree
+	
+	# --- If the Jukebox is on, loop the forced track forever! ---
+	if is_jukebox_enabled:
+		music_player.play()
+		return
+	
 	var time_manager = get_tree().root.find_child("TimeManager", true, false)
 	
 	if not time_manager:
-		music_player.play() # Failsafe loop if time manager is missing
+		music_player.play() 
 		return
 		
-	# Check the clock and manually loop or transition tracks with a fast fade
 	if time_manager.is_night:
 		play_next_track_with_fade("NightTime", 0.1) 
 	elif time_manager.current_time >= 6.0 and time_manager.current_time < 8.0:
 		play_next_track_with_fade("Sunrise", 0.1)
 	else:
 		play_next_track_with_fade("Forest_Ambience", 0.1)
+
+# ==========================================
+# JUKEBOX CONTROLS
+# ==========================================
+func get_track_list() -> Array:
+	return music_tracks.keys()
+
+func force_play_track(track_name: String):
+	is_jukebox_enabled = true
+	# We pass 'true' at the end to bypass the TimeManager block
+	play_next_track_with_fade(track_name, 1.0, true)
+	
+func disable_jukebox():
+	is_jukebox_enabled = false
+	# Instantly manually trigger the music end function to resync with the clock
+	_on_music_finished()
 
 # ==========================================
 # SFX LOGIC (Polyphonic)
@@ -125,34 +155,25 @@ func play_sfx(sfx_name: String):
 # ==========================================
 # SETTINGS & OPTIONS MENU HOOKS
 # ==========================================
-
-# Expects a value from 0.0 (0%) to 1.0 (100%) from a UI Slider
 func set_music_volume(linear_volume: float):
-	# Convert the 0-1 percentage into Godot's decibel scale
 	default_music_volume_db = linear_to_db(max(linear_volume, 0.0001))
-	
 	if not is_music_muted:
 		music_player.volume_db = default_music_volume_db
 
-# Expects a value from 0.0 to 1.0
 func set_sfx_volume(linear_volume: float):
 	default_sfx_volume_db = linear_to_db(max(linear_volume, 0.0001))
-	
 	for player in sfx_pool.get_children():
 		player.volume_db = default_sfx_volume_db
 
-# Expects true/false from a UI Checkbox
 func set_music_muted(muted: bool):
 	is_music_muted = muted
 	if is_music_muted:
-		music_player.volume_db = -80.0 # -80 dB is absolute silence
+		music_player.volume_db = -80.0 
 	else:
 		music_player.volume_db = default_music_volume_db
 
-# Expects true/false from a UI Checkbox
 func set_sfx_muted(muted: bool):
 	is_sfx_muted = muted
 	var target_vol = -80.0 if is_sfx_muted else default_sfx_volume_db
-	
 	for player in sfx_pool.get_children():
 		player.volume_db = target_vol

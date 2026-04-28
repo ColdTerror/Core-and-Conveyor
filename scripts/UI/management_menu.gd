@@ -17,6 +17,11 @@ extends Control
 # Resources Tab
 @onready var resource_list_container = $PanelContainer/TabContainer/Resources/VBoxContainer/ScrollContainer/ListContainer
 
+# --- Music Tab ---
+@onready var music_now_playing_label = $PanelContainer/TabContainer/Jukebox/VBoxContainer/NowPlaying
+@onready var music_jukebox_toggle = $PanelContainer/TabContainer/Jukebox/VBoxContainer/EnableJukebox
+@onready var music_list_container = $PanelContainer/TabContainer/Jukebox/VBoxContainer/ScrollContainer/TrackListContainer
+
 # Floating Close Button
 @onready var close_button = $PanelContainer/Close
 
@@ -26,8 +31,11 @@ var update_interval: float = 0.5
 var bot_status_labels: Dictionary = {}
 
 func _ready():
-	# --- NEW: Listen to the global UI state machine ---
+	# Listen to the global UI state machine
 	GameState.menu_changed.connect(_on_global_menu_changed)
+	
+	# --- NEW: Listen to the global Audio Manager ---
+	AudioManager.track_changed.connect(_on_audio_manager_track_changed)
 	
 	hide()
 		
@@ -40,6 +48,10 @@ func _ready():
 		var tab_bar = tab_container.get_tab_bar()
 		tab_bar.focus_mode = Control.FOCUS_NONE
 		tab_bar.tab_clicked.connect(_on_tab_clicked)
+		
+	# --- NEW: Wire up the Jukebox Toggle ---
+	if music_jukebox_toggle:
+		music_jukebox_toggle.toggled.connect(_on_jukebox_toggled)
 
 func _process(delta):
 	# Only refresh the live data if the menu is actually open
@@ -64,6 +76,8 @@ func _on_tab_clicked(tab_index):
 		_refresh_bot_tab(true) # Force rebuild = true
 	elif target_tab == 2:
 		_refresh_resource_tab()
+	elif target_tab == 3: # --- NEW: Music Tab ---
+		_refresh_music_tab()
 		
 	# Force the tab to stay on the index the user clicked
 	tab_container.call_deferred("set_current_tab", target_tab)
@@ -83,6 +97,7 @@ func open_menu():
 		_refresh_priority_tab()
 		_refresh_bot_tab(true) # Force rebuild when opening
 		_refresh_resource_tab()
+		_refresh_music_tab() # --- NEW: Make sure Music tab is ready ---
 		show()
 
 func close_menu():
@@ -277,7 +292,6 @@ func _refresh_resource_tab():
 	# 3. Get all discovered items from the EconomyManager
 	var all_items = EconomyManager.global_inventory.keys()
 	
-	# Optional: You can sort them alphabetically so the list is always clean!
 	all_items.sort()
 	
 	if all_items.is_empty():
@@ -293,46 +307,37 @@ func _refresh_resource_tab():
 		_create_resource_row(item_name, amount, is_pinned)
 
 func _create_resource_row(item_name: String, amount: int, is_pinned: bool):
-	# The wrapper holds the main row AND the hidden dropdown list
 	var wrapper = VBoxContainer.new()
-	
 	var main_row = HBoxContainer.new()
 	main_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	
-	# --- PIN BUTTON ---
 	var pin_btn = Button.new()
 	pin_btn.text = " [\u2605] " if is_pinned else " [  ] " 
 	pin_btn.modulate = Color(1.0, 0.8, 0.2) if is_pinned else Color(0.5, 0.5, 0.5)
 	pin_btn.pressed.connect(func(): _toggle_pin(item_name))
 	
-	# --- NAME BUTTON (Replacing the Label) ---
 	var name_btn = Button.new()
-	name_btn.text = item_name + " \u25BC" # Adds a little down arrow!
+	name_btn.text = item_name + " \u25BC"
 	name_btn.custom_minimum_size = Vector2(150, 0)
-	name_btn.flat = true # Makes it look like normal text until you hover over it
+	name_btn.flat = true
 	name_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	
-	# --- AMOUNT LABEL ---
 	var amount_label = Label.new()
 	amount_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	amount_label.text = "Total: %d" % amount
 	amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	
-	# Assemble the main row
 	main_row.add_child(pin_btn)
 	main_row.add_child(name_btn)
 	main_row.add_child(amount_label)
 	
-	# --- THE HIDDEN DROPDOWN ---
 	var details_vbox = VBoxContainer.new()
 	details_vbox.hide()
 	
-	# Wire up the dropdown toggle!
 	name_btn.pressed.connect(func():
 		_toggle_resource_details(item_name, details_vbox, name_btn)
 	)
 	
-	# Put it all together
 	wrapper.add_child(main_row)
 	wrapper.add_child(details_vbox)
 	
@@ -340,29 +345,24 @@ func _create_resource_row(item_name: String, amount: int, is_pinned: bool):
 	resource_list_container.add_child(HSeparator.new())
 
 func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: Button):
-	# If it's already open, close it!
 	if container.visible:
 		container.hide()
-		btn.text = item_name + " \u25BC" # Down arrow
+		btn.text = item_name + " \u25BC"
 		return
 		
-	# If it's closed, open it and change the arrow!
 	container.show()
-	btn.text = item_name + " \u25B2" # Up arrow
+	btn.text = item_name + " \u25B2"
 	
-	# Clear old data
 	for child in container.get_children():
 		child.queue_free()
 		
 	var found_any = false
 	
-	# Scan every building on the map!
 	for b in building_manager.buildings:
 		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
 		
 		var b_amount = 0
 		
-		# Type 1: Standard dictionary inventory (Stockpiles, Processors)
 		if "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
 			for key in b.inventory.keys():
 				if key is ItemResource and key.display_name == item_name:
@@ -370,20 +370,18 @@ func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: 
 				elif typeof(key) == TYPE_STRING and key == item_name:
 					b_amount += b.inventory[key]
 					
-		# Type 2: Economy Assets (Mines that generate items directly)
 		if b_amount == 0 and b.has_method("get_economy_assets"):
 			var assets = b.get_economy_assets()
 			if assets.has(item_name):
 				b_amount += assets[item_name]
 				
-		# If this building has the item, spawn a row for it!
 		if b_amount > 0:
 			found_any = true
 			var b_row = HBoxContainer.new()
 			b_row.alignment = BoxContainer.ALIGNMENT_END
 			
 			var b_label = Label.new()
-			b_label.text = "   \u2514 %s: %d" % [b.building_name, b_amount] # Creates an L-bracket tree look
+			b_label.text = "   \u2514 %s: %d" % [b.building_name, b_amount]
 			b_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			b_label.modulate = Color(0.8, 0.8, 0.8)
 			
@@ -401,7 +399,6 @@ func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: 
 			b_row.add_child(locate_btn)
 			container.add_child(b_row)
 			
-	# If the item only exists in Worker Bot hands or the void
 	if not found_any:
 		var empty = Label.new()
 		empty.text = "   \u2514 Not currently stored in any building."
@@ -409,18 +406,56 @@ func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: 
 		container.add_child(empty)
 
 func _toggle_pin(item_name: String):
-	# If it's already pinned, remove it
 	if EconomyManager.pinned_resources.has(item_name):
 		EconomyManager.pinned_resources.erase(item_name)
-	# If it's not pinned, add it (but enforce the 10 item max limit!)
 	else:
 		if EconomyManager.pinned_resources.size() < 10:
 			EconomyManager.pinned_resources.append(item_name)
 		else:
 			print("Pin limit reached! Unpin something else first.")
-			# Optional: You could spawn a floating text here to warn the player!
 			return
 			
-	# Tell the UI to immediately redraw both the tab and the top bar!
 	EconomyManager.inventory_changed.emit()
 	_refresh_resource_tab()
+
+# ==========================================
+# MUSIC TAB LOGIC 
+# ==========================================
+
+func _refresh_music_tab():
+	if not music_list_container: return
+
+	# Setup the visual state of the Jukebox toggle
+	if music_jukebox_toggle:
+		music_jukebox_toggle.set_pressed_no_signal(AudioManager.is_jukebox_enabled)
+
+	# Setup the Now Playing label
+	_on_audio_manager_track_changed(AudioManager.current_track_name)
+
+	# Clean up old buttons
+	for child in music_list_container.get_children():
+		child.queue_free()
+
+	# Get the tracks and build the UI buttons
+	var tracks = AudioManager.get_track_list()
+	for track_name in tracks:
+		var btn = Button.new()
+		btn.text = track_name
+		
+		btn.pressed.connect(func():
+			AudioManager.force_play_track(track_name)
+			if music_jukebox_toggle:
+				music_jukebox_toggle.set_pressed_no_signal(true) 
+		)
+		
+		music_list_container.add_child(btn)
+
+func _on_audio_manager_track_changed(new_track_name: String):
+	if music_now_playing_label:
+		music_now_playing_label.text = "Now Playing: " + new_track_name
+
+func _on_jukebox_toggled(is_enabled: bool):
+	if is_enabled:
+		AudioManager.is_jukebox_enabled = true
+	else:
+		AudioManager.disable_jukebox()
