@@ -15,6 +15,14 @@ signal save_requested(slot: int)
 @onready var del_2_btn = $CenterContainer/VBoxContainer/Load2Bar/Del2
 @onready var del_3_btn = $CenterContainer/VBoxContainer/Load3Bar/Del3
 
+
+# --- AUDIO UI REFERENCES ---
+@onready var music_mute = $CenterContainer/VBoxContainer/MusicMute
+@onready var music_slider = $CenterContainer/VBoxContainer/MusicSlider
+@onready var sfx_mute = $CenterContainer/VBoxContainer/SfxMute
+@onready var sfx_slider = $CenterContainer/VBoxContainer/SfxSlider
+
+
 func _ready():
 	# Hide the menu when the game starts
 	hide()
@@ -22,6 +30,18 @@ func _ready():
 	# Wire up all the buttons
 	$CenterContainer/VBoxContainer/Resume.pressed.connect(resume_game)
 	$CenterContainer/VBoxContainer/Exit.pressed.connect(exit_game)
+	
+	
+	# Wire up all the audio signals
+	music_slider.value_changed.connect(AudioManager.set_music_volume)
+	sfx_slider.value_changed.connect(AudioManager.set_sfx_volume)
+	# When checked (true), muted is false. When unchecked (false), muted is true!
+	music_mute.toggled.connect(func(is_enabled: bool):
+		AudioManager.set_music_muted(not is_enabled)
+	)
+	sfx_mute.toggled.connect(func(is_enabled: bool):
+		AudioManager.set_sfx_muted(not is_enabled)
+	)
 	
 	# Quick Save: Emits the signal, then instantly resumes the game!
 	quick_save_btn.pressed.connect(func(): 

@@ -3,9 +3,13 @@ extends Node2D
 @onready var music_player = $MusicPlayer
 @onready var sfx_pool = $SFXPool
 
-# Add a variable to store the default volume so we know what to fade back up to
+# --- VOLUME & MUTE STATE ---
 var default_music_volume_db: float = 0.0 
-var current_track_name: String = "" # --- NEW: Remembers what is playing ---
+var default_sfx_volume_db: float = 0.0
+
+var is_music_muted: bool = false
+var is_sfx_muted: bool = false
+var current_track_name: String = ""
 
 # ==========================================
 # AUDIO DICTIONARIES (Future-Proofed)
@@ -70,8 +74,10 @@ func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0):
 		music_player.stream = next_stream
 		music_player.play()
 		
+		var target_vol = -80.0 if is_music_muted else default_music_volume_db
+		
 		var fade_in_tween = create_tween()
-		fade_in_tween.tween_property(music_player, "volume_db", default_music_volume_db, fade_duration)
+		fade_in_tween.tween_property(music_player, "volume_db", target_vol, fade_duration)
 	)
 
 func stop_music():
@@ -115,3 +121,38 @@ func play_sfx(sfx_name: String):
 	var fallback = sfx_pool.get_child(0)
 	fallback.stream = stream
 	fallback.play()
+	
+# ==========================================
+# SETTINGS & OPTIONS MENU HOOKS
+# ==========================================
+
+# Expects a value from 0.0 (0%) to 1.0 (100%) from a UI Slider
+func set_music_volume(linear_volume: float):
+	# Convert the 0-1 percentage into Godot's decibel scale
+	default_music_volume_db = linear_to_db(max(linear_volume, 0.0001))
+	
+	if not is_music_muted:
+		music_player.volume_db = default_music_volume_db
+
+# Expects a value from 0.0 to 1.0
+func set_sfx_volume(linear_volume: float):
+	default_sfx_volume_db = linear_to_db(max(linear_volume, 0.0001))
+	
+	for player in sfx_pool.get_children():
+		player.volume_db = default_sfx_volume_db
+
+# Expects true/false from a UI Checkbox
+func set_music_muted(muted: bool):
+	is_music_muted = muted
+	if is_music_muted:
+		music_player.volume_db = -80.0 # -80 dB is absolute silence
+	else:
+		music_player.volume_db = default_music_volume_db
+
+# Expects true/false from a UI Checkbox
+func set_sfx_muted(muted: bool):
+	is_sfx_muted = muted
+	var target_vol = -80.0 if is_sfx_muted else default_sfx_volume_db
+	
+	for player in sfx_pool.get_children():
+		player.volume_db = target_vol

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://b1t1yjr13oirl" path="res://scripts/Managers/audio_manager.gd" id="1_8qd8g"]
 
 [node name="AudioManager" type="Node2D" unique_id=1217077936]
+process_mode = 3
 script = ExtResource("1_8qd8g")
 
 [node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1098141626]

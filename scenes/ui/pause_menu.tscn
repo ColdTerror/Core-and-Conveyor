@@ -87,6 +87,28 @@ custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 text = "X"
 
+[node name="MusicMute" type="CheckBox" parent="CenterContainer/VBoxContainer" unique_id=367376740]
+layout_mode = 2
+button_pressed = true
+text = "Music Enabled"
+
+[node name="MusicSlider" type="HSlider" parent="CenterContainer/VBoxContainer" unique_id=897837172]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SfxMute" type="CheckBox" parent="CenterContainer/VBoxContainer" unique_id=40156594]
+layout_mode = 2
+button_pressed = true
+text = "Sfx Enabled"
+
+[node name="SfxSlider" type="HSlider" parent="CenterContainer/VBoxContainer" unique_id=116268527]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
 [node name="Exit" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1974263859]
 layout_mode = 2
 text = "Exit Game"
