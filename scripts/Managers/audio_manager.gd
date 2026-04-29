@@ -37,10 +37,10 @@ var playlists: Dictionary = {
 }
 
 var sfx_tracks: Dictionary = {
-	"hammer": preload("res://audio/SFX/Bots/Hammer Sfx.wav"),
-	"wood": preload("res://audio/SFX/Bots/Wood Sfx.wav"),
-	"stone": preload("res://audio/SFX/Bots/Stone Sfx.wav"),
-	"pain": preload("res://audio/SFX/Bots/Pain Sfx.wav")
+	"hammer": preload("res://audio/SFX/Bots/Kenny/impactPlank_medium_000.ogg"),
+	"wood": preload("res://audio/SFX/Bots/Kenny/impactWood_medium_000.ogg"),
+	"stone": preload("res://audio/SFX/Bots/Kenny/impactMining_000.ogg"),
+	"pain": preload("res://audio/SFX/Bots/Kenny/impactPunch_heavy_001.ogg")
 }
 
 func _ready():

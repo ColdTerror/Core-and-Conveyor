@@ -26,7 +26,13 @@ signal save_requested(slot: int)
 func _ready():
 	# Hide the menu when the game starts
 	hide()
+	# Set default music volume to 50%
+	music_slider.value = 0.5
+	AudioManager.set_music_volume(music_slider.value)
 	
+	# Set default sfx volume to 50%
+	sfx_slider.value = 0.5
+	AudioManager.set_music_volume(sfx_slider.value)
 	# Wire up all the buttons
 	$CenterContainer/VBoxContainer/Resume.pressed.connect(resume_game)
 	$CenterContainer/VBoxContainer/Exit.pressed.connect(exit_game)
@@ -35,6 +41,7 @@ func _ready():
 	# Wire up all the audio signals
 	music_slider.value_changed.connect(AudioManager.set_music_volume)
 	sfx_slider.value_changed.connect(AudioManager.set_sfx_volume)
+	
 	# When checked (true), muted is false. When unchecked (false), muted is true!
 	music_mute.toggled.connect(func(is_enabled: bool):
 		AudioManager.set_music_muted(not is_enabled)
