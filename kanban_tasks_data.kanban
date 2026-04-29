@@ -16,21 +16,21 @@
 				"be8062de-7177-4f01-8d23-d11e18de911e",
 				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
 				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
-				"1119a81c-5924-421a-957f-6bf4a01bd6d5"
+				"1119a81c-5924-421a-957f-6bf4a01bd6d5",
+				"0b105372-1deb-4dae-88ff-5cdbcc2a46ca"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": [
-				"ea14879c-67ff-409c-8283-708d3dccaebf"
-			]
+			"tasks": []
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
+				"ea14879c-67ff-409c-8283-708d3dccaebf",
 				"6215c2a1-2e55-464f-991f-722ed866be0c",
 				"f9ecb4c8-b933-4e19-8cf9-edd862e4866f",
 				"21ad038e-bdf9-4bff-a1fb-f13b6589cef5",
@@ -998,13 +998,20 @@
 		{
 			"uuid": "1119a81c-5924-421a-957f-6bf4a01bd6d5",
 			"title": "export building for required tasks like satisfactory?",
-			"description": "",
+			"description": "sacrifice system where burning resources stops corruption from being boosted",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
 		{
 			"uuid": "ea14879c-67ff-409c-8283-708d3dccaebf",
 			"title": "add music/sound volume settings",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "0b105372-1deb-4dae-88ff-5cdbcc2a46ca",
+			"title": "keny sfx impact sounds?",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

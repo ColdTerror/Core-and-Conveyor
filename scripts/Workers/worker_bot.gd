@@ -751,6 +751,12 @@ func _do_harvest():
 		carried_amount += harvested_amount
 		inventory_changed.emit()
 		_add_xp(1)
+		
+		# ---Play the correct sound based on the item! ---
+		if carried_item_name == "Wood":
+			AudioManager.play_sfx("wood", global_position)
+		elif carried_item_name == "Stone":
+			AudioManager.play_sfx("stone", global_position)
 	
 	if carried_amount >= carry_capacity:
 		_find_nearest_storage()           # Full — go deposit
@@ -835,6 +841,7 @@ func _do_repair():
 		building.health_changed.emit(building.health, building.max_health)
 	
 	_add_xp(1)
+	AudioManager.play_sfx("hammer", global_position)
 		
 	if building.health >= building.max_health:
 		current_state = State.IDLE  # Done repairing
@@ -853,6 +860,7 @@ func _do_build():
 		
 	building.add_build_progress(10)
 	_add_xp(1)
+	AudioManager.play_sfx("hammer", global_position)
 	
 	# Construction site deletes itself and spawns the real building on completion,
 	# making the old reference invalid — check before re-queuing the timer.
@@ -1021,6 +1029,7 @@ func _go_home_or_standby(wait_time: float):
 # ==========================================
 
 func take_damage(damage: int, source: Node2D = null):
+	AudioManager.play_sfx("pain", global_position)
 	health -= damage
 	
 	if health <= 0:

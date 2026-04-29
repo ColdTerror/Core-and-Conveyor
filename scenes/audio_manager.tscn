@@ -11,12 +11,17 @@ bus = &"Music"
 
 [node name="SFXPool" type="Node" parent="." unique_id=4857135]
 
-[node name="SFXPlayer1" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=143611587]
+[node name="SFXPlayer1" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1685167255]
+attenuation = 3.0
 
-[node name="SFXPlayer2" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1464740797]
+[node name="SFXPlayer2" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=123337421]
+attenuation = 3.0
 
-[node name="SFXPlayer3" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1471111550]
+[node name="SFXPlayer3" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=290614990]
+attenuation = 3.0
 
-[node name="SFXPlayer4" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=621450391]
+[node name="SFXPlayer4" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1170972620]
+attenuation = 3.0
 
-[node name="SFXPlayer5" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1154297634]
+[node name="SFXPlayer5" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1628676351]
+attenuation = 3.0

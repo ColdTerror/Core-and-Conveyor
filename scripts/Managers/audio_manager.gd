@@ -37,8 +37,10 @@ var playlists: Dictionary = {
 }
 
 var sfx_tracks: Dictionary = {
-	# "hammer": preload("res://audio/hammer.wav"),
-	# "bow_shoot": preload("res://audio/bow.wav")
+	"hammer": preload("res://audio/SFX/Bots/Hammer Sfx.wav"),
+	"wood": preload("res://audio/SFX/Bots/Wood Sfx.wav"),
+	"stone": preload("res://audio/SFX/Bots/Stone Sfx.wav"),
+	"pain": preload("res://audio/SFX/Bots/Pain Sfx.wav")
 }
 
 func _ready():
@@ -177,22 +179,46 @@ func disable_jukebox():
 	_on_music_finished()
 
 # ==========================================
-# SFX LOGIC (Polyphonic)
+# SFX LOGIC (Polyphonic, Positional & Pitch Shifted)
 # ==========================================
-func play_sfx(sfx_name: String):
+func play_sfx(sfx_name: String, pos: Vector2 = Vector2.INF, randomize_pitch: bool = true):
 	if not sfx_tracks.has(sfx_name):
 		push_warning("SFX not found: " + sfx_name)
 		return
 		
 	var stream = sfx_tracks[sfx_name]
+	var target_pos = pos
+	
+	# If no position was given (UI sounds), snap it to the camera so it plays at full volume!
+	if target_pos == Vector2.INF:
+		var cam = get_viewport().get_camera_2d()
+		if cam:
+			target_pos = cam.global_position
+		else:
+			target_pos = Vector2.ZERO
+	
 	for player in sfx_pool.get_children():
 		if not player.playing:
 			player.stream = stream
+			player.global_position = target_pos # --- NEW: Move the speaker to the event! ---
+			player.volume_db = default_sfx_volume_db
+			
+			if randomize_pitch:
+				player.pitch_scale = randf_range(0.85, 1.15) 
+			else:
+				player.pitch_scale = 1.0
+				
 			player.play()
 			return
 			
 	var fallback = sfx_pool.get_child(0)
 	fallback.stream = stream
+	fallback.global_position = target_pos # --- Move the speaker to the event! ---
+	fallback.volume_db = default_sfx_volume_db
+	if randomize_pitch:
+		fallback.pitch_scale = randf_range(0.85, 1.15)
+	else:
+		fallback.pitch_scale = 1.0
 	fallback.play()
 	
 # ==========================================
