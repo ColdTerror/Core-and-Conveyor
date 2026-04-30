@@ -13,15 +13,20 @@ bus = &"Music"
 
 [node name="SFXPlayer1" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1685167255]
 attenuation = 3.0
+bus = &"SFX"
 
 [node name="SFXPlayer2" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=123337421]
 attenuation = 3.0
+bus = &"SFX"
 
 [node name="SFXPlayer3" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=290614990]
 attenuation = 3.0
+bus = &"SFX"
 
 [node name="SFXPlayer4" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1170972620]
 attenuation = 3.0
+bus = &"SFX"
 
 [node name="SFXPlayer5" type="AudioStreamPlayer2D" parent="SFXPool" unique_id=1628676351]
 attenuation = 3.0
+bus = &"SFX"

@@ -17,6 +17,7 @@ signal track_changed(track_name: String)
 
 # --- BUS INDICES ---
 var music_bus_index: int
+var sfx_bus_index: int
 
 # ==========================================
 # AUDIO DICTIONARIES (Future-Proofed)
@@ -40,13 +41,25 @@ var sfx_tracks: Dictionary = {
 	"hammer": preload("res://audio/SFX/Bots/Kenny/impactPlank_medium_000.ogg"),
 	"wood": preload("res://audio/SFX/Bots/Kenny/impactWood_medium_000.ogg"),
 	"stone": preload("res://audio/SFX/Bots/Kenny/impactMining_000.ogg"),
-	"pain": preload("res://audio/SFX/Bots/Kenny/impactPunch_heavy_001.ogg")
+	"pain": preload("res://audio/SFX/Bots/Kenny/impactPunch_heavy_001.ogg"),
+	"walk_grass": preload("res://audio/SFX/Bots/Kenny/footstep_grass_004.ogg")
+}
+
+var sfx_playlists: Dictionary = {
+	"walk_grass": [
+		preload("res://audio/SFX/Bots/Kenny/footstep_grass_000.ogg"),
+		preload("res://audio/SFX/Bots/Kenny/footstep_grass_001.ogg"),
+		preload("res://audio/SFX/Bots/Kenny/footstep_grass_002.ogg"),
+		preload("res://audio/SFX/Bots/Kenny/footstep_grass_003.ogg"),
+		preload("res://audio/SFX/Bots/Kenny/footstep_grass_004.ogg")
+	]
 }
 
 func _ready():
 	music_player.finished.connect(_on_music_finished)
 	
 	music_bus_index = AudioServer.get_bus_index("Music")
+	sfx_bus_index = AudioServer.get_bus_index("SFX")
 	
 	# We use play_next_track_with_fade so it broadcasts the track_changed signal right away!
 	play_next_track_with_fade("Sunrise", 0.5)
@@ -231,8 +244,8 @@ func set_music_volume(linear_volume: float):
 
 func set_sfx_volume(linear_volume: float):
 	default_sfx_volume_db = linear_to_db(max(linear_volume, 0.0001))
-	for player in sfx_pool.get_children():
-		player.volume_db = default_sfx_volume_db
+	if not is_sfx_muted:
+		AudioServer.set_bus_volume_db(sfx_bus_index, default_sfx_volume_db)
 
 func set_music_muted(muted: bool):
 	is_music_muted = muted
@@ -243,9 +256,7 @@ func set_music_muted(muted: bool):
 
 func set_sfx_muted(muted: bool):
 	is_sfx_muted = muted
-	var target_vol = -80.0 if is_sfx_muted else default_sfx_volume_db
-	for player in sfx_pool.get_children():
-		player.volume_db = target_vol
+	AudioServer.set_bus_mute(sfx_bus_index, is_sfx_muted)
 		
 # ==========================================
 # AUDIO EFFECTS
@@ -253,3 +264,33 @@ func set_sfx_muted(muted: bool):
 func set_music_muffled(is_muffled: bool):
 	# The '0' means we are targeting the very first effect added to the bus
 	AudioServer.set_bus_effect_enabled(music_bus_index, 0, is_muffled)
+	
+	
+# ==========================================
+# Utility
+# ==========================================
+# The UI needs to ask for a 0-1 percentage, so we convert the Decibels back!
+func get_music_volume_linear() -> float:
+	return db_to_linear(default_music_volume_db)
+
+func get_sfx_volume_linear() -> float:
+	return db_to_linear(default_sfx_volume_db)
+	
+
+# ==========================================
+# Save Load
+# ==========================================
+func get_save_data() -> Dictionary:
+	return {
+		"music_vol": get_music_volume_linear(),
+		"sfx_vol": get_sfx_volume_linear(),
+		"music_muted": is_music_muted,
+		"sfx_muted": is_sfx_muted
+	}
+
+func load_save_data(data: Dictionary):
+	# Pull the saved data, or default to 50% (0.5) if something is missing
+	set_music_volume(data.get("music_vol", 0.5))
+	set_sfx_volume(data.get("sfx_vol", 0.5))
+	set_music_muted(data.get("music_muted", false))
+	set_sfx_muted(data.get("sfx_muted", false))

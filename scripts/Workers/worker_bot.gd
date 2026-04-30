@@ -134,6 +134,12 @@ var is_selected: bool = false # True while the player has this bot's UI panel op
 
 @onready var action_timer = $ActionTimer  # One-shot timer drives all timed actions (harvest, deposit, etc.)
 
+
+# --- Audio ---
+@onready var action_audio = $ActionAudio
+@onready var move_audio = $MoveAudio
+var _step_cooldown: float = 0.0
+
 # ==========================================
 # SETUP & READY
 # setup() is called by the spawner before the node enters the scene tree.
@@ -683,6 +689,7 @@ func _request_path_exact(target_grid: Vector2i) -> bool:
 # When the last waypoint is reached, transitions to next_state and fires _start_action().
 func _move_along_path(delta: float, next_state: State):
 	if current_path.is_empty():
+		move_audio.stop()
 		# Arrived at destination — transition to the action state
 		current_state = next_state
 		_start_action()
@@ -694,7 +701,20 @@ func _move_along_path(delta: float, next_state: State):
 		var tile_data = level_ref.terrain_layer.get_cell_tile_data(current_grid_pos)
 		
 
-			
+	# --- THE FOOTSTEP LOOP ---
+	_step_cooldown -= delta
+	
+	if _step_cooldown <= 0.0:
+		var grass_steps = AudioManager.sfx_playlists["walk_grass"]
+		move_audio.stream = grass_steps.pick_random()
+		move_audio.play()
+		
+		# Reset the timer! 
+		# We divide a "magic number" (like 25.0) by the bot's current speed.
+		# If speed is 75, a step plays every 0.33 seconds.
+		# If it panics and speed jumps to 150, a step plays every 0.16 seconds!
+		_step_cooldown = 30.0 / max(_get_speed(), 1.0)
+		
 	var target_pos = current_path[0]
 	var dist = global_position.distance_to(target_pos)
 	var move_step = _get_speed() * delta
@@ -754,10 +774,12 @@ func _do_harvest():
 		
 		# ---Play the correct sound based on the item! ---
 		if carried_item_name == "Wood":
-			AudioManager.play_sfx("wood", global_position)
+			action_audio.stream = AudioManager.sfx_tracks["wood"]
 		elif carried_item_name == "Stone":
-			AudioManager.play_sfx("stone", global_position)
-	
+			action_audio.stream = AudioManager.sfx_tracks["stone"]
+		action_audio.pitch_scale = randf_range(0.85, 1.15)
+		action_audio.play()
+		
 	if carried_amount >= carry_capacity:
 		_find_nearest_storage()           # Full — go deposit
 	elif info["health"] <= 0:
@@ -841,7 +863,9 @@ func _do_repair():
 		building.health_changed.emit(building.health, building.max_health)
 	
 	_add_xp(1)
-	AudioManager.play_sfx("hammer", global_position)
+	action_audio.stream = AudioManager.sfx_tracks["hammer"]
+	action_audio.pitch_scale = randf_range(0.85, 1.15)
+	action_audio.play()
 		
 	if building.health >= building.max_health:
 		current_state = State.IDLE  # Done repairing
@@ -860,7 +884,9 @@ func _do_build():
 		
 	building.add_build_progress(10)
 	_add_xp(1)
-	AudioManager.play_sfx("hammer", global_position)
+	action_audio.stream = AudioManager.sfx_tracks["hammer"]
+	action_audio.pitch_scale = randf_range(0.85, 1.15)
+	action_audio.play()
 	
 	# Construction site deletes itself and spawns the real building on completion,
 	# making the old reference invalid — check before re-queuing the timer.
@@ -1029,7 +1055,9 @@ func _go_home_or_standby(wait_time: float):
 # ==========================================
 
 func take_damage(damage: int, source: Node2D = null):
-	AudioManager.play_sfx("pain", global_position)
+	action_audio.stream = AudioManager.sfx_tracks["pain"]
+	action_audio.pitch_scale = randf_range(0.85, 1.15)
+	action_audio.play()
 	health -= damage
 	
 	if health <= 0:

@@ -24,25 +24,27 @@ signal save_requested(slot: int)
 
 
 func _ready():
-	# Hide the menu when the game starts
 	hide()
-	# Set default music volume to 50%
-	music_slider.value = 0.5
-	AudioManager.set_music_volume(music_slider.value)
 	
-	# Set default sfx volume to 50%
-	sfx_slider.value = 0.5
-	AudioManager.set_music_volume(sfx_slider.value)
-	# Wire up all the buttons
+	# --- FIX: Ask AudioManager for the saved settings instead of hardcoding 0.5 ---
+	music_slider.value = AudioManager.get_music_volume_linear()
+	sfx_slider.value = AudioManager.get_sfx_volume_linear()
+	
+	# Remember: our checkboxes are "Enabled", so we invert the "muted" state!
+	music_mute.button_pressed = not AudioManager.is_music_muted
+	sfx_mute.button_pressed = not AudioManager.is_sfx_muted
+	
 	$CenterContainer/VBoxContainer/Resume.pressed.connect(resume_game)
 	$CenterContainer/VBoxContainer/Exit.pressed.connect(exit_game)
 	
+	# Wire up all the audio signals (AND tell them to save when changed!)
+	music_slider.value_changed.connect(func(val):
+		AudioManager.set_music_volume(val)
+	)
+	sfx_slider.value_changed.connect(func(val):
+		AudioManager.set_sfx_volume(val)
+	)
 	
-	# Wire up all the audio signals
-	music_slider.value_changed.connect(AudioManager.set_music_volume)
-	sfx_slider.value_changed.connect(AudioManager.set_sfx_volume)
-	
-	# When checked (true), muted is false. When unchecked (false), muted is true!
 	music_mute.toggled.connect(func(is_enabled: bool):
 		AudioManager.set_music_muted(not is_enabled)
 	)
@@ -102,6 +104,14 @@ func _refresh_menu_state():
 	_update_load_slot_ui(1, load_1_btn, del_1_btn)
 	_update_load_slot_ui(2, load_2_btn, del_2_btn)
 	_update_load_slot_ui(3, load_3_btn, del_3_btn)
+	
+	# --- FIX: Ask AudioManager for the saved settings instead of hardcoding 0.5 ---
+	music_slider.value = AudioManager.get_music_volume_linear()
+	sfx_slider.value = AudioManager.get_sfx_volume_linear()
+	
+	# Remember: our checkboxes are "Enabled", so we invert the "muted" state!
+	music_mute.button_pressed = not AudioManager.is_music_muted
+	sfx_mute.button_pressed = not AudioManager.is_sfx_muted
 
 func _update_load_slot_ui(slot: int, load_btn: Button, del_btn: Button):
 	var exists = SaveManager.does_save_exist(slot)
@@ -155,6 +165,7 @@ func _flash_button_success(button: Button):
 		button.disabled = false
 	
 func _perform_manual_load(slot: int, button: Button):
+	AudioManager.set_music_muffled(false)
 	# SaveManager.load_game returns a boolean!
 	var success = SaveManager.load_game(slot)
 	

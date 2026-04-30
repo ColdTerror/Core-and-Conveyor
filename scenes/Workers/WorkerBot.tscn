@@ -20,3 +20,11 @@ texture = ExtResource("1_0ncvu")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=171805855]
 shape = SubResource("RectangleShape2D_e4pf7")
+
+[node name="ActionAudio" type="AudioStreamPlayer2D" parent="." unique_id=1576393986]
+attenuation = 3.0
+bus = &"SFX"
+
+[node name="MoveAudio" type="AudioStreamPlayer2D" parent="." unique_id=269598374]
+attenuation = 3.0
+bus = &"SFX"
