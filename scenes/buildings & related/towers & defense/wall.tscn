@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://c0fjlwuepy3iy"]
 
-[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="1_a3mu7"]
 [ext_resource type="Script" uid="uid://by5vvpdqu647v" path="res://scripts/Building Classes/wall.gd" id="1_gxk2j"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_er36m"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_gpfny"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_gxk2j"]
-atlas = ExtResource("1_a3mu7")
-region = Rect2(64, 0, 32, 32)
+[sub_resource type="AtlasTexture" id="AtlasTexture_nrabu"]
+atlas = ExtResource("2_er36m")
+region = Rect2(160, 160, 32, 32)
 
 [sub_resource type="Resource" id="Resource_2ksci"]
 script = ExtResource("3_gpfny")
@@ -19,6 +19,10 @@ item_name = "Plank"
 amount = 0
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_wr2mu"]
+atlas = ExtResource("2_er36m")
+region = Rect2(160, 160, 32, 32)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gxk2j"]
 size = Vector2(32, 32)
 
@@ -27,13 +31,12 @@ script = ExtResource("1_gxk2j")
 is_solid_obstacle = false
 is_draggable = true
 building_name = "Wall"
-icon = SubResource("AtlasTexture_gxk2j")
+icon = SubResource("AtlasTexture_nrabu")
 build_costs = Array[ExtResource("3_gpfny")]([SubResource("Resource_2ksci"), SubResource("Resource_gpfny")])
 build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413850]
-texture = ExtResource("1_a3mu7")
-region_enabled = true
+texture = SubResource("AtlasTexture_wr2mu")
 region_rect = Rect2(64, 0, 32, 32)
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1119633970]
