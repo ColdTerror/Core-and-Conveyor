@@ -2,7 +2,11 @@
 
 [ext_resource type="Script" uid="uid://dm0dn7doslq6j" path="res://scripts/Building Classes/filter_building.gd" id="1_cfo5c"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="2_d342g"]
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="2_uxved"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_pykma"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kmi82"]
+atlas = ExtResource("2_pykma")
+region = Rect2(64, 128, 32, 32)
 
 [sub_resource type="Resource" id="Resource_uxved"]
 script = ExtResource("2_d342g")
@@ -20,14 +24,15 @@ size = Vector2(32, 32)
 self_modulate = Color(0.2090604, 0.47490835, 0.2549174, 1)
 script = ExtResource("1_cfo5c")
 building_name = "Filter"
+icon = SubResource("AtlasTexture_kmi82")
 build_costs = Array[ExtResource("2_d342g")]([SubResource("Resource_uxved"), SubResource("Resource_pykma")])
 build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1421611039]
 rotation = 1.5707964
-texture = ExtResource("2_uxved")
+texture = ExtResource("2_pykma")
 region_enabled = true
-region_rect = Rect2(64, 0, 32, 32)
+region_rect = Rect2(64, 128, 32, 32)
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1456337677]
 
