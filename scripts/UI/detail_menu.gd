@@ -259,7 +259,8 @@ func _setup_core_ui(b: CoreBuilding):
 
 func _setup_bot_ui(b: Node2D):
 	var info = b.get_inventory_info()
-	# --- NEW: Build the Level & XP string ---
+	
+	# --- Build the Level & XP string ---
 	var level_str = ""
 	if "bot_level" in b and "current_xp" in b and "XP_THRESHOLDS" in b:
 		var global_max = 2
@@ -278,19 +279,28 @@ func _setup_bot_ui(b: Node2D):
 	# Inject the level_str at the very beginning of the label
 	info_label.text = "%sHealth: %d / %d\nTarget: %s\nCarrying: %s" % [level_str, b.health, b.max_health, info["Target"], info["Carrying"]]
 	
-	if info["Target"] == "Wood Only": info_label.modulate = Color(0.6, 1.0, 0.6)
-	elif info["Target"] == "Stone Only": info_label.modulate = Color(0.785, 0.785, 0.785, 1.0)
-	elif info["Target"] == "Maintain": info_label.modulate = Color(0.2, 0.6, 1.0)
-	elif info["Target"] == "Home": info_label.modulate = Color(1.0, 0.4, 0.4)
-	else: info_label.modulate = Color(1.0, 1.0, 1.0)
+	# --- Match colors to the Bot Screen ---
+	if info["Target"] == "Wood Only": 
+		info_label.modulate = Color(0.2, 0.8, 0.2) # Green (Axe)
+	elif info["Target"] == "Stone Only": 
+		info_label.modulate = Color(0.2, 0.6, 1.0) # Blue (Pickaxe)
+	elif info["Target"] == "Maintain": 
+		info_label.modulate = Color(1.0, 0.8, 0.2) # Yellow (Hammer)
+	elif info["Target"] == "Home": 
+		info_label.modulate = Color(1.0, 1.0, 1.0) # White (Zz)
+	else: 
+		info_label.modulate = Color(1.0, 1.0, 1.0)
 
-	_create_button("Wood Only", Color(0.6, 1.0, 0.6), func(): b.set_priority(0))
-	_create_button("Stone Only", Color(0.785, 0.785, 0.785, 1.0), func(): b.set_priority(1))
-	_create_button("Maintain", Color(0.2, 0.6, 1.0), func(): b.set_priority(2))
-	_create_button("Go Home", Color(1.0, 0.4, 0.4), func(): b.set_priority(3))
+	# --- BUTTONS MATCHING THE SCREENS ---
+	_create_button("Wood Only", Color(0.2, 0.8, 0.2), func(): b.set_priority(0))
+	_create_button("Stone Only", Color(0.2, 0.6, 1.0), func(): b.set_priority(1))
+	_create_button("Maintain", Color(1.0, 0.8, 0.2), func(): b.set_priority(2))
+	# Using a light gray for "Go Home" so it looks clickable against a dark UI
+	_create_button("Go Home", Color(0.8, 0.8, 0.8), func(): b.set_priority(3)) 
 	
 	# --- UPDATE: Tell InputController to take over! ---
-	_create_button("Set Home", Color(1.0, 0.8, 0.2), func(): 
+	# Switched to Cyan so it doesn't clash with the Yellow Maintain button
+	_create_button("Set Home", Color(0.0, 0.8, 0.8), func(): 
 		var input = get_tree().get_first_node_in_group("InputManager")
 		if input:
 			input.bot_awaiting_home = b

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://da74w7acijl7h"]
 
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_0ncvu"]
 [ext_resource type="Script" uid="uid://bbwekadk8o8xv" path="res://scripts/Workers/worker_bot.gd" id="1_e4pf7"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_e4pf7"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_e4pf7"]
 size = Vector2(32, 32)
@@ -11,8 +11,11 @@ script = ExtResource("1_e4pf7")
 max_energy = 200.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2067196448]
-scale = Vector2(0.25, 0.25)
-texture = ExtResource("1_0ncvu")
+texture = ExtResource("2_e4pf7")
+hframes = 10
+vframes = 2
+region_enabled = true
+region_rect = Rect2(224, 128, 320, 64)
 
 [node name="ActionTimer" type="Timer" parent="." unique_id=1774569527]
 

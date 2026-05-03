@@ -140,6 +140,10 @@ var is_selected: bool = false # True while the player has this bot's UI panel op
 @onready var move_audio = $MoveAudio
 var _step_cooldown: float = 0.0
 
+# --- Visual State ---
+var last_facing_dir: Vector2 = Vector2.DOWN # Default to facing the camera
+@onready var sprite = $Sprite2D # Make sure this matches your actual node name!
+
 # ==========================================
 # SETUP & READY
 # setup() is called by the spawner before the node enters the scene tree.
@@ -170,6 +174,8 @@ func _ready():
 	# _recalculate_stats() sets both _normal_speed and current_speed, so no manual
 	# speed initialisation is needed here.
 	_recalculate_stats()
+	
+	_update_sprite()
 
 # ==========================================
 # STATS RECALCULATION
@@ -719,6 +725,9 @@ func _move_along_path(delta: float, next_state: State):
 	var dist = global_position.distance_to(target_pos)
 	var move_step = _get_speed() * delta
 	
+	var move_dir = target_pos - global_position
+	_update_sprite(move_dir)
+	
 	if dist <= move_step:
 		# Close enough — snap to the waypoint exactly, then advance to the next one
 		global_position = target_pos
@@ -734,6 +743,8 @@ func _move_along_path(delta: float, next_state: State):
 
 # Starts the action timer for the current state. Duration varies by action type.
 func _start_action():
+	_update_sprite()
+	
 	match current_state:
 		State.HARVESTING:  action_timer.start(harvest_time)
 		State.DEPOSITING:  action_timer.start(0.5)
@@ -1169,19 +1180,86 @@ func set_priority(new_priority: int):
 			current_state = State.IDLE
 			
 	inventory_changed.emit()
+	
+	_update_sprite(Vector2.ZERO)
 
 # Returns a snapshot of the bot's current task for the info panel.
 func get_inventory_info() -> Dictionary:
 	var priority_names = {
 		TaskPriority.GATHER_WOOD: "Wood Only",
 		TaskPriority.GATHER_STONE: "Stone Only",
-		TaskPriority.MAINTAIN: "Maintenance Duty",
+		TaskPriority.MAINTAIN: "Maintain",
 		TaskPriority.STOPPED: "Home"
 	}
 	return {
 		"Target": priority_names.get(current_priority, "Unknown"),
 		"Carrying": "%s (%d)" % [carried_item_name, carried_amount] if carried_amount > 0 else "Empty"
 	}
+
+# ==========================================
+# VISUALS & ANIMATION
+# ==========================================
+func _update_sprite(move_dir: Vector2 = Vector2.ZERO):
+	if not sprite: return
+	
+	# 1. Update our facing direction if we are actually moving
+	if move_dir.length_squared() > 0.1:
+		last_facing_dir = move_dir.normalized()
+		
+	# --- ACTION OVERRIDE ---
+	# If the bot is actively working on a tile, force it to face that tile!
+	var action_states = [State.HARVESTING, State.DEPOSITING, State.REPAIRING, State.BUILDING, State.FETCHING]
+	if current_state in action_states and target_tile != Vector2i(-1, -1) and level_ref and level_ref.object_layer:
+		var target_world_pos = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(target_tile))
+		last_facing_dir = (target_world_pos - global_position).normalized()
+		
+	# --- HOME OVERRIDE ---
+	# Only face DOWN if actively resting, OR if fully stopped and done walking (IDLE)
+	elif current_state in [State.RECHARGING, State.PANIC_WAITING] or (current_priority == TaskPriority.STOPPED and current_state == State.IDLE):
+		last_facing_dir = Vector2.DOWN
+		
+	# 2. Determine base X coordinate based on task priority
+	var base_x: int = 8 # Default to the White "Zz" (Stopped) sprites
+	
+	match current_priority:
+		TaskPriority.GATHER_STONE: base_x = 0  # Blue
+		TaskPriority.GATHER_WOOD: base_x = 2   # Green
+		TaskPriority.MAINTAIN: 
+			base_x = 4 # Default to Yellow Hammer
+			
+			# --- NEW: SMART SHOVEL OVERRIDE ---
+			# If the bot has a target, check if it's a terraform job!
+			if target_tile != Vector2i(-1, -1) and level_ref and level_ref.building_manager:
+				var job = level_ref.building_manager.occupied_tiles.get(target_tile, null)
+				if job is TerraformSite:
+					base_x = 6 # Swap to Pink Shovel!
+		TaskPriority.STOPPED: base_x = 8       # White
+
+	# 3. Determine the exact frame coordinates based on direction
+	var final_x: int = base_x
+	var final_y: int = 0
+	
+	# Determine dominant axis (are we moving more horizontally or vertically?)
+	if abs(last_facing_dir.x) > abs(last_facing_dir.y):
+		# SIDEWAYS MOVEMENT (Bottom Row)
+		final_y = 1 
+		if last_facing_dir.x < 0:
+			final_x = base_x      # Moving Left (First side column)
+			sprite.flip_h = false # Adjust flip_h if your sprite is drawn facing right!
+		else:
+			final_x = base_x + 1  # Moving Right (Second side column)
+			sprite.flip_h = false 
+	else:
+		# VERTICAL MOVEMENT (Top Row)
+		final_y = 0 
+		sprite.flip_h = false # Never flip vertical sprites
+		if last_facing_dir.y < 0:
+			final_x = base_x      # Moving Up (Back of bot)
+		else:
+			final_x = base_x + 1  # Moving Down (Front screen of bot)
+			
+	# Apply the grid coordinates to the sprite!
+	sprite.frame_coords = Vector2i(final_x, final_y)
 
 # ==========================================
 # DEBUG VISUALS
@@ -1257,14 +1335,33 @@ func _draw_action_bar():
 	var progress = 1.0 - (action_timer.time_left / action_timer.wait_time)
 	var bar_pos = Vector2(-12.0, -24.0)
 	
-	var fill_colors = {
-		State.REPAIRING:  Color(0.2, 0.6, 1.0),      # Blue
-		State.BUILDING:   Color(0.524, 0.004, 0.953), # Purple
-		State.FETCHING:   Color(0.0, 0.8, 0.8),       # Cyan
-		State.ON_STANDBY: Color(1.0, 1.0, 1.0)        # White
-	}
-	var fill_color = fill_colors.get(current_state, Color(0.2, 0.8, 0.2)) # Default: green (harvest/deposit)
+	# --- NEW: DYNAMIC COLOR SELECTION ---
+	var fill_color: Color = Color(0.8, 0.8, 0.8) # Fallback Gray
 	
+	match current_state:
+		State.ON_STANDBY:
+			fill_color = Color(1.0, 1.0, 1.0) # White (Zz screen)
+			
+		State.HARVESTING, State.DEPOSITING, State.FETCHING:
+			# Match the resource type!
+			if carried_item_name == "Wood" or current_priority == TaskPriority.GATHER_WOOD:
+				fill_color = Color(0.2, 0.8, 0.2) # Green (Axe)
+			elif carried_item_name == "Stone" or current_priority == TaskPriority.GATHER_STONE:
+				fill_color = Color(0.2, 0.6, 1.0) # Blue (Pickaxe)
+			else:
+				fill_color = Color(0.0, 0.8, 0.8) # Cyan (Fallback)
+				
+		State.REPAIRING, State.BUILDING:
+			# Assume Yellow Hammer by default...
+			fill_color = Color(1.0, 0.8, 0.2) 
+			
+			# ...but check the Smart Swap override for the Pink Shovel!
+			if target_tile != Vector2i(-1, -1) and level_ref and level_ref.building_manager:
+				var job = level_ref.building_manager.occupied_tiles.get(target_tile, null)
+				if job is TerraformSite:
+					fill_color = Color(0.9, 0.3, 0.8) # Pink/Magenta
+	
+	# --- DRAWING ---
 	draw_rect(Rect2(bar_pos, Vector2(24.0, 4.0)), Color(0.1, 0.1, 0.1, 0.8), true)        # Background
 	draw_rect(Rect2(bar_pos, Vector2(24.0 * progress, 4.0)), fill_color, true)             # Fill
 	draw_rect(Rect2(bar_pos, Vector2(24.0, 4.0)), Color(0.0, 0.0, 0.0, 1.0), false, 1.0)  # Border
