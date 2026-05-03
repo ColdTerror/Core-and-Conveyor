@@ -14,6 +14,7 @@ signal core_placed_event
 @export var object_layer: TileMapLayer
 @export var terrain_layer: TileMapLayer
 @export var corruption_layer: TileMapLayer
+@export var wall_layer: TileMapLayer # --- For autotiled walls ---
 @export var hover_popup: Control
 @export var construction_site_scene: PackedScene
 @export var terraform_site_scene: PackedScene
@@ -250,7 +251,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if not _can_place_building(ghost_building, grid_pos): return false
 	
 	var cost = ghost_building.get_build_cost()
-	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or cost.is_empty()
+	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or cost.is_empty()
 	
 	if is_instant and not cost.is_empty():
 		if not EconomyManager.can_afford(cost):
@@ -367,6 +368,33 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	building.queue_free()
 	ghost_building = null
 
+
+# ==========================================
+# WALL AUTOTILING LOGIC
+# ==========================================
+func add_wall_visual(grid_pos: Vector2i):
+	if not wall_layer: return
+	
+	# Terrain Set 0, Terrain 0
+	wall_layer.set_cells_terrain_connect([grid_pos], 0, 0)
+
+func remove_wall_visual(grid_pos: Vector2i):
+	if not wall_layer: return
+	
+	# 1. Erase the tile completely (-1)
+	wall_layer.set_cell(grid_pos, -1)
+	
+	# 2. Tell all 4 neighboring tiles to recalculate their connections!
+	var neighbors: Array[Vector2i] = [
+		grid_pos + Vector2i(0, -1), # UP
+		grid_pos + Vector2i(0, 1),  # DOWN
+		grid_pos + Vector2i(-1, 0), # LEFT
+		grid_pos + Vector2i(1, 0)   # RIGHT
+	]
+	
+	# Force the neighbors to update so they don't look like they are connecting to thin air
+	wall_layer.set_cells_terrain_connect(neighbors, 0, 0)
+
 func _on_core_placed(building: Building, grid_pos: Vector2i):
 	is_core_placed = true
 	core_placed_event.emit()
@@ -451,7 +479,7 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 	var base_cost = ghost_building.get_build_cost()
 	var total_cost = {}
 	
-	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or base_cost.is_empty()
+	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or base_cost.is_empty()
 	
 	for res in base_cost:
 		var total_needed = base_cost[res] * display_count
@@ -496,7 +524,7 @@ func _update_ghost_position_to(grid_pos: Vector2i):
 				
 	if valid and not is_free:
 		var cost = ghost_building.get_build_cost()
-		var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or ghost_building.is_draggable or cost.is_empty()
+		var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or cost.is_empty()
 		
 		if is_instant and not cost.is_empty():
 			if not EconomyManager.can_afford(cost):
