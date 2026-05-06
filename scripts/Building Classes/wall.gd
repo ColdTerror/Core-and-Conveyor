@@ -23,7 +23,7 @@ func _ready():
 		if sprite:
 			sprite.hide()
 			
-		level_ref.building_manager.add_wall_visual(grid_origin)
+		level_ref.building_manager.add_wall_visual(occupied_tiles)
 		
 		# Set the initial pathfinder weights
 		for tile in occupied_tiles:
@@ -37,7 +37,7 @@ func _ready():
 func die():
 	if level_ref and level_ref.building_manager and (not is_ghost):
 		# Tell the TileMap to erase the visual and update neighbors
-		level_ref.building_manager.remove_wall_visual(grid_origin)
+		level_ref.building_manager.remove_wall_visual(occupied_tiles)
 		
 	# Run normal death logic (which will call queue_free)
 	super()

@@ -283,13 +283,21 @@ func cancel_placement():
 	placement_ended.emit()
 
 func rotate_ghost():
-	if not ghost_building or not ghost_building is ConveyorBuilding: return
+	if not ghost_building: return
 	
-	var dirs = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
-	var idx = dirs.find(ghost_building.direction)
-	var new_dir = dirs[(idx + 1) % dirs.size()]
-	ghost_building.direction = new_dir
-	ghost_building.rotation = Vector2(new_dir).angle()
+	if ghost_building is ConveyorBuilding:
+		var dirs = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
+		var idx = dirs.find(ghost_building.direction)
+		var new_dir = dirs[(idx + 1) % dirs.size()]
+		ghost_building.direction = new_dir
+		ghost_building.rotation = Vector2(new_dir).angle()
+		
+	elif ghost_building is GateBuilding:
+		# Flip the boolean (which triggers the setter we just wrote!)
+		ghost_building.is_horizontal = not ghost_building.is_horizontal
+		
+		# Force the manager to redraw the green/red placement box and cost footprint
+		_update_ghost_position_to(_get_mouse_grid())
 
 # ==========================================
 # PLACEMENT: INTERNAL
@@ -372,27 +380,26 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 # ==========================================
 # WALL AUTOTILING LOGIC
 # ==========================================
-func add_wall_visual(grid_pos: Vector2i):
+func add_wall_visual(tiles: Array[Vector2i]):
 	if not wall_layer: return
-	
-	# Terrain Set 0, Terrain 0
-	wall_layer.set_cells_terrain_connect([grid_pos], 0, 0)
+	wall_layer.set_cells_terrain_connect(tiles, 0, 0)
 
-func remove_wall_visual(grid_pos: Vector2i):
+func remove_wall_visual(tiles: Array[Vector2i]):
 	if not wall_layer: return
 	
-	# 1. Erase the tile completely (-1)
-	wall_layer.set_cell(grid_pos, -1)
+	# 1. Erase all the tiles completely
+	for tile in tiles:
+		wall_layer.set_cell(tile, -1)
 	
-	# 2. Tell all 4 neighboring tiles to recalculate their connections!
-	var neighbors: Array[Vector2i] = [
-		grid_pos + Vector2i(0, -1), # UP
-		grid_pos + Vector2i(0, 1),  # DOWN
-		grid_pos + Vector2i(-1, 0), # LEFT
-		grid_pos + Vector2i(1, 0)   # RIGHT
-	]
+	# 2. Gather ALL neighbors of ALL destroyed tiles to update connections
+	var neighbors: Array[Vector2i] = []
+	for tile in tiles:
+		neighbors.append(tile + Vector2i(0, -1))
+		neighbors.append(tile + Vector2i(0, 1))
+		neighbors.append(tile + Vector2i(-1, 0))
+		neighbors.append(tile + Vector2i(1, 0))
 	
-	# Force the neighbors to update so they don't look like they are connecting to thin air
+	# Force the neighbors to update so they don't connect to thin air
 	wall_layer.set_cells_terrain_connect(neighbors, 0, 0)
 
 func _on_core_placed(building: Building, grid_pos: Vector2i):

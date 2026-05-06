@@ -1,30 +1,51 @@
 [gd_scene format=3 uid="uid://2d6c3otixyl3"]
 
 [ext_resource type="Script" uid="uid://bsxdc72flxvir" path="res://scripts/Building Classes/gate_building.gd" id="1_m4s2e"]
-[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_gye0d"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="2_ubhqe"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="3_ubhqe"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ubhqe"]
+atlas = ExtResource("3_ubhqe")
+region = Rect2(224, 192, 96, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_41kvb"]
+atlas = ExtResource("3_ubhqe")
+region = Rect2(224, 224, 96, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e7d47"]
+atlas = ExtResource("3_ubhqe")
+region = Rect2(352, 192, 32, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4s201"]
+atlas = ExtResource("3_ubhqe")
+region = Rect2(320, 192, 32, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rgsjw"]
+atlas = ExtResource("3_ubhqe")
+region = Rect2(224, 224, 96, 32)
 
 [sub_resource type="Resource" id="Resource_gye0d"]
 script = ExtResource("2_ubhqe")
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_gxk2j"]
-size = Vector2(32, 32)
+[sub_resource type="AtlasTexture" id="AtlasTexture_gye0d"]
+atlas = ExtResource("3_ubhqe")
+region = Rect2(224, 192, 96, 32)
 
 [node name="Gate" type="Node2D" unique_id=1237469307 groups=["Structure"]]
-modulate = Color(1, 0, 0, 1)
 script = ExtResource("1_m4s2e")
+horizontal_closed = SubResource("AtlasTexture_ubhqe")
+horizontal_open = SubResource("AtlasTexture_41kvb")
+vertical_closed = SubResource("AtlasTexture_e7d47")
+vertical_open = SubResource("AtlasTexture_4s201")
 is_solid_obstacle = false
 building_name = "Gate"
+size = Vector2i(3, 1)
+icon = SubResource("AtlasTexture_rgsjw")
 build_costs = Array[ExtResource("2_ubhqe")]([SubResource("Resource_gye0d")])
 build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413850]
-texture = ExtResource("2_gye0d")
-region_enabled = true
+z_index = -1
+texture = SubResource("AtlasTexture_gye0d")
 region_rect = Rect2(64, 0, 32, 32)
-
-[node name="Area2D" type="Area2D" parent="." unique_id=1119633970]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=495812014]
-shape = SubResource("RectangleShape2D_gxk2j")

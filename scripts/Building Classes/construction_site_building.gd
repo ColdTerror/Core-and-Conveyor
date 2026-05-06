@@ -68,7 +68,6 @@ func _check_if_fully_stocked():
 			return # Still missing something
 			
 	is_ready_to_build = true
-	print("Construction Site fully stocked! Waiting for Builder Bot.")
 
 # ==========================================
 # NEW: DEDICATED BUILD LOGIC
