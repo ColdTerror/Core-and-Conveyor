@@ -340,7 +340,10 @@ func get_upgrade_data() -> Dictionary:
 		data["direction"] = self.get("direction")
 	if "rotation" in self:
 		data["rotation"] = self.get("rotation")
-		
+	
+	# --- NEW: Save Gate Rotation Logic ---
+	if "is_horizontal" in self:
+		data["is_horizontal"] = self.get("is_horizontal")
 		
 	return data
 
@@ -366,16 +369,25 @@ func apply_upgrade_data(data: Dictionary):
 		self.set("direction", data["direction"])
 	if data.has("rotation") and "rotation" in self:
 		self.set("rotation", data["rotation"])
+		
+	# --- NEW: Restore Gate Rotation Logic ---
+	if data.has("is_horizontal") and "is_horizontal" in self:
+		# This automatically triggers your setter function to fix the size/sprites!
+		self.set("is_horizontal", data["is_horizontal"])
 	
 
 # ==========================================
 # SAVE / LOAD SYSTEM (Base Class)
 # ==========================================
 func get_save_data() -> Dictionary:
-	return {
+	var data = {
 		"building_name": building_name,
 		"health": health
 	}
+	
+	if "is_horizontal" in self: data["is_horizontal"] = self.get("is_horizontal")
+		
+	return data
 
 func load_save_data(data: Dictionary):
 	# 1. Restore the base stats

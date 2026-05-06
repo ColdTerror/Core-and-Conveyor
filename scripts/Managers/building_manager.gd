@@ -360,6 +360,18 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 		is_relocating = false
 	# ==========================================
 	
+	# ==========================================
+	# --- NEW: SAVE ROTATION FOR THE BLUEPRINT ---
+	# ==========================================
+	# Extract the rotation data from the ghost before we delete it
+	var saved_data = {}
+	if building.has_method("get_upgrade_data"):
+		saved_data = building.get_upgrade_data()
+		
+	# Hand the sticky note to the ConstructionSite!
+	if not saved_data.is_empty():
+		site.set_meta("relocation_data", saved_data)
+		
 	site.place_at(grid_pos, object_layer)
 
 	_register_building(site)
@@ -1155,6 +1167,9 @@ func load_save_data(data: Dictionary):
 
 		# 1. Spawn the blueprint!
 		var new_building = load(path).instantiate() as Building
+		if b_data.has("is_horizontal") and "is_horizontal" in new_building:
+			# This triggers the setter, making the size 1x3 BEFORE _ready() draws the physics!
+			new_building.set("is_horizontal", b_data["is_horizontal"])
 		add_child(new_building)
 
 		var grid_pos = Vector2i(b_data["grid_origin_x"], b_data["grid_origin_y"])

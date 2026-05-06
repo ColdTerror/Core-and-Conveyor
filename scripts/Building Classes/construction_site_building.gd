@@ -10,6 +10,10 @@ var is_ready_to_build: bool = false
 var level_ref: Node2D
 var blueprint_size: Vector2i = Vector2i(1, 1)
 
+#Regular setup for save/load
+func setup(level_instance: Node2D):
+	level_ref = level_instance
+	
 # ==========================================
 # 1. THE DYNAMIC SETUP
 # ==========================================
@@ -91,6 +95,14 @@ func _finish_construction():
 	
 	# 1. Spawn the real building
 	var new_building = target_building_scene.instantiate()
+	
+	# --- NEW: PASS THE STICKY NOTE! ---
+	# Give the new building its rotation/upgrade data BEFORE placing it!
+	if has_meta("relocation_data"):
+		var saved_data = get_meta("relocation_data")
+		if new_building.has_method("apply_upgrade_data"):
+			new_building.apply_upgrade_data(saved_data)
+			
 	if new_building.has_method("setup"):
 		new_building.setup(level_ref)
 	
@@ -210,12 +222,20 @@ func get_save_data() -> Dictionary:
 	# 3. Save size (for footprint calculations)
 	data["size_x"] = size.x
 	data["size_y"] = size.y
+	
+	# --- NEW: Save the sticky note! ---
+	if has_meta("relocation_data"):
+		data["relocation_data"] = get_meta("relocation_data")
 
 	
 	return data
 
 func load_save_data(data: Dictionary):
 	super.load_save_data(data)
+	
+	max_health = 100
+	if "build_range" in self: build_range = 0
+	if "corruption_range" in self: corruption_range = 0
 	
 	if data.has("building_name"):
 		building_name = data["building_name"]
@@ -235,6 +255,10 @@ func load_save_data(data: Dictionary):
 		delivered_items = data["delivered_items"]
 		
 	is_ready_to_build = data.get("is_ready_to_build", false)
+	
+	# --- NEW: Restore the sticky note! ---
+	if data.has("relocation_data"):
+		set_meta("relocation_data", data["relocation_data"])
 	
 				
 	# Tell the UI to update the progress bar!

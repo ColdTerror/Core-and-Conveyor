@@ -23,7 +23,7 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"2110d072-8924-473f-837d-a8678847271b"
+				"8985d9bd-1746-420c-beb4-139f5db3b2a8"
 			]
 		},
 		{
@@ -31,6 +31,7 @@
 			"title": "Done",
 			"tasks": [
 				"b5202a63-d929-44b2-a096-9ecb65498358",
+				"2110d072-8924-473f-837d-a8678847271b",
 				"ea14879c-67ff-409c-8283-708d3dccaebf",
 				"6215c2a1-2e55-464f-991f-722ed866be0c",
 				"f9ecb4c8-b933-4e19-8cf9-edd862e4866f",
@@ -1021,6 +1022,13 @@
 		{
 			"uuid": "2110d072-8924-473f-837d-a8678847271b",
 			"title": "gate sprite",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8985d9bd-1746-420c-beb4-139f5db3b2a8",
+			"title": "gate flips from vertical to horizontal when finished building",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
