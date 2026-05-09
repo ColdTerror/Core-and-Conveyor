@@ -22,6 +22,10 @@ extends Control
 @onready var music_jukebox_toggle = $PanelContainer/TabContainer/Jukebox/VBoxContainer/EnableJukebox
 @onready var music_list_container = $PanelContainer/TabContainer/Jukebox/VBoxContainer/ScrollContainer/TrackListContainer
 
+# --- Quota Tab ---
+@onready var quota_info_label = $PanelContainer/TabContainer/Quota/VBoxContainer/InfoLabel
+@onready var quota_list_container = $PanelContainer/TabContainer/Quota/VBoxContainer/ScrollContainer/ListContainer
+
 # Floating Close Button
 @onready var close_button = $PanelContainer/Close
 
@@ -66,6 +70,8 @@ func _process(delta):
 		# ONLY run the soft update if they are looking at the Workers tab!
 		if tab_container and tab_container.current_tab == 1:
 			_refresh_bot_tab(false) # Soft update = false
+		elif tab_container and tab_container.current_tab == 4: 
+			_refresh_quota_tab()
 
 func _on_tab_clicked(tab_index):
 	var target_tab = tab_index
@@ -76,8 +82,10 @@ func _on_tab_clicked(tab_index):
 		_refresh_bot_tab(true) # Force rebuild = true
 	elif target_tab == 2:
 		_refresh_resource_tab()
-	elif target_tab == 3: # --- NEW: Music Tab ---
+	elif target_tab == 3:
 		_refresh_music_tab()
+	elif target_tab == 4: 
+		_refresh_quota_tab()
 		
 	# Force the tab to stay on the index the user clicked
 	tab_container.call_deferred("set_current_tab", target_tab)
@@ -97,7 +105,8 @@ func open_menu():
 		_refresh_priority_tab()
 		_refresh_bot_tab(true) # Force rebuild when opening
 		_refresh_resource_tab()
-		_refresh_music_tab() # --- NEW: Make sure Music tab is ready ---
+		_refresh_music_tab() 
+		_refresh_quota_tab()
 		show()
 
 func close_menu():
@@ -459,3 +468,154 @@ func _on_jukebox_toggled(is_enabled: bool):
 		AudioManager.is_jukebox_enabled = true
 	else:
 		AudioManager.disable_jukebox()
+
+# ==========================================
+# QUOTA TAB LOGIC 
+# ==========================================
+
+func _refresh_quota_tab():
+	if not quota_list_container or not building_manager or not building_manager.level_ref: 
+		return
+		
+	var quota_mgr = building_manager.level_ref.get_node_or_null("QuotaManager")
+	var time_mgr = building_manager.level_ref.get_node_or_null("TimeManager")
+	
+	if not quota_mgr or not time_mgr:
+		print("Couldnt find quota or time manager")
+		return
+
+	# 1. Update the Header Info & Weekly Totals
+	var failure_ratio: float = 1.0 - (float(quota_mgr.successful_days) / 7.0)
+	var current_penalty = quota_mgr.max_weekly_corruption * failure_ratio
+	
+	# Calculate the Weekly Macro-Goal
+	var weekly_req_text = ""
+	var items_added = 0
+	for item in quota_mgr.daily_requirements:
+		if items_added > 0: weekly_req_text += "   |   "
+		var weekly_amount = quota_mgr.daily_requirements[item] * 7
+		weekly_req_text += "%s: %d" % [item, weekly_amount]
+		items_added += 1
+	
+	quota_info_label.text = "--- WEEK %d ---\n" % [int((time_mgr.current_day - 1) / 7) + 1]
+	quota_info_label.text += "Weekly Factory Target: [ %s ]\n" % weekly_req_text
+	quota_info_label.text += "Projected Corruption Penalty: +%d\n" % int(current_penalty)
+
+	# 2. Clean up old rows
+	for child in quota_list_container.get_children():
+		child.queue_free()
+
+	# 3. Calculate Calendar Math
+	# day_index is 0 to 6 (Monday to Sunday)
+	var current_day_index = (time_mgr.current_day - 1) % 7 
+	
+	# Since QuotaManager just tracks an integer of successes, we assign the 
+	# successes to the earliest days, and failures to the rest.
+	var successes_assigned = 0
+
+	# 4. Build the 7-Day Calendar
+	for day_i in range(7):
+		var row = HBoxContainer.new()
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		
+		# Day Label
+		var day_label = Label.new()
+		day_label.text = "Day " + str(day_i + 1)
+		day_label.custom_minimum_size = Vector2(80, 0)
+		row.add_child(day_label)
+		
+		if day_i < current_day_index:
+			# --- PAST DAYS ---
+			var status_lbl = Label.new()
+			status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if successes_assigned < quota_mgr.successful_days:
+				status_lbl.text = "QUOTA MET"
+				status_lbl.modulate = Color(0.2, 1.0, 0.2) # Green
+				successes_assigned += 1
+			else:
+				status_lbl.text = "MISSED"
+				status_lbl.modulate = Color(1.0, 0.2, 0.2) # Red
+			row.add_child(status_lbl)
+			
+		elif day_i == current_day_index:
+			# --- TODAY (Live Progress Bar & Material Breakdown) ---
+			day_label.modulate = Color(1.0, 0.8, 0.2) # Highlight today yellow
+			
+			# Create a vertical container to hold both the bar and the text
+			var today_vbox = VBoxContainer.new()
+			today_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			
+			# 1. Calculate and build the Progress Bar
+			var total_req = 0.0
+			var total_have = 0.0
+			for item in quota_mgr.daily_requirements:
+				var needed = quota_mgr.daily_requirements[item]
+				total_req += needed
+				total_have += min(quota_mgr.daily_delivered.get(item, 0), needed)
+				
+			var progress_bar = ProgressBar.new()
+			progress_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			progress_bar.custom_minimum_size = Vector2(0, 24)
+			progress_bar.max_value = total_req
+			progress_bar.value = total_have
+			
+			if total_have >= total_req:
+				progress_bar.modulate = Color(0.2, 1.0, 0.2) # Turn green if done
+				
+			today_vbox.add_child(progress_bar)
+			
+			# 2. Build the Material Breakdown Text!
+			var breakdown_hbox = HBoxContainer.new()
+			breakdown_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+			
+			var daily_items_added = 0
+			for item in quota_mgr.daily_requirements:
+				var needed = quota_mgr.daily_requirements[item]
+				var have = quota_mgr.daily_delivered.get(item, 0)
+				
+				# Add a divider between items (if there's more than one)
+				if daily_items_added > 0:
+					var divider = Label.new()
+					divider.text = "   |   "
+					divider.modulate = Color(0.4, 0.4, 0.4)
+					breakdown_hbox.add_child(divider)
+				
+				var item_label = Label.new()
+				item_label.text = "%s: %d / %d" % [item, have, needed]
+				
+				# Color code the specific item!
+				if have >= needed:
+					item_label.modulate = Color(0.2, 1.0, 0.2) # Green
+				else:
+					item_label.modulate = Color(0.9, 0.9, 0.9) # White
+					
+				breakdown_hbox.add_child(item_label)
+				daily_items_added += 1
+				
+			today_vbox.add_child(breakdown_hbox)
+			row.add_child(today_vbox)
+			
+		else:
+			# --- FUTURE DAYS (Preview upcoming requirements) ---
+			var future_vbox = VBoxContainer.new()
+			future_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			
+			var status_lbl = Label.new()
+			status_lbl.text = "Pending..."
+			status_lbl.modulate = Color(0.5, 0.5, 0.5) # Greyed out
+			future_vbox.add_child(status_lbl)
+			
+			# Build the preview text
+			var req_strings = []
+			for item in quota_mgr.daily_requirements:
+				req_strings.append("%s: %d" % [item, quota_mgr.daily_requirements[item]])
+				
+			var req_lbl = Label.new()
+			req_lbl.text = "Requires: " + "  |  ".join(req_strings)
+			req_lbl.modulate = Color(0.4, 0.4, 0.4) # Darker grey so it doesn't distract from 'Today'
+			future_vbox.add_child(req_lbl)
+			
+			row.add_child(future_vbox)
+			
+		quota_list_container.add_child(row)
+		quota_list_container.add_child(HSeparator.new())
