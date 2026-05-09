@@ -1,21 +1,7 @@
-# Level.gd 
+class_name Level
 extends Node2D
 
-# ==========================================
-# NODES & REFERENCES
-# ==========================================
-@onready var terrain_layer: TileMapLayer = $TerrainLayer
-@onready var object_layer: TileMapLayer = $ObjectLayer
 
-@onready var hover_menu := $CanvasLayer/Popup_Layer/HoverMenu
-@onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
-@onready var detail_menu = $CanvasLayer/Popup_Layer/DetailMenu 
-@onready var management_menu = $CanvasLayer/Popup_Layer/ManagementMenu
-@onready var stat_menu = $CanvasLayer/Popup_Layer/StatisticsMenu
-
-@onready var building_manager: BuildingManager = $BuildingManager
-@onready var wave_manager: WaveManager = $WaveManager
-@onready var pathfinder = $Pathfinder
 
 # ==========================================
 # ENUMS & CONSTANTS
@@ -37,32 +23,43 @@ const RES_STONE := 4
 # ==========================================
 # EXPORTS & CONFIGURATION
 # ==========================================
+@export_group("Map Settings")
 @export var current_map_type: MapGenType = MapGenType.RIVER_DIVIDE
 @export var tile_size_px: Vector2 = Vector2(32, 32)
 @export var tile_library: Array[TileDataResource] = []
 
-@export_group("Scenes")
-@export var item_scene: PackedScene 
-@export var stockpile_scene: PackedScene 
-@export var lumberjack_scene: PackedScene
-@export var sawmill_scene: PackedScene
-@export var bow_tower_scene: PackedScene
-@export var wall_scene: PackedScene
-@export var gate_scene: PackedScene
+#logistics production defense infrastructure
+@export_group("Building Scenes")
+
+@export_subgroup("Logistics")
 @export var conveyor_scene: PackedScene 
 @export var router_scene: PackedScene 
 @export var filter_scene: PackedScene
-@export var core_scene: PackedScene 
+
+@export_subgroup("Production")
+@export var lumberjack_scene: PackedScene
+@export var sawmill_scene: PackedScene
 @export var mine_scene: PackedScene
 @export var stonemason_scene: PackedScene
 @export var fletcher_scene: PackedScene
+
+@export_subgroup("Defense")
+@export var bow_tower_scene: PackedScene
+@export var wall_scene: PackedScene
+@export var gate_scene: PackedScene
+
+@export_subgroup("Infrastructure")
+@export var stockpile_scene: PackedScene 
 @export var firepit_scene: PackedScene
 
+@export_subgroup("Other/Helpers")
+@export var item_scene: PackedScene 
+@export var core_scene: PackedScene 
 @export var projectile_scene: PackedScene
 
 
 # ==========================================
-# RUNTIME STATE
+# RUNTIME STATE VARIABLES
 # ==========================================
 var active_grid_objects := {}
 
@@ -70,6 +67,22 @@ var active_grid_objects := {}
 var last_hovered_upgrade_tile := Vector2i(-1, -1)
 var is_terrain_remove_brush: bool = false
 var last_terrain_tile := Vector2i(-1, -1)
+
+# ==========================================
+# NODES & REFERENCES
+# ==========================================
+@onready var terrain_layer: TileMapLayer = $TerrainLayer
+@onready var object_layer: TileMapLayer = $ObjectLayer
+
+@onready var hover_menu := $CanvasLayer/Popup_Layer/HoverMenu
+@onready var hotbar = $CanvasLayer/Hud_Layer/HotBar_UI
+@onready var detail_menu = $CanvasLayer/Popup_Layer/DetailMenu 
+@onready var management_menu = $CanvasLayer/Popup_Layer/ManagementMenu
+@onready var stat_menu = $CanvasLayer/Popup_Layer/StatisticsMenu
+
+@onready var building_manager: BuildingManager = $BuildingManager
+@onready var wave_manager: WaveManager = $WaveManager
+@onready var pathfinder = $Pathfinder
 
 # ==========================================
 # SETUP & MAIN LOOP
@@ -114,9 +127,7 @@ func _ready():
 	else:
 		generate_simple_map()
 		
-	
-	
-	
+
 
 func _process(_delta):
 	var mouse_pos = get_global_mouse_position()

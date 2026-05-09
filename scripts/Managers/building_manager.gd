@@ -1,5 +1,6 @@
-extends Node2D
 class_name BuildingManager
+extends Node2D
+
 
 # ==========================================
 # SIGNALS
@@ -11,10 +12,13 @@ signal core_placed_event
 # ==========================================
 # EXPORTS
 # ==========================================
+@export_group("Layers")
 @export var object_layer: TileMapLayer
 @export var terrain_layer: TileMapLayer
 @export var corruption_layer: TileMapLayer
-@export var wall_layer: TileMapLayer # --- For autotiled walls ---
+@export var wall_layer: TileMapLayer 
+
+@export_group("UI & Visuals")
 @export var hover_popup: Control
 @export var construction_site_scene: PackedScene
 @export var terraform_site_scene: PackedScene
@@ -69,20 +73,11 @@ func _is_grouped_type(building: Node) -> bool:
 	return building is ConveyorBuilding or building is WallBuilding or building is TerraformSite
 
 # ==========================================
-# SETUP
+# Virtual Methods
 # ==========================================
 func _ready():
 	# Listen for any economy changes!
 	EconomyManager.inventory_changed.connect(_on_inventory_changed)
-
-
-			
-func initialize(level_instance: Node2D):
-	level_ref = level_instance
-
-# ==========================================
-# MAIN LOOP
-# ==========================================
 
 func _process(delta):
 	for b in buildings:
@@ -91,6 +86,16 @@ func _process(delta):
 	
 	if placing_building:
 		queue_redraw()
+
+# ==========================================
+# Setup Methods
+# ==========================================
+func initialize(level_instance: Node2D):
+	level_ref = level_instance
+
+
+
+
 
 
 func handle_overlay_hotkeys(keycode: int):
@@ -414,24 +419,7 @@ func remove_wall_visual(tiles: Array[Vector2i]):
 	# Force the neighbors to update so they don't connect to thin air
 	wall_layer.set_cells_terrain_connect(neighbors, 0, 0)
 
-func _on_core_placed(building: Building, grid_pos: Vector2i):
-	is_core_placed = true
-	core_placed_event.emit()
-	
-	var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
-	for tile in _get_empty_tiles_around(building, 1):
-		var new_bot = bot_scene.instantiate()
-		level_ref.object_layer.add_child(new_bot)
-		new_bot.global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(tile))
-		new_bot.setup(level_ref)
-		new_bot.hovered.connect(InputManager._on_object_hovered)
-		new_bot.unhovered.connect(InputManager._on_object_unhovered)
-	
-	if level_ref and level_ref.has_node("CorruptionManager"):
-		level_ref.get_node("CorruptionManager").start_outbreak(object_layer.local_to_map(building.global_position))
-		
-	if level_ref.has_node("TimeManager"):
-		level_ref.get_node("TimeManager").is_time_running = true
+
 
 func _can_place_building(building: Building, origin: Vector2i, temp_network: Array[Vector2i] = []) -> bool:
 	if not object_layer: return false
@@ -520,15 +508,8 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 			can_place = false
 	
 	placement_cost_updated.emit(ghost_building.building_name, total_cost, can_place, extra_stats)
-func _on_inventory_changed():
-	# If we are currently holding a blueprint, re-check the tile we are hovering over!
-	if placing_building and is_instance_valid(ghost_building):
-		var current_grid_pos = _get_mouse_grid()
-		
-		if is_dragging:
-			_update_drag_line(current_grid_pos)
-		else:
-			_update_ghost_position_to(current_grid_pos)
+	
+
 			
 func _update_ghost_position_to(grid_pos: Vector2i):
 	ghost_building.place_at(grid_pos, object_layer)
@@ -694,31 +675,6 @@ func _register_occupied_tiles(building: Building):
 	for tile in building.occupied_tiles:
 		occupied_tiles[tile] = building
 
-func _on_building_destroyed(b: Building):
-	buildings.erase(b)
-	master_priority_queue.erase(b)
-		
-	for tile in b.occupied_tiles:
-		if occupied_tiles.get(tile) == b:
-			occupied_tiles.erase(tile)
-	
-	_remove_safe_zone(b)
-	_remove_build_zone(b)
-	_remove_attack_zone(b)
-	
-	if pathfinder:
-		for tile in b.occupied_tiles:
-			# Only clear the pathfinder if the tile is completely empty.
-			# If a new building took this spot, leave its pathing alone!
-			if not occupied_tiles.has(tile):
-				pathfinder.set_obstacle(tile, false)
-				pathfinder.set_weighted_obstacle(tile, 1.0)
-
-	if not b.is_upgrading:
-		if b.has_method("get_economy_assets"):
-			var assets = b.get_economy_assets()
-			if not assets.is_empty():
-				EconomyManager.remove_resources_from_global(assets)
 
 func register_finished_building(new_building: Building, grid_pos: Vector2i):
 	var old_priority_index = -1
@@ -1218,3 +1174,59 @@ func load_save_data(data: Dictionary):
 	if is_core_placed:
 		print_debug("load placed")
 		core_placed_event.emit()
+		
+		
+func _on_core_placed(building: Building, grid_pos: Vector2i):
+	is_core_placed = true
+	core_placed_event.emit()
+	
+	var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
+	for tile in _get_empty_tiles_around(building, 1):
+		var new_bot = bot_scene.instantiate()
+		level_ref.object_layer.add_child(new_bot)
+		new_bot.global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(tile))
+		new_bot.setup(level_ref)
+		new_bot.hovered.connect(InputManager._on_object_hovered)
+		new_bot.unhovered.connect(InputManager._on_object_unhovered)
+	
+	if level_ref and level_ref.has_node("CorruptionManager"):
+		level_ref.get_node("CorruptionManager").start_outbreak(object_layer.local_to_map(building.global_position))
+		
+	if level_ref.has_node("TimeManager"):
+		level_ref.get_node("TimeManager").is_time_running = true
+		
+func _on_inventory_changed():
+	# If we are currently holding a blueprint, re-check the tile we are hovering over!
+	if placing_building and is_instance_valid(ghost_building):
+		var current_grid_pos = _get_mouse_grid()
+		
+		if is_dragging:
+			_update_drag_line(current_grid_pos)
+		else:
+			_update_ghost_position_to(current_grid_pos)
+			
+func _on_building_destroyed(b: Building):
+	buildings.erase(b)
+	master_priority_queue.erase(b)
+		
+	for tile in b.occupied_tiles:
+		if occupied_tiles.get(tile) == b:
+			occupied_tiles.erase(tile)
+	
+	_remove_safe_zone(b)
+	_remove_build_zone(b)
+	_remove_attack_zone(b)
+	
+	if pathfinder:
+		for tile in b.occupied_tiles:
+			# Only clear the pathfinder if the tile is completely empty.
+			# If a new building took this spot, leave its pathing alone!
+			if not occupied_tiles.has(tile):
+				pathfinder.set_obstacle(tile, false)
+				pathfinder.set_weighted_obstacle(tile, 1.0)
+
+	if not b.is_upgrading:
+		if b.has_method("get_economy_assets"):
+			var assets = b.get_economy_assets()
+			if not assets.is_empty():
+				EconomyManager.remove_resources_from_global(assets)

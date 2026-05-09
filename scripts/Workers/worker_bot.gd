@@ -1,5 +1,6 @@
-extends Node2D
 class_name WorkerBot
+extends Node2D
+
 
 # ==========================================
 # SIGNALS
@@ -33,8 +34,6 @@ enum State {
 
 # ==========================================
 # IDENTITY
-# Duck typing trick: buildings and bots both expose building_name/health/max_health
-# so the same UI panel code can display info for either without type-checking.
 # ==========================================
 var building_name: String = "Worker Bot"
 var health: int = 100
@@ -51,8 +50,8 @@ const XP_THRESHOLDS: Array[int] = [0, 50, 150, 300] # Thresholds for levels 1, 2
 
 # ==========================================
 # CONFIGURATION
-# These are the designer-facing knobs. Tweak in the inspector without touching code.
 # ==========================================
+@export_group("Base Stats")
 @export var base_speed: float = 75.0    # Pixels per second before any buffs
 @export var carry_capacity: int = 5     # Max items the bot can hold at once
 @export var harvest_time: float = 1.0   # Seconds per harvest swing
@@ -145,22 +144,10 @@ var last_facing_dir: Vector2 = Vector2.DOWN # Default to facing the camera
 @onready var sprite = $Sprite2D # Make sure this matches your actual node name!
 
 # ==========================================
-# SETUP & READY
-# setup() is called by the spawner before the node enters the scene tree.
+# READY
+
 # _ready() fires after the node is fully in the tree.
 # ==========================================
-
-func setup(level: Node2D):
-	level_ref = level
-	action_timer.timeout.connect(_on_action_timer_timeout)
-	
-	if has_node("Area2D"):
-		$Area2D.mouse_entered.connect(_on_mouse_entered)
-		$Area2D.mouse_exited.connect(_on_mouse_exited)
-	
-	# Default home to spawn position so the bot has somewhere to recharge immediately
-	if level_ref and level_ref.object_layer:
-		home_tile = level_ref.object_layer.local_to_map(global_position)
 
 func _ready():
 	# Allow the research tree to set a higher starting level (e.g. from a factory upgrade)
@@ -176,6 +163,92 @@ func _ready():
 	_recalculate_stats()
 	
 	_update_sprite()
+
+# ==========================================
+# MAIN LOOP
+# _process runs every frame. It handles energy drain and drives the state machine.
+# ==========================================
+func _process(delta):
+	queue_redraw() # Redraw debug overlays (path line, bars, home tile) every frame
+	_handle_energy(delta)
+	
+	match current_state:
+		State.IDLE:
+			# Safety check: if a building was placed on top of the bot, pop it out first
+			if _escape_trapped_tile():
+				return
+			
+			# A limping bot has no energy left — its only job is to get home and rest
+			if is_limping:
+				_go_home_or_standby(STANDBY_IDLE)
+				return
+			
+			# Throttle the decision-making brain to ~5 times/second
+			_think_cooldown -= delta
+			if _think_cooldown > 0:
+				return
+			_think_cooldown = 0.2
+			
+			if current_priority == TaskPriority.STOPPED:
+				_go_home_or_standby(STANDBY_IDLE)
+				return
+			if current_priority == TaskPriority.MAINTAIN:
+				_find_priority_job()     # Ask BuildingManager for the most urgent task
+			else:
+				_find_nearest_resource() # Scan for nearby Wood/Stone to harvest
+			
+		# Each MOVING state advances the bot along its path.
+		# When the path is exhausted, _move_along_path() transitions to the paired action state.
+		State.MOVING_TO_RESOURCE:
+			_move_along_path(delta, State.HARVESTING)
+		State.MOVING_TO_INVENTORY:
+			_move_along_path(delta, State.DEPOSITING)
+		State.MOVING_TO_REPAIR:
+			_move_along_path(delta, State.REPAIRING)
+		State.MOVING_TO_BUILD:
+			_move_along_path(delta, State.BUILDING)
+		State.MOVING_TO_FETCH:
+			_move_along_path(delta, State.FETCHING)
+		State.MOVING_HOME:
+			_move_along_path(delta, State.RECHARGING)
+		State.PANIC_MOVING_HOME:
+			_move_along_path(delta, State.PANIC_WAITING)
+		
+		# RECHARGING and PANIC_WAITING are fully driven by _handle_energy() each frame.
+		# No movement or action logic is needed here.
+		State.RECHARGING, State.PANIC_WAITING:
+			pass
+			
+# ==========================================
+# Draw
+# draw all the ui and debug info for the bot
+# ==========================================
+func _draw():
+	_draw_path()
+	_draw_home_tile()
+	_draw_set_home_preview()
+	_draw_target_tile()
+	_draw_action_bar()
+	_draw_energy_bar()
+	
+# ==========================================
+# SETUP
+# setup() is called by the spawner before the node enters the scene tree.
+# ==========================================
+
+func setup(level: Node2D):
+	level_ref = level
+	action_timer.timeout.connect(_on_action_timer_timeout)
+	
+	if has_node("Area2D"):
+		$Area2D.mouse_entered.connect(_on_mouse_entered)
+		$Area2D.mouse_exited.connect(_on_mouse_exited)
+	
+	# Default home to spawn position so the bot has somewhere to recharge immediately
+	if level_ref and level_ref.object_layer:
+		home_tile = level_ref.object_layer.local_to_map(global_position)
+
+
 
 # ==========================================
 # STATS RECALCULATION
@@ -251,60 +324,6 @@ func _get_speed() -> float:
 			mult *= SPEED_MULT_WATER
 
 	return _normal_speed * mult
-# ==========================================
-# MAIN LOOP
-# _process runs every frame. It handles energy drain and drives the state machine.
-# ==========================================
-func _process(delta):
-	queue_redraw() # Redraw debug overlays (path line, bars, home tile) every frame
-	_handle_energy(delta)
-	
-	match current_state:
-		State.IDLE:
-			# Safety check: if a building was placed on top of the bot, pop it out first
-			if _escape_trapped_tile():
-				return
-			
-			# A limping bot has no energy left — its only job is to get home and rest
-			if is_limping:
-				_go_home_or_standby(STANDBY_IDLE)
-				return
-			
-			# Throttle the decision-making brain to ~5 times/second
-			_think_cooldown -= delta
-			if _think_cooldown > 0:
-				return
-			_think_cooldown = 0.2
-			
-			if current_priority == TaskPriority.STOPPED:
-				_go_home_or_standby(STANDBY_IDLE)
-				return
-			if current_priority == TaskPriority.MAINTAIN:
-				_find_priority_job()     # Ask BuildingManager for the most urgent task
-			else:
-				_find_nearest_resource() # Scan for nearby Wood/Stone to harvest
-			
-		# Each MOVING state advances the bot along its path.
-		# When the path is exhausted, _move_along_path() transitions to the paired action state.
-		State.MOVING_TO_RESOURCE:
-			_move_along_path(delta, State.HARVESTING)
-		State.MOVING_TO_INVENTORY:
-			_move_along_path(delta, State.DEPOSITING)
-		State.MOVING_TO_REPAIR:
-			_move_along_path(delta, State.REPAIRING)
-		State.MOVING_TO_BUILD:
-			_move_along_path(delta, State.BUILDING)
-		State.MOVING_TO_FETCH:
-			_move_along_path(delta, State.FETCHING)
-		State.MOVING_HOME:
-			_move_along_path(delta, State.RECHARGING)
-		State.PANIC_MOVING_HOME:
-			_move_along_path(delta, State.PANIC_WAITING)
-		
-		# RECHARGING and PANIC_WAITING are fully driven by _handle_energy() each frame.
-		# No movement or action logic is needed here.
-		State.RECHARGING, State.PANIC_WAITING:
-			pass
 
 # ==========================================
 # ENERGY SYSTEM
@@ -753,15 +772,7 @@ func _start_action():
 		State.FETCHING:    action_timer.start(1.0)
 		State.PANIC_WAITING: action_timer.start(30.0)
 
-func _on_action_timer_timeout():
-	match current_state:
-		State.HARVESTING:    _do_harvest()
-		State.FETCHING:      _do_fetch()
-		State.DEPOSITING:    _do_deposit()
-		State.REPAIRING:     _do_repair()
-		State.BUILDING:      _do_build()
-		State.ON_STANDBY:    _do_standby_wake()
-		State.PANIC_WAITING: _end_panic()
+
 
 # Attempts to harvest one unit from the target tile.
 # If the resource isn't gone yet, re-starts the timer to keep harvesting automatically.
@@ -1126,18 +1137,7 @@ func _clear_reservation():
 		if info.has("reserved_by") and info["reserved_by"] == self:
 			info["reserved_by"] = null
 
-# ==========================================
-# UI INTERACTION & PRIORITY LOGIC
-# ==========================================
 
-func _on_mouse_entered():
-	hovered.emit(self)
-	InputManager.hovered_bot = self  # Let InputManager know so click handling works
-
-func _on_mouse_exited():
-	unhovered.emit(self)
-	if InputManager.hovered_bot == self:
-		InputManager.hovered_bot = null
 
 # Called by the UI when the player changes the task dropdown for this bot.
 func set_priority(new_priority: int):
@@ -1267,13 +1267,7 @@ func _update_sprite(move_dir: Vector2 = Vector2.ZERO):
 # Everything here is visual-only and has no effect on game logic.
 # ==========================================
 
-func _draw():
-	_draw_path()
-	_draw_home_tile()
-	_draw_set_home_preview()
-	_draw_target_tile()
-	_draw_action_bar()
-	_draw_energy_bar()
+
 
 # Draws a line from the bot to its next waypoint, with a dot at the final destination.
 func _draw_path():
@@ -1480,3 +1474,30 @@ func load_save_data(data: Dictionary):
 		action_timer.stop()
 	
 	inventory_changed.emit() # Wake up any listening UI
+	
+# ==========================================
+# UI INTERACTION & PRIORITY LOGIC
+# ==========================================
+
+func _on_mouse_entered():
+	hovered.emit(self)
+	InputManager.hovered_bot = self  # Let InputManager know so click handling works
+
+func _on_mouse_exited():
+	unhovered.emit(self)
+	if InputManager.hovered_bot == self:
+		InputManager.hovered_bot = null
+		
+
+# ==========================================
+# ACTION TIMER
+# ==========================================
+func _on_action_timer_timeout():
+	match current_state:
+		State.HARVESTING:    _do_harvest()
+		State.FETCHING:      _do_fetch()
+		State.DEPOSITING:    _do_deposit()
+		State.REPAIRING:     _do_repair()
+		State.BUILDING:      _do_build()
+		State.ON_STANDBY:    _do_standby_wake()
+		State.PANIC_WAITING: _end_panic()
