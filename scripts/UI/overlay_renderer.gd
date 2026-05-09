@@ -1,5 +1,6 @@
-extends Node2D
 class_name OverlayRenderer
+extends Node2D
+
 
 @onready var level = get_parent()
 
@@ -13,6 +14,7 @@ var _prev_show_safe_grid: bool = false
 var _prev_show_attack_grid: bool = false
 var _prev_show_path_grid: bool = false
 var _prev_placing_building: bool = false
+var _prev_hovered_building: Building = null
 var _prev_terraform_jobs_empty: bool = true
 var _prev_overlay_threshold: int = 1
 
@@ -30,7 +32,9 @@ func _process(delta):
 	if not bm: return
 	
 	
+	
 	var current_mode = InputManager.current_mode
+	var current_hover = InputManager.hovered_building # Get the current hover
 
 	var needs_redraw = false
 
@@ -48,7 +52,12 @@ func _process(delta):
 		bm.overlay_threshold != _prev_overlay_threshold or \
 		current_mode         != _prev_mode): # <- Updated to check Controller mode
 		needs_redraw = true
-
+		
+	# Check if the hovered building has changed
+	if current_hover != _prev_hovered_building:
+		needs_redraw = true
+		_prev_hovered_building = current_hover
+		
 	# Ghost placement: always update instantly
 	# Note: 0 is InteractionMode.NONE
 	if bm.placing_building or current_mode != 0: 
@@ -81,6 +90,7 @@ func _draw():
 	_draw_terrain_jobs()
 	_draw_zone_overlays()
 	_draw_ghost_previews()
+	_draw_hover_footprint()
 	_draw_path_costs()
 
 # ==========================================
@@ -273,6 +283,35 @@ func _draw_ghost_previews():
 		
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1,1))
 
+
+# ==========================================
+# Building Footprint when Hovering
+# ==========================================
+func _draw_hover_footprint():
+	# Check if the InputManager has a building currently hovered
+	var b = InputManager.hovered_building
+	
+	# 1. Ensure building is valid and NOT a ghost (we don't want double footprints during placement)
+	if is_instance_valid(b) and b is Building and not b.is_ghost:
+		# 2. Check if the building manager is currently placing something else
+		if level.building_manager and level.building_manager.placing_building:
+			return
+			
+		var tile_size = 32.0
+		var b_size = b.size
+		var footprint_px = Vector2(b_size.x * tile_size, b_size.y * tile_size)
+		
+		# We use the building's global position. 
+		# Since buildings are centered on their footprint in your place_at logic:
+		var top_left = to_local(b.global_position) - (footprint_px / 2.0)
+		
+		var rect = Rect2(top_left, footprint_px)
+		var hover_color = Color(1.0, 1.0, 1.0, 0.5) # Semi-transparent white
+		
+		# Draw a subtle fill and a thicker border
+		draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)
+		draw_rect(rect, hover_color, false, 2.0)
+		
 # ==========================================
 # PATH COST CACHING & DRAWING
 # ==========================================

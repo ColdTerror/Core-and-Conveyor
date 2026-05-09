@@ -51,8 +51,9 @@ const RES_STONE := 4
 @export_subgroup("Infrastructure")
 @export var stockpile_scene: PackedScene 
 @export var firepit_scene: PackedScene
+@export var quota_building: PackedScene
 
-@export_subgroup("Other/Helpers")
+@export_subgroup("Helpers")
 @export var item_scene: PackedScene 
 @export var core_scene: PackedScene 
 @export var projectile_scene: PackedScene
@@ -173,7 +174,9 @@ func _setup_hotbar_items():
 		],
 		"Infrastructure": [
 			{"name": "Stockpile", "scene": stockpile_scene},
-			{"name": "Firepit", "scene": firepit_scene}
+			{"name": "Firepit", "scene": firepit_scene},
+			{"name": "QuotaBuilding", "scene": quota_building}
+			
 		]
 	}
 	

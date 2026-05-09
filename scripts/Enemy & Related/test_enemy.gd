@@ -50,7 +50,7 @@ func _ready():
 	
 	separation_update_timer = randf_range(0.0, 0.1)
 	
-	# --- Hover Detection for the InputController ---
+	# --- Hover Detection for the InputManager ---
 	input_pickable = true
 	mouse_entered.connect(func():
 		InputManager.hovered_enemy = self

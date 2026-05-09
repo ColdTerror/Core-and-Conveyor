@@ -298,7 +298,7 @@ func _setup_bot_ui(b: Node2D):
 	# Using a light gray for "Go Home" so it looks clickable against a dark UI
 	_create_button("Go Home", Color(0.8, 0.8, 0.8), func(): b.set_priority(3)) 
 	
-	# --- UPDATE: Tell InputController to take over! ---
+	# --- UPDATE: Tell InputManager to take over! ---
 	# Switched to Cyan so it doesn't clash with the Yellow Maintain button
 	_create_button("Set Home", Color(0.0, 0.8, 0.8), func(): 
 		var input = get_tree().get_first_node_in_group("InputManager")

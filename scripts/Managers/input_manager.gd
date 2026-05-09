@@ -32,9 +32,7 @@ signal object_selected(target: Node2D)
 func _ready():
 	add_to_group("InputManager")
 
-# ==========================================
-# KEYBOARD INPUT (Menus & Mode Toggles)
-# ==========================================
+
 # ==========================================
 # KEYBOARD INPUT (Menus & Mode Toggles)
 # ==========================================
@@ -288,8 +286,13 @@ func _on_object_hovered(object: Node2D):
 func _on_object_unhovered(object: Node2D):
 	# 1. Clear our state trackers safely
 	if hovered_bot == object: hovered_bot = null
-	if hovered_building == object: hovered_building = null
 	if hovered_enemy == object: hovered_enemy = null
+	
+	if hovered_building == object: 
+		hovered_building = null
+		# Force the overlay to realize the hover is gone
+		var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
+		if renderer: renderer.queue_redraw()
 
 	# 2. Hide the tooltip popup!
 	if hover_popup and "current_building" in hover_popup:

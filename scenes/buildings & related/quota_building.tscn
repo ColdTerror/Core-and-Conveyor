@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dmibsmkeir6w2"]
+
+[ext_resource type="Script" uid="uid://cwq4fnuk3hlnp" path="res://scripts/Building Classes/quota_building.gd" id="1_wrp7e"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="2_0dfqv"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_v2754"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v2754"]
+atlas = ExtResource("2_v2754")
+region = Rect2(416, 192, 64, 64)
+
+[sub_resource type="Resource" id="Resource_7f1gp"]
+script = ExtResource("2_0dfqv")
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[node name="QuotaBuilding" type="Node2D" unique_id=57449287 groups=["PriorityTarget"]]
+script = ExtResource("1_wrp7e")
+building_name = "QuotaBuilding"
+size = Vector2i(2, 2)
+icon = SubResource("AtlasTexture_v2754")
+build_costs = Array[ExtResource("2_0dfqv")]([SubResource("Resource_7f1gp")])
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1787609219]
+self_modulate = Color(0, 1, 1, 1)
+texture = ExtResource("2_v2754")
+region_enabled = true
+region_rect = Rect2(416, 192, 64, 64)

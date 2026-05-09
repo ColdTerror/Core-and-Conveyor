@@ -51,6 +51,7 @@ PriorityTarget="buildings enemies will target first"
 Structure="A structure/building that has hp and can be damaged"
 GameUI="gameui node"
 Bots="worker bots"
+OverlayRenderer="group to find overlayrenderer"
 
 [input]
 

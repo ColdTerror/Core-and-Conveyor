@@ -27,6 +27,7 @@
 [ext_resource type="PackedScene" uid="uid://bscvnmiqn3de6" path="res://scenes/buildings & related/belts & items/router_building.tscn" id="20_2e2fo"]
 [ext_resource type="PackedScene" uid="uid://dstw12awamhw8" path="res://scenes/buildings & related/core_building.tscn" id="21_gur6y"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
+[ext_resource type="PackedScene" uid="uid://dmibsmkeir6w2" path="res://scenes/buildings & related/quota_building.tscn" id="21_lqb7q"]
 [ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/detail_menu.tscn" id="21_wu01b"]
 [ext_resource type="PackedScene" uid="uid://0u5oiw0srd4h" path="res://scenes/buildings & related/firepit_building.tscn" id="22_iafhg"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
@@ -42,6 +43,7 @@
 [ext_resource type="Script" uid="uid://bliasq3ei4dg3" path="res://scripts/Enemy & Related/corruption_manager.gd" id="34_v3why"]
 [ext_resource type="PackedScene" uid="uid://cdmxyx00rhtcw" path="res://scenes/research/research_screen.tscn" id="35_asl66"]
 [ext_resource type="PackedScene" uid="uid://b0e2y87cv1d35" path="res://scenes/ui/management_menu.tscn" id="36_c1pbi"]
+[ext_resource type="Script" uid="uid://deydh1cj8vtys" path="res://scripts/Managers/quota_manager.gd" id="36_uhfbm"]
 [ext_resource type="PackedScene" uid="uid://cmd0dxnybdaf8" path="res://scenes/ui/statistics_menu.tscn" id="38_50fbu"]
 [ext_resource type="PackedScene" uid="uid://bks37kepe8vmk" path="res://scenes/ui/pause_menu.tscn" id="43_iafhg"]
 
@@ -152,6 +154,7 @@ wall_scene = ExtResource("18_kih21")
 gate_scene = ExtResource("14_0fmhk")
 stockpile_scene = ExtResource("14_ux5qa")
 firepit_scene = ExtResource("22_iafhg")
+quota_building = ExtResource("21_lqb7q")
 item_scene = ExtResource("13_arp2o")
 core_scene = ExtResource("21_gur6y")
 projectile_scene = ExtResource("18_cmcjb")
@@ -197,7 +200,7 @@ tile_set = SubResource("TileSet_lqb7q")
 [node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
 tile_set = ExtResource("2_w8frs")
 
-[node name="OverlayRenderer" type="Node2D" parent="." unique_id=826390895]
+[node name="OverlayRenderer" type="Node2D" parent="." unique_id=826390895 groups=["OverlayRenderer"]]
 script = ExtResource("25_svjb4")
 
 [node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager", "wave_manager", "time_manager")]
@@ -217,6 +220,9 @@ script = ExtResource("29_7agi7")
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
 real_minutes_per_day = 10.0
+
+[node name="QuotaManager" type="Node2D" parent="." unique_id=1743008909]
+script = ExtResource("36_uhfbm")
 
 [node name="DayNightLighting" type="CanvasModulate" parent="." unique_id=492842884]
 color = Color(1, 1, 1, 0)

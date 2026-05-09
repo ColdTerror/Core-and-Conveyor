@@ -57,6 +57,22 @@ func _process(delta: float):
 		# 1. CACHE THE OLD DAY
 		var yesterday = current_day 
 		
+		# ==========================================
+		# QUOTA MANAGER TRIGGERS
+		# ==========================================
+		var level_node = get_parent()
+		if level_node and level_node.has_node("QuotaManager"):
+			var quota_mgr = level_node.get_node("QuotaManager")
+			
+			# 1. Process the daily score (did they feed it today?)
+			quota_mgr.process_end_of_day()
+			
+			# 2. If yesterday was day 7, 14, 21, etc., the week is over!
+			# We calculate the penalty and reset the weekly score.
+			if yesterday % 7 == 0:
+				quota_mgr.process_end_of_week()
+		# ==========================================
+		
 		# 2. FLIP THE CALENDAR FIRST
 		current_day += 1
 		print("--- DAY %d ---" % current_day)
