@@ -59,6 +59,7 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	
 	var amount_to_take = min(amount, space_left)
 	delivered_items[item_name] = amount_we_have + amount_to_take # Save it under the String!
+	EconomyManager.log_item_consumed(item_name, amount_to_take)
 	inventory_changed.emit()
 	
 	queue_redraw()

@@ -34,15 +34,53 @@ var daily_production: Dictionary = {}
 var daily_consumption: Dictionary = {}
 var history_archive: Array[Dictionary] = []
 
+
 # ==========================================
-# CORE API: DEPOSITS & INCOME
+# CORE API: DEDICATED STAT LOGGING
 # ==========================================
+# Call this the exact second a Harvester or Factory spawns a brand new item!
+func log_item_produced(resource_name: String, amount: int = 1):
+	daily_production[resource_name] = daily_production.get(resource_name, 0) + amount
+	stats_updated.emit()
+
+# Call this the exact second a Furnace, Quota, or Blueprint destroys an item!
+func log_item_consumed(resource_name: String, amount: int = 1):
+	daily_consumption[resource_name] = daily_consumption.get(resource_name, 0) + amount
+	stats_updated.emit()
+	
+# ==========================================
+# CORE API: PHYSICAL STORAGE (THE VAULT)
+# ==========================================
+# Used by Storage Buildings when an item enters their inventory
 func add_resources(resource_name: String, amount: int):
 	global_inventory[resource_name] = global_inventory.get(resource_name, 0) + amount
-	daily_production[resource_name] = daily_production.get(resource_name, 0) + amount
+	# NOTE: We do NOT log daily_production here anymore!
+	inventory_changed.emit()
+
+# Used by Storage Buildings when a Bot takes an item OUT of storage
+func remove_resources_from_global(cost: Dictionary):
+	for resource_name in cost:
+		var amount = cost[resource_name]
+		var current = global_inventory.get(resource_name, 0)
+		global_inventory[resource_name] = max(0, current - amount)
+		# NOTE: We do NOT log daily_consumption here! Taking an item out of a box doesn't destroy it.
 	
 	inventory_changed.emit()
-	stats_updated.emit()
+
+# ==========================================
+# CORE API: MAGIC PURCHASES (Placing Towers/Belts)
+# ==========================================
+func spend_resources(cost: Dictionary):
+	for resource_name in cost:
+		var amount = cost[resource_name]
+		var current = global_inventory.get(resource_name, 0)
+		global_inventory[resource_name] = max(0, current - amount)
+		
+		# Magic purchases immediately destroy the item, so we log consumption!
+		log_item_consumed(resource_name, amount)
+	
+	inventory_changed.emit()
+	_pull_items_from_sources(cost)
 
 func can_afford(cost: Dictionary) -> bool:
 	for resource_name in cost:
@@ -52,26 +90,6 @@ func can_afford(cost: Dictionary) -> bool:
 			return false
 	return true
 
-# ==========================================
-# CORE API: WITHDRAWALS & EXPENSES
-# ==========================================
-
-# INSTANT 'MAGIC' PURCHASE (e.g., placing Belts/Towers)
-func spend_resources(cost: Dictionary):
-	# 1. Deduct from Global Numbers and update Stats
-	for resource_name in cost:
-		var amount = cost[resource_name]
-		var current = global_inventory.get(resource_name, 0)
-		
-		global_inventory[resource_name] = max(0, current - amount)
-		daily_consumption[resource_name] = daily_consumption.get(resource_name, 0) + amount
-	
-	inventory_changed.emit()
-	stats_updated.emit()
-	
-	# 2. Physically remove items from buildings!
-	_pull_items_from_sources(cost)
-
 func _pull_items_from_sources(cost: Dictionary):
 	var remaining_bill = cost.duplicate()
 	
@@ -80,20 +98,6 @@ func _pull_items_from_sources(cost: Dictionary):
 		
 		if source.has_method("consume_resources"):
 			source.consume_resources(remaining_bill)
-
-# PHYSICAL PURCHASE (Used when an item moves from a Building -> Belt/Bot)
-func remove_resources_from_global(cost: Dictionary):
-	for resource_name in cost:
-		var amount = cost[resource_name]
-		var current = global_inventory.get(resource_name, 0)
-		
-		global_inventory[resource_name] = max(0, current - amount)
-		
-		# Ensure physical extractions also count towards daily consumption!
-		daily_consumption[resource_name] = daily_consumption.get(resource_name, 0) + amount
-	
-	inventory_changed.emit()
-	stats_updated.emit()
 
 func get_item_count(item_name: String) -> int:
 	return global_inventory.get(item_name, 0)

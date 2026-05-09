@@ -21,7 +21,13 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"8ebd898f-cde1-4cfb-b555-a9b454b05d17"
+				"8ebd898f-cde1-4cfb-b555-a9b454b05d17",
+				"b56f739d-1959-421c-adf6-5610abdd12d0",
+				"fbab3d79-5f31-404a-961e-42edda0153a3",
+				"def04e96-1909-4a81-b779-bf23ffe1882c",
+				"9dfdd2c5-cbb4-44e3-8d1e-1cb0a39ea6d2",
+				"e4c2a948-fbed-436e-a472-1d9e057098ff",
+				"70f715bc-6600-42e3-9cc0-af3abf17f400"
 			]
 		},
 		{
@@ -1054,6 +1060,48 @@
 			"uuid": "8ebd898f-cde1-4cfb-b555-a9b454b05d17",
 			"title": "update quota building hover and detail menu",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b56f739d-1959-421c-adf6-5610abdd12d0",
+			"title": "change quotas over time",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fbab3d79-5f31-404a-961e-42edda0153a3",
+			"title": "change hut sprite to get rid of trees",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "def04e96-1909-4a81-b779-bf23ffe1882c",
+			"title": "belts dont center items again",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "9dfdd2c5-cbb4-44e3-8d1e-1cb0a39ea6d2",
+			"title": "router can get stuck ",
+			"description": "if it decides to output left but left is full it gets stuck, it should try and output in any other direction",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e4c2a948-fbed-436e-a472-1d9e057098ff",
+			"title": "full moving belts sometimes pause (slight offset problem maybe?)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "70f715bc-6600-42e3-9cc0-af3abf17f400",
+			"title": "ledger only tracks secured items",
+			"description": "might be fine but it doesnt track quota items then",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

@@ -44,6 +44,14 @@ func _ready():
 	add_to_group("Towers")
 	apply_research_buffs()
 
+func die():
+	# Log all the arrows that burned down with the tower
+	for ammo_res in ammo_inventory:
+		EconomyManager.log_item_consumed(ammo_res.display_name, 1)
+	
+	ammo_inventory.clear()
+	super()
+	
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
@@ -263,6 +271,8 @@ func _is_valid_target(target) -> bool:
 func _shoot():
 	var ammo_data = ammo_inventory.pop_front()
 	inventory_changed.emit()
+	
+	EconomyManager.log_item_consumed(ammo_data.display_name, 1)
 	
 	attack_cooldown = 1.0 / fire_rate
 	var final_damage = roundi(ammo_data.damage * damage_multiplier)

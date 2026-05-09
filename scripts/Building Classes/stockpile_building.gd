@@ -32,6 +32,24 @@ func _ready():
 	health = max_health - 10
 	EconomyManager.register_source(self)
 
+
+func die():
+	# ==========================================
+	# --- NEW: DESTROY ALL STORED ITEMS! ---
+	# ==========================================
+	var lost_items_dict = {}
+	
+	for item_res in inventory.keys():
+		var amount_lost = inventory[item_res]
+		var item_name = item_res.display_name
+		
+		# 1. Log it in the daily ledger as consumed/destroyed
+		EconomyManager.log_item_consumed(item_name, amount_lost)
+		
+	inventory.clear()
+	# ==========================================
+	super() # Call the base class die() just in case!
+
 func _exit_tree():
 	# Unregister Self
 	EconomyManager.unregister_source(self)

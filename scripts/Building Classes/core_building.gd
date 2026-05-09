@@ -52,6 +52,8 @@ func start_research(r_name: String, cost: Dictionary):
 			research_bill[item_res] -= consumed
 			inventory[item_res] -= consumed
 			
+			EconomyManager.log_item_consumed(item_res.display_name, consumed)
+			
 			# Clean up empty slots
 			if inventory[item_res] <= 0:
 				inventory.erase(item_res)
@@ -94,6 +96,8 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 		research_bill[item_res] -= consumed_for_research
 		amount_left_to_store -= consumed_for_research
 		total_consumed += consumed_for_research
+		
+		EconomyManager.log_item_consumed(item_name, consumed_for_research)
 		
 		# Did we finish this specific item requirement?
 		if research_bill[item_res] <= 0:
@@ -215,6 +219,28 @@ func take_damage(amount: int):
 		_trigger_game_over()
 
 func die():
+	# ==========================================
+	# --- NEW: DESTROY ALL STORED ITEMS! ---
+	# ==========================================
+	var lost_items_dict = {}
+	
+	for item_res in inventory.keys():
+		var amount_lost = inventory[item_res]
+		var item_name = item_res.display_name
+		
+		# 1. Log it in the daily ledger as consumed/destroyed
+		EconomyManager.log_item_consumed(item_name, amount_lost)
+		
+		# 2. Add it to a dictionary so we can sync the global vault
+		lost_items_dict[item_name] = amount_lost
+		
+	# 3. Tell the global vault these items no longer exist!
+	if not lost_items_dict.is_empty():
+		EconomyManager.remove_resources_from_global(lost_items_dict)
+		
+	inventory.clear()
+	# ==========================================
+	
 	_trigger_game_over()
 	
 func _trigger_game_over():

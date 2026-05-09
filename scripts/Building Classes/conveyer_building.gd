@@ -42,10 +42,14 @@ func setup(level_instance: Node2D, dir: Vector2i):
 	# Rotate the belt sprite to match direction
 	rotation = Vector2(direction).angle()
 
-# Called when this node is removed from the scene tree
+# Called when this node is removed from the scene tree (Deleted or Destroyed)
 func _exit_tree():
 	# Clean up held item
 	if held_item and is_instance_valid(held_item):
+		# --- NEW: Tell the economy this item was destroyed! ---
+		if "item_data" in held_item and held_item.item_data:
+			EconomyManager.log_item_consumed(held_item.item_data.display_name, 1)
+			
 		held_item.queue_free()
 		held_item = null
 	

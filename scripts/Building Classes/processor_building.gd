@@ -27,12 +27,25 @@ var work_timer: float = 0.0
 var is_working: bool = false
 var level_ref: Node2D
 
-#signal processing_tick(progress_ratio)
 
 # --- SETUP ---
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
+#Log items when destroyed
+func die():
+	# 1. Log the unrefined ingredients that burn down
+	for item_res in input_inventory.keys():
+		EconomyManager.log_item_consumed(item_res.display_name, input_inventory[item_res])
+	input_inventory.clear()
+	
+	# 2. Log the finished products that burn down
+	if output_inventory > 0 and active_recipe and active_recipe.output_item:
+		EconomyManager.log_item_consumed(active_recipe.output_item.display_name, output_inventory)
+	output_inventory = 0
+	
+	super() # Call the base class die() function!
+	
 # --- INPUT LOGIC (From Conveyors) ---
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return true
@@ -85,6 +98,7 @@ func _check_can_start_work():
 	for req_item in active_recipe.inputs:
 		var req_amount = active_recipe.inputs[req_item]
 		input_inventory[req_item] -= req_amount
+		EconomyManager.log_item_consumed(req_item.display_name, req_amount)
 
 	inventory_changed.emit()
 	is_working = true
@@ -104,6 +118,8 @@ func _finish_work():
 
 	is_working = false
 	output_inventory += active_recipe.output_count
+	
+	EconomyManager.log_item_produced(active_recipe.output_item.display_name, active_recipe.output_count)
 	
 	inventory_changed.emit()
 	_check_can_start_work()

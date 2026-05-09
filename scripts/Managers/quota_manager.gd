@@ -53,6 +53,7 @@ func deliver_item(item_name: String, amount: int):
 		daily_delivered[item_name] = 0
 		
 	daily_delivered[item_name] += amount
+	EconomyManager.log_item_consumed(item_name, amount)
 	quota_progress_updated.emit()
 		
 	#TODO

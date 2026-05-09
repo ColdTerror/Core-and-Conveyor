@@ -38,6 +38,14 @@ func _ready():
 	super()
 	health = max_health - 10
 	
+func die():
+	# Log the raw resources that burn down with the harvester
+	if stored_amount > 0 and target_resource and target_resource.item_drop:
+		EconomyManager.log_item_consumed(target_resource.item_drop.display_name, stored_amount)
+		
+	stored_amount = 0
+	super() # Call the base class die() function!
+	
 func _exit_tree():
 	_clear_target_reservation() # Let go of whatever tree we were shooting at
 	_unclaim_territory()        # Take down the invisible fence
@@ -115,6 +123,9 @@ func _perform_harvest():
 		if actual_harvested > 0:
 			stored_amount += actual_harvested
 			inventory_changed.emit()
+			if target_resource and target_resource.item_drop:
+				var item_name = target_resource.item_drop.display_name
+				EconomyManager.log_item_produced(item_name, actual_harvested)
 
 # --- TARGET FINDING ---
 func _find_nearest_target() -> Vector2i:

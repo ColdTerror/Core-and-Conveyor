@@ -27,6 +27,10 @@ enum MoonPhase { NORMAL, FULL, BLOOD }
 @export var sunrise_hour: int = 6
 @export var sunset_hour: int = 18
 
+@export_group("Debug & Testing")
+@export var force_full_moon: bool = false
+@export var force_blood_moon: bool = false
+
 # ==========================================
 # RUNTIME STATE
 # ==========================================
@@ -108,14 +112,20 @@ func _check_day_night_triggers():
 	elif current_hour == sunset_hour and not is_night:
 		is_night = true
 		
-		# Roll the Moon Phase
-		var roll = randf()
-		if roll < 0.15:
+		# --- DEBUG OVERRIDES ---
+		if force_full_moon:
 			current_moon_phase = MoonPhase.FULL
-		elif roll > 0.85:
+		elif force_blood_moon:
 			current_moon_phase = MoonPhase.BLOOD
 		else:
-			current_moon_phase = MoonPhase.NORMAL
+			# Roll the Moon Phase normally
+			var roll = randf()
+			if roll < 0.15:
+				current_moon_phase = MoonPhase.FULL
+			elif roll > 0.85:
+				current_moon_phase = MoonPhase.BLOOD
+			else:
+				current_moon_phase = MoonPhase.NORMAL
 			
 		night_started.emit(current_day)
 		

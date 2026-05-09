@@ -794,6 +794,8 @@ func _do_harvest():
 		inventory_changed.emit()
 		_add_xp(1)
 		
+		EconomyManager.log_item_produced(carried_item_name, harvested_amount)
+		
 		# ---Play the correct sound based on the item! ---
 		if carried_item_name == "Wood":
 			action_audio.stream = AudioManager.sfx_tracks["wood"]
@@ -929,6 +931,9 @@ func _do_standby_wake():
 # Used by MAINTAIN bots when storage is full — it's better to drop the load
 # and find a build/repair job than to stand around waiting indefinitely.
 func _drop_inventory_and_work():
+	if carried_amount > 0 and carried_item_name != "":
+		EconomyManager.log_item_consumed(carried_item_name, carried_amount)
+		
 	carried_amount = 0
 	carried_item_name = ""
 	carried_item_res = null
@@ -1112,6 +1117,9 @@ func die():
 	_clear_reservation()
 	unhovered.emit(self)
 	
+	if carried_amount > 0 and carried_item_name != "":
+		EconomyManager.log_item_consumed(carried_item_name, carried_amount)
+		
 	# Clear hover/selection state in InputManager so the UI doesn't hold a dead reference
 	if InputManager.hovered_bot == self:
 		InputManager.hovered_bot = null
@@ -1151,10 +1159,12 @@ func set_priority(new_priority: int):
 	# the player is intentionally changing the bot's job so this is acceptable.
 	if carried_amount > 0:
 		if current_priority == TaskPriority.GATHER_WOOD and carried_item_name != "Wood":
+			EconomyManager.log_item_consumed(carried_item_name, carried_amount)
 			carried_amount = 0
 			carried_item_name = ""
 			carried_item_res = null
 		elif current_priority == TaskPriority.GATHER_STONE and carried_item_name != "Stone":
+			EconomyManager.log_item_consumed(carried_item_name, carried_amount)
 			carried_amount = 0
 			carried_item_name = ""
 			carried_item_res = null
