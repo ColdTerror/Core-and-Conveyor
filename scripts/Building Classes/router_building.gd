@@ -70,7 +70,7 @@ func _process(delta):
 		
 		# Use the base class function to check if the route is still open!
 		if not _can_push_to_neighbor():
-			push_cooldown = 0.5 
+			is_moving_to_edge = false
 			return
 			
 		held_item.global_position = held_item.global_position.move_toward(target_pos, current_speed * delta)
@@ -80,7 +80,7 @@ func _process(delta):
 			if _push_to_neighbor():
 				pass # Success! (Base class handles clearing held_item)
 			else:
-				push_cooldown = 0.5
+				is_moving_to_edge = false
 
 # --- THE SMART ROUTING LOGIC ---
 
@@ -106,17 +106,18 @@ func _try_route():
 			
 			# CASE A: Output to a normal Conveyor
 			if neighbor is ConveyorBuilding and not neighbor is RouterBuilding:
-				if neighbor.direction == offset and (neighbor.held_item == null or neighbor.is_moving_to_edge):
+				if neighbor.held_item == null or (neighbor.is_moving_to_edge and not neighbor.is_jammed):
 					can_push = true
 						
 			# CASE B: Output to another Router (Routers can feed Routers!)
 			elif neighbor is RouterBuilding:
-				if neighbor.held_item == null or neighbor.is_moving_to_edge:
+				if neighbor.held_item == null or (neighbor.is_moving_to_edge and not neighbor.is_jammed):
 					can_push = true
-					
 			# CASE C: Output to Factory/Stockpile
-			elif neighbor.has_method("add_item") and "item_data" in held_item:
-				can_push = true
+			elif neighbor.has_method("can_accept_item") and "item_data" in held_item:
+				# --- FIXED: Only route here if the building confirms it has space! ---
+				if neighbor.can_accept_item(held_item.item_data):
+					can_push = true
 				
 			if can_push:
 				# --- THE FIX: Transition to Phase 2 ---
@@ -127,7 +128,7 @@ func _try_route():
 				# --------------------------------------
 				
 	# If all valid outputs are blocked, pause briefly before checking again
-	push_cooldown = 0.5
+	push_cooldown = 0.1
 	
 # ==========================================
 # SAVE / LOAD SYSTEM (Router)

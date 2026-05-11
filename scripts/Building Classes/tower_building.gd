@@ -198,6 +198,13 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	# We successfully took 1 physical item out of the bot's hands or off the belt!
 	return 1
 
+
+func can_accept_item(item_res: ItemResource) -> bool:
+	if not item_res.is_ammo: return false
+	if item_res.ammo_type != required_ammo_type: return false
+	
+	# Do we have space in the magazine?
+	return ammo_inventory.size() < ammo_capacity
 # --- 2. COMBAT LOOP ---
 
 func building_tick(delta: float) -> void:

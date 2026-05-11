@@ -194,6 +194,22 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	inventory_changed.emit()
 	return amount_to_take
 
+func can_accept_item(item_res: ItemResource) -> bool:
+	# 1. FILTER CHECK: If in dedicated mode, reject anything that doesn't match!
+	if is_dedicated_mode and selected_output_name != "" and selected_output_name != item_res.display_name:
+		return false
+		
+	# 2. CAPACITY CHECK: Calculate total items currently in the box
+	var current_total = 0
+	for amount in inventory.values():
+		current_total += amount
+		
+	# (Note: Replace 'max_capacity' with whatever your stockpile's capacity variable is named! 
+	# Based on your UI, it looks like it might be 100 for dedicated and 25 for mixed.)
+	var current_cap = 100 if is_dedicated_mode else 25 
+	
+	return current_total < current_cap
+	
 # ==========================================
 # BOT RETRIEVAL LOGIC
 # ==========================================

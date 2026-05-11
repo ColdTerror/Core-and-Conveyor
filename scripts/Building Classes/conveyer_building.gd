@@ -15,6 +15,7 @@ var level_ref: Node2D  # Reference to the level/world node
 
 # State tracking for two-phase movement system
 var is_moving_to_edge: bool = false  # false = moving to center, true = moving to edge
+var is_jammed: bool = false  # Explicitly tracks if we hit a wall
 var push_cooldown: float = 0.0
 
 
@@ -116,6 +117,7 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 func _process(delta):
 	# Early exit: Nothing to move if belt is empty
 	if held_item == null: 
+		is_jammed = false
 		return
 	
 	# Safety check: Item might have been freed/deleted elsewhere
@@ -146,13 +148,12 @@ func _process(delta):
 			
 			if _can_push_to_neighbor():
 				is_moving_to_edge = true 
+				is_jammed = false
 			else:
-				# --- THE FIX: No naps for belts! ---
+				is_jammed = true  
 				var neighbor = _get_neighbor()
-				if neighbor is ConveyorBuilding:
-					pass # Wait patiently, check again next frame!
-				else:
-					push_cooldown = 0.5 # Give the building time to process
+				if not neighbor is ConveyorBuilding:
+					push_cooldown = 0.5
 	
 	# ========================================
 	# PHASE 2: Moving to Edge (Used for Belts AND Buildings!)
@@ -161,23 +162,26 @@ func _process(delta):
 		target_pos = global_position + (Vector2(direction) * 16.0)
 		
 		if not _can_push_to_neighbor():
-			# --- THE FIX: No naps for belts! ---
+			is_jammed = true  
 			var neighbor = _get_neighbor()
-			if neighbor is ConveyorBuilding:
-				pass # Wait patiently, check again next frame!
-			else:
+			if not neighbor is ConveyorBuilding:
 				push_cooldown = 0.5 
 			return
-			
+		
+		is_jammed = false
 		var move_step = current_speed * delta
 		held_item.global_position = held_item.global_position.move_toward(target_pos, move_step)
 		
 		if held_item.global_position.distance_to(target_pos) < 1.0:
 			# _push_to_neighbor already successfully handles both belts and buildings!
 			if _push_to_neighbor():
+				is_jammed = false
 				pass # Success! Item is gone.
 			else:
-				push_cooldown = 0.5
+				is_jammed = true  
+				var neighbor = _get_neighbor()
+				if not neighbor is ConveyorBuilding:
+					push_cooldown = 0.5
 	
 # ============================================================
 # NEIGHBOR INTERACTION
@@ -192,14 +196,13 @@ func _can_push_to_neighbor() -> bool:
 	
 	# --- CASE 1: Neighbor is another Conveyor Belt ---
 	if neighbor is ConveyorBuilding:
-		# Accept if neighbor is empty OR its item is already leaving
-		# This creates "pipelined" flow - we can start moving while
-		# the neighbor's item is on its way out
-		return neighbor.held_item == null or neighbor.is_moving_to_edge
+		# ---  Only pipeline if the neighbor is awake and moving! ---
+		return neighbor.held_item == null or (neighbor.is_moving_to_edge and not neighbor.is_jammed)
 	
 	# --- CASE 2: Neighbor is a Building (Stockpile/Factory) ---
 	if neighbor.has_method("add_item") and "item_data" in held_item:
-		return true # Assume we can push. If it's full, the push will just fail later!
+		# --- FIXED: Ask the building if it actually has space right now! ---
+		return neighbor.can_accept_item(held_item.item_data)
 	
 	return false
 

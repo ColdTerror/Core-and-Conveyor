@@ -70,6 +70,14 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	return amount_to_take
 	
 
+func can_accept_item(item_res: ItemResource) -> bool:
+	if not active_recipe: return false
+	if not active_recipe.inputs.has(item_res): return false 
+	
+	# Do we have space in the buffer?
+	var current_stored = input_inventory.get(item_res, 0)
+	return current_stored < buffer_capacity
+	
 # --- MAIN LOOP ---
 func building_tick(delta: float) -> void:
 	if not level_ref or not active_recipe: return

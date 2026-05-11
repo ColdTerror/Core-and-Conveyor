@@ -127,7 +127,15 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 	
 	return total_consumed + amount_stored
 
-
+func can_accept_item(item_res: ItemResource) -> bool:
+	# 1. RESEARCH OVERRIDE: Always accept if it's currently needed for a tech upgrade!
+	if active_research_name != "" and research_bill.has(item_res):
+		return true
+		
+	# 2. STANDARD STORAGE: Check if we have hit the cap for this specific item
+	var current_amount = inventory.get(item_res, 0)
+	return current_amount < max_capacity_per_item
+	
 func has_space_for(item_name: String) -> bool:
 	for item_res in inventory.keys():
 		if item_res.display_name == item_name:
