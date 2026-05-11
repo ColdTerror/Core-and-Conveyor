@@ -13,13 +13,33 @@
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
 				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
-				"8f825bdc-0652-4811-bb65-88a41be5e9c0"
+				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
+				"c1c3c2be-8b67-45d3-8120-ecfafef36084",
+				"24a24b26-36ca-46c1-a5aa-717bd68edc05",
+				"e9b5ef03-85e5-4ad8-93af-1b25d33cabd9",
+				"ec69c6df-f13b-4e04-8064-83becdc400ad",
+				"e113df5e-7067-45b6-b82a-d2a8026570ac",
+				"e1212ef9-e2cf-4f3a-affa-33e9c81ada64",
+				"9cb4bbcf-258a-42ea-905f-64468ebb6877",
+				"be31ba8c-9677-47eb-8675-31fe6677b616",
+				"f27e11dc-351c-447c-90dd-02b3eb19dba3",
+				"2f7e1690-7821-47be-8496-35fd80f27c15",
+				"36e33cc0-bd21-4c3b-933a-a56c56802b80",
+				"0db2d013-d9c8-4c97-be5b-d518a2aec238",
+				"9c37c930-addc-4aed-94cf-862c5f061304",
+				"03689f0c-b608-42cd-bf95-40703e381779"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"fb63a7b1-144d-4f05-beae-041892b2b0ac",
+				"285df01f-d61a-4cd2-8f9b-f3f15dc9b631",
+				"49a6642a-cc29-4d77-9917-af4805fd6597",
+				"f7fdf5a4-f993-4086-9b17-14dcf282d97a",
+				"690fe3df-5b1d-4126-989a-b58c5f611a4e"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -1109,6 +1129,139 @@
 			"uuid": "1475eb5e-ce67-461c-b6c0-d22f7be8f51b",
 			"title": "two tiered router and filter sprites so items look like they go inside",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "24a24b26-36ca-46c1-a5aa-717bd68edc05",
+			"title": "able to make new bots",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f7fdf5a4-f993-4086-9b17-14dcf282d97a",
+			"title": "when placing a instant building it deletes whats under it before confirming you can place it",
+			"description": "when palcing a router on a belt it deletes the belt underneath before confirming that you can place the router",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c1c3c2be-8b67-45d3-8120-ecfafef36084",
+			"title": "quota building sprite",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e9b5ef03-85e5-4ad8-93af-1b25d33cabd9",
+			"title": "buildings dont output to routers next to them?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "ec69c6df-f13b-4e04-8064-83becdc400ad",
+			"title": "belts no longer input into construction sites?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e1212ef9-e2cf-4f3a-affa-33e9c81ada64",
+			"title": "stockpile mixed mode is broken",
+			"description": "its doing a total of 25 items not 25 items PER type of item",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "9cb4bbcf-258a-42ea-905f-64468ebb6877",
+			"title": "stockpile changing mode doesnt reset items",
+			"description": "changing from dedicated to mixed when yo have 30 items keeps all 30 instead of voiding down to 25",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "be31ba8c-9677-47eb-8675-31fe6677b616",
+			"title": "stockpile be able to set dedicated item to keep",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f27e11dc-351c-447c-90dd-02b3eb19dba3",
+			"title": "belts dont always reset to center",
+			"description": "if their neighbor building is free they push but if another item gets there first it stops but doesnt reset to center",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "03689f0c-b608-42cd-bf95-40703e381779",
+			"title": "stockpile output should be as fast as possible, i dont want the output speed to be a bottleneck",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "285df01f-d61a-4cd2-8f9b-f3f15dc9b631",
+			"title": "projected corruption penalty for quota isnt 0 in free first week",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "690fe3df-5b1d-4126-989a-b58c5f611a4e",
+			"title": "walls under construction count as differnet buildings for priority",
+			"description": "and for the building limit\n\n\nthey add to the building limit (for the construction site?) but doesnt check when building so you can have 32/10 building limit\n\n\nwalls under construction count but when they finish they dont count",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "36e33cc0-bd21-4c3b-933a-a56c56802b80",
+			"title": "bot should keep inventory when finishing dropping off instead of going back and forth",
+			"description": "when building walls they drop of 1 then go back pick up 5 drop off 1, etc",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e113df5e-7067-45b6-b82a-d2a8026570ac",
+			"title": "towers can have 21/20 ammo (they should void the extra of the bunch)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "9c37c930-addc-4aed-94cf-862c5f061304",
+			"title": "bot should go home when at 10% instead of at 0 to skip limp mode?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "49a6642a-cc29-4d77-9917-af4805fd6597",
+			"title": "building that is selected with detail menu should be highlighted",
+			"description": "like the hover menu footprint highlight",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fb63a7b1-144d-4f05-beae-041892b2b0ac",
+			"title": "belts and walls shouldnt have corruption radius (just building range)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "0db2d013-d9c8-4c97-be5b-d518a2aec238",
+			"title": "ui for the + - corruption/attack range thing",
+			"description": "overlay threshold\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "2f7e1690-7821-47be-8496-35fd80f27c15",
+			"title": "relocate is broken",
+			"description": "it deletes the prev building and spawns the ghost but the ghost doesnt move(maybe doesnt work with our newish input system?)\n\nrelcoate should probably not delete the building if you cancel relocation as well",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
