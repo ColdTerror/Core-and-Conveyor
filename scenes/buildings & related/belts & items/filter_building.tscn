@@ -6,7 +6,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kmi82"]
 atlas = ExtResource("2_pykma")
-region = Rect2(64, 128, 32, 32)
+region = Rect2(64, 192, 32, 32)
 
 [sub_resource type="Resource" id="Resource_uxved"]
 script = ExtResource("2_d342g")
@@ -28,11 +28,18 @@ icon = SubResource("AtlasTexture_kmi82")
 build_costs = Array[ExtResource("2_d342g")]([SubResource("Resource_uxved"), SubResource("Resource_pykma")])
 build_range = 4.0
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1421611039]
+[node name="Sprite2Bottom" type="Sprite2D" parent="." unique_id=1421611039]
 rotation = 1.5707964
 texture = ExtResource("2_pykma")
 region_enabled = true
 region_rect = Rect2(64, 128, 32, 32)
+
+[node name="Sprite2DTop" type="Sprite2D" parent="." unique_id=1958336499]
+z_index = 2
+rotation = 1.5707964
+texture = ExtResource("2_pykma")
+region_enabled = true
+region_rect = Rect2(64, 160, 32, 32)
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1456337677]
 
