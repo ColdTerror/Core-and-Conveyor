@@ -99,30 +99,34 @@ func _try_route():
 			
 			# CASE A: Output to a normal Conveyor
 			if neighbor is ConveyorBuilding and not neighbor is RouterBuilding:
-				if neighbor.direction == offset and (neighbor.held_item == null or neighbor.is_moving_to_edge):
+				# --- UPGRADED: Check explicit is_jammed flag! ---
+				if neighbor.direction == offset and (neighbor.held_item == null or (neighbor.is_moving_to_edge and not neighbor.is_jammed)):
 					can_push = true
 					
 			# CASE B: Output to another Router/Filter
 			elif neighbor is RouterBuilding:
-				if neighbor.held_item == null or neighbor.is_moving_to_edge:
+				# --- UPGRADED: Check explicit is_jammed flag! ---
+				if neighbor.held_item == null or (neighbor.is_moving_to_edge and not neighbor.is_jammed):
 					can_push = true
 					
 			# CASE C: Output to Factory/Stockpile
-			elif neighbor.has_method("add_item") and "item_data" in held_item:
-				can_push = true
+			elif neighbor.has_method("can_accept_item") and "item_data" in held_item:
+				# --- UPGRADED: Explicitly ask permission before routing! ---
+				if neighbor.can_accept_item(held_item.item_data):
+					can_push = true
 
 		if can_push:
 			# Only toggle the side router if we actually succeeded in pushing!
 			if should_go_to_sides and offset == target_dirs[0]:
 				side_toggle = 1 if side_toggle == 0 else 0
 				
-			# --- THE FIX: Transition to Phase 2 ---
-			direction = offset # Temporarily use the inherited direction variable!
+			# Transition to Phase 2
+			direction = offset 
 			is_moving_to_edge = true 
 			return
 			
-	# If all valid outputs are blocked, pause briefly before checking again
-	push_cooldown = 0.5
+	# --- UPGRADED: Instant reaction time instead of a 0.5-second nap! ---
+	push_cooldown = 0.1
 	
 # ==========================================
 # SAVE / LOAD SYSTEM (Filter)

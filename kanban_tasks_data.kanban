@@ -22,7 +22,8 @@
 			"title": "Doing",
 			"tasks": [
 				"b56f739d-1959-421c-adf6-5610abdd12d0",
-				"fbab3d79-5f31-404a-961e-42edda0153a3"
+				"fbab3d79-5f31-404a-961e-42edda0153a3",
+				"1475eb5e-ce67-461c-b6c0-d22f7be8f51b"
 			]
 		},
 		{
@@ -1102,6 +1103,13 @@
 			"uuid": "70f715bc-6600-42e3-9cc0-af3abf17f400",
 			"title": "ledger only tracks secured items",
 			"description": "might be fine but it doesnt track quota items then",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "1475eb5e-ce67-461c-b6c0-d22f7be8f51b",
+			"title": "two tiered router and filter sprites so items look like they go inside",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
