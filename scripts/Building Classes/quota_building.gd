@@ -48,20 +48,32 @@ func add_item(item: ItemResource, amount: int) -> int:
 # UI INFO FOR DETAIL MENU
 # ==========================================
 func get_inventory_info() -> Dictionary:
+	if not level_ref or not level_ref.has_node("QuotaManager"): 
+		return {}
+		
+	var qm = level_ref.get_node("QuotaManager")
 	var info = {}
-	if not _q_manager: return info
 	
-	var is_fully_safe = true
+	# ==========================================
+	# --- NEW: GRACE PERIOD OVERRIDE ---
+	# ==========================================
+	if qm.daily_requirements.is_empty():
+		info["Status"] = "GRACE PERIOD"
+		info["Weekly Success"] = "7 / 7 Days"
+		return info
+	# ==========================================
+
+	# (Keep your existing logic below this!)
+	if qm._is_daily_quota_met():
+		info["Status"] = "SAFE TODAY"
+	else:
+		info["Status"] = "PENDING"
+		
+	info["Weekly Success"] = "%d / 7 Days" % qm.successful_days
 	
-	# Dynamically list every item required for the quota
-	for item_name in _q_manager.daily_requirements:
-		var needed = _q_manager.daily_requirements[item_name]
-		var have = _q_manager.daily_delivered.get(item_name, 0)
-		info[item_name] = "%d / %d" % [have, needed]
-		if have < needed:
-			is_fully_safe = false
-			
-	info["Weekly Success"] = "%d / 7 Days" % [_q_manager.successful_days]
-	info["Status"] = "SAFE TODAY" if is_fully_safe else "AWAITING MATERIALS"
-	
+	for item in qm.daily_requirements.keys():
+		var needed = qm.daily_requirements[item]
+		var have = qm.daily_delivered.get(item, 0)
+		info[item] = "%d / %d" % [have, needed]
+		
 	return info

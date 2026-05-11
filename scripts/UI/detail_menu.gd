@@ -268,6 +268,25 @@ func _setup_quota_ui(b: QuotaBuilding):
 		info_label.modulate = Color(0.5, 0.5, 0.5)
 		return
 		
+	# ==========================================
+	# --- FIXED: GRACE PERIOD UI ---
+	# ==========================================
+	if info.get("Status", "") == "GRACE PERIOD":
+		var txt = "Status: GRACE PERIOD\n"
+		txt += "Weekly Success: 7 / 7 Days\n"
+		txt += "--- Daily Requirements ---\n"
+		txt += " • None! Free build time."
+		
+		info_label.text = txt
+		info_label.modulate = Color(0.4, 1.0, 0.4) # Safe Green
+		
+		_create_button("View Global Quota", Color(0.3, 0.8, 1.0), func():
+			quota_shortcut_clicked.emit()
+			close_menu() 
+		)
+		return
+	# ==========================================
+		
 	# 1. Color code the entire text block based on safety!
 	if info.get("Status", "") == "SAFE TODAY":
 		info_label.modulate = Color(0.2, 1.0, 0.2) # Safe Green
