@@ -12,6 +12,7 @@ var selected_object: Node2D = null
 
 signal menu_closed
 signal research_button_clicked
+signal quota_shortcut_clicked
 
 func _ready():
 	hide()
@@ -159,6 +160,8 @@ func refresh_ui():
 		_setup_tower_ui(selected_object as TowerBuilding)
 	elif selected_object is CoreBuilding:
 		_setup_core_ui(selected_object as CoreBuilding)
+	elif selected_object is QuotaBuilding: # <--- NEW
+		_setup_quota_ui(selected_object as QuotaBuilding)
 	elif selected_object.has_method("set_priority"):
 		_setup_bot_ui(selected_object)
 	elif selected_object is Enemy:
@@ -257,6 +260,42 @@ func _setup_core_ui(b: CoreBuilding):
 			research_button_clicked.emit()
 		)
 
+func _setup_quota_ui(b: QuotaBuilding):
+	var info = b.get_inventory_info()
+	
+	if info.is_empty():
+		info_label.text = "Awaiting connection to Quota Manager..."
+		info_label.modulate = Color(0.5, 0.5, 0.5)
+		return
+		
+	# 1. Color code the entire text block based on safety!
+	if info.get("Status", "") == "SAFE TODAY":
+		info_label.modulate = Color(0.2, 1.0, 0.2) # Safe Green
+	else:
+		info_label.modulate = Color(1.0, 0.8, 0.2) # Warning Yellow
+		
+	# 2. Build the display string
+	var details = ""
+	details += "Status: %s\n" % info.get("Status", "Unknown")
+	details += "Weekly Success: %s\n" % info.get("Weekly Success", "0 / 7 Days")
+	details += "--- Daily Requirements ---\n"
+	
+	# 3. Loop through the dictionary to find the raw material numbers
+	for key in info.keys():
+		# Skip the header info we already printed
+		if key == "Status" or key == "Weekly Success":
+			continue
+			
+		# This prints: "Wood: 45 / 100"
+		details += " • %s: %s\n" % [key, info[key]]
+		
+	info_label.text = details.strip_edges()
+	
+	_create_button("View Global Quota", Color(0.3, 0.8, 1.0), func():
+		quota_shortcut_clicked.emit()
+		close_menu() # Close this little hover menu since we are opening a big one!
+	)
+	
 func _setup_bot_ui(b: Node2D):
 	var info = b.get_inventory_info()
 	
