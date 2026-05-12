@@ -26,6 +26,7 @@ building_name = "Router"
 icon = SubResource("AtlasTexture_y4pf7")
 build_costs = Array[ExtResource("3_hdl5s")]([SubResource("Resource_axnho"), SubResource("Resource_v6thk")])
 build_range = 4.0
+corruption_range = 0.0
 
 [node name="Sprite2DBottom" type="Sprite2D" parent="." unique_id=1421611039]
 texture = ExtResource("2_dawp2")

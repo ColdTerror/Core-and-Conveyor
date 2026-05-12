@@ -70,8 +70,22 @@ var is_relocating: bool = false
 var master_priority_queue: Array = []
 
 func _is_grouped_type(building: Node) -> bool:
-	return building is ConveyorBuilding or building is WallBuilding or building is TerraformSite
+	if building is ConveyorBuilding or building is WallBuilding or building is TerraformSite:
+		return true
+		
+	# --- Peek inside the blueprint! ---
+	if building is ConstructionSite:
+		var b_name = building.building_name
+		if "Wall" in b_name or "Conveyor" in b_name or "Belt" in b_name or "Router" in b_name or "Filter" in b_name:
+			return true
+			
+	return false
 
+func _counts_towards_limit(building: Node) -> bool:
+	# If it's a grouped type (Belt, Wall, Terraform, or their Construction Sites), 
+	# it does NOT count towards the building limit!
+	return not _is_grouped_type(building)
+	
 # ==========================================
 # Virtual Methods
 # ==========================================
@@ -231,6 +245,17 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	
 	var grid_pos = specific_pos if specific_pos != Vector2i(-1, -1) else _get_mouse_grid()
 
+	# ==========================================
+	# --- CHECK AFFORDABILITY FIRST! ---
+	# ==========================================
+	var cost = ghost_building.get_build_cost()
+	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or cost.is_empty()
+	
+	if is_instant and not cost.is_empty():
+		if not EconomyManager.can_afford(cost):
+			return false # We can't afford it! Abort BEFORE breaking anything!
+	# ==========================================
+
 	# Handle conveyor build-over (free rotation vs upgrade)
 	if occupied_tiles.has(grid_pos):
 		var existing_building = occupied_tiles[grid_pos]
@@ -251,17 +276,13 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 				return true
 			else:
 				# Different type — upgrade, destroy old belt first
+				# (Safe to do now because we already proved we can afford the new one!)
 				deconstruct_building_at(grid_pos)
 
+	# Check placement rules (must happen AFTER deconstructing the old belt)
 	if not _can_place_building(ghost_building, grid_pos): return false
-	
-	var cost = ghost_building.get_build_cost()
-	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or cost.is_empty()
-	
-	if is_instant and not cost.is_empty():
-		if not EconomyManager.can_afford(cost):
-			return false # Instantly return false so the ghost gets deleted!
 			
+	# Place the building!
 	if is_instant:
 		_place_instant(ghost_building, grid_pos, cost)
 	else:
@@ -274,7 +295,7 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 		placement_ended.emit()
 	
 	return true
-
+	
 func cancel_placement():
 	if ghost_building:
 		ghost_building.queue_free()
@@ -429,8 +450,8 @@ func _can_place_building(building: Building, origin: Vector2i, temp_network: Arr
 		return false
 
 	# Building limit check (excludes belts, walls, and terraforming)
-	if not (building is ConveyorBuilding) and not (building is WallBuilding) and not (building is TerraformSite):
-		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding) and not (b is TerraformSite))
+	if _counts_towards_limit(building):
+		var capped = buildings.filter(func(b): return _counts_towards_limit(b))
 		if capped.size() >= ResearchManager.max_buildings_allowed:
 			return false
 
@@ -501,8 +522,8 @@ func update_placement_cost_ui(chargeable_count: int = 1, is_location_valid: bool
 
 	# (Keep your Building Limit check logic the same below)
 	var extra_stats = {}
-	if not (ghost_building is ConveyorBuilding) and not (ghost_building is WallBuilding) and not (ghost_building is TerraformSite):
-		var capped = buildings.filter(func(b): return not (b is ConveyorBuilding) and not (b is WallBuilding) and not (b is TerraformSite))
+	if _counts_towards_limit(ghost_building):
+		var capped = buildings.filter(func(b): return _counts_towards_limit(b))
 		extra_stats["Building Limit"] = "%d / %d" % [capped.size(), ResearchManager.max_buildings_allowed]
 		if capped.size() >= ResearchManager.max_buildings_allowed:
 			can_place = false
@@ -659,10 +680,17 @@ func _register_building(building: Building):
 	
 	if _is_grouped_type(building):
 		var group_name = ""
-		if building is ConveyorBuilding: group_name = "Belts"
-		elif building is WallBuilding: group_name = "Walls"
-		elif building is TerraformSite: group_name = "Terraform"
-		if not master_priority_queue.has(group_name):
+		var b_name = building.building_name if "building_name" in building else ""
+		
+		# --- FIXED: Catch both finished buildings AND their construction sites ---
+		if building is ConveyorBuilding or "Conveyor" in b_name or "Belt" in b_name or "Router" in b_name or "Filter" in b_name: 
+			group_name = "Belts"
+		elif building is WallBuilding or "Wall" in b_name: 
+			group_name = "Walls"
+		elif building is TerraformSite: 
+			group_name = "Terraform"
+			
+		if group_name != "" and not master_priority_queue.has(group_name):
 			master_priority_queue.append(group_name)
 	else:
 		if not master_priority_queue.has(building):

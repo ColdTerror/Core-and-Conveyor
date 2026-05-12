@@ -34,6 +34,7 @@ building_name = "Wall"
 icon = SubResource("AtlasTexture_nrabu")
 build_costs = Array[ExtResource("3_gpfny")]([SubResource("Resource_2ksci"), SubResource("Resource_gpfny")])
 build_range = 4.0
+corruption_range = 0.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413850]
 texture = SubResource("AtlasTexture_wr2mu")

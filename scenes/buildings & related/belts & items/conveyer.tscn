@@ -27,7 +27,7 @@ max_health = 10
 icon = SubResource("AtlasTexture_34v7p")
 build_costs = Array[ExtResource("3_vllef")]([SubResource("Resource_rxp7r")])
 build_range = 2.0
-corruption_range = 4.0
+corruption_range = 0.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=657515564]
 texture = ExtResource("1_yfprp")

@@ -492,6 +492,7 @@ func _refresh_quota_tab():
 	var weekly_req_text = ""
 	if quota_mgr.daily_requirements.is_empty():
 		weekly_req_text = "GRACE PERIOD - FREE BUILD"
+		current_penalty = 0.0
 	else:
 		var items_added = 0
 		for item in quota_mgr.daily_requirements:
@@ -527,9 +528,7 @@ func _refresh_quota_tab():
 			# --- PAST DAYS ---
 			var status_lbl = Label.new()
 			status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			if successes_assigned < quota_mgr.successful_days:
-				# Even on Week 1, this will correctly trigger because 
-				# the QuotaManager is auto-scoring successful days!
+			if quota_mgr.daily_requirements.is_empty() or successes_assigned < quota_mgr.successful_days:
 				status_lbl.text = "QUOTA MET"
 				status_lbl.modulate = Color(0.2, 1.0, 0.2) # Green
 				successes_assigned += 1

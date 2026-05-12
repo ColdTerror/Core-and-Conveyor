@@ -27,6 +27,7 @@ building_name = "Filter"
 icon = SubResource("AtlasTexture_kmi82")
 build_costs = Array[ExtResource("2_d342g")]([SubResource("Resource_uxved"), SubResource("Resource_pykma")])
 build_range = 4.0
+corruption_range = 0.0
 
 [node name="Sprite2Bottom" type="Sprite2D" parent="." unique_id=1421611039]
 rotation = 1.5707964

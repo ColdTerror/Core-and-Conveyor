@@ -16,6 +16,7 @@
 				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
 				"c1c3c2be-8b67-45d3-8120-ecfafef36084",
 				"24a24b26-36ca-46c1-a5aa-717bd68edc05",
+				"62e7e99f-9646-481d-9d7f-d4862f75d498",
 				"e9b5ef03-85e5-4ad8-93af-1b25d33cabd9",
 				"ec69c6df-f13b-4e04-8064-83becdc400ad",
 				"e113df5e-7067-45b6-b82a-d2a8026570ac",
@@ -34,11 +35,7 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"fb63a7b1-144d-4f05-beae-041892b2b0ac",
-				"285df01f-d61a-4cd2-8f9b-f3f15dc9b631",
-				"49a6642a-cc29-4d77-9917-af4805fd6597",
-				"f7fdf5a4-f993-4086-9b17-14dcf282d97a",
-				"690fe3df-5b1d-4126-989a-b58c5f611a4e"
+				"49a6642a-cc29-4d77-9917-af4805fd6597"
 			]
 		},
 		{
@@ -46,8 +43,12 @@
 			"title": "Done",
 			"tasks": [
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
+				"fb63a7b1-144d-4f05-beae-041892b2b0ac",
+				"f7fdf5a4-f993-4086-9b17-14dcf282d97a",
+				"690fe3df-5b1d-4126-989a-b58c5f611a4e",
 				"35082872-8024-464c-b82f-d98beddee53f",
 				"b56f739d-1959-421c-adf6-5610abdd12d0",
+				"285df01f-d61a-4cd2-8f9b-f3f15dc9b631",
 				"fbab3d79-5f31-404a-961e-42edda0153a3",
 				"8ebd898f-cde1-4cfb-b555-a9b454b05d17",
 				"e4efc1a4-b345-4a9f-9ce2-e79f520f064c",
@@ -1262,6 +1263,13 @@
 			"uuid": "2f7e1690-7821-47be-8496-35fd80f27c15",
 			"title": "relocate is broken",
 			"description": "it deletes the prev building and spawns the ghost but the ghost doesnt move(maybe doesnt work with our newish input system?)\n\nrelcoate should probably not delete the building if you cancel relocation as well",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "62e7e99f-9646-481d-9d7f-d4862f75d498",
+			"title": "when spawning a tower is displays the overlay with numbers",
+			"description": "it should show the attack overlay but without numbers (maybe pass a parameter into the overlay renderer with number or not)?\n",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
