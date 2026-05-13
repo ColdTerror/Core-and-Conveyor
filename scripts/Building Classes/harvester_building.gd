@@ -199,21 +199,26 @@ func _try_output_item():
 				if neighbor.has_method("accept_item_node"):
 					var can_output = false
 					
-					# 2. STRICT BELT CHECK: Must point exactly away from the Harvester
-					if neighbor is ConveyorBuilding or neighbor is FilterBuilding:
+					# --- Catch the Router FIRST so it bypasses the Conveyor rules! ---
+					if neighbor is RouterBuilding:
+						can_output = true
+						
+					# 2. STRICT CHECK: Belts and Filters must point exactly away!
+					elif neighbor is ConveyorBuilding or neighbor is FilterBuilding:
 						if neighbor.direction == offset:
 							can_output = true
-					# 3. ROUTERS: Bypass the direction check!
+							
+					# 3. ANYTHING ELSE: Magic omnidirectional bypass!
 					else:
 						can_output = true
 							
 					# 4. If valid, attempt the transfer
 					if can_output:
-						if _spawn_item_into_conveyor(neighbor):
+						if _spawn_item_into_conveyor(neighbor, my_tile, offset):
 							return # Success! Stop trying other neighbors this tick.
 
 # --- FIXED: Accepts ANY node that has accept_item_node! ---
-func _spawn_item_into_conveyor(receiver: Node) -> bool:
+func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_offset: Vector2i) -> bool:
 	if not generic_item_scene or not target_resource.item_drop: return false
 	
 	# 1. Create the Visual Node
@@ -221,8 +226,19 @@ func _spawn_item_into_conveyor(receiver: Node) -> bool:
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	if "item_data" in new_item_node: new_item_node.item_data = target_resource.item_drop
 	
-	# Position the item at the harvester's location before handoff
-	new_item_node.global_position = global_position
+	# ========================================
+	# FIXED: PERFECT POSITION SNAPPING
+	# ========================================
+	# 1. Find the exact pixel center of the specific 1x1 tile the item is leaving
+	var tile_center_px = level_ref.object_layer.map_to_local(source_tile)
+	
+	# 2. Push the item exactly 16 pixels (half a tile) in the orthogonal direction
+	var edge_px = tile_center_px + (Vector2(direction_offset) * 16.0)
+	
+	new_item_node.global_position = edge_px
+	# ========================================
+	
+	
 	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
