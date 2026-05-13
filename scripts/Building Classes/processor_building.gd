@@ -132,46 +132,72 @@ func _finish_work():
 	inventory_changed.emit()
 	_check_can_start_work()
 
-# --- OUTPUT LOGIC ---
+# =================================================================
+# UPGRADED: OUTPUT LOGIC (Strict Belts & Filters, Permissive Routers)
+# =================================================================
+
 func _try_output_item():
 	if not level_ref: return
 	var manager = level_ref.building_manager
 
+	# Loop through all tiles we occupy
 	for my_tile in occupied_tiles:
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
 		for offset in push_directions:
 			var target_pos = my_tile + offset
 			
+			# Don't output into ourself
 			if occupied_tiles.has(target_pos): continue
 			
+			# Check BuildingManager for neighbors
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
-				if neighbor is ConveyorBuilding:
-					if neighbor.direction == offset:
+				# 1. Ensure the neighbor can physically accept items
+				if neighbor.has_method("accept_item_node"):
+					var can_output = false
+					
+					# 2. STRICT CHECK: Belts and Filters must point exactly away!
+					if neighbor is ConveyorBuilding or neighbor is FilterBuilding:
+						if neighbor.direction == offset:
+							can_output = true
+					# 3. ROUTERS (and anything else): Magic omnidirectional bypass!
+					else:
+						can_output = true
+							
+					# 4. If valid, attempt the transfer
+					if can_output:
 						if _spawn_item_into_conveyor(neighbor):
-							return 
+							return # Success! Stop trying other neighbors this tick.
 
-func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
-	if not generic_item_scene or not active_recipe: return false
+# --- FIXED: Accepts ANY node that has accept_item_node! ---
+func _spawn_item_into_conveyor(receiver: Node) -> bool:
+	# Safely check that we actually have a valid recipe and output item!
+	if not generic_item_scene or not active_recipe or not active_recipe.output_item: return false
 	
+	# 1. Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	if "item_data" in new_item_node: new_item_node.item_data = active_recipe.output_item
 	
+	# Position the item at the processor's location before handoff
 	new_item_node.global_position = global_position
 	
-	if new_item_node.has_method("_ready"): new_item_node._ready()
+	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	if conveyor.accept_item_node(new_item_node):
+	# 2. Try to hand it to the Receiver (Belt, Router, Filter)
+	if receiver.accept_item_node(new_item_node):
+		# Success! Processors use output_inventory instead of stored_amount
 		output_inventory -= 1
 		inventory_changed.emit()
-		return true 
+		
+		return true # RETURN SUCCESS
+		
 	else:
+		# Receiver was full or refused, delete the temp node
 		new_item_node.queue_free()
-		return false 
-
+		return false # RETURN FAILURE
 
 
 # --- UI HELPERS ---

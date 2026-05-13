@@ -88,7 +88,7 @@ func cycle_output_mode():
 	print("Stockpile Output set to: ", selected_output_name if selected_output_name != "" else "OFF")
 
 # =================================================================
-# NEW: OUTPUT LOGIC (Node-Based)
+# UPGRADED: OUTPUT LOGIC (Strict Belts & Filters, Permissive Routers)
 # =================================================================
 func _try_output_item():
 	if not level_ref: return
@@ -108,21 +108,29 @@ func _try_output_item():
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# Is it a Conveyor?
-				if neighbor is ConveyorBuilding:
-					# Only output if the belt is pointing exactly AWAY from us
-					if neighbor.direction == offset:
-						# Try to spawn. This function returns TRUE if successful
+				# 1. Ensure the neighbor can physically accept items
+				if neighbor.has_method("accept_item_node"):
+					var can_output = false
+					
+					# 2. STRICT CHECK: Belts and Filters must point exactly away!
+					if neighbor is ConveyorBuilding or neighbor is FilterBuilding:
+						if neighbor.direction == offset:
+							can_output = true
+					# 3. ROUTERS (and anything else): Magic omnidirectional bypass!
+					else:
+						can_output = true
+							
+					# 4. If valid, attempt the transfer
+					if can_output:
 						if _spawn_item_into_conveyor(neighbor):
-							return # Success! Stop trying other belts this tick.
+							return # Success! Stop trying other neighbors this tick.
 
-func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
-	# --- MOVED FROM _try_output_item ---
+# --- FIXED: Accepts ANY node that has accept_item_node! ---
+func _spawn_item_into_conveyor(receiver: Node) -> bool:
 	# 1. Check if we actually have the selected item
 	var item_res = _find_item_by_name(selected_output_name)
 	if not item_res or inventory.get(item_res, 0) <= 0:
 		return false # Inventory empty for this type
-	# -----------------------------------
 	
 	if not generic_item_scene: return false
 	
@@ -135,8 +143,8 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	# 3. Try to hand it to the Conveyor
-	if conveyor.accept_item_node(new_item_node):
+	# 3. Try to hand it to the Receiver (Belt, Router, Filter)
+	if receiver.accept_item_node(new_item_node):
 		
 		# A. Inventory Logic
 		inventory[item_res] -= 1
@@ -151,7 +159,7 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 		return true # Success!
 	else:
 		new_item_node.queue_free()
-		return false # Failed, try next conveyor
+		return false # Failed, try next neighbor
 
 # =================================================================
 

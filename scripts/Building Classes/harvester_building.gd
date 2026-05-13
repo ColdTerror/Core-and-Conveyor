@@ -177,7 +177,6 @@ func _draw_beam(grid_pos: Vector2i):
 # =================================================================
 # NEW: OUTPUT LOGIC (Unified with Processor/Stockpile)
 # =================================================================
-
 func _try_output_item():
 	if not level_ref: return
 	var manager = level_ref.building_manager
@@ -196,15 +195,25 @@ func _try_output_item():
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# Is it a Conveyor?
-				if neighbor is ConveyorBuilding:
-					# Only output if the belt is pointing exactly AWAY from us
-					if neighbor.direction == offset:
-						# Try to spawn. This function returns TRUE if successful
+				# 1. Ensure the neighbor can physically accept items
+				if neighbor.has_method("accept_item_node"):
+					var can_output = false
+					
+					# 2. STRICT BELT CHECK: Must point exactly away from the Harvester
+					if neighbor is ConveyorBuilding or neighbor is FilterBuilding:
+						if neighbor.direction == offset:
+							can_output = true
+					# 3. ROUTERS: Bypass the direction check!
+					else:
+						can_output = true
+							
+					# 4. If valid, attempt the transfer
+					if can_output:
 						if _spawn_item_into_conveyor(neighbor):
-							return # Success! Stop trying other belts this tick.
-# Now returns BOOL (True = Success, False = Failed)
-func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
+							return # Success! Stop trying other neighbors this tick.
+
+# --- FIXED: Accepts ANY node that has accept_item_node! ---
+func _spawn_item_into_conveyor(receiver: Node) -> bool:
 	if not generic_item_scene or not target_resource.item_drop: return false
 	
 	# 1. Create the Visual Node
@@ -217,8 +226,8 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	# 2. Try to hand it to the Conveyor
-	if conveyor.accept_item_node(new_item_node):
+	# 2. Try to hand it to the Receiver (Belt, Router, Filter)
+	if receiver.accept_item_node(new_item_node):
 		# Success!
 		stored_amount -= 1
 		inventory_changed.emit()
@@ -226,13 +235,9 @@ func _spawn_item_into_conveyor(conveyor: ConveyorBuilding) -> bool:
 		return true # RETURN SUCCESS
 		
 	else:
-		# Belt was full or refused, delete the temp node
+		# Receiver was full or refused, delete the temp node
 		new_item_node.queue_free()
 		return false # RETURN FAILURE
-
-# =================================================================
-
-
 
 # ==========================================
 # TERRITORY & DIBS SYSTEM

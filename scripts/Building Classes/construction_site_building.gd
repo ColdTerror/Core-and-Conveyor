@@ -45,6 +45,23 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 # ==========================================
 # THE UNIFIED DOOR
 # ==========================================
+# --- THE "LOOK AHEAD" CHECK FOR CONVEYOR BELTS ---
+func can_accept_item(item_res: ItemResource) -> bool:
+	# 1. Reject if we are already done collecting
+	if is_ready_to_build: 
+		return false
+		
+	# 2. Reject if this isn't an item we need for the blueprint
+	var item_name = item_res.display_name 
+	if not required_items.has(item_name): 
+		return false
+		
+	# 3. Reject if we already have enough of this specific item
+	var amount_needed = required_items[item_name]
+	var amount_we_have = delivered_items.get(item_name, 0)
+	
+	return amount_we_have < amount_needed
+	
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	var item_name = item_res.display_name # <-- TRANSLATE RESOURCE TO STRING
 	
