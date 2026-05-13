@@ -5,6 +5,9 @@ extends Control
 @onready var dateLabel = $VBoxContainer/DateLabel
 @onready var waveLabel = $VBoxContainer/WaveLabel
 
+# --- NEW: OVERLAY UI REFERENCE ---
+@onready var overlayLabel = $VBoxContainer/OverlayLabel
+
 # --- NEW: CORRUPTION UI REFERENCES ---
 @onready var corruptionLabel = $VBoxContainer/CorruptionLabel
 @onready var corruptionBar = $VBoxContainer/CorruptionBar
@@ -39,84 +42,6 @@ func _ready():
 	if building_manager:
 		building_manager.placement_cost_updated.connect(_on_placement_cost_updated)
 		building_manager.placement_ended.connect(_on_placement_ended)
-
-
-func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary = {}):
-	costPanel.show()
-	
-	var text = "[ %s ]\n" % b_name
-	
-	if total_cost.is_empty():
-		if "Max Tier" in b_name:
-			text += "No further upgrades.\n"
-		else:
-			text += "Free to build!\n"
-	else:
-		for res in total_cost:
-			var needed = total_cost[res]
-			var have = EconomyManager.global_inventory.get(res, 0)
-			text += "%s: %d / %d\n" % [res, have, needed]
-			
-	if not extra_stats.is_empty():
-		for stat_name in extra_stats:
-			text += "%s: %s\n" % [stat_name, extra_stats[stat_name]]
-			
-	costLabel.text = text.strip_edges()
-	
-	if total_cost.is_empty() and "Max Tier" in b_name:
-		costLabel.modulate = Color(0.7, 0.7, 0.7) 
-	elif can_afford:
-		costLabel.modulate = Color(0.4, 1.0, 0.4) 
-	else:
-		costLabel.modulate = Color(1.0, 0.4, 0.4)
-		
-func _on_placement_ended():
-	costPanel.hide()
-
-# --- GAME OVER LOGIC ---
-func _on_core_destroyed():
-	if game_over_panel:
-		game_over_panel.show()
-		if wave_manager:
-			stats_label.text = "You survived until Wave %d." % wave_manager.current_wave
-
-func _on_restart_pressed():
-	get_tree().paused = false 
-	EconomyManager.global_inventory.clear()
-	EconomyManager.inventory_changed.emit()
-	get_tree().reload_current_scene()
-
-func _on_exit_pressed():
-	get_tree().quit()
-	
-func _on_inventory_changed():
-	update_labels()
-
-func update_labels():
-	# 1. Hide all existing labels first so unpinned items vanish
-	for key in resource_labels.keys():
-		resource_labels[key].hide()
-
-	# 2. Loop through ONLY the pinned list (capped at 10 items)
-	var max_slots = min(EconomyManager.pinned_resources.size(), 10)
-	for i in range(max_slots):
-		var resource_name = EconomyManager.pinned_resources[i]
-		
-		# Safely grab the amount, defaulting to 0 if we've never collected it
-		var amount = EconomyManager.global_inventory.get(resource_name, 0)
-
-		# Create the label if it doesn't exist yet
-		if not resource_labels.has(resource_name):
-			var new_label = Label.new()
-			inventoryContainer.add_child(new_label)
-			resource_labels[resource_name] = new_label
-
-		# Update the text, show it, and force it into the correct visual order!
-		var lbl = resource_labels[resource_name]
-		lbl.text = "  %s: %d  " % [resource_name, amount]
-		lbl.show()
-		inventoryContainer.move_child(lbl, i)
-
 
 # --- PROCESS LOOP (UI UPDATES) ---
 func _process(_delta):
@@ -206,7 +131,99 @@ func _process(_delta):
 		corruptionBar.modulate = Color(0.8, 0.2, 1.0)
 	# ------------------------------------
 	
+	# --- NEW: 4. UPDATE OVERLAY THRESHOLD UI ---
+	if building_manager and overlayLabel:
+		if building_manager.show_safe_grid or building_manager.show_attack_grid:
+			
+			# --- NEW: Format the text to show the live status of both controls! ---
+			var num_status = "ON" if building_manager.show_overlay_numbers else "OFF"
+			overlayLabel.text = "Threshold: %d  [+ / -]   |   Numbers: %s  [N]" % [building_manager.overlay_threshold, num_status]
+			
+			overlayLabel.modulate = Color(1.0, 0.8, 0.2)
+			overlayLabel.show()
+		else:
+			overlayLabel.hide()
+	# -------------------------------------------
+	
 	# Move the costPanel to follow mouse
 	if costPanel.visible: 
 		var mouse_pos = get_viewport().get_mouse_position()
 		costPanel.global_position = mouse_pos + Vector2(25, 25)
+
+
+func update_labels():
+	# 1. Hide all existing labels first so unpinned items vanish
+	for key in resource_labels.keys():
+		resource_labels[key].hide()
+
+	# 2. Loop through ONLY the pinned list (capped at 10 items)
+	var max_slots = min(EconomyManager.pinned_resources.size(), 10)
+	for i in range(max_slots):
+		var resource_name = EconomyManager.pinned_resources[i]
+		
+		# Safely grab the amount, defaulting to 0 if we've never collected it
+		var amount = EconomyManager.global_inventory.get(resource_name, 0)
+
+		# Create the label if it doesn't exist yet
+		if not resource_labels.has(resource_name):
+			var new_label = Label.new()
+			inventoryContainer.add_child(new_label)
+			resource_labels[resource_name] = new_label
+
+		# Update the text, show it, and force it into the correct visual order!
+		var lbl = resource_labels[resource_name]
+		lbl.text = "  %s: %d  " % [resource_name, amount]
+		lbl.show()
+		inventoryContainer.move_child(lbl, i)
+
+
+func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary = {}):
+	costPanel.show()
+	
+	var text = "[ %s ]\n" % b_name
+	
+	if total_cost.is_empty():
+		if "Max Tier" in b_name:
+			text += "No further upgrades.\n"
+		else:
+			text += "Free to build!\n"
+	else:
+		for res in total_cost:
+			var needed = total_cost[res]
+			var have = EconomyManager.global_inventory.get(res, 0)
+			text += "%s: %d / %d\n" % [res, have, needed]
+			
+	if not extra_stats.is_empty():
+		for stat_name in extra_stats:
+			text += "%s: %s\n" % [stat_name, extra_stats[stat_name]]
+			
+	costLabel.text = text.strip_edges()
+	
+	if total_cost.is_empty() and "Max Tier" in b_name:
+		costLabel.modulate = Color(0.7, 0.7, 0.7) 
+	elif can_afford:
+		costLabel.modulate = Color(0.4, 1.0, 0.4) 
+	else:
+		costLabel.modulate = Color(1.0, 0.4, 0.4)
+		
+func _on_placement_ended():
+	costPanel.hide()
+
+# --- GAME OVER LOGIC ---
+func _on_core_destroyed():
+	if game_over_panel:
+		game_over_panel.show()
+		if wave_manager:
+			stats_label.text = "You survived until Wave %d." % wave_manager.current_wave
+
+func _on_restart_pressed():
+	get_tree().paused = false 
+	EconomyManager.global_inventory.clear()
+	EconomyManager.inventory_changed.emit()
+	get_tree().reload_current_scene()
+
+func _on_exit_pressed():
+	get_tree().quit()
+	
+func _on_inventory_changed():
+	update_labels()

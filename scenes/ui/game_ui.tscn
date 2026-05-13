@@ -48,6 +48,11 @@ vertical_alignment = 1
 [node name="CorruptionBar" type="ProgressBar" parent="VBoxContainer" unique_id=1330231119]
 layout_mode = 2
 
+[node name="OverlayLabel" type="Label" parent="VBoxContainer" unique_id=441422799]
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="CostPanel" type="PanelContainer" parent="." unique_id=54973593]
 visible = false
 layout_mode = 0

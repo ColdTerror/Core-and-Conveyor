@@ -77,7 +77,7 @@ func _unhandled_key_input(event: InputEvent):
 			get_viewport().set_input_as_handled()
 			
 		# Pass overlay hotkeys to BuildingManager!
-		KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_EQUAL, KEY_MINUS:
+		KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_EQUAL, KEY_MINUS, KEY_N:
 			if building_manager:
 				building_manager.handle_overlay_hotkeys(event.keycode)
 			get_viewport().set_input_as_handled()

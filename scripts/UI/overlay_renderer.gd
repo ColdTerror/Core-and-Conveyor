@@ -17,6 +17,7 @@ var _prev_placing_building: bool = false
 var _prev_hovered_building: Building = null
 var _prev_terraform_jobs_empty: bool = true
 var _prev_overlay_threshold: int = 1
+var _prev_show_overlay_numbers: bool = true
 
 # --- THE FIX: We don't care about the Level's mode anymore, we care about the Controller's mode!
 var _prev_mode: int = 0 
@@ -50,6 +51,7 @@ func _process(delta):
 		bm.placing_building   != _prev_placing_building   or \
 		bm.terraform_jobs.is_empty() != _prev_terraform_jobs_empty or \
 		bm.overlay_threshold != _prev_overlay_threshold or \
+		bm.show_overlay_numbers != _prev_show_overlay_numbers or \
 		current_mode         != _prev_mode): # <- Updated to check Controller mode
 		needs_redraw = true
 		
@@ -80,6 +82,7 @@ func _process(delta):
 	_prev_placing_building       = bm.placing_building
 	_prev_terraform_jobs_empty   = bm.terraform_jobs.is_empty()
 	_prev_overlay_threshold      = bm.overlay_threshold
+	_prev_show_overlay_numbers   = bm.show_overlay_numbers
 	_prev_mode                   = current_mode # <- Save the Controller mode
 
 	if needs_redraw:
@@ -155,15 +158,18 @@ func _draw_zone_overlays():
 	var tile_size = 32.0
 	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
 	var b_width = 2.0
+	
+	
+	var show_nums = bm.show_overlay_numbers and not bm.placing_building
 
 	if bm.show_build_grid:
 		_draw_tile_set(bm.buildable_tiles, Color(0.2, 1.0, 0.2, 0.15), Color(0.2, 1.0, 0.2, 0.8), tile_size, half_offset, b_width)
 
 	if bm.show_safe_grid:
-		_draw_heatmap_tiles(bm.safe_tiles, Color(0.2, 0.5, 1.0), tile_size, half_offset, b_width)
+		_draw_heatmap_tiles(bm.safe_tiles, Color(0.2, 0.5, 1.0), tile_size, half_offset, b_width, show_nums)
 
 	if bm.show_attack_grid:
-		_draw_heatmap_tiles(bm.attack_tiles, Color(1.0, 0.2, 0.2), tile_size, half_offset, b_width)
+		_draw_heatmap_tiles(bm.attack_tiles, Color(1.0, 0.2, 0.2), tile_size, half_offset, b_width, show_nums)
 
 func _draw_tile_set(tiles: Dictionary, fill: Color, border: Color, tile_size: float, half_offset: Vector2, b_width: float):
 	for tile in tiles.keys():
@@ -181,7 +187,8 @@ func _draw_tile_set(tiles: Dictionary, fill: Color, border: Color, tile_size: fl
 		if not tiles.has(tile + Vector2i.LEFT):  draw_line(tl, bl, border, b_width)
 		if not tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, border, b_width)
 
-func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float, half_offset: Vector2, b_width: float):
+# --- NEW: Added 'show_numbers: bool = true' to the arguments ---
+func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float, half_offset: Vector2, b_width: float, show_numbers: bool = true):
 	var bm = level.building_manager
 	var threshold = bm.overlay_threshold if bm else 1
 	var border = Color(base_color.r, base_color.g, base_color.b, 0.8)
@@ -202,10 +209,12 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 		var local_pos = level.object_layer.map_to_local(tile) - half_offset
 		draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), fill)
 		
-		var text = str(overlaps)
-		var text_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
-		var text_pos = local_pos + half_offset + Vector2(-text_size.x / 2.0, text_size.y / 3.0)
-		draw_string(font, text_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.8))
+		# --- FIXED: Only draw the text if the flag allows it! ---
+		if show_numbers:
+			var text = str(overlaps)
+			var text_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
+			var text_pos = local_pos + half_offset + Vector2(-text_size.x / 2.0, text_size.y / 3.0)
+			draw_string(font, text_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.8))
 
 	# 3. DRAW SHRINK-WRAPPED BORDERS
 	for tile in filtered_tiles.keys():
@@ -315,7 +324,7 @@ func _draw_hover_footprint():
 			var rect = Rect2(top_left, footprint_px)
 			
 			# Make the border extra bright and solid if the UI menu is open!
-			var border_alpha = 0.9 if b.get("is_selected_in_ui") else 0.5
+			var border_alpha = 0.9 if b.get("is_selected") else 0.5
 			var border_color = Color(1.0, 1.0, 1.0, border_alpha) 
 			
 			draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)  # Subtle Fill

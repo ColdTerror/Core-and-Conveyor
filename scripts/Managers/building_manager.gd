@@ -51,6 +51,7 @@ var show_safe_grid: bool = false
 var show_attack_grid: bool = false
 var show_path_grid: bool = false
 var overlay_threshold: int = 1 
+var show_overlay_numbers: bool = true
 var _auto_enabled_grids: Dictionary = {"build": false, "safe": false, "attack": false}
 
 # --- Placement ---
@@ -107,11 +108,6 @@ func _process(delta):
 func initialize(level_instance: Node2D):
 	level_ref = level_instance
 
-
-
-
-
-
 func handle_overlay_hotkeys(keycode: int):
 	match keycode:
 		KEY_F1:
@@ -136,6 +132,8 @@ func handle_overlay_hotkeys(keycode: int):
 		KEY_MINUS: # The '-' key
 			overlay_threshold = max(1, overlay_threshold - 1)
 			print("Overlay Threshold: ", overlay_threshold)
+		KEY_N: # <--- NEW: Toggle Numbers!
+			show_overlay_numbers = not show_overlay_numbers
 
 # --- NEW HELPER FUNCTION ---
 func _clear_all_overlays():
