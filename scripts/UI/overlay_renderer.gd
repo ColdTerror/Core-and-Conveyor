@@ -285,33 +285,42 @@ func _draw_ghost_previews():
 
 
 # ==========================================
-# Building Footprint when Hovering
+# Building Footprint when Hovering OR Selected
 # ==========================================
 func _draw_hover_footprint():
-	# Check if the InputManager has a building currently hovered
-	var b = InputManager.hovered_building
+	# Hide footprints if we are actively placing a new building
+	if level.building_manager and level.building_manager.placing_building:
+		return
+		
+	var buildings_to_highlight = []
 	
-	# 1. Ensure building is valid and NOT a ghost (we don't want double footprints during placement)
-	if is_instance_valid(b) and b is Building and not b.is_ghost:
-		# 2. Check if the building manager is currently placing something else
-		if level.building_manager and level.building_manager.placing_building:
-			return
+	# 1. Grab the currently hovered building
+	if is_instance_valid(InputManager.hovered_building):
+		buildings_to_highlight.append(InputManager.hovered_building)
+		
+	# 2. Search for the building that is pinned open in the UI
+	if level.building_manager:
+		for b in level.building_manager.buildings:
+			if is_instance_valid(b) and b.get("is_selected") and not buildings_to_highlight.has(b):
+				buildings_to_highlight.append(b)
+	
+	
+	# 3. Draw them all!
+	for b in buildings_to_highlight:
+		if is_instance_valid(b) and b is Building and not b.is_ghost:
+			var tile_size = 32.0
+			var footprint_px = Vector2(b.size.x * tile_size, b.size.y * tile_size)
+			var top_left = to_local(b.global_position) - (footprint_px / 2.0)
 			
-		var tile_size = 32.0
-		var b_size = b.size
-		var footprint_px = Vector2(b_size.x * tile_size, b_size.y * tile_size)
-		
-		# We use the building's global position. 
-		# Since buildings are centered on their footprint in your place_at logic:
-		var top_left = to_local(b.global_position) - (footprint_px / 2.0)
-		
-		var rect = Rect2(top_left, footprint_px)
-		var hover_color = Color(1.0, 1.0, 1.0, 0.5) # Semi-transparent white
-		
-		# Draw a subtle fill and a thicker border
-		draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)
-		draw_rect(rect, hover_color, false, 2.0)
-		
+			var rect = Rect2(top_left, footprint_px)
+			
+			# Make the border extra bright and solid if the UI menu is open!
+			var border_alpha = 0.9 if b.get("is_selected_in_ui") else 0.5
+			var border_color = Color(1.0, 1.0, 1.0, border_alpha) 
+			
+			draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)  # Subtle Fill
+			draw_rect(rect, border_color, false, 2.0)         # Sharp Border
+			
 # ==========================================
 # PATH COST CACHING & DRAWING
 # ==========================================

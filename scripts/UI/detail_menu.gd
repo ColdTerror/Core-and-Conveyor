@@ -19,7 +19,6 @@ func _ready():
 	close_button.pressed.connect(close_menu)
 	info_label.custom_minimum_size = Vector2(225, 50) 
 	
-
 func _process(_delta):
 	if visible:
 		# 1. Safely close if the target was destroyed while we were looking at it
@@ -52,6 +51,16 @@ func _process(_delta):
 			# ----------------------------------------------
 			
 			info_label.text = "%sHealth: %d / %d\nTarget: %s\nCarrying: %s" % [level_str, selected_object.health, selected_object.max_health, info["Target"], info["Carrying"]]
+
+# ==========================================
+# --- NEW: Helper to wake up the global renderer ---
+# ==========================================
+func _force_overlay_redraw():
+	if building_manager and building_manager.level_ref:
+		var overlay = building_manager.level_ref.get_node_or_null("OverlayRenderer")
+		if overlay:
+			overlay.queue_redraw()
+
 func open_menu(target: Node2D):
 	if target == null:
 		close_menu()
@@ -60,7 +69,7 @@ func open_menu(target: Node2D):
 	var is_new_target = (selected_object != target)
 	var was_closed = not visible
 		
-	
+	# --- UNSELECT OLD TARGET ---
 	if is_instance_valid(selected_object) and selected_object != target:
 		if "is_selected" in selected_object:
 			selected_object.is_selected = false
@@ -77,9 +86,13 @@ func open_menu(target: Node2D):
 		title_label.text = "Unknown Entity"
 	# ----------------------------------------------
 	
+	# --- SELECT NEW TARGET ---
 	if "is_selected" in selected_object:
 		selected_object.is_selected = true
 		selected_object.queue_redraw()
+		
+	# Force the OverlayRenderer to draw the new footprint!
+	_force_overlay_redraw()
 		
 	if selected_object.has_signal("inventory_changed"):
 		if not selected_object.inventory_changed.is_connected(refresh_ui):
@@ -99,9 +112,13 @@ func close_menu():
 			if selected_object.inventory_changed.is_connected(refresh_ui):
 				selected_object.inventory_changed.disconnect(refresh_ui)
 		
+		# --- UNSELECT & HIDE FOOTPRINT ON CLOSE ---
 		if "is_selected" in selected_object:
 			selected_object.is_selected = false
 			selected_object.queue_redraw()
+			
+		# Force the OverlayRenderer to clear the footprint!
+		_force_overlay_redraw()
 	
 	var cam = get_tree().get_first_node_in_group("Camera")
 	if cam and cam.has_method("set_follow_target"):
@@ -160,7 +177,7 @@ func refresh_ui():
 		_setup_tower_ui(selected_object as TowerBuilding)
 	elif selected_object is CoreBuilding:
 		_setup_core_ui(selected_object as CoreBuilding)
-	elif selected_object is QuotaBuilding: # <--- NEW
+	elif selected_object is QuotaBuilding:
 		_setup_quota_ui(selected_object as QuotaBuilding)
 	elif selected_object.has_method("set_priority"):
 		_setup_bot_ui(selected_object)

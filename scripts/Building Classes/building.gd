@@ -51,6 +51,8 @@ var grid_origin: Vector2i = Vector2i.ZERO
 
 var is_upgrading: bool = false
 
+var is_selected: bool = false
+
 # --- Ready ---
 func _ready():
 	var footprint_px = Vector2(size.x * 32.0, size.y * 32.0)
