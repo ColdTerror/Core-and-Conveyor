@@ -255,15 +255,19 @@ func _setup_tower_ui(b: TowerBuilding):
 
 func _setup_core_ui(b: CoreBuilding):
 	info_label.modulate = Color(0.8, 0.8, 1.0)
+	info_label.text = "" # Clear it completely first
+	
+	# ==========================================
+	# 1. RESEARCH UI
+	# ==========================================
 	if b.active_research_name != "":
-		info_label.text = ""
-		info_label.text += "\n\nResearching: %s" % b.active_research_name
+		info_label.text += "Researching: %s\n" % b.active_research_name
 		
-		for item_name in b.research_bill_max.keys():
-			var max_required = b.research_bill_max[item_name]
-			var still_needed = b.research_bill.get(item_name, 0)
+		for item_res in b.research_bill_max.keys():
+			var max_required = b.research_bill_max[item_res]
+			var still_needed = b.research_bill.get(item_res, 0)
 			var currently_deposited = max_required - still_needed
-			info_label.text += "\n%s: %d / %d" % [item_name.display_name, currently_deposited, max_required]
+			info_label.text += "%s: %d / %d\n" % [item_res.display_name, currently_deposited, max_required]
 			
 		_create_button("Cancel Research", Color(1.0, 0.4, 0.4), func():
 			b.active_research_name = ""
@@ -272,11 +276,56 @@ func _setup_core_ui(b: CoreBuilding):
 			refresh_ui()
 		)
 	else:
-		info_label.text = "No Current Research"
+		info_label.text += "No Current Research\n"
 		_create_button("Open Research Tree", Color(1.0, 0.84, 0.0), func(): 
 			research_button_clicked.emit()
 		)
 
+	# Visual separator in the text
+	info_label.text += "\n----------------------\n\n"
+
+	# ==========================================
+	# 2. BOT CONSTRUCTION UI
+	# ==========================================
+	var current_bots = get_tree().get_nodes_in_group("Bots").size()
+	var max_bots = ResearchManager.max_bots_allowed if Engine.has_singleton("ResearchManager") else 2
+	
+	info_label.text += "Worker Bots: %d / %d\n" % [current_bots, max_bots]
+
+	if b.is_building_bot:
+		info_label.text += "Constructing Bot...\n"
+		
+		for item_res in b.bot_bill_max.keys():
+			var max_required = b.bot_bill_max[item_res]
+			var still_needed = b.bot_bill.get(item_res, 0)
+			var currently_deposited = max_required - still_needed
+			info_label.text += "%s: %d / %d\n" % [item_res.display_name, currently_deposited, max_required]
+			
+		_create_button("Cancel Bot", Color(1.0, 0.4, 0.4), func():
+			b.is_building_bot = false
+			b.bot_bill.clear()
+			b.bot_bill_max.clear()
+			refresh_ui()
+		)
+	else:
+		if current_bots >= max_bots:
+			info_label.text += "Maximum bots reached.\n"
+		else:
+			# --- NEW: Show the player the cost before they buy! ---
+			var cost_text = "Cost: "
+			var cost_dict = b.get_bot_cost()
+			for item_res in cost_dict.keys():
+				cost_text += "%d %s, " % [cost_dict[item_res], item_res.display_name]
+			
+			# Trim the trailing comma and add a line break
+			info_label.text += cost_text.trim_suffix(", ") + "\n"
+
+			# --- FIXED: The button logic is now perfectly clean! ---
+			_create_button("Build Worker Bot", Color(0.4, 1.0, 0.4), func():
+				b.start_bot_construction()
+				refresh_ui()
+			)
+			
 func _setup_quota_ui(b: QuotaBuilding):
 	var info = b.get_inventory_info()
 	
