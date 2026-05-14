@@ -218,20 +218,13 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	return amount_to_take
 
 func can_accept_item(item_res: ItemResource) -> bool:
-	# 1. FILTER CHECK: If in dedicated mode, reject anything that doesn't match!
-	if is_dedicated_mode and selected_output_name != "" and selected_output_name != item_res.display_name:
-		return false
-		
-	# 2. CAPACITY CHECK: Calculate total items currently in the box
-	var current_total = 0
-	for amount in inventory.values():
-		current_total += amount
-		
-	# (Note: Replace 'max_capacity' with whatever your stockpile's capacity variable is named! 
-	# Based on your UI, it looks like it might be 100 for dedicated and 25 for mixed.)
-	var current_cap = 100 if is_dedicated_mode else 25 
-	
-	return current_total < current_cap
+	if is_dedicated_mode:
+		if dedicated_item_name != "" and dedicated_item_name != item_res.display_name:
+			return false
+		return get_total_items() < max_dedicated_capacity
+	else:
+		var current_amount = inventory.get(item_res, 0)
+		return current_amount < max_mixed_capacity
 	
 # ==========================================
 # BOT RETRIEVAL LOGIC
@@ -339,29 +332,34 @@ func toggle_inventory_mode():
 	
 	if is_dedicated_mode:
 		if inventory.size() > 0:
-			# 1. Find the item with the highest count
-			var max_item_ref: ItemResource = null
-			var max_count: int = -1
+			var target_item_ref: ItemResource = null
 			
-			for item in inventory.keys():
-				if inventory[item] > max_count:
-					max_count = inventory[item]
-					max_item_ref = item
-					
-			# 2. Lock onto the winner!
-			dedicated_item_name = max_item_ref.display_name
-			print("Switched to Dedicated. Locked to majority item: ", dedicated_item_name)
+			# 1. Prefer the currently selected output item
+			if selected_output_name != "":
+				target_item_ref = _find_item_by_name(selected_output_name)
+				
+			# 2. Fall back to majority item if no output selected (or selected item not in inventory)
+			if target_item_ref == null:
+				var max_count: int = -1
+				for item in inventory.keys():
+					if inventory[item] > max_count:
+						max_count = inventory[item]
+						target_item_ref = item
+
+			# 3. Lock onto the winner!
+			dedicated_item_name = target_item_ref.display_name
+			print("Switched to Dedicated. Locked to: ", dedicated_item_name)
 			
-			# 3. Void all the losers
+			# 4. Void all the losers
 			var assets_to_remove = {}
 			var items_to_erase = []
 			
 			for item in inventory.keys():
-				if item != max_item_ref:
+				if item != target_item_ref:
 					assets_to_remove[item.display_name] = inventory[item]
 					items_to_erase.append(item)
 					
-			# 4. Clean up the economy and local data if anything was voided
+			# 5. Clean up the economy and local data if anything was voided
 			if not assets_to_remove.is_empty():
 				EconomyManager.remove_resources_from_global(assets_to_remove)
 				
@@ -372,21 +370,31 @@ func toggle_inventory_mode():
 				available_types.clear()
 				available_types.append(dedicated_item_name)
 				
-				# Safety check: If we were trying to output arrows, but arrows just got voided, turn output OFF
+				# Safety check: if output was set to a voided item, turn it off
 				if selected_output_name != "" and selected_output_name != dedicated_item_name:
 					selected_output_name = ""
 					
 		else:
-			# It's completely empty, wait for the first item
-			dedicated_item_name = ""
-			print("Switched to Dedicated. Waiting for first item...")
+			# Completely empty — wait for first item, but respect output selection as a hint
+			dedicated_item_name = selected_output_name # May be "" if output is OFF, that's fine
+			print("Switched to Dedicated. Locked to: ", dedicated_item_name if dedicated_item_name != "" else "waiting for first item...")
 	else:
-		# Switched back to Mixed mode, clear the lock
 		dedicated_item_name = ""
 		print("Switched to Mixed mode.")
 		
+		# Trim any item types that exceed the mixed cap
+		var assets_to_remove = {}
+		for item in inventory.keys():
+			var excess = inventory[item] - max_mixed_capacity
+			if excess > 0:
+				inventory[item] = max_mixed_capacity
+				assets_to_remove[item.display_name] = excess
+		
+		if not assets_to_remove.is_empty():
+			EconomyManager.remove_resources_from_global(assets_to_remove)
+	
 	inventory_changed.emit()
-
+	
 func void_inventory():
 	var assets = get_economy_assets()
 	if not assets.is_empty():
