@@ -61,6 +61,7 @@ const XP_THRESHOLDS: Array[int] = [0, 50, 150, 300] # Thresholds for levels 1, 2
 @export var energy_drain_rate: float = 2.0    # Energy lost per second while working/moving
 @export var energy_recharge_rate: float = 25.0 # Energy gained per second while resting at home
 @export var health_recharge_rate: float = 10.0 # HP gained per second while resting at home
+@export var low_battery_threshold: float = 0.1
 
 # ==========================================
 # RUNTIME STATE
@@ -327,50 +328,43 @@ func _get_speed() -> float:
 
 # ==========================================
 # ENERGY SYSTEM
-# Energy is the bot's fuel. It drains while working and recharges at home.
-# At zero energy the bot "limps" home — reduced speed but guaranteed arrival.
 # ==========================================
 func _handle_energy(delta: float):
 	# --- RECHARGING: Bot is resting at home ---
 	if current_state == State.RECHARGING or current_state == State.PANIC_WAITING:
 		current_energy += energy_recharge_rate * delta
 		
-		# Restore HP gradually. We accumulate the float and apply whole-number chunks
-		# to avoid calling health = min() hundreds of times per second on tiny fractions.
 		if health < max_health:
 			_health_accumulator += health_recharge_rate * delta
 			if _health_accumulator >= 1.0:
 				var heal_amount = int(_health_accumulator)
 				health = min(health + heal_amount, max_health)
-				_health_accumulator -= heal_amount # Keep the leftover fraction
+				_health_accumulator -= heal_amount 
 				
 		if current_energy >= max_energy:
 			current_energy = max_energy
 			is_limping = false
 			current_state = State.IDLE     # Wake up and get back to work
-		return  # No drain logic while recharging
+		return  
 
 	# --- DRAINING: Bot is actively working ---
-	# Only drain while actually doing something useful, not while waiting on standby.
 	var active_states = [
 		State.MOVING_TO_RESOURCE, State.HARVESTING,
 		State.MOVING_TO_INVENTORY, State.DEPOSITING,
 		State.MOVING_TO_REPAIR, State.REPAIRING,
 		State.MOVING_TO_BUILD, State.BUILDING,
 		State.MOVING_TO_FETCH, State.FETCHING,
-		State.MOVING_HOME  # Still drains while walking home normally (not limping)
+		State.MOVING_HOME  # Still drains while walking home normally
 	]
 	
 	if current_state in active_states and not is_limping:
 		current_energy -= energy_drain_rate * delta
 		
-		# --- EXHAUSTION: Energy hit zero — drop everything and limp home ---
+		# --- 1. EXHAUSTION: Energy hit zero (Limp Mode) ---
 		if current_energy <= 0:
 			current_energy = 0
 			is_limping = true
-			# Limping speed is slower, but energy will NOT drain anymore (guard above),
-			# so the bot is guaranteed to complete the walk home without stopping.
-			# Abandon the current task cleanly
+			
 			_clear_reservation()
 			action_timer.stop()
 			target_tile = Vector2i(-1, -1)
@@ -378,9 +372,23 @@ func _handle_energy(delta: float):
 			if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
 				current_state = State.MOVING_HOME
 			else:
-				# No home set or path blocked — recharge right here on the spot
 				current_state = State.RECHARGING
 
+		# --- 2. LOW BATTERY: 10% (Smart Return) ---
+		elif current_energy <= (max_energy * low_battery_threshold):
+			
+			# Make sure we don't constantly interrupt the bot if it's already heading home!
+			if current_state != State.MOVING_HOME:
+				_clear_reservation()
+				action_timer.stop()
+				target_tile = Vector2i(-1, -1)
+				
+				# Route home at full normal speed
+				if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
+					current_state = State.MOVING_HOME
+				else:
+					current_state = State.RECHARGING
+					
 # ==========================================
 # BRAIN: DECISION MAKING
 # These functions are the bot's "thinking" layer — they decide WHAT to do next

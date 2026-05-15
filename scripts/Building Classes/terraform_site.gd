@@ -26,6 +26,8 @@ func setup(level: Node2D, grid_pos: Vector2i, type: JobType):
 	
 	global_position = level_ref.object_layer.map_to_local(grid_pos)
 	
+	z_index = 10
+	
 	if "build_range" in self: build_range = 0
 	if "corruption_range" in self: corruption_range = 0
 
@@ -45,12 +47,45 @@ func add_build_progress(amount: int):
 	if health >= max_health:
 		_finish_terraforming()
 
+# --- UPGRADED: Context-Aware Terrain Sampling (Using Atlas Coords) ---
+func _get_matching_neighbor_terrain(target_tile: Vector2i) -> Vector2i:
+	var dirt_atlas = Vector2i(0, 0)
+	var sand_atlas = Vector2i(2, 0)
+	
+	var dirt_count = 0
+	var sand_count = 0
+	
+	var neighbors = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
+	
+	for offset in neighbors:
+		var neighbor_pos = target_tile + offset
+		
+		# Ensure we are looking at the correct TileMap source (0) before checking the atlas
+		if level_ref.terrain_layer.get_cell_source_id(neighbor_pos) == 0:
+			var neighbor_atlas = level_ref.terrain_layer.get_cell_atlas_coords(neighbor_pos)
+			
+			if neighbor_atlas == dirt_atlas:
+				dirt_count += 1
+			elif neighbor_atlas == sand_atlas:
+				sand_count += 1
+				
+	# If there's strictly more sand around it than dirt, return the sand atlas! 
+	if sand_count > dirt_count:
+		return sand_atlas
+		
+	# Otherwise, default to the dirt atlas.
+	return dirt_atlas
+
 func _finish_terraforming():
 	var target_tile = occupied_tiles[0]
 	
 	if job_type == JobType.CONVERT_WATER:
-		# Replace water with dirt (Update the 0 to your actual Dirt Tile ID!)
-		level_ref.terrain_layer.set_cell(target_tile, 0, Vector2i(0, 0))
+		# --- UPGRADED: Ask the scanner what atlas coords to place! ---
+		var best_atlas = _get_matching_neighbor_terrain(target_tile)
+		
+		# set_cell( coords, source_id, atlas_coords )
+		level_ref.terrain_layer.set_cell(target_tile, 0, best_atlas)
+		
 		if level_ref.building_manager.pathfinder:
 			level_ref.building_manager.pathfinder.set_obstacle(target_tile, false)
 			
@@ -63,7 +98,6 @@ func _finish_terraforming():
 
 	destroyed.emit(self)
 	queue_free()
-
 # ==========================================
 # VISUALS
 # ==========================================

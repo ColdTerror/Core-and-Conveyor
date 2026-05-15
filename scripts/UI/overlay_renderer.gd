@@ -90,7 +90,6 @@ func _process(delta):
 
 func _draw():
 	_draw_tool_highlight()
-	_draw_terrain_jobs()
 	_draw_zone_overlays()
 	_draw_ghost_previews()
 	_draw_hover_footprint()
@@ -121,31 +120,6 @@ func _draw_grid_highlight(fill_color: Color, outline_color: Color):
 	draw_rect(rect, fill_color, true)
 	draw_rect(rect, outline_color, false, 2.0)
 
-# ==========================================
-# TERRAIN JOB MARKERS (red/blue X markers)
-# ==========================================
-
-func _draw_terrain_jobs():
-	var bm = level.building_manager
-	if not bm or bm.terraform_jobs.is_empty(): return
-	
-	var tile_size = 32.0
-	var half = Vector2(tile_size / 2.0, tile_size / 2.0)
-	
-	for tile in bm.terraform_jobs.keys():
-		var job_type = bm.terraform_jobs[tile]
-		var center = level.object_layer.map_to_local(tile)
-		var top_left = center - half
-		
-		# Red = remove object, Blue = convert water
-		var color = Color(1.0, 0.2, 0.2, 0.8) if job_type == TerraformSite.JobType.REMOVE_OBJECT else Color(0.2, 0.6, 1.0, 0.8)
-		var fill = Color(color.r, color.g, color.b, 0.15)
-		
-		var rect = Rect2(top_left, Vector2(tile_size, tile_size))
-		draw_rect(rect, fill, true)
-		draw_rect(rect, color, false, 2.0)
-		draw_line(top_left, top_left + Vector2(tile_size, tile_size), color, 2.0)
-		draw_line(top_left + Vector2(tile_size, 0), top_left + Vector2(0, tile_size), color, 2.0)
 
 # ==========================================
 # ZONE OVERLAYS (F1/F2/F3 hotkeys)

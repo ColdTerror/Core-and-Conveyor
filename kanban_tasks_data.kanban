@@ -15,11 +15,8 @@
 				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
 				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
 				"c1c3c2be-8b67-45d3-8120-ecfafef36084",
-				"f27e11dc-351c-447c-90dd-02b3eb19dba3",
 				"2f7e1690-7821-47be-8496-35fd80f27c15",
 				"36e33cc0-bd21-4c3b-933a-a56c56802b80",
-				"0db2d013-d9c8-4c97-be5b-d518a2aec238",
-				"9c37c930-addc-4aed-94cf-862c5f061304",
 				"03689f0c-b608-42cd-bf95-40703e381779"
 			]
 		},
@@ -33,9 +30,14 @@
 			"title": "Done",
 			"tasks": [
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
+				"03d2faf8-9ec3-4dd8-be77-4838d3b6365f",
+				"9c37c930-addc-4aed-94cf-862c5f061304",
+				"688f0686-426f-4f0c-a1ac-a03fd21d6a4a",
 				"fb63a7b1-144d-4f05-beae-041892b2b0ac",
 				"be31ba8c-9677-47eb-8675-31fe6677b616",
 				"9cb4bbcf-258a-42ea-905f-64468ebb6877",
+				"0db2d013-d9c8-4c97-be5b-d518a2aec238",
+				"f27e11dc-351c-447c-90dd-02b3eb19dba3",
 				"e1212ef9-e2cf-4f3a-affa-33e9c81ada64",
 				"24a24b26-36ca-46c1-a5aa-717bd68edc05",
 				"a9fb976e-fff8-4eae-998a-b05f52da1aff",
@@ -1268,6 +1270,20 @@
 		{
 			"uuid": "a9fb976e-fff8-4eae-998a-b05f52da1aff",
 			"title": "filters next to buildings have weird animation",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "03d2faf8-9ec3-4dd8-be77-4838d3b6365f",
+			"title": "terraform color is blue for water makes it hard to see",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "688f0686-426f-4f0c-a1ac-a03fd21d6a4a",
+			"title": "terraform should put dirt/sand depending on whats around it",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
