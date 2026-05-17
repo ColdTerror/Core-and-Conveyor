@@ -2,7 +2,6 @@ extends Building
 class_name StockpileBuilding
 
 @export var generic_item_scene: PackedScene
-@export var work_interval: float = 1.0 # Speed of output
 
 
 # --- NEW: INVENTORY MODES ---
@@ -14,7 +13,6 @@ var dedicated_item_name: String = "" # Remembers what item it locked onto
 # ----------------------------
 
 var inventory: Dictionary = {}  # ItemResource → amount
-var work_timer: float = 0.0
 
 # FILTER STATE
 var selected_output_name: String = "" # "" means output nothing
@@ -58,10 +56,7 @@ func _exit_tree():
 func building_tick(delta: float) -> void:
 	# Only output if we have a valid selection
 	if selected_output_name != "":
-		work_timer -= delta
-		if work_timer <= 0:
-			work_timer = work_interval
-			_try_output_item()
+		_try_output_item()
 
 # --- UI INTERACTION ---
 func cycle_output_mode():

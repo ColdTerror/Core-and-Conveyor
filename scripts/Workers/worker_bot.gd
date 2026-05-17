@@ -870,9 +870,15 @@ func _do_deposit():
 		current_state = State.IDLE
 		_add_xp(1)
 	else:
-		# Storage only accepted a partial deposit — blacklist it and try another
-		full_storages_ignored.append(storage)
-		_find_nearest_storage()
+		# --- UPGRADED: Smart Blueprint Chaining ---
+		if storage is ConstructionSite or storage is TerraformSite:
+			# We partially filled a blueprint. Don't panic dump the rest!
+			# Go IDLE so the brain can instantly assign us the next blueprint that needs this material.
+			current_state = State.IDLE
+		else:
+			# It's an actual Storage box and it's full — blacklist it and try another
+			full_storages_ignored.append(storage)
+			_find_nearest_storage()
 
 # Repairs the building at target_tile by 5 HP per second.
 # Re-starts its own timer until the building is at full health.

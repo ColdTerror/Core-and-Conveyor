@@ -1022,9 +1022,20 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 	var best_target = null
 	
 	for b in buildings:
-		var matches = (group_name == "Belts" and b is ConveyorBuilding) or \
-					  (group_name == "Walls" and b is WallBuilding) or \
-					  (group_name == "Terraform" and b is TerraformSite)
+		var matches = false
+		
+		# 1. Match Belts AND Belt Blueprints
+		if group_name == "Belts":
+			matches = (b is ConveyorBuilding) or (b is ConstructionSite and "Conveyor" in b.building_name)
+			
+		# 2. Match Walls AND Wall Blueprints
+		elif group_name == "Walls":
+			matches = (b is WallBuilding) or (b is ConstructionSite and "Wall" in b.building_name)
+			
+		# 3. Match Terraform (TerraformSite is already its own unique class!)
+		elif group_name == "Terraform":
+			matches = (b is TerraformSite)
+			
 		if matches and _building_needs_work(b):
 			var dist = bot_pos.distance_squared_to(b.global_position)
 			if dist < best_dist:
