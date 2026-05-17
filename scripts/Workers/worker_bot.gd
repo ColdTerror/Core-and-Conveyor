@@ -482,14 +482,17 @@ func _find_priority_job():
 	if carried_amount > 0:
 		var holding_wrong_item = true
 		
-		# We're holding the RIGHT item if the job is a blueprint that still needs it
-		if (best_job is ConstructionSite or best_job is TerraformSite) and not best_job.is_ready_to_build:
-			if best_job.required_items.has(carried_item_name):
-				var needed = best_job.required_items[carried_item_name]
-				var have = best_job.delivered_items.get(carried_item_name, 0)
-				if have < needed:
-					holding_wrong_item = false
-					
+		if (best_job is ConstructionSite or best_job is TerraformSite):
+			if not best_job.is_ready_to_build:
+				if best_job.required_items.has(carried_item_name):
+					var needed = best_job.required_items[carried_item_name]
+					var have = best_job.delivered_items.get(carried_item_name, 0)
+					if have < needed:
+						holding_wrong_item = false
+			else:
+				# Ready to build — carrying anything is fine, just go hammer it
+				holding_wrong_item = false
+			
 		# If we're holding something useless, dump it first before taking the job
 		if holding_wrong_item:
 			_find_nearest_storage()
@@ -497,37 +500,36 @@ func _find_priority_job():
 
 	# Route to the correct action based on what the job needs from us right now
 	if best_job is ConstructionSite or best_job is TerraformSite:
-		if carried_amount > 0:
-			# Hands full of the right material — deliver it to the blueprint
-			_request_path(best_job.occupied_tiles, true)
-			if not current_path.is_empty():
-				current_state = State.MOVING_TO_INVENTORY
-			else:
-				current_state = State.IDLE
-				
-		elif not best_job.is_ready_to_build:
-			# Blueprint needs materials — find a stockpile that has them
-			var item_to_fetch = ""
-			for req_name in best_job.required_items.keys():
-				var needed = best_job.required_items[req_name]
-				var have = best_job.delivered_items.get(req_name, 0)
-				if have < needed:
-					item_to_fetch = req_name
-					break  # Only fetch one material type per trip
-					
-			if item_to_fetch != "":
-				_find_stockpile_with_item(item_to_fetch)
-			else:
-				current_state = State.IDLE  # Blueprint says not ready but no deficit found — shouldn't happen
-				
-		else:
-			# Blueprint is fully stocked — walk up and start building
+		if best_job.is_ready_to_build:
+			# Blueprint is fully stocked — go build it regardless of what we're carrying
 			_request_path(best_job.occupied_tiles, true)
 			if not current_path.is_empty():
 				current_state = State.MOVING_TO_BUILD
 			else:
 				current_state = State.IDLE
 				
+		elif carried_amount > 0:
+			# Still needs materials and we're holding some — deliver them
+			_request_path(best_job.occupied_tiles, true)
+			if not current_path.is_empty():
+				current_state = State.MOVING_TO_INVENTORY
+			else:
+				current_state = State.IDLE
+				
+		else:
+			# Still needs materials and hands are empty — go fetch from stockpile
+			var item_to_fetch = ""
+			for req_name in best_job.required_items.keys():
+				var needed = best_job.required_items[req_name]
+				var have = best_job.delivered_items.get(req_name, 0)
+				if have < needed:
+					item_to_fetch = req_name
+					break
+
+			if item_to_fetch != "":
+				_find_stockpile_with_item(item_to_fetch)
+			else:
+				current_state = State.IDLE
 	else:
 		# It's a damaged building — walk up and start repairing
 		_request_path(best_job.occupied_tiles, true)
