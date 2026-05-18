@@ -113,18 +113,7 @@ func _finish_construction():
 	
 	# 1. Spawn the real building
 	var new_building = target_building_scene.instantiate()
-	
-	# --- NEW: PASS THE STICKY NOTE! ---
-	# Give the new building its rotation/upgrade data BEFORE placing it!
-	if has_meta("relocation_data"):
-		var saved_data = get_meta("relocation_data")
-		if new_building.has_method("apply_upgrade_data"):
-			new_building.apply_upgrade_data(saved_data)
-			
-	if new_building.has_method("setup"):
-		new_building.setup(level_ref)
-	
-	
+
 	# 2. Get our exact grid coordinate before we delete ourselves
 	var my_grid = occupied_tiles[0]
 	
@@ -136,6 +125,15 @@ func _finish_construction():
 	
 	level_ref.building_manager.add_child(new_building)
 	
+	#Hand it the save data and setup call after ready is run
+	if has_meta("relocation_data"):
+		var saved_data = get_meta("relocation_data")
+		if new_building.has_method("apply_upgrade_data"):
+			new_building.apply_upgrade_data(saved_data)
+			
+	if new_building.has_method("setup"):
+		new_building.setup(level_ref)
+		
 	# 3. Register the new building into the freshly emptied slots
 	level_ref.building_manager.register_finished_building(new_building, my_grid)
 	

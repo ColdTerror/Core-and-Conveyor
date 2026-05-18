@@ -11,6 +11,7 @@ var daily_requirements: Dictionary = {}
 var daily_delivered: Dictionary = {}
 
 var successful_days: int = 0
+var weekly_history: Array[bool] = []
 var max_weekly_corruption: float = 100.0
 var level_ref: Node2D
 
@@ -131,27 +132,23 @@ func _is_daily_quota_met() -> bool:
 # TIME & CORRUPTION LOGIC
 # ==========================================
 func process_end_of_day():
-	# Because Week 1 has an empty dictionary {}, _is_daily_quota_met()
-	# automatically returns true, giving the player 7 free success days!
-	if _is_daily_quota_met():
+	var day_success = _is_daily_quota_met()
+	weekly_history.append(day_success)
+	
+	if day_success:
 		successful_days += 1
 		
 	_reset_daily_deliveries()
 	quota_progress_updated.emit()
 
 func process_end_of_week():
-	# 1. Calculate the penalty for the week that just finished
-	# (We only apply penalties if they failed a real quota > Week 1)
 	if current_week > 1:
 		var failure_ratio: float = 1.0 - (float(successful_days) / 7.0)
 		var penalty: float = max_weekly_corruption * failure_ratio
-		
-		# Uncomment when you are ready to link the Corruption Manager!
-		# if penalty > 0 and level_ref and level_ref.has_node("CorruptionManager"):
-		# 	level_ref.get_node("CorruptionManager").add_corruption(penalty)
 			
-	# 2. Reset the success counter
+	# 2. Reset the success counters AND the light history
 	successful_days = 0
+	weekly_history.clear() # --- NEW: Wipe the lights for Monday!
 	_reset_daily_deliveries()
 	
 	# 3. Advance to the next week and grab the new algorithm quota!
@@ -174,6 +171,7 @@ func _reset_daily_deliveries():
 func get_save_data() -> Dictionary:
 	return {
 		"successful_days": successful_days,
+		"weekly_history": weekly_history,
 		"current_week": current_week,
 		"daily_requirements": daily_requirements,
 		"daily_delivered": daily_delivered
@@ -181,6 +179,7 @@ func get_save_data() -> Dictionary:
 
 func load_save_data(data: Dictionary):
 	successful_days = data.get("successful_days", 0)
+	weekly_history = data.get("weekly_history", [])
 	current_week = data.get("current_week", 1)
 	
 	# Restore the exact requirements in case they saved mid-week

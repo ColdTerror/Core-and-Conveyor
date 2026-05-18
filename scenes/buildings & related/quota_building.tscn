@@ -6,11 +6,15 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_v2754"]
 atlas = ExtResource("2_v2754")
-region = Rect2(416, 192, 64, 64)
+region = Rect2(640, 192, 64, 64)
 
 [sub_resource type="Resource" id="Resource_7f1gp"]
 script = ExtResource("2_0dfqv")
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0dfqv"]
+atlas = ExtResource("2_v2754")
+region = Rect2(716, 192, 4, 4)
 
 [node name="QuotaBuilding" type="Node2D" unique_id=57449287 groups=["PriorityTarget"]]
 script = ExtResource("1_wrp7e")
@@ -20,7 +24,43 @@ icon = SubResource("AtlasTexture_v2754")
 build_costs = Array[ExtResource("2_0dfqv")]([SubResource("Resource_7f1gp")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1787609219]
-self_modulate = Color(0, 1, 1, 1)
 texture = ExtResource("2_v2754")
 region_enabled = true
-region_rect = Rect2(416, 192, 64, 64)
+region_rect = Rect2(640, 192, 64, 64)
+
+[node name="Lights" type="Node2D" parent="." unique_id=1080508732]
+
+[node name="Light1" type="Sprite2D" parent="Lights" unique_id=1109250874]
+visible = false
+texture = SubResource("AtlasTexture_0dfqv")
+offset = Vector2(-13, -13)
+
+[node name="Light2" type="Sprite2D" parent="Lights" unique_id=6403518]
+visible = false
+texture = SubResource("AtlasTexture_0dfqv")
+offset = Vector2(-13, 0)
+
+[node name="Light3" type="Sprite2D" parent="Lights" unique_id=396005717]
+visible = false
+texture = SubResource("AtlasTexture_0dfqv")
+offset = Vector2(-13, 13)
+
+[node name="Light4" type="Sprite2D" parent="Lights" unique_id=2061233780]
+visible = false
+texture = SubResource("AtlasTexture_0dfqv")
+offset = Vector2(0, 13)
+
+[node name="Light5" type="Sprite2D" parent="Lights" unique_id=902657081]
+visible = false
+texture = SubResource("AtlasTexture_0dfqv")
+offset = Vector2(13, 13)
+
+[node name="Light6" type="Sprite2D" parent="Lights" unique_id=331091335]
+visible = false
+texture = SubResource("AtlasTexture_0dfqv")
+offset = Vector2(13, 0)
+
+[node name="Light7" type="Sprite2D" parent="Lights" unique_id=1173304769]
+visible = false
+texture = SubResource("AtlasTexture_0dfqv")
+offset = Vector2(13, -13)

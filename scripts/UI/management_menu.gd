@@ -525,16 +525,25 @@ func _refresh_quota_tab():
 		row.add_child(day_label)
 		
 		if day_i < current_day_index:
-			# --- PAST DAYS ---
+			# --- UPGRADED: PAST DAYS (Using accurate history!) ---
 			var status_lbl = Label.new()
 			status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			if quota_mgr.daily_requirements.is_empty() or successes_assigned < quota_mgr.successful_days:
+			
+			var passed_today = false
+			
+			# Check the exact history array!
+			if quota_mgr.daily_requirements.is_empty():
+				passed_today = true # Grace period is always a pass
+			elif "weekly_history" in quota_mgr and day_i < quota_mgr.weekly_history.size():
+				passed_today = quota_mgr.weekly_history[day_i]
+				
+			if passed_today:
 				status_lbl.text = "QUOTA MET"
 				status_lbl.modulate = Color(0.2, 1.0, 0.2) # Green
-				successes_assigned += 1
 			else:
 				status_lbl.text = "MISSED"
 				status_lbl.modulate = Color(1.0, 0.2, 0.2) # Red
+				
 			row.add_child(status_lbl)
 			
 		elif day_i == current_day_index:
