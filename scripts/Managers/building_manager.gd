@@ -63,6 +63,9 @@ var drag_ghosts: Array[Node2D] = []
 
 # --- Relocation Tracking ---
 var is_relocating: bool = false
+var relocate_saved_pos: Vector2i
+var relocate_saved_scene: PackedScene
+
 
 # ==========================================
 # PRIORITY SYSTEM
@@ -158,7 +161,12 @@ func _reset_auto_grids():
 func start_placing(scene: PackedScene):
 	if scene == null: return
 
-	cancel_placement()
+	if placing_building:
+		cancel_placement()
+	elif ghost_building:
+		# Safety net: quietly clean up any orphaned ghost without triggering a rescue
+		ghost_building.queue_free()
+		ghost_building = null
 
 	ghost_building = scene.instantiate() as Building
 	
@@ -195,7 +203,10 @@ func start_relocating(building: Building):
 	var scene_path = building.scene_file_path
 	var target_scene = load(scene_path)
 	
-		
+	# --- 1. Save the Start Position ---
+	relocate_saved_pos = building.grid_origin
+	relocate_saved_scene = target_scene
+	
 	# 2. Tell the system it is "upgrading" so it doesn't refund global assets
 	building.is_upgrading = true
 	
@@ -294,16 +305,32 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	return true
 	
 func cancel_placement():
+	#If canceling a relocate place the building back where it was but with the tax
+	if is_relocating and relocate_saved_scene != null:
+		# Create a temporary dummy building just to feed to the blueprint generator
+		var temp_building = relocate_saved_scene.instantiate() as Building
+		var cost = temp_building.get_build_cost()
+		
+		# _place_blueprint natively handles the 50% wear-and-tear tax, 
+		# spawns the site, and deletes the temp_building for us!
+		_place_blueprint(temp_building, relocate_saved_pos, cost)
+
 	if ghost_building:
 		ghost_building.queue_free()
 		ghost_building = null
+		
 	_clear_drag_ghosts()
 	is_dragging = false
 	placing_building = false
 	is_relocating = false
+	relocate_saved_scene = null # Clear the memory
+	
 	_reset_auto_grids()
 	queue_redraw()
 	placement_ended.emit()
+	
+	# Give the mouse back to the world
+	InputManager.current_mode = InputManager.InteractionMode.NONE
 
 func rotate_ghost():
 	if not ghost_building: return
