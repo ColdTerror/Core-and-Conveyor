@@ -167,6 +167,7 @@ func refresh_ui():
 			if building_manager.has_method("start_relocating"):
 				building_manager.start_relocating(selected_object)
 				close_menu()
+				
 		)
 	
 	if selected_object is ProcessorBuilding:

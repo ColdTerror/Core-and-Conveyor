@@ -174,8 +174,7 @@ func start_placing(scene: PackedScene):
 	is_dragging = false
 	_clear_drag_ghosts()
 	
-	if level_ref and "current_mode" in level_ref:
-		level_ref.current_mode = level_ref.InteractionMode.PLACE_BUILDING
+	InputManager.current_mode = InputManager.InteractionMode.PLACE_BUILDING
 		
 	if not show_build_grid:
 		show_build_grid = true
