@@ -20,7 +20,7 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"c1c3c2be-8b67-45d3-8120-ecfafef36084"
+				"4a77e9a5-ca5e-4678-9dcd-fa146955a813"
 			]
 		},
 		{
@@ -28,7 +28,9 @@
 			"title": "Done",
 			"tasks": [
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
+				"c1c3c2be-8b67-45d3-8120-ecfafef36084",
 				"03d2faf8-9ec3-4dd8-be77-4838d3b6365f",
+				"c8287f77-d40e-4755-90e6-d8b65331baa9",
 				"2f7e1690-7821-47be-8496-35fd80f27c15",
 				"36e33cc0-bd21-4c3b-933a-a56c56802b80",
 				"9c37c930-addc-4aed-94cf-862c5f061304",
@@ -1286,6 +1288,20 @@
 			"uuid": "688f0686-426f-4f0c-a1ac-a03fd21d6a4a",
 			"title": "terraform should put dirt/sand depending on whats around it",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c8287f77-d40e-4755-90e6-d8b65331baa9",
+			"title": "debug tools for time",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "4a77e9a5-ca5e-4678-9dcd-fa146955a813",
+			"title": "quota doesnt update to finisher for the day until end of day",
+			"description": "and update lighting isnt run",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

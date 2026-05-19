@@ -81,6 +81,22 @@ func _unhandled_key_input(event: InputEvent):
 			if building_manager:
 				building_manager.handle_overlay_hotkeys(event.keycode)
 			get_viewport().set_input_as_handled()
+	
+	# ==========================================
+	# --- 4. DEBUG TOOLS ---
+	# ==========================================
+	match event.keycode:
+		KEY_F8:
+			if level_ref and level_ref.has_node("TimeManager"):
+				print("DEBUG: Force Skipping to Sunset...")
+				level_ref.get_node("TimeManager").debug_skip_to_night()
+			get_viewport().set_input_as_handled()
+			
+		KEY_F9:
+			if level_ref and level_ref.has_node("TimeManager"):
+				print("DEBUG: Force Skipping to Sunrise...")
+				level_ref.get_node("TimeManager").debug_skip_to_next_morning()
+			get_viewport().set_input_as_handled()
 
 # ==========================================
 # CONTINUOUS INPUT (WASD Camera Panning)
