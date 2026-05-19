@@ -14,7 +14,10 @@ func setup(level_instance: Node2D):
 		_q_manager = level_ref.get_node("QuotaManager")
 		
 		# Force our UI to refresh whenever ANY quota building eats an item!
-		_q_manager.quota_progress_updated.connect(func(): inventory_changed.emit())
+		_q_manager.quota_progress_updated.connect(func(): 
+			inventory_changed.emit()
+			_update_lights()
+		)
 		
 		_update_lights()
 
