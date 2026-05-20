@@ -347,10 +347,14 @@ func get_upgrade_data() -> Dictionary:
 	if "is_horizontal" in self:
 		data["is_horizontal"] = self.get("is_horizontal")
 		
+	print("GET UPGRADE DATA")
+	print(data)
 	return data
 
 # Unpacks the data into the newly spawned building
 func apply_upgrade_data(data: Dictionary):
+	print("restoring upgrade data")
+	print(data)
 	# Restore Inventory
 	if data.has("inventory") and "inventory" in self:
 		self.set("inventory", data["inventory"])
