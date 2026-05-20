@@ -15,7 +15,8 @@
 				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
 				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
 				"56d27607-6419-44b9-a851-6a67c13fdacb",
-				"ad0b76f8-611a-4774-a9cf-d779e0ec5b55"
+				"05c13da7-5cee-4d62-81bb-1688ba2f2444",
+				"b14d5553-5e6b-436d-8d28-40f599656aa5"
 			]
 		},
 		{
@@ -28,6 +29,8 @@
 			"title": "Done",
 			"tasks": [
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
+				"ad0b76f8-611a-4774-a9cf-d779e0ec5b55",
+				"9b9dbae0-896f-472e-873b-345eeb2e8c43",
 				"4a77e9a5-ca5e-4678-9dcd-fa146955a813",
 				"c1c3c2be-8b67-45d3-8120-ecfafef36084",
 				"03d2faf8-9ec3-4dd8-be77-4838d3b6365f",
@@ -1316,6 +1319,27 @@
 		{
 			"uuid": "ad0b76f8-611a-4774-a9cf-d779e0ec5b55",
 			"title": "quota manager should add corruption",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "05c13da7-5cee-4d62-81bb-1688ba2f2444",
+			"title": "corruption is displayed under resource tiles, they should either be on top or destroy the resource tiles to be able to spread there",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b14d5553-5e6b-436d-8d28-40f599656aa5",
+			"title": "corruption spreads slower on water?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "9b9dbae0-896f-472e-873b-345eeb2e8c43",
+			"title": "when skipping days current wave isnt updated",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

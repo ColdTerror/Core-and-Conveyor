@@ -83,6 +83,8 @@ var last_terrain_tile := Vector2i(-1, -1)
 
 @onready var building_manager: BuildingManager = $BuildingManager
 @onready var wave_manager: WaveManager = $WaveManager
+@onready var corruption_manager: CorruptionManager = $CorruptionManager
+@onready var quota_manager: QuotaManager = $QuotaManager
 @onready var pathfinder = $Pathfinder
 
 # ==========================================
@@ -112,6 +114,7 @@ func _ready():
 	
 	# Give the manager a reference to this Level node
 	building_manager.initialize(self)
+	quota_manager.initialize(self)
 
 	# Connect Hotbar Signal
 	if hotbar:

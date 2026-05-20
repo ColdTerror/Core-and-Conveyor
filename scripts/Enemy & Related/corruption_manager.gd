@@ -204,7 +204,25 @@ func _corrupt_tile(tile: Vector2i):
 	corruption_layer.set_cell(tile, corruption_source_id, corruption_atlas)
 	if not active_edges.has(tile):  
 		active_edges.append(tile)
-		
+
+# ==========================================
+# QUOTA PENALTY API
+# ==========================================
+func apply_quota_penalty(penalty_amount: float):
+	print("Corruption Manager received penalty: ", penalty_amount)
+	
+	# 1. The XP Spike (Pushes it closer to mutating to Tier 2/3/4)
+	_add_pressure(int(penalty_amount/2.0))
+	
+	# 2. The Instant Spread (Force the fog to grow right in front of their eyes)
+	# 1 extra tile spread for every 2 points of penalty
+	var bonus_spread_ticks = int(penalty_amount / 2.0) 
+	
+	if is_active:
+		print("The corruption violently expands by %d ticks!" % bonus_spread_ticks)
+		for i in range(bonus_spread_ticks):
+			_on_spread_tick()
+	
 # ==========================================
 # SAVE / LOAD SYSTEM
 # ==========================================

@@ -143,7 +143,17 @@ func process_end_of_day():
 func process_end_of_week():
 	if current_week > 1:
 		var failure_ratio: float = 1.0 - (float(successful_days) / 7.0)
-		var penalty: float = max_weekly_corruption * failure_ratio
+		var penalty: int = int(max_weekly_corruption * failure_ratio)
+		
+		if penalty > 0:
+			print("Week Failed! Applying penalty amount: ", penalty)
+			# TODO: Play a global warning siren here!
+			
+			if level_ref:
+				level_ref.corruption_manager.apply_quota_penalty(penalty)
+				
+			if level_ref:
+				level_ref.wave_manager.apply_quota_penalty(penalty)
 			
 	successful_days = 0
 	weekly_history.clear()

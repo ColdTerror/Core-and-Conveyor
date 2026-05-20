@@ -18,7 +18,7 @@ class_name WaveManager
 @export var initial_enemy_count: int = 4
 @export var difficulty_multiplier: float = 1.2 
 @export var corruption_penalty_factor: float = 0.01 # <--- NEW: 1 extra enemy per 100 tiles
-
+var pending_raid_penalty: float = 0.0
 
 # --- STATE ---
 var current_wave: int = 0
@@ -64,13 +64,31 @@ func _on_night_started(day_num: int):
 		
 		if extra_enemies > 0:
 			print("The spreading Corruption spawned %d extra monsters!" % extra_enemies)
-			
+	
+	if pending_raid_penalty > 0:
+		# Add 1 extra enemy for every 5 points of penalty (Adjust this math to your liking!)
+		var raid_bonus = int(pending_raid_penalty / 5.0)
+		extra_enemies += raid_bonus
+		print("!!! ENRAGED HORDE !!! Adding %d extra enemies to the wave!" % raid_bonus)
+		
+		# Clear the penalty so it only happens once
+		pending_raid_penalty = 0.0 
+		night_type = "RAID NIGHT"
+		
 	night_enemies_total = round((base_enemies + extra_enemies) * multiplier)
 	enemies_to_spawn = night_enemies_total
 	
 	print("Night %d [%s]: %d enemies inbound." % [current_wave, night_type, enemies_to_spawn])
 
 func _on_day_started(day_num: int):
+	# ==========================================
+	# --- THE FIX: SYNC THE CLOCK ---
+	# The sun just came up on a new day, which means the night 
+	# we just survived was "yesterday" (day_num - 1).
+	# max(1, ...) just prevents it from saying "Night 0" on the very first skip!
+	# ==========================================
+	current_wave = max(1, day_num - 1)
+	
 	if enemies_to_spawn > 0:
 		print("Dawn Rush! Forcing %d stragglers to spawn!" % enemies_to_spawn)
 		while enemies_to_spawn > 0:
@@ -168,7 +186,16 @@ func get_estimated_enemies() -> int:
 		
 	return round(base_enemies + extra_enemies)
 	
-
+# ==========================================
+# QUOTA PENALTY API
+# ==========================================
+func apply_quota_penalty(penalty_amount: float):
+	print("WARNING: Quota failed! The horde is enraged for tomorrow night!")
+	# Save the penalty to be unleashed at the next sunset
+	pending_raid_penalty += penalty_amount
+	
+	
+	
 # ==========================================
 # SAVE / LOAD SYSTEM
 # ==========================================
@@ -185,6 +212,7 @@ func get_save_data() -> Dictionary:
 		"enemies_to_spawn": enemies_to_spawn, # Removed the + currently_alive refund!
 		"is_wave_active": is_wave_active,
 		"spawn_accumulator": spawn_accumulator,
+		"pending_raid_penalty": pending_raid_penalty,
 		"live_enemies": live_enemies_data # <--- NEW: Save the live horde!
 	}
 
@@ -194,6 +222,7 @@ func load_save_data(data: Dictionary):
 	enemies_to_spawn = data.get("enemies_to_spawn", 0)
 	is_wave_active = data.get("is_wave_active", false)
 	spawn_accumulator = data.get("spawn_accumulator", 0.0)
+	pending_raid_penalty = data.get("pending_raid_penalty", 0.0)
 	
 	# --- NEW: SPAWN THE SAVED ENEMIES ---
 	if data.has("live_enemies") and enemy_scene:
