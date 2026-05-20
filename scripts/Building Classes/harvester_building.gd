@@ -295,6 +295,32 @@ func _clear_target_reservation():
 		if info.has("reserved_by") and info["reserved_by"] == self:
 			info["reserved_by"] = null
 
+# ==========================================
+# HYBRID UPGRADE PIPELINE (Duck Typing)
+# ==========================================
+
+# 1. Pack the backpack before upgrading
+func get_economy_assets() -> Dictionary:
+	var assets = {}
+	if stored_amount > 0 and target_resource and target_resource.item_drop:
+		assets[target_resource.item_drop.display_name] = stored_amount
+	return assets
+
+# 2. Unpack the backpack into the new Mk II Harvester
+func add_item(item_res: ItemResource, amount: int = 1) -> int:
+	# Filter: Reject if it's not the exact item this harvester produces
+	if not target_resource or not target_resource.item_drop: return 0
+	if item_res != target_resource.item_drop: return 0
+	
+	var space_left = buffer_capacity - stored_amount
+	if space_left <= 0: return 0
+	
+	var amount_to_take = min(amount, space_left)
+	stored_amount += amount_to_take
+	inventory_changed.emit()
+	
+	return amount_to_take
+	
 func get_inventory_info() -> Dictionary:
 	# Make sure the tile actually has an item_drop assigned
 	if target_resource and target_resource.item_drop and stored_amount > 0:

@@ -1361,4 +1361,11 @@ func _on_building_destroyed(b: Building):
 	if b.has_method("get_economy_assets"):
 		var assets = b.get_economy_assets()
 		if not assets.is_empty():
-			EconomyManager.remove_resources_from_global(assets)
+			
+			# ONLY remove from the Global UI if this was a Secured building!
+			if EconomyManager.active_sources.has(b):
+				EconomyManager.remove_resources_from_global(assets)
+				
+			# (Optional) You can still log Unsecured items as destroyed for the end-of-day stats!
+			for item_name in assets.keys():
+				EconomyManager.log_item_consumed(item_name, assets[item_name])

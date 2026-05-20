@@ -50,25 +50,33 @@ func die():
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return true
 
+# 2. Unpack the backpack into the correct buffers
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
-	# 1. Filter: Reject if no recipe or wrong item
 	if not active_recipe: return 0
+	
+	# --- SCENARIO A: Receiving Finished Products from Memory Limbo ---
+	if item_res == active_recipe.output_item:
+		var out_space_left = buffer_capacity - output_inventory
+		if out_space_left <= 0: return 0
+		
+		var out_take = min(amount, out_space_left)
+		output_inventory += out_take
+		inventory_changed.emit()
+		return out_take
+		
+	# --- SCENARIO B: Receiving Raw Ingredients (Normal Delivery or Limbo) ---
 	if not active_recipe.inputs.has(item_res): return 0 
 	
-	# 2. Capacity: Is the buffer full for this specific item?
 	var current_stored = input_inventory.get(item_res, 0)
 	var space_left = buffer_capacity - current_stored
 	
 	if space_left <= 0: return 0
 	
-	# 3. Math: Take the items!
 	var amount_to_take = min(amount, space_left)
-	
 	input_inventory[item_res] = current_stored + amount_to_take
 	inventory_changed.emit() 
 	
 	return amount_to_take
-	
 
 func can_accept_item(item_res: ItemResource) -> bool:
 	if not active_recipe: return false
@@ -214,6 +222,27 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 		return false # RETURN FAILURE
 
 
+# ==========================================
+# HYBRID UPGRADE PIPELINE (Duck Typing)
+# ==========================================
+
+# 1. Pack BOTH inventories into the backpack
+func get_economy_assets() -> Dictionary:
+	var assets = {}
+	
+	# Pack the raw ingredients
+	for item_res in input_inventory.keys():
+		if input_inventory[item_res] > 0:
+			assets[item_res.display_name] = input_inventory[item_res]
+			
+	# Pack the finished products
+	if output_inventory > 0 and active_recipe and active_recipe.output_item:
+		var out_name = active_recipe.output_item.display_name
+		# .get() just in case the input and output happen to be the exact same item
+		assets[out_name] = assets.get(out_name, 0) + output_inventory 
+		
+	return assets
+	
 # --- UI HELPERS ---
 func get_inventory_info() -> Dictionary:
 	var info = {}

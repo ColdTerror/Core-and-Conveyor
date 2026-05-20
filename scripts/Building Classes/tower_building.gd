@@ -45,11 +45,23 @@ func _ready():
 	apply_research_buffs()
 
 func die():
-	# Log all the arrows that burned down with the tower
-	for ammo_res in ammo_inventory:
-		EconomyManager.log_item_consumed(ammo_res.display_name, 1)
+	# ==========================================
+	# --- UPGRADED: DESTROY ALL STORED AMMO! ---
+	# ==========================================
+	var assets = get_economy_assets()
 	
+	if not assets.is_empty():
+		# 1. Erase from the global UI so the top bar doesn't lie!
+		EconomyManager.remove_resources_from_global(assets)
+		
+		# 2. Log it in the daily ledger as consumed/destroyed
+		for item_name in assets.keys():
+			var amount_lost = assets[item_name]
+			EconomyManager.log_item_consumed(item_name, amount_lost)
+			
 	ammo_inventory.clear()
+	# ==========================================
+	
 	super()
 	
 func setup(level_instance: Node2D):
@@ -172,32 +184,41 @@ func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 
 # --- 1. FILTERED INPUT ---
 
-func accepts_item_at(tile: Vector2i) -> bool:
-	return tile in occupied_tiles
-
 # --- THE "SOFT CAP" ADD ITEM LOGIC ---
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	# 1. Filter: Reject if it's not the right ammo
 	if not item_res.is_ammo: return 0
 	if item_res.ammo_type != required_ammo_type: return 0
 	
-	# 2. Capacity Check: Are we already completely full?
-	if ammo_inventory.size() >= ammo_capacity: 
-		return 0 # Reject it!
-		
-	# 3. Soft Cap: If we have ANY space left, we will take EXACTLY 1 physical item!
-	# (Even if that item contains 5 shots and pushes us over 20)
-	var stack_sz = item_res.stack_size if "stack_size" in item_res else 1
+	var shots_to_add = 0
+	var return_val = 0
 	
-	# Load all the shots from that single item into the magazine
-	for i in range(stack_sz):
+	# ==========================================
+	# --- HYBRID PIPELINE LOGIC ---
+	# ==========================================
+	if amount == 1:
+		# Scenario A: Bot/Belt Delivery! 
+		# If we are completely full, reject the bot.
+		if ammo_inventory.size() >= ammo_capacity: 
+			return 0 
+			
+		# If we have ANY space, take the whole bundle to prevent stuck bots!
+		shots_to_add = item_res.stack_size if "stack_size" in item_res else 1
+		return_val = 1 
+	else:
+		# Scenario B: Memory Limbo Injection! 
+		# Force every single saved arrow into the new tower to perfectly preserve the state.
+		shots_to_add = amount
+		return_val = amount 
+	# ==========================================
+		
+	# Load the shots into the magazine
+	for i in range(shots_to_add):
 		ammo_inventory.append(item_res)
 		
 	inventory_changed.emit()
+	return return_val
 	
-	# We successfully took 1 physical item out of the bot's hands or off the belt!
-	return 1
-
 
 func can_accept_item(item_res: ItemResource) -> bool:
 	if not item_res.is_ammo: return false
@@ -329,7 +350,14 @@ func get_inventory_info() -> Dictionary:
 
 # --- ECONOMY ---
 func get_economy_assets() -> Dictionary:
-	return {}
+	var assets = {}
+	
+	# Count every single arrow in the magazine
+	for ammo_res in ammo_inventory:
+		var item_name = ammo_res.display_name
+		assets[item_name] = assets.get(item_name, 0) + 1
+		
+	return assets
 	
 func cycle_targeting_mode():
 	current_targeting_index = (current_targeting_index + 1) % targeting_modes.size()

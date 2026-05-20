@@ -12,16 +12,14 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"1927bc55-588d-42eb-a84a-ae6a053f5789",
-				"5f48068f-ee10-4a5d-b46c-e0f3618570c2",
-				"31e63820-29e6-4a7c-a84c-065281479075"
+				"1927bc55-588d-42eb-a84a-ae6a053f5789"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"d355e88c-8c4a-400d-8936-14e3974d2624"
+				"5eac9efc-d2c9-4704-bf7f-65e20378d7df"
 			]
 		},
 		{
@@ -30,7 +28,10 @@
 			"tasks": [
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
 				"56d27607-6419-44b9-a851-6a67c13fdacb",
+				"d355e88c-8c4a-400d-8936-14e3974d2624",
+				"5f48068f-ee10-4a5d-b46c-e0f3618570c2",
 				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
+				"31e63820-29e6-4a7c-a84c-065281479075",
 				"fd6655cd-5a17-4b75-b8bc-2bfdedcccf82",
 				"ad0b76f8-611a-4774-a9cf-d779e0ec5b55",
 				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
@@ -1381,6 +1382,13 @@
 		{
 			"uuid": "31e63820-29e6-4a7c-a84c-065281479075",
 			"title": "when upgrading items are refuned globally",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "5eac9efc-d2c9-4704-bf7f-65e20378d7df",
+			"title": "two ledge system for secured and unsecured resources for ui",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
