@@ -993,7 +993,11 @@ func _get_upgrade_stats(b: Building) -> Dictionary:
 		stats["Fire Rate"] = "%d -> %d/s" % [b.fire_rate, temp.fire_rate]
 	if "damage_multiplier" in b and "damage_multiplier" in temp and b.damage_multiplier != temp.damage_multiplier:
 		stats["Damage Multiplier"] = "%.2fx -> %.2fx" % [b.damage_multiplier, temp.damage_multiplier]
-	
+	if "max_mixed_capacity" in b and "max_mixed_capacity" in temp and b.max_mixed_capacity != temp.max_mixed_capacity:
+		stats["Mixed Capacity"] = "%d -> %d" % [b.max_mixed_capacity, temp.max_mixed_capacity]
+	if "max_dedicated_capacity" in b and "max_dedicated_capacity" in temp and b.max_dedicated_capacity != temp.max_dedicated_capacity:
+		stats["Dedicated Capacity"] = "%d -> %d" % [b.max_dedicated_capacity, temp.max_dedicated_capacity]
+		
 	temp.queue_free()
 	return stats
 

@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/Building Classes/stockpile_building.gd" id="1_sqy8c"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_shrhu"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="4_x32ns"]
+[ext_resource type="PackedScene" uid="uid://bjdwanhs3c03d" path="res://scenes/buildings & related/belts & items/StockpileBuilding/stockpile_building2.tscn" id="5_uxb1x"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_shrhu"]
 atlas = ExtResource("1_5oplf")
@@ -14,10 +15,21 @@ script = ExtResource("4_x32ns")
 amount = 25
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
+[sub_resource type="Resource" id="Resource_8ny62"]
+script = ExtResource("4_x32ns")
+amount = 50
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_a7gpq"]
+script = ExtResource("4_x32ns")
+item_name = "Stone"
+amount = 50
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sqy8c"]
 size = Vector2(128, 128)
 
-[node name="StockpileBuilding" type="Node2D" unique_id=1914910995 groups=["PriorityTarget", "Structure"]]
+[node name="StockpileBuilding1" type="Node2D" unique_id=1914910995 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_sqy8c")
 generic_item_scene = ExtResource("2_shrhu")
 building_name = "Stockpile"
@@ -26,6 +38,8 @@ icon = SubResource("AtlasTexture_shrhu")
 build_costs = Array[ExtResource("4_x32ns")]([SubResource("Resource_e6hxc")])
 build_range = 8.0
 corruption_range = 10.0
+upgrades_to = ExtResource("5_uxb1x")
+upgrade_cost = Array[ExtResource("4_x32ns")]([SubResource("Resource_8ny62"), SubResource("Resource_a7gpq")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1701586786]
 texture = ExtResource("1_5oplf")

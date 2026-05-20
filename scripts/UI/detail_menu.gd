@@ -242,7 +242,12 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 		info_label.modulate = Color(0.5, 1, 0.5) 
 
 	if b.has_method("toggle_inventory_mode"):
-		var mode_text = "Mode: Dedicated (100)" if b.is_dedicated_mode else "Mode: Mixed (25)"
+		var mode_text = ""
+		if b.is_dedicated_mode:
+			mode_text = "Mode: Dedicated (%d)" % b.max_dedicated_capacity
+		else:
+			mode_text = "Mode: Mixed (%d)" % b.max_mixed_capacity
+			
 		var mode_color = Color(0.3, 0.8, 1.0) if b.is_dedicated_mode else Color(1.0, 0.8, 0.3)
 		_create_button(mode_text, mode_color, b.toggle_inventory_mode)
 		

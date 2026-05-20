@@ -12,15 +12,14 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
-				"8f825bdc-0652-4811-bb65-88a41be5e9c0"
+				"1927bc55-588d-42eb-a84a-ae6a053f5789"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"56d27607-6419-44b9-a851-6a67c13fdacb"
+				"d355e88c-8c4a-400d-8936-14e3974d2624"
 			]
 		},
 		{
@@ -28,7 +27,11 @@
 			"title": "Done",
 			"tasks": [
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
+				"56d27607-6419-44b9-a851-6a67c13fdacb",
+				"bf312af6-2b4c-4ddd-8cd7-a54bb8c37028",
+				"fd6655cd-5a17-4b75-b8bc-2bfdedcccf82",
 				"ad0b76f8-611a-4774-a9cf-d779e0ec5b55",
+				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
 				"b14d5553-5e6b-436d-8d28-40f599656aa5",
 				"9b9dbae0-896f-472e-873b-345eeb2e8c43",
 				"05c13da7-5cee-4d62-81bb-1688ba2f2444",
@@ -1341,6 +1344,27 @@
 		{
 			"uuid": "9b9dbae0-896f-472e-873b-345eeb2e8c43",
 			"title": "when skipping days current wave isnt updated",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fd6655cd-5a17-4b75-b8bc-2bfdedcccf82",
+			"title": "consume voided items in stockpile when clicked OR upgraded",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "d355e88c-8c4a-400d-8936-14e3974d2624",
+			"title": "carry over inventory when stockpile upgrade",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "1927bc55-588d-42eb-a84a-ae6a053f5789",
+			"title": "bot picks nearest resource THEN pathfinds so it could pick a close resource behind another then walk past 10 clsoer resources",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

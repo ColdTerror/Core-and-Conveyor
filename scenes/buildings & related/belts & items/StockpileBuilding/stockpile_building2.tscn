@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://bjdwanhs3c03d"]
+
+[ext_resource type="Script" uid="uid://d0go53ckols77" path="res://scripts/Building Classes/stockpile_building.gd" id="1_uuesc"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_nlqfx"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="3_qkues"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="4_dejhi"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shrhu"]
+atlas = ExtResource("3_qkues")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="Resource" id="Resource_e6hxc"]
+script = ExtResource("4_dejhi")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sqy8c"]
+size = Vector2(128, 128)
+
+[node name="StockpileBuilding2" type="Node2D" unique_id=1914910995 groups=["PriorityTarget", "Structure"]]
+script = ExtResource("1_uuesc")
+generic_item_scene = ExtResource("2_nlqfx")
+max_mixed_capacity = 75
+max_dedicated_capacity = 200
+building_name = "Stockpile"
+size = Vector2i(4, 4)
+icon = SubResource("AtlasTexture_shrhu")
+build_costs = Array[ExtResource("4_dejhi")]([SubResource("Resource_e6hxc")])
+build_range = 8.0
+corruption_range = 10.0
+building_level = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1701586786]
+texture = ExtResource("3_qkues")
+region_enabled = true
+region_rect = Rect2(0, 0, 128, 128)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1083066516]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=318691793]
+shape = SubResource("RectangleShape2D_sqy8c")

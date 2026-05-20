@@ -32,20 +32,18 @@ func _ready():
 
 
 func die():
-	# ==========================================
-	# --- NEW: DESTROY ALL STORED ITEMS! ---
-	# ==========================================
-	var lost_items_dict = {}
+	var assets = get_economy_assets()
 	
-	for item_res in inventory.keys():
-		var amount_lost = inventory[item_res]
-		var item_name = item_res.display_name
+	if not assets.is_empty():
+		# 1. Erase from the global UI so the top bar doesn't lie!
+		EconomyManager.remove_resources_from_global(assets)
 		
-		# 1. Log it in the daily ledger as consumed/destroyed
-		EconomyManager.log_item_consumed(item_name, amount_lost)
-		
+		# 2. Log it in the daily ledger as consumed/destroyed
+		for item_name in assets.keys():
+			var amount_lost = assets[item_name]
+			EconomyManager.log_item_consumed(item_name, amount_lost)
+			
 	inventory.clear()
-	# ==========================================
 	super() # Call the base class die() just in case!
 
 func _exit_tree():
@@ -395,6 +393,11 @@ func void_inventory():
 	if not assets.is_empty():
 		# Erase from the global UI
 		EconomyManager.remove_resources_from_global(assets)
+		
+		#Consume assets for stats
+		for item_name in assets.keys():
+			var amount = assets[item_name]
+			EconomyManager.log_item_consumed(item_name, amount)
 		
 	# Completely clear local data
 	inventory.clear()
