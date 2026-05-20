@@ -32,6 +32,9 @@ var level_ref: Node2D
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
+func _ready():
+	EconomyManager.register_source(self, false)
+	super()
 #Log items when destroyed
 func die():
 	# 1. Log the unrefined ingredients that burn down

@@ -43,6 +43,7 @@ func _ready():
 	_cached_range_tiles = _get_local_range_tiles()
 	add_to_group("Towers")
 	apply_research_buffs()
+	EconomyManager.register_source(self, false)
 
 func die():
 	# ==========================================

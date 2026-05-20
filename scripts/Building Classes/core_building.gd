@@ -36,7 +36,7 @@ func _ready():
 		core_destroyed.connect(ui._on_core_destroyed)
 		
 	# Register as a physical storage container
-	EconomyManager.register_source(self)
+	EconomyManager.register_source(self, true)
 
 func setup(level_instance: Node2D):
 	level_ref = level_instance

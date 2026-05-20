@@ -28,7 +28,7 @@ func _ready():
 	super() # Run building class ready as well
 	building_name = "Stockpile"
 	health = max_health - 10
-	EconomyManager.register_source(self)
+	EconomyManager.register_source(self, true)
 
 
 func die():

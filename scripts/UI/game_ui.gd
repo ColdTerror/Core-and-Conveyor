@@ -152,17 +152,21 @@ func _process(_delta):
 
 
 func update_labels():
-	# 1. Hide all existing labels first so unpinned items vanish
+	# 1. Hide all existing labels
 	for key in resource_labels.keys():
 		resource_labels[key].hide()
 
-	# 2. Loop through ONLY the pinned list (capped at 10 items)
+	# 2. Get the full unsecured map once to avoid calling it in the loop
+	var unsecured_map = EconomyManager.get_unsecured_inventory()
+
+	# 3. Loop through ONLY the pinned list (capped at 10 items)
 	var max_slots = min(EconomyManager.pinned_resources.size(), 10)
 	for i in range(max_slots):
 		var resource_name = EconomyManager.pinned_resources[i]
 		
-		# Safely grab the amount, defaulting to 0 if we've never collected it
-		var amount = EconomyManager.global_inventory.get(resource_name, 0)
+		# Grab both values
+		var secured = EconomyManager.global_inventory.get(resource_name, 0)
+		var in_transit = unsecured_map.get(resource_name, 0)
 
 		# Create the label if it doesn't exist yet
 		if not resource_labels.has(resource_name):
@@ -170,12 +174,17 @@ func update_labels():
 			inventoryContainer.add_child(new_label)
 			resource_labels[resource_name] = new_label
 
-		# Update the text, show it, and force it into the correct visual order!
+		# Update the text with the "(+X)" format if in_transit > 0
 		var lbl = resource_labels[resource_name]
-		lbl.text = "  %s: %d  " % [resource_name, amount]
+		
+		var display_text = "  %s: %d" % [resource_name, secured]
+		if in_transit > 0:
+			display_text += " (+%d)" % in_transit
+		display_text += "  " # Trailing space for padding
+		
+		lbl.text = display_text
 		lbl.show()
 		inventoryContainer.move_child(lbl, i)
-
 
 func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary = {}):
 	costPanel.show()

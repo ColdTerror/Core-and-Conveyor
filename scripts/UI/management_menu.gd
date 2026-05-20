@@ -286,11 +286,9 @@ func _rebuild_bot_list(bots: Array):
 func _refresh_resource_tab():
 	if not resource_list_container: return
 	
-	# 1. Clean up old rows
 	for child in resource_list_container.get_children():
 		child.queue_free()
 		
-	# 2. Add a Header Row
 	var header = Label.new()
 	header.text = "Top Bar Pinned Resources (Max 10)"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -298,9 +296,16 @@ func _refresh_resource_tab():
 	resource_list_container.add_child(header)
 	resource_list_container.add_child(HSeparator.new())
 	
-	# 3. Get all discovered items from the EconomyManager
-	var all_items = EconomyManager.global_inventory.keys()
+	# 1. Grab BOTH ledgers
+	var secured_items = EconomyManager.global_inventory
+	var unsecured_items = EconomyManager.get_unsecured_inventory()
 	
+	# 2. Combine the keys so we don't miss items that are ONLY in transit
+	var all_items_dict = {}
+	for key in secured_items.keys(): all_items_dict[key] = true
+	for key in unsecured_items.keys(): all_items_dict[key] = true
+	
+	var all_items = all_items_dict.keys()
 	all_items.sort()
 	
 	if all_items.is_empty():
@@ -309,13 +314,21 @@ func _refresh_resource_tab():
 		resource_list_container.add_child(empty_label)
 		return
 
-	# 4. Build a row for every item
+	# 3. Build a detailed row for every item
 	for item_name in all_items:
-		var amount = EconomyManager.global_inventory[item_name]
+		var available = secured_items.get(item_name, 0)
+		var in_transit = unsecured_items.get(item_name, 0)
 		var is_pinned = EconomyManager.pinned_resources.has(item_name)
-		_create_resource_row(item_name, amount, is_pinned)
+		
+		# Example: If you have a custom UI row generator, you can pass both numbers!
+		# If you haven't updated _create_resource_row yet, you can format the string here:
+		var display_text = "%d" % available
+		if in_transit > 0:
+			display_text += " (+%d In Transit)" % in_transit
+			
+		_create_resource_row(item_name, available, in_transit, is_pinned)
 
-func _create_resource_row(item_name: String, amount: int, is_pinned: bool):
+func _create_resource_row(item_name: String, available: int, in_transit: int, is_pinned: bool):
 	var wrapper = VBoxContainer.new()
 	var main_row = HBoxContainer.new()
 	main_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -333,7 +346,12 @@ func _create_resource_row(item_name: String, amount: int, is_pinned: bool):
 	
 	var amount_label = Label.new()
 	amount_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	amount_label.text = "Total: %d" % amount
+	
+	# Show "Available" and optionally "In Transit"
+	var text = "Total: %d" % available
+	if in_transit > 0:
+		text += " (+%d)" % in_transit
+	amount_label.text = text
 	amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	
 	main_row.add_child(pin_btn)
@@ -352,7 +370,7 @@ func _create_resource_row(item_name: String, amount: int, is_pinned: bool):
 	
 	resource_list_container.add_child(wrapper)
 	resource_list_container.add_child(HSeparator.new())
-
+	
 func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: Button):
 	if container.visible:
 		container.hide()
@@ -364,56 +382,56 @@ func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: 
 	
 	for child in container.get_children():
 		child.queue_free()
-		
+	
 	var found_any = false
+	
+	# Helper function to create the row
+	var add_detail_row = func(b, amount, is_secured):
+		var b_row = HBoxContainer.new()
+		b_row.alignment = BoxContainer.ALIGNMENT_END
+		
+		# Indicate if it's secured/unsecured visually
+		var status_icon = " \u2713 " if is_secured else " \u23F3 " 
+		var b_label = Label.new()
+		b_label.text = "    %s %s: %d" % [status_icon, b.building_name, amount]
+		b_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b_label.modulate = Color(0.8, 0.8, 0.8) if is_secured else Color(0.6, 0.6, 0.6)
+		
+		var locate_btn = Button.new()
+		locate_btn.text = " Locate "
+		locate_btn.modulate = Color(0.3, 0.8, 1.0)
+		locate_btn.pressed.connect(func():
+			var cam = get_tree().get_first_node_in_group("Camera")
+			if cam and cam.has_method("set_follow_target"):
+				cam.set_follow_target(b)
+			close_menu()
+		)
+		
+		b_row.add_child(b_label)
+		b_row.add_child(locate_btn)
+		container.add_child(b_row)
 	
 	for b in building_manager.buildings:
 		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
 		
-		var b_amount = 0
+		# Determine if the building is a secured source (Stockpile/Core)
+		var is_secured = EconomyManager.secured_sources.has(b)
 		
-		if "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
-			for key in b.inventory.keys():
-				if key is ItemResource and key.display_name == item_name:
-					b_amount += b.inventory[key]
-				elif typeof(key) == TYPE_STRING and key == item_name:
-					b_amount += b.inventory[key]
-					
-		if b_amount == 0 and b.has_method("get_economy_assets"):
+		var b_amount = 0
+		if b.has_method("get_economy_assets"):
 			var assets = b.get_economy_assets()
-			if assets.has(item_name):
-				b_amount += assets[item_name]
-				
+			b_amount = assets.get(item_name, 0)
+					
 		if b_amount > 0:
 			found_any = true
-			var b_row = HBoxContainer.new()
-			b_row.alignment = BoxContainer.ALIGNMENT_END
-			
-			var b_label = Label.new()
-			b_label.text = "   \u2514 %s: %d" % [b.building_name, b_amount]
-			b_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			b_label.modulate = Color(0.8, 0.8, 0.8)
-			
-			var locate_btn = Button.new()
-			locate_btn.text = " Locate "
-			locate_btn.modulate = Color(0.3, 0.8, 1.0)
-			locate_btn.pressed.connect(func():
-				var cam = get_tree().get_first_node_in_group("Camera")
-				if cam and cam.has_method("set_follow_target"):
-					cam.set_follow_target(b)
-				close_menu()
-			)
-			
-			b_row.add_child(b_label)
-			b_row.add_child(locate_btn)
-			container.add_child(b_row)
+			add_detail_row.call(b, b_amount, is_secured)
 			
 	if not found_any:
 		var empty = Label.new()
-		empty.text = "   \u2514 Not currently stored in any building."
+		empty.text = "    \u2514 Not currently stored anywhere."
 		empty.modulate = Color(0.5, 0.5, 0.5)
 		container.add_child(empty)
-
+		
 func _toggle_pin(item_name: String):
 	if EconomyManager.pinned_resources.has(item_name):
 		EconomyManager.pinned_resources.erase(item_name)

@@ -16,15 +16,18 @@ var global_inventory: Dictionary = {"Wood": 0, "Stone": 0}
 var pinned_resources: Array[String] = ["Wood", "Stone"]
 
 # --- TRACKING SOURCES ---d
-var active_sources: Array[Node] = []
+var secured_sources: Array[Node] = []
+var unsecured_sources: Array[Node] = []
 
-func register_source(b: Node):
-	if not b in active_sources:
-		active_sources.append(b)
+func register_source(b: Node, is_secured: bool = true):
+	if is_secured and not b in secured_sources:
+		secured_sources.append(b)
+	elif not is_secured and not b in unsecured_sources:
+		unsecured_sources.append(b)
 
 func unregister_source(b: Node):
-	if b in active_sources:
-		active_sources.erase(b)
+	secured_sources.erase(b)
+	unsecured_sources.erase(b)
 
 # ==========================================
 # STATISTICS LEDGER
@@ -93,7 +96,7 @@ func can_afford(cost: Dictionary) -> bool:
 func _pull_items_from_sources(cost: Dictionary):
 	var remaining_bill = cost.duplicate()
 	
-	for source in active_sources:
+	for source in secured_sources:
 		if remaining_bill.is_empty(): break
 		
 		if source.has_method("consume_resources"):
@@ -102,6 +105,16 @@ func _pull_items_from_sources(cost: Dictionary):
 func get_item_count(item_name: String) -> int:
 	return global_inventory.get(item_name, 0)
 
+# --- NEW: Helper for the UI ---
+func get_unsecured_inventory() -> Dictionary:
+	var in_transit = {}
+	for source in unsecured_sources:
+		if source.has_method("get_economy_assets"):
+			var assets = source.get_economy_assets()
+			for item_name in assets.keys():
+				in_transit[item_name] = in_transit.get(item_name, 0) + assets[item_name]
+	return in_transit
+	
 # ==========================================
 # ARCHIVING LOGIC (Triggered by TimeManager)
 # ==========================================
@@ -144,7 +157,7 @@ func load_save_data(data: Dictionary):
 func recalculate_global_inventory():
 	global_inventory.clear()
 	
-	for source in active_sources:
+	for source in secured_sources:
 		# Ask the building exactly what it holds right now
 		if source.has_method("get_economy_assets"):
 			var assets = source.get_economy_assets()

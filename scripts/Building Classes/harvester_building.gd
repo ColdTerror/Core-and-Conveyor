@@ -33,8 +33,10 @@ var _claimed_tiles: Array[Vector2i] = []
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 	_claim_territory()
+	
 
 func _ready():
+	EconomyManager.register_source(self, false)
 	super()
 	health = max_health - 10
 	
