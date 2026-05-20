@@ -49,7 +49,6 @@ var occupied_tiles: Array[Vector2i] = []
 
 var grid_origin: Vector2i = Vector2i.ZERO
 
-var is_upgrading: bool = false
 
 var is_selected: bool = false
 
@@ -322,10 +321,6 @@ func consume_resources(remaining_bill: Dictionary):
 # Packs up important data before dying
 func get_upgrade_data() -> Dictionary:
 	var data = {}
-	
-	# Save the inventory (Deep copy so it doesn't get deleted!)
-	if "inventory" in self and typeof(self.get("inventory")) == TYPE_DICTIONARY:
-		data["inventory"] = self.get("inventory").duplicate(true)
 		
 	# Save Dedicated Stockpile filters (if you have them)
 	if "selected_output_name" in self:
@@ -355,10 +350,6 @@ func get_upgrade_data() -> Dictionary:
 func apply_upgrade_data(data: Dictionary):
 	print("restoring upgrade data")
 	print(data)
-	# Restore Inventory
-	if data.has("inventory") and "inventory" in self:
-		self.set("inventory", data["inventory"])
-		inventory_changed.emit() # Tell the UI to update!
 		
 	# Restore Filters
 	if data.has("selected_output_name") and "selected_output_name" in self:

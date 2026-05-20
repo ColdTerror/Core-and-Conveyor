@@ -12,7 +12,9 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"1927bc55-588d-42eb-a84a-ae6a053f5789"
+				"1927bc55-588d-42eb-a84a-ae6a053f5789",
+				"5f48068f-ee10-4a5d-b46c-e0f3618570c2",
+				"31e63820-29e6-4a7c-a84c-065281479075"
 			]
 		},
 		{
@@ -1365,6 +1367,20 @@
 		{
 			"uuid": "1927bc55-588d-42eb-a84a-ae6a053f5789",
 			"title": "bot picks nearest resource THEN pathfinds so it could pick a close resource behind another then walk past 10 clsoer resources",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "5f48068f-ee10-4a5d-b46c-e0f3618570c2",
+			"title": "should limbo resources when relocating too",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "31e63820-29e6-4a7c-a84c-065281479075",
+			"title": "when upgrading items are refuned globally",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

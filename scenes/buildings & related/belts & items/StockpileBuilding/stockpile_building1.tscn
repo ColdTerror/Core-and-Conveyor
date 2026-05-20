@@ -20,12 +20,6 @@ script = ExtResource("4_x32ns")
 amount = 50
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
-[sub_resource type="Resource" id="Resource_a7gpq"]
-script = ExtResource("4_x32ns")
-item_name = "Stone"
-amount = 50
-metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sqy8c"]
 size = Vector2(128, 128)
 
@@ -39,7 +33,7 @@ build_costs = Array[ExtResource("4_x32ns")]([SubResource("Resource_e6hxc")])
 build_range = 8.0
 corruption_range = 10.0
 upgrades_to = ExtResource("5_uxb1x")
-upgrade_cost = Array[ExtResource("4_x32ns")]([SubResource("Resource_8ny62"), SubResource("Resource_a7gpq")])
+upgrade_cost = Array[ExtResource("4_x32ns")]([SubResource("Resource_8ny62")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1701586786]
 texture = ExtResource("1_5oplf")

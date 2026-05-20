@@ -65,6 +65,8 @@ var drag_ghosts: Array[Node2D] = []
 var is_relocating: bool = false
 var relocate_saved_pos: Vector2i
 var relocate_saved_scene: PackedScene
+var relocate_saved_data: Dictionary = {}      # <--- NEW: Holds configuration
+var relocate_saved_inventory: Dictionary = {} # <--- NEW: Holds items
 
 
 # ==========================================
@@ -207,9 +209,14 @@ func start_relocating(building: Building):
 	relocate_saved_pos = building.grid_origin
 	relocate_saved_scene = target_scene
 	
-	# 2. Tell the system it is "upgrading" so it doesn't refund global assets
-	building.is_upgrading = true
-	
+	relocate_saved_data.clear()
+	if building.has_method("get_upgrade_data"):
+		relocate_saved_data = building.get_upgrade_data()
+		
+	relocate_saved_inventory.clear()
+	if building.has_method("get_economy_assets"):
+		relocate_saved_inventory = building.get_economy_assets().duplicate()
+		
 	# 3. Cleanly remove the old building to enforce the Teleport Tax
 	_on_building_destroyed(building)
 	building.queue_free()
@@ -397,30 +404,57 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	add_child(site)
 	site.setup_blueprint(level_ref, target_scene, cost, building.size, building.building_name)
 	
-	# ==========================================
-	# --- THE WEAR AND TEAR TAX ---
-	# ==========================================
+	var final_blueprint_data = {}
+	
 	if is_relocating:
+		# ==========================================
+		# --- THE WEAR AND TEAR TAX ---
+		# ==========================================
 		for item_name in site.required_items.keys():
 			var total_needed = site.required_items[item_name]
-			# Pre-fill exactly half the cost!
+			# Pre-fill exactly half the cost (Salvaged from the old building)
 			site.delivered_items[item_name] = floor(total_needed / 2.0)
 			
+		# ==========================================
+		# --- HYBRID PIPELINE: AUTO-APPLY INVENTORY ---
+		# ==========================================
+		for item_name in site.required_items.keys():
+			if relocate_saved_inventory.has(item_name):
+				# Calculate what is STILL needed after the salvage tax
+				var needed = site.required_items[item_name] - site.delivered_items.get(item_name, 0)
+				var available = relocate_saved_inventory[item_name]
+				var to_consume = min(needed, available)
+				
+				if to_consume > 0:
+					site.delivered_items[item_name] = site.delivered_items.get(item_name, 0) + to_consume
+					
+					relocate_saved_inventory[item_name] -= to_consume
+					if relocate_saved_inventory[item_name] <= 0:
+						relocate_saved_inventory.erase(item_name)
+						
+		# Merge the configuration and the leftover inventory
+		final_blueprint_data = relocate_saved_data.duplicate()
+		if not relocate_saved_inventory.is_empty():
+			final_blueprint_data["saved_inventory"] = relocate_saved_inventory.duplicate()
 			
+		# Clean up tracking variables
 		is_relocating = false
-	# ==========================================
-	
-	# ==========================================
-	# --- NEW: SAVE ROTATION FOR THE BLUEPRINT ---
-	# ==========================================
-	# Extract the rotation data from the ghost before we delete it
-	var saved_data = {}
-	if building.has_method("get_upgrade_data"):
-		saved_data = building.get_upgrade_data()
-		
+		relocate_saved_data.clear()
+		relocate_saved_inventory.clear()
+		# ==========================================
+	else:
+		# --- NORMAL PLACEMENT ---
+		# Extract the rotation/configuration data from the transparent ghost
+		if building.has_method("get_upgrade_data"):
+			final_blueprint_data = building.get_upgrade_data()
+			
 	# Hand the sticky note to the ConstructionSite!
-	if not saved_data.is_empty():
-		site.set_meta("relocation_data", saved_data)
+	if not final_blueprint_data.is_empty():
+		site.set_meta("blueprint_data", final_blueprint_data)
+	
+	# --- NEW: WAKE UP THE SITE ---
+	if site.has_method("evaluate_requirements"):
+		site.evaluate_requirements()
 		
 	site.place_at(grid_pos, object_layer)
 
@@ -856,7 +890,6 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	for cost in old_building.upgrade_cost:
 		upgrade_cost_dict[cost.item_name] = cost.amount
 	
-
 	var is_instant = old_building is ConveyorBuilding or old_building is WallBuilding
 	
 	if is_instant and not upgrade_cost_dict.is_empty():
@@ -866,7 +899,9 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	var true_origin = old_building.grid_origin
 	var old_priority_index = master_priority_queue.find(old_building)
 	
-	# 1. EXTRACT DATA BEFORE DESTRUCTION
+	# ==========================================
+	# 1. EXTRACT ALL DATA BEFORE DESTRUCTION
+	# ==========================================
 	var saved_data = {}
 	if old_building.has_method("get_upgrade_data"):
 		saved_data = old_building.get_upgrade_data()
@@ -874,7 +909,11 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	if "direction" in old_building: saved_data["direction"] = old_building.direction
 	if "rotation" in old_building: saved_data["rotation"] = old_building.rotation
 		
-	old_building.is_upgrading = true # Tell the system not to delete the global items!
+	# --- HYBRID PIPELINE: EXTRACT INVENTORY ---
+	var old_inventory = {}
+	if old_building.has_method("get_economy_assets"):
+		old_inventory = old_building.get_economy_assets().duplicate()
+	# ==========================================
 	
 	_on_building_destroyed(old_building)
 	old_building.queue_free()
@@ -932,8 +971,35 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		var target_name = old_building.building_name + " (Upgrading)"
 		site.setup_blueprint(level_ref, old_building.upgrades_to, upgrade_cost_dict, old_building.size, target_name)
 		
+		# ==========================================
+		# 2. APPLY INVENTORY MATH
+		# ==========================================
+		for item_name in upgrade_cost_dict.keys():
+			if old_inventory.has(item_name):
+				var needed = upgrade_cost_dict[item_name]
+				var available = old_inventory[item_name]
+				var to_consume = min(needed, available)
+				
+				if to_consume > 0:
+					# Pre-fill the site's delivery box!
+					site.delivered_items[item_name] = site.delivered_items.get(item_name, 0) + to_consume
+					
+					# Remove it from the limbo inventory
+					old_inventory[item_name] -= to_consume
+					if old_inventory[item_name] <= 0:
+						old_inventory.erase(item_name)
+						
+		# Pack whatever is left into the saved_data dictionary
+		if not old_inventory.is_empty():
+			saved_data["saved_inventory"] = old_inventory
+			
+		# Hand the backpack to the site!
 		if not saved_data.is_empty():
-			site.set_meta("relocation_data", saved_data)
+			site.set_meta("blueprint_data", saved_data)
+		# --- NEW: WAKE UP THE SITE ---
+		if site.has_method("evaluate_requirements"):
+			site.evaluate_requirements()
+		# ==========================================
 			
 		site.place_at(true_origin, level_ref.object_layer)
 		
@@ -946,7 +1012,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 				pathfinder.enemy_astar.set_point_weight_scale(tile, 50.0)
 				
 	return true
-
+	
 func show_upgrade_preview(grid_pos: Vector2i):
 	if not occupied_tiles.has(grid_pos):
 		placement_ended.emit()
@@ -1292,8 +1358,7 @@ func _on_building_destroyed(b: Building):
 				pathfinder.set_obstacle(tile, false)
 				pathfinder.set_weighted_obstacle(tile, 1.0)
 
-	if not b.is_upgrading:
-		if b.has_method("get_economy_assets"):
-			var assets = b.get_economy_assets()
-			if not assets.is_empty():
-				EconomyManager.remove_resources_from_global(assets)
+	if b.has_method("get_economy_assets"):
+		var assets = b.get_economy_assets()
+		if not assets.is_empty():
+			EconomyManager.remove_resources_from_global(assets)

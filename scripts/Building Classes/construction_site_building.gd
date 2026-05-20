@@ -80,17 +80,34 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	inventory_changed.emit()
 	
 	queue_redraw()
-	_check_if_fully_stocked()
+	evaluate_requirements()
 	return amount_to_take
 
-func _check_if_fully_stocked():
-	for req_name in required_items.keys():
-		var amount_we_have = delivered_items.get(req_name, 0)
-		if amount_we_have < required_items[req_name]:
-			return # Still missing something
+# ==========================================
+# PUBLIC STATE CHECK
+# ==========================================
+func evaluate_requirements():
+	var all_met = true
+	
+	for item_name in required_items.keys():
+		var needed = required_items[item_name]
+		var current = delivered_items.get(item_name, 0)
+		
+		if current < needed:
+			all_met = false
+			break
 			
-	is_ready_to_build = true
-
+	# If we hit 100% funding and haven't flipped the switch yet
+	if all_met and not is_ready_to_build:
+		is_ready_to_build = true
+		print("Site fully funded! Ready for builders.")
+		
+		# Instantly redraw the hologram (Changes from Red/Orange to Yellow!)
+		queue_redraw() 
+		
+	# Always tell the UI to update the progress bar numbers!
+	if has_signal("inventory_changed"):
+		inventory_changed.emit()
 # ==========================================
 # NEW: DEDICATED BUILD LOGIC
 # ==========================================
@@ -125,11 +142,23 @@ func _finish_construction():
 	
 	level_ref.building_manager.add_child(new_building)
 	
-	#Hand it the save data and setup call after ready is run
-	if has_meta("relocation_data"):
-		var saved_data = get_meta("relocation_data")
+	if has_meta("blueprint_data"):
+		var saved_data = get_meta("blueprint_data")
+		
+		# 1. Apply Upgrades & Rotations
 		if new_building.has_method("apply_upgrade_data"):
 			new_building.apply_upgrade_data(saved_data)
+			
+		# 2. Unpack Memory Limbo Inventory
+		if saved_data.has("saved_inventory") and new_building.has_method("add_item"):
+			var limbo_items = saved_data["saved_inventory"]
+			
+			# Re-instantiate the physical items into the new building
+			for item_name in limbo_items.keys():
+				var amount = limbo_items[item_name]
+				var item_res = ItemDatabase.get_item(item_name) # Ensure you have an ItemDatabase Autoload or equivalent!
+				if item_res:
+					new_building.add_item(item_res, amount)
 			
 	if new_building.has_method("setup"):
 		new_building.setup(level_ref)
@@ -237,8 +266,8 @@ func get_save_data() -> Dictionary:
 	data["size_y"] = size.y
 	
 	# --- NEW: Save the sticky note! ---
-	if has_meta("relocation_data"):
-		data["relocation_data"] = get_meta("relocation_data")
+	if has_meta("blueprint_data"):
+		data["blueprint_data"] = get_meta("blueprint_data")
 
 	
 	return data
@@ -270,8 +299,8 @@ func load_save_data(data: Dictionary):
 	is_ready_to_build = data.get("is_ready_to_build", false)
 	
 	# --- NEW: Restore the sticky note! ---
-	if data.has("relocation_data"):
-		set_meta("relocation_data", data["relocation_data"])
+	if data.has("blueprint_data"):
+		set_meta("blueprint_data", data["blueprint_data"])
 	
 				
 	# Tell the UI to update the progress bar!
