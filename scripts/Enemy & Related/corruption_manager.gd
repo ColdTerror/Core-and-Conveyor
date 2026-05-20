@@ -2,9 +2,10 @@ extends Node2D
 class_name CorruptionManager
 
 @export_group("References")
+@export var level_ref: Node2D
 @export var corruption_layer: TileMapLayer
 @export var terrain_layer: TileMapLayer  # The floor (grass, sand)
-@export var object_layer: TileMapLayer   # Obstacles (water, rocks)
+@export var object_layer: TileMapLayer   # Obstacles (trees, rocks)
 @export var building_manager: BuildingManager
 @export var wave_manager: WaveManager
 @export var time_manager: TimeManager   
@@ -141,7 +142,6 @@ func _on_spread_tick():
 	if blocked_attempts > 0:
 		_add_pressure(blocked_attempts * 1.0)
 
-# We now return a Dictionary so we can report back IF we spread, AND how many times we were blocked!
 func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 	var directions = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
 	var has_empty_neighbors = false
@@ -153,32 +153,66 @@ func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 		if corruption_layer.get_cell_source_id(neighbor) != -1:
 			continue
 			
-		# --- UPDATED: RESISTANCE CHECK ---
+		# --- RESISTANCE CHECK ---
 		var resistance = building_manager.safe_tiles.get(neighbor, 0)
-		
 		if resistance > 0:
-			# If the shield is stronger than the corruption, it blocks it!
 			if resistance >= corruption_tier:
 				blocked_count += 1
-				continue # Blocked! Move to the next neighbor.
+				continue # Blocked! 
 			else:
-				# The Corruption is a higher tier than the shield! It breaks through!
 				pass 
 		# ---------------------------------
 			
 		var has_floor = terrain_layer and terrain_layer.get_cell_source_id(neighbor) != -1
 		if has_floor:
+			
+			# --- NEW: TERRAIN RESISTANCE CHECK ---
+			var tile_data = terrain_layer.get_cell_tile_data(neighbor)
+			var is_water = false
+			if tile_data:
+				is_water = tile_data.get_custom_data("is_water")
+				
+			# If it's water, only spread 20% of the time (80% failure rate per tick)
+			if is_water and randf() > 0.20:
+				return {"has_empty": true, "blocked_count": blocked_count}
+			# -------------------------------------
+			
 			var has_obstacle = object_layer and object_layer.get_cell_source_id(neighbor) != -1
 			if has_obstacle:
-				if randf() > 0.25:
-					return {"has_empty": true, "blocked_count": blocked_count} 
+				# We look up the object info directly from the global Autoload
+				if ResourceManager.active_regrowth_tasks.has(neighbor) or not level_ref.active_grid_objects.has(neighbor):
+					# If it's already a stump or empty, spread normally
+					has_empty_neighbors = true
+					_corrupt_tile(neighbor)
+				else:
+					# It's an active resource! Chew on it.
+					var obj_info = level_ref.active_grid_objects[neighbor]
+					var damage = int(5 * corruption_tier)
+					
+					# Use the global Autoload to apply damage
+					ResourceManager.request_harvest(neighbor, obj_info, damage)
+					
+					# Did the corruption kill it?
+					if obj_info["health"] <= 0:
+						# 1. Cancel regrowth if it was a tree
+						if ResourceManager.active_regrowth_tasks.has(neighbor):
+							ResourceManager.active_regrowth_tasks.erase(neighbor)
+							
+						# 2. Force delete from the map
+						object_layer.set_cell(neighbor, -1)
+						level_ref.active_grid_objects.erase(neighbor)
+						
+						# 3. Spread into the barren tile
+						_corrupt_tile(neighbor)
+							
+				return {"has_empty": true, "blocked_count": blocked_count}
 			
 			has_empty_neighbors = true
 			_corrupt_tile(neighbor)
 			return {"has_empty": true, "blocked_count": blocked_count}
 			
 	return {"has_empty": has_empty_neighbors, "blocked_count": blocked_count}
-
+	
 func _add_pressure(amount: float):
 	current_pressure += amount
 	

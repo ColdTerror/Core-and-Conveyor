@@ -203,8 +203,9 @@ tile_set = ExtResource("2_w8frs")
 [node name="OverlayRenderer" type="Node2D" parent="." unique_id=826390895 groups=["OverlayRenderer"]]
 script = ExtResource("25_svjb4")
 
-[node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("corruption_layer", "terrain_layer", "object_layer", "building_manager", "wave_manager", "time_manager")]
+[node name="CorruptionManager" type="Node2D" parent="." unique_id=964623052 node_paths=PackedStringArray("level_ref", "corruption_layer", "terrain_layer", "object_layer", "building_manager", "wave_manager", "time_manager")]
 script = ExtResource("34_v3why")
+level_ref = NodePath("..")
 corruption_layer = NodePath("../CorruptionLayer")
 terrain_layer = NodePath("../TerrainLayer")
 object_layer = NodePath("../ObjectLayer")
