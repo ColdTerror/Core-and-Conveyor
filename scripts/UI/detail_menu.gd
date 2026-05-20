@@ -97,7 +97,11 @@ func open_menu(target: Node2D):
 	if selected_object.has_signal("inventory_changed"):
 		if not selected_object.inventory_changed.is_connected(refresh_ui):
 			selected_object.inventory_changed.connect(refresh_ui)
-
+	
+	if selected_object is ConveyorBuilding:
+		if not selected_object.item_changed.is_connected(refresh_ui):
+			selected_object.item_changed.connect(refresh_ui)
+		
 	refresh_ui()
 	show()
 	
@@ -124,6 +128,10 @@ func close_menu():
 	if cam and cam.has_method("set_follow_target"):
 		cam.set_follow_target(null)
 	
+	if is_instance_valid(selected_object) and selected_object is ConveyorBuilding:
+		if selected_object.item_changed.is_connected(refresh_ui):
+			selected_object.item_changed.disconnect(refresh_ui)
+			
 	selected_object = null
 	hide()
 	menu_closed.emit()
@@ -184,6 +192,8 @@ func refresh_ui():
 		_setup_bot_ui(selected_object)
 	elif selected_object is Enemy:
 		_setup_enemy_ui(selected_object)
+	elif selected_object is ConveyorBuilding:
+		_setup_conveyor_ui(selected_object as ConveyorBuilding)
 	elif selected_object is FilterBuilding:
 		_setup_filter_ui(selected_object as FilterBuilding)
 	else:
@@ -442,6 +452,34 @@ func _setup_enemy_ui(e: Enemy):
 	
 	# Optional: You could add a button here to "Mark Priority Target" for towers later!
 
+# --- Belt UI Helper ---
+func _setup_conveyor_ui(b: ConveyorBuilding):
+	# 1. Update the Info Label
+	var item_name = "Empty"
+	if b.held_item and "item_data" in b.held_item and b.held_item.item_data:
+		item_name = b.held_item.item_data.display_name
+		info_label.modulate = Color(0.4, 1.0, 0.4) # Green if holding something
+	else:
+		info_label.modulate = Color(0.5, 0.5, 0.5) # Gray if empty
+		
+	info_label.text = "Held Item: %s" % item_name
+	
+	# 2. Add the Void Button (Only if holding an item)
+	if b.held_item and is_instance_valid(b.held_item):
+		_create_button("Void Item", Color(1.0, 0.3, 0.3), func():
+			if b.held_item and is_instance_valid(b.held_item):
+				# Log the destruction to the economy!
+				if "item_data" in b.held_item and b.held_item.item_data:
+					EconomyManager.log_item_consumed(b.held_item.item_data.display_name, 1)
+				
+				# Destroy the visual item
+				b.held_item.queue_free()
+				b.held_item = null
+				
+				# Refresh the menu so the button vanishes
+				refresh_ui()
+		)
+		
 func _setup_filter_ui(b: FilterBuilding):
 	var current_filter = b.filter_options[b.current_filter_index]
 	var mode_text = "Output: Sides" if b.is_split_mode else "Output: Forward"

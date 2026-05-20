@@ -18,6 +18,7 @@ var is_moving_to_edge: bool = false  # false = moving to center, true = moving t
 var is_jammed: bool = false  # Explicitly tracks if we hit a wall
 var push_cooldown: float = 0.0
 
+signal item_changed
 
 # ============================================================
 # SETUP & CLEANUP
@@ -106,6 +107,8 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 		var back_edge = global_position - (Vector2(direction) * 16.0)
 		item_node.global_position = back_edge
 		
+	if held_item != null:
+		item_changed.emit()
 	return true  # Success!
 
 
@@ -219,6 +222,7 @@ func _push_to_neighbor() -> bool:
 		if neighbor.accept_item_node(held_item, self):
 			# Success! Neighbor took ownership
 			held_item = null  # We no longer own it
+			item_changed.emit()
 			return true
 	
 	# --- CASE 2: Push to a Building (Stockpile/Factory) ---
@@ -228,6 +232,7 @@ func _push_to_neighbor() -> bool:
 			# Building consumed the item, destroy the visual node on the belt
 			held_item.queue_free()
 			held_item = null
+			item_changed.emit()
 			return true
 	
 	# Transfer failed
