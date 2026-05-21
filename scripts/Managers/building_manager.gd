@@ -1102,9 +1102,10 @@ func _building_needs_work(bldg: Node) -> bool:
 
 
 func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -> Node:
-	var best_dist = INF
-	var best_target = null
+	var candidates: Array = []
+	var bot_grid = terrain_layer.local_to_map(terrain_layer.to_local(bot_pos))
 	
+	# Step 1: Collect all active buildings/sites in the target group needing maintenance or delivery
 	for b in buildings:
 		var matches = false
 		
@@ -1119,11 +1120,50 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 			
 		if matches and _building_needs_work(b):
 			var dist = bot_pos.distance_squared_to(b.global_position)
-			if dist < best_dist:
-				best_dist = dist
+			candidates.append({
+				"building": b,
+				"dist": dist
+			})
+			
+	# Sort candidate priority jobs by straight-line distance first
+	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
+	
+	var best_target = null
+	var min_path_cost = INF
+	var valid_paths_found = 0
+	
+	# Step 2: Compute pathfinding cost to the standable tiles adjacent to each candidate.
+	# Capping the search after checking the top 5 reachable jobs preserves excellent performance.
+	for cand in candidates:
+		if valid_paths_found >= 5:
+			break
+			
+		var b = cand["building"]
+		var shortest_cost = INF
+		var neighbors = [Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)]
+		
+		# Find the closest reachable neighbor tile of the building's occupied grid footprint
+		for t_tile in b.occupied_tiles:
+			for offset in neighbors:
+				var test_tile = t_tile + offset
+				if test_tile in b.occupied_tiles: continue
+				
+				if pathfinder and pathfinder.bot_astar.is_in_boundsv(test_tile) and not pathfinder.bot_astar.is_point_solid(test_tile):
+					var path_array = pathfinder.bot_astar.get_id_path(bot_grid, test_tile)
+					if not path_array.is_empty() or bot_grid == test_tile:
+						var path_len = path_array.size()
+						if path_len < shortest_cost:
+							shortest_cost = path_len
+							
+		if shortest_cost != INF:
+			valid_paths_found += 1
+			if shortest_cost < min_path_cost:
+				min_path_cost = shortest_cost
 				best_target = b
 				
 	return best_target
+
+
 
 
 

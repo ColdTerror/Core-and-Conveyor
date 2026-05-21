@@ -44,7 +44,7 @@ func _ready():
 func _unhandled_key_input(event: InputEvent):
 	if not event.is_pressed() or event.is_echo(): return
 
-	# --- 1. GLOBAL UI HOTKEYS (Allowed even if a menu is open!) ---
+	# GLOBAL UI HOTKEYS (Allowed even if a menu is open!)
 	match event.keycode:
 		KEY_P:
 			if management_menu: management_menu.toggle_menu()
@@ -55,7 +55,7 @@ func _unhandled_key_input(event: InputEvent):
 			get_viewport().set_input_as_handled()
 			return
 
-	# --- 2. THE GATEKEEPER: Menu Routing ---
+	# THE GATEKEEPER: Menu Routing
 	if GameState.is_menu_open:
 		# Universal Close Menu button
 		if event.is_action_pressed("ui_cancel"):
@@ -72,7 +72,7 @@ func _unhandled_key_input(event: InputEvent):
 		get_viewport().set_input_as_handled()
 		return
 
-	# --- 3. WORLD ACTIONS (Only run if NO menus are open) ---
+	# WORLD ACTIONS (Only run if NO menus are open)
 	match event.keycode:
 		KEY_T:
 			_cancel_current_action()
@@ -84,7 +84,7 @@ func _unhandled_key_input(event: InputEvent):
 				building_manager.handle_overlay_hotkeys(event.keycode)
 			get_viewport().set_input_as_handled()
 	
-	# --- 4. DEBUG TOOLS ---
+	# DEBUG TOOLS
 	match event.keycode:
 		KEY_F8:
 			if level_ref and level_ref.has_node("TimeManager"):
@@ -127,13 +127,13 @@ func _process(delta):
 func _unhandled_input(event: InputEvent):
 	if not level_ref or not building_manager: return
 	
-	# --- 1. THE GATEKEEPER: Block World Clicks ---
+	# THE GATEKEEPER: Block World Clicks
 	if GameState.is_menu_open and current_mode != InteractionMode.SET_HOME:
 		if event is InputEventMouseButton:
 			get_viewport().set_input_as_handled()
 		return
 
-	# --- 2. CAMERA ZOOM ---
+	# CAMERA ZOOM
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 			var cam = get_tree().get_first_node_in_group("Camera")
@@ -146,11 +146,11 @@ func _unhandled_input(event: InputEvent):
 			get_viewport().set_input_as_handled()
 			return
 
-	# --- 3. NORMAL WORLD CLICKS ---
+	# NORMAL WORLD CLICKS 
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = level_ref.terrain_layer.local_to_map(mouse_pos)
 
-	# --- 4. GLOBAL CANCEL & HOTKEYS ---
+	# GLOBAL CANCEL & HOTKEYS
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
 		_cancel_current_action()
 		return

@@ -12,7 +12,7 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"1927bc55-588d-42eb-a84a-ae6a053f5789"
+				"fbdef280-bc49-4132-b2fa-07e06707ba79"
 			]
 		},
 		{
@@ -25,6 +25,7 @@
 			"title": "Done",
 			"tasks": [
 				"fd5aa34e-03b3-495f-a66a-774b620a638a",
+				"1927bc55-588d-42eb-a84a-ae6a053f5789",
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
 				"5eac9efc-d2c9-4704-bf7f-65e20378d7df",
 				"56d27607-6419-44b9-a851-6a67c13fdacb",
@@ -1396,6 +1397,13 @@
 		{
 			"uuid": "fd5aa34e-03b3-495f-a66a-774b620a638a",
 			"title": "get antigravity to remove extra numbering",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fbdef280-bc49-4132-b2fa-07e06707ba79",
+			"title": "resource ui for health on hover?",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

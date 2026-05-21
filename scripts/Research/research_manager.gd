@@ -166,4 +166,3 @@ func load_save_data(data: Dictionary):
 		for tech in saved_techs:
 			unlocked_techs.append(tech)
 			_apply_tech(tech)
-

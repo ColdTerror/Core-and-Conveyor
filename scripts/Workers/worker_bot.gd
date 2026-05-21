@@ -279,7 +279,7 @@ func _handle_energy(delta: float):
 	if current_state in active_states and not is_limping:
 		current_energy -= energy_drain_rate * delta
 		
-		# 1. EXHAUSTION: Energy hit zero (Limp Mode)
+		# EXHAUSTION: Energy hit zero (Limp Mode)
 		if current_energy <= 0:
 			current_energy = 0
 			is_limping = true
@@ -293,7 +293,7 @@ func _handle_energy(delta: float):
 			else:
 				current_state = State.RECHARGING
 
-		# 2. LOW BATTERY: 10% (Smart Return)
+		# LOW BATTERY: 10% (Smart Return)
 		elif current_energy <= (max_energy * low_battery_threshold):
 			if current_state != State.MOVING_HOME:
 				_clear_reservation()
@@ -318,9 +318,9 @@ func _find_nearest_resource():
 	_clear_reservation()
 		
 	var my_grid_pos = level_ref.object_layer.local_to_map(global_position)
-	var best_tile = Vector2i(-1, -1)
-	var min_dist = INF
+	var candidates: Array = []
 	
+	# Collect matching and valid candidate resources based on current task filters
 	for tile in level_ref.active_grid_objects.keys():
 		if unreachable_tiles.has(tile):
 			continue
@@ -346,9 +346,32 @@ func _find_nearest_resource():
 			continue
 			
 		var dist = my_grid_pos.distance_squared_to(tile)
-		if dist < min_dist:
-			min_dist = dist
-			best_tile = tile
+		candidates.append({
+			"tile": tile,
+			"dist": dist
+		})
+		
+	# Sort candidates by straight-line distance first (fast, cheap pre-filtering)
+	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
+	
+	var best_tile = Vector2i(-1, -1)
+	var min_path_cost = INF
+	var valid_paths_found = 0
+	
+	# Compute pathfinding cost for the closest sorted candidates.
+	# Evaluating only the closest candidates until we find up to 5 valid walkable paths
+	# gives us the absolute best pathing option while fully preventing performance drops.
+	for cand in candidates:
+		if valid_paths_found >= 5:
+			break
+			
+		var result = _get_standable_adjacent_tile([cand["tile"]])
+		if result["stand"] != Vector2i(-1, -1):
+			valid_paths_found += 1
+			var path_cost = result.get("path_length", INF)
+			if path_cost < min_path_cost:
+				min_path_cost = path_cost
+				best_tile = cand["tile"]
 				
 	if best_tile != Vector2i(-1, -1):
 		_request_path([best_tile], false)
@@ -362,6 +385,7 @@ func _find_nearest_resource():
 			_find_nearest_storage()
 		else:
 			current_state = State.IDLE
+
 
 
 func _find_priority_job():
@@ -446,6 +470,7 @@ func _find_nearest_storage():
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
 	var candidates: Array = []
 
+	# Gather and filter all available storage buildings matching carried inventory criteria
 	for b in level_ref.building_manager.buildings:
 		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
 		if b is ConstructionSite: continue
@@ -461,20 +486,38 @@ func _find_nearest_storage():
 		if b.occupied_tiles.size() > 0:
 			candidates.append({
 				"building": b,
-				"tile": b.occupied_tiles[0],
 				"dist": my_pos.distance_squared_to(b.occupied_tiles[0])
 			})
 
+	# Sort candidate storages by straight-line distance first
 	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
 
-	for candidate in candidates:
-		var b_node = candidate["building"]
-		_request_path(b_node.occupied_tiles, true)
+	var best_building = null
+	var min_path_cost = INF
+	var valid_paths_found = 0
+
+	# Evaluate the actual pathfinding length for candidate storage options,
+	# selecting the best choice among the closest reachable storages.
+	for cand in candidates:
+		if valid_paths_found >= 5:
+			break
+			
+		var b_node = cand["building"]
+		var result = _get_standable_adjacent_tile(b_node.occupied_tiles)
+		if result["stand"] != Vector2i(-1, -1):
+			valid_paths_found += 1
+			var path_cost = result.get("path_length", INF)
+			if path_cost < min_path_cost:
+				min_path_cost = path_cost
+				best_building = b_node
+		else:
+			unreachable_storages.append(b_node)
+
+	if best_building != null:
+		_request_path(best_building.occupied_tiles, true)
 		if not current_path.is_empty():
 			current_state = State.MOVING_TO_INVENTORY
 			return
-		else:
-			unreachable_storages.append(b_node)
 
 	full_storages_ignored.clear()
 	unreachable_storages.clear()
@@ -484,11 +527,13 @@ func _find_nearest_storage():
 	_go_home_or_standby(STANDBY_STORAGE_FULL)
 
 
+
+
 func _find_stockpile_with_item(item_name: String):
 	var my_pos = level_ref.terrain_layer.local_to_map(global_position)
-	var best_tile = Vector2i(-1, -1)
-	var min_dist = INF
+	var candidates: Array = []
 
+	# Collect and filter all candidate stockpile buildings that contain the requested resource
 	for b in level_ref.building_manager.buildings:
 		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
 		
@@ -502,22 +547,45 @@ func _find_stockpile_with_item(item_name: String):
 						has_item = true
 						break
 
-		if has_item:
-			var dist = my_pos.distance_squared_to(b.occupied_tiles[0])
-			if dist < min_dist:
-				min_dist = dist
-				best_tile = b.occupied_tiles[0]
-					
-	if best_tile != Vector2i(-1, -1):
+		if has_item and b.occupied_tiles.size() > 0:
+			candidates.append({
+				"building": b,
+				"dist": my_pos.distance_squared_to(b.occupied_tiles[0])
+			})
+
+	# Sort candidates by straight-line distance first
+	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
+
+	var best_stockpile = null
+	var min_path_cost = INF
+	var valid_paths_found = 0
+
+	# Evaluate the actual pathfinding cost for stockpile candidates,
+	# selecting the stockpile with the lowest actual pathfinding cost.
+	for cand in candidates:
+		if valid_paths_found >= 5:
+			break
+			
+		var b_node = cand["building"]
+		var result = _get_standable_adjacent_tile(b_node.occupied_tiles)
+		if result["stand"] != Vector2i(-1, -1):
+			valid_paths_found += 1
+			var path_cost = result.get("path_length", INF)
+			if path_cost < min_path_cost:
+				min_path_cost = path_cost
+				best_stockpile = b_node
+
+	if best_stockpile != null:
 		carried_item_name = item_name
-		var stockpile = level_ref.building_manager.occupied_tiles[best_tile]
-		_request_path(stockpile.occupied_tiles, true)
+		_request_path(best_stockpile.occupied_tiles, true)
 		if not current_path.is_empty():
 			current_state = State.MOVING_TO_FETCH
 		else:
 			current_state = State.IDLE
 	else:
 		_go_home_or_standby(STANDBY_WAITING)
+
+
 
 
 func _any_storage_has_space() -> bool:
@@ -779,7 +847,7 @@ func _drop_inventory_and_work():
 
 func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 	var pathfinder = level_ref.building_manager.pathfinder
-	if not pathfinder: return {"stand": Vector2i(-1, -1), "target": Vector2i(-1, -1)}
+	if not pathfinder: return {"stand": Vector2i(-1, -1), "target": Vector2i(-1, -1), "path_length": INF}
 	
 	var neighbors = [Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)]
 	var best_stand = Vector2i(-1, -1)
@@ -788,25 +856,31 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 	
 	var shortest_path_length = INF
 	
+	# For multi-tile buildings or single resources, check adjacent neighbors to find the most accessible standing point
 	for t_tile in target_tiles:
 		for offset in neighbors:
 			var test_tile = t_tile + offset
 			if test_tile in target_tiles: continue
 				
+			# Verify neighbor is within limits and is walkable (not solid)
 			if pathfinder.bot_astar.is_in_boundsv(test_tile) and not pathfinder.bot_astar.is_point_solid(test_tile):
 				var path_array = pathfinder.bot_astar.get_id_path(my_grid, test_tile)
 				
+				# If path is empty and bot is not already standing on the test tile, it is unreachable
 				if path_array.is_empty() and my_grid != test_tile:
 					continue
 					
 				var path_length = path_array.size()
 				
+				# Keep track of the closest standable neighbor based on actual pathfinding steps
 				if path_length < shortest_path_length:
 					shortest_path_length = path_length
 					best_stand = test_tile
 					best_target = t_tile
 					
-	return {"stand": best_stand, "target": best_target}
+	return {"stand": best_stand, "target": best_target, "path_length": shortest_path_length}
+
+
 
 
 func _escape_trapped_tile() -> bool:

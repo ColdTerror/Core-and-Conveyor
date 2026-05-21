@@ -40,4 +40,3 @@ func _on_body_entered(body):
 			var valid_source = source_tower if is_instance_valid(source_tower) else null
 			body.take_damage(damage, valid_source)
 		queue_free()
-
