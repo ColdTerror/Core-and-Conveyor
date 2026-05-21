@@ -199,15 +199,15 @@ func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 					
 					# Did the corruption kill it?
 					if obj_info["health"] <= 0:
-						# 1. Cancel regrowth if it was a tree
+						# Cancel regrowth if it was a tree
 						if ResourceManager.active_regrowth_tasks.has(neighbor):
 							ResourceManager.active_regrowth_tasks.erase(neighbor)
 							
-						# 2. Force delete from the map
+						# Force delete from the map
 						object_layer.set_cell(neighbor, -1)
 						level_ref.active_grid_objects.erase(neighbor)
 						
-						# 3. Spread into the barren tile
+						# Spread into the barren tile
 						_corrupt_tile(neighbor)
 							
 				return {"has_empty": true, "blocked_count": blocked_count}
@@ -248,10 +248,10 @@ func _corrupt_tile(tile: Vector2i):
 func apply_quota_penalty(penalty_amount: float):
 	print("Corruption Manager received penalty: ", penalty_amount)
 	
-	# 1. The XP Spike (Pushes it closer to mutating to Tier 2/3/4)
+	# The XP Spike (Pushes it closer to mutating to Tier 2/3/4)
 	_add_pressure(int(penalty_amount/2.0))
 	
-	# 2. The Instant Spread (Force the fog to grow right in front of their eyes)
+	# The Instant Spread (Force the fog to grow right in front of their eyes)
 	# 1 extra tile spread for every 2 points of penalty
 	var bonus_spread_ticks = int(penalty_amount / 2.0) 
 	
@@ -284,14 +284,14 @@ func load_save_data(data: Dictionary):
 	current_pressure = data.get("current_pressure", 0.0)
 	is_active = data.get("is_active", false)
 	
-	# 1. Restore the active growing edges
+	# Restore the active growing edges
 	active_edges.clear()
 	if data.has("active_edges"):
 		var saved_edges = data["active_edges"]
 		for edge_str in saved_edges:
 			active_edges.append(str_to_var(edge_str))
 			
-	# 2. Visually repaint the purple fog!
+	# Visually repaint the purple fog!
 	if corruption_layer:
 		corruption_layer.clear()
 		if data.has("infected_tiles"):
@@ -300,7 +300,7 @@ func load_save_data(data: Dictionary):
 				var cell = str_to_var(tile_str)
 				corruption_layer.set_cell(cell, corruption_source_id, corruption_atlas)
 				
-	# 3. Resume the spread timer if the outbreak had already started
+	# Resume the spread timer if the outbreak had already started
 	if is_active and spread_timer:
 		if spread_timer.is_stopped():
 			spread_timer.start()

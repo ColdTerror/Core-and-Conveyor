@@ -72,13 +72,13 @@ func _ready():
 func _physics_process(delta):
 	if health <= 0: return
 
-	# 1. Timers
+	# Timers
 	if attack_cooldown > 0: attack_cooldown -= delta
 
-	# 2. Validate Target
+	# Validate Target
 	if not _validate_target(delta): return
 
-	# 3. Decision Logic: Attack or Move?
+	# Decision Logic: Attack or Move?
 	var dist = global_position.distance_to(current_target.global_position)
 	var required_dist = attack_range + _get_target_radius(current_target)
 
@@ -101,7 +101,7 @@ func _physics_process(delta):
 # MOVEMENT LOGIC
 
 func _process_movement(delta):
-	# 1. Update Path periodically
+	# Update Path periodically
 	path_update_timer -= delta
 	if path_update_timer <= 0.0:
 		_recalculate_path()
@@ -109,7 +109,7 @@ func _process_movement(delta):
 
 	var move_dir = Vector2.ZERO
 
-	# 2. Determine Direction
+	# Determine Direction
 	if current_path.is_empty():
 		# --- FINAL APPROACH (No Path, but close enough to charge) ---
 		if is_instance_valid(current_target):
@@ -128,7 +128,7 @@ func _process_movement(delta):
 		if global_position.distance_to(next_point) < 5.0:
 			current_path.remove_at(0)
 
-	# 3. Apply Separation Force (Swarm Behavior)
+	# Apply Separation Force (Swarm Behavior)
 	if move_dir != Vector2.ZERO:
 		var separation = _calculate_separation()
 		
@@ -297,7 +297,7 @@ func _reset_target():
 	_find_target()
 	
 func _find_target():
-	# 1. DISTRACTION CHECK
+	# DISTRACTION CHECK
 	if not is_target_locked:
 		_scan_for_nearby_bots()
 		
@@ -305,7 +305,7 @@ func _find_target():
 		if current_target != null and current_target.has_method("set_priority"):
 			return 
 
-	# 2. GLOBAL RADAR (Look for priority targets/buildings)
+	# GLOBAL RADAR (Look for priority targets/buildings)
 	var targets = get_tree().get_nodes_in_group("PriorityTarget")
 	var nearest: Node2D = null
 	var min_dist = INF

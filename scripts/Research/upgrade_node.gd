@@ -34,14 +34,14 @@ signal research_started
 
 # INITIALIZATION
 func _ready():
-	# 1. Update the text immediately
+	# Update the text immediately
 	_refresh_editor_ui()
 	
-	# 2. EDITOR SAFETY CHECK: Stop here if we are inside the Godot Editor!
+	# EDITOR SAFETY CHECK: Stop here if we are inside the Godot Editor!
 	if Engine.is_editor_hint():
 		return
 		
-	# 3. GAME RUNTIME ONLY: Connect signals
+	# GAME RUNTIME ONLY: Connect signals
 	research_button.pressed.connect(_on_research_pressed)
 	
 	# Refresh button state whenever research changes

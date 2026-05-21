@@ -53,7 +53,7 @@ func _ready():
 
 # --- PROCESS LOOP (UI UPDATES) ---
 func _process(_delta):
-	# 1. UPDATE THE CLOCK
+	# UPDATE THE CLOCK
 	if time_manager and dateLabel:
 		var time = time_manager.current_time
 		var hours = int(time)
@@ -62,7 +62,7 @@ func _process(_delta):
 		
 		dateLabel.text = "Day %d | %s" % [time_manager.current_day, time_string]
 
-	# 2. UPDATE THE COMBAT STATS
+	# UPDATE THE COMBAT STATS
 	if wave_manager and waveLabel:
 		var enemies_alive = get_tree().get_nodes_in_group("Enemies").size()
 		
@@ -160,14 +160,14 @@ func _process(_delta):
 
 
 func update_labels():
-	# 1. Hide all existing labels
+	# Hide all existing labels
 	for key in resource_labels.keys():
 		resource_labels[key].hide()
 
-	# 2. Get the full unsecured map once to avoid calling it in the loop
+	# Get the full unsecured map once to avoid calling it in the loop
 	var unsecured_map = EconomyManager.get_unsecured_inventory()
 
-	# 3. Loop through ONLY the pinned list (capped at 10 items)
+	# Loop through ONLY the pinned list (capped at 10 items)
 	var max_slots = min(EconomyManager.pinned_resources.size(), 10)
 	for i in range(max_slots):
 		var resource_name = EconomyManager.pinned_resources[i]

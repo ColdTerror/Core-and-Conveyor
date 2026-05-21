@@ -44,16 +44,16 @@ func _process(delta: float):
 	if not is_time_running:
 		return
 		
-	# 1. Calculate how fast time should pass
+	# Calculate how fast time should pass
 	var game_hours_per_real_second = 24.0 / (real_minutes_per_day * 60.0)
 	current_time += game_hours_per_real_second * delta
 	
-	# 2. Handle Day Rollover (Midnight)
+	# Handle Day Rollover (Midnight)
 	if current_time >= 24.0:
 		current_time -= 24.0
 		_process_midnight() # --- MOVED TO HELPER FUNCTION ---
 		
-	# 3. Handle Hour Changes (For triggering waves!)
+	# Handle Hour Changes (For triggering waves!)
 	var new_hour = int(floor(current_time))
 	if new_hour != current_hour:
 		current_hour = new_hour
@@ -62,7 +62,7 @@ func _process(delta: float):
 
 # Extracted so our Debug tool can forcefully trigger the end of the day!
 func _process_midnight():
-	# 1. CACHE THE OLD DAY
+	# CACHE THE OLD DAY
 	var yesterday = current_day 
 	
 	# QUOTA MANAGER TRIGGERS
@@ -70,18 +70,18 @@ func _process_midnight():
 	if level_node and level_node.has_node("QuotaManager"):
 		var quota_mgr = level_node.get_node("QuotaManager")
 		
-		# 1. Process the daily score (did they feed it today?)
+		# Process the daily score (did they feed it today?)
 		quota_mgr.process_end_of_day()
 		
-		# 2. If yesterday was day 7, 14, 21, etc., the week is over!
+		# If yesterday was day 7, 14, 21, etc., the week is over!
 		if yesterday % 7 == 0:
 			quota_mgr.process_end_of_week()
 	
-	# 2. FLIP THE CALENDAR FIRST
+	# FLIP THE CALENDAR FIRST
 	current_day += 1
 	print("--- DAY %d ---" % current_day)
 	
-	# 3. NOW TRIGGER THE UI REFRESH
+	# NOW TRIGGER THE UI REFRESH
 	if EconomyManager.has_method("archive_daily_stats"):
 		EconomyManager.archive_daily_stats(yesterday)
 
@@ -187,13 +187,13 @@ func debug_skip_to_night():
 	is_night = false 
 	
 func debug_skip_to_next_morning():
-	# 1. Forcefully trigger the midnight quota math
+	# Forcefully trigger the midnight quota math
 	_process_midnight()
 	
-	# 2. Set the clock to EXACTLY sunrise
+	# Set the clock to EXACTLY sunrise
 	current_time = float(sunrise_hour)
 	
-	# 3. Trick the brain into thinking it was just 5 AM.
+	# Trick the brain into thinking it was just 5 AM.
 	# On the next frame, it will see the hour changed to 6 and trigger the sunrise logic!
 	current_hour = sunrise_hour - 1
 	is_night = true

@@ -140,10 +140,10 @@ func _perform_delete(slot: int):
 	_refresh_menu_state()
 	
 func _perform_manual_save(slot: int, button: Button):
-	# 1. Tell the Level to save the game
+	# Tell the Level to save the game
 	save_requested.emit(slot)
 	
-	# 2. Trigger the visual feedback
+	# Trigger the visual feedback
 	_flash_button_success(button)
 	
 	_refresh_menu_state()

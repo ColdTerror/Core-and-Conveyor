@@ -100,7 +100,7 @@ func _try_route():
 		var check_idx = (last_output_index + 1 + i) % 4
 		var offset = directions[check_idx]
 		
-		# 1. Skip the side the item came from! No bouncing back.
+		# Skip the side the item came from! No bouncing back.
 		if offset == input_direction:
 			continue
 			
@@ -138,10 +138,10 @@ func _try_route():
 	
 # SAVE / LOAD SYSTEM (Router)
 func get_save_data() -> Dictionary:
-	# 1. Grab everything from the Conveyor parent (including the physical item!)
+	# Grab everything from the Conveyor parent (including the physical item!)
 	var data = super.get_save_data()
 	
-	# 2. Add the Router's unique memory
+	# Add the Router's unique memory
 	data["last_output_index"] = last_output_index
 	data["input_direction"] = var_to_str(input_direction)
 	
@@ -150,10 +150,10 @@ func get_save_data() -> Dictionary:
 	return data
 
 func load_save_data(data: Dictionary):
-	# 1. Let the Conveyor script unpack the item, rotation, and base stats
+	# Let the Conveyor script unpack the item, rotation, and base stats
 	super.load_save_data(data)
 	
-	# 2. Restore the Router's memory
+	# Restore the Router's memory
 	last_output_index = data.get("last_output_index", 0)
 	
 	if data.has("input_direction"):

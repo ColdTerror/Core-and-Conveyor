@@ -124,7 +124,7 @@ func _on_global_menu_changed(active_menu):
 func _refresh_priority_tab():
 	if not priority_list_container: return
 	
-	# 1. Clean up old rows
+	# Clean up old rows
 	for child in priority_list_container.get_children():
 		child.queue_free()
 		
@@ -132,11 +132,11 @@ func _refresh_priority_tab():
 		print("PriorityMenu: Building Manager not assigned!")
 		return
 		
-	# 2. Grab the queue
+	# Grab the queue
 	var queue = building_manager.master_priority_queue
 	var max_rank = queue.size()
 	
-	# 3. Build a row for every item
+	# Build a row for every item
 	for i in range(max_rank):
 		var item = queue[i]
 		var rank = i + 1
@@ -209,11 +209,11 @@ func _refresh_bot_tab(force_rebuild: bool = false):
 	
 	var bots = get_tree().get_nodes_in_group("Bots")
 	
-	# 1. Hard Rebuild if forced (tab clicked/menu opened) OR if a bot was born/died
+	# Hard Rebuild if forced (tab clicked/menu opened) OR if a bot was born/died
 	if force_rebuild or bots.size() != bot_status_labels.size():
 		_rebuild_bot_list(bots)
 	else:
-		# 2. Soft Update! Change the text without deleting the buttons
+		# Soft Update! Change the text without deleting the buttons
 		for bot in bots:
 			if bot_status_labels.has(bot) and is_instance_valid(bot_status_labels[bot]):
 				if bot.has_method("get_inventory_info"):
@@ -291,11 +291,11 @@ func _refresh_resource_tab():
 	resource_list_container.add_child(header)
 	resource_list_container.add_child(HSeparator.new())
 	
-	# 1. Grab BOTH ledgers
+	# Grab BOTH ledgers
 	var secured_items = EconomyManager.global_inventory
 	var unsecured_items = EconomyManager.get_unsecured_inventory()
 	
-	# 2. Combine the keys so we don't miss items that are ONLY in transit
+	# Combine the keys so we don't miss items that are ONLY in transit
 	var all_items_dict = {}
 	for key in secured_items.keys(): all_items_dict[key] = true
 	for key in unsecured_items.keys(): all_items_dict[key] = true
@@ -309,7 +309,7 @@ func _refresh_resource_tab():
 		resource_list_container.add_child(empty_label)
 		return
 
-	# 3. Build a detailed row for every item
+	# Build a detailed row for every item
 	for item_name in all_items:
 		var available = secured_items.get(item_name, 0)
 		var in_transit = unsecured_items.get(item_name, 0)
@@ -493,7 +493,7 @@ func _refresh_quota_tab():
 		print("Couldnt find quota or time manager")
 		return
 
-	# 1. Update the Header Info & Weekly Totals
+	# Update the Header Info & Weekly Totals
 	var failure_ratio: float = 1.0 - (float(quota_mgr.successful_days) / 7.0)
 	var current_penalty = quota_mgr.max_weekly_corruption * failure_ratio
 	
@@ -514,15 +514,15 @@ func _refresh_quota_tab():
 	quota_info_label.text += "Weekly Factory Target: [ %s ]\n" % weekly_req_text
 	quota_info_label.text += "Projected Corruption Penalty: +%d\n" % int(current_penalty)
 
-	# 2. Clean up old rows
+	# Clean up old rows
 	for child in quota_list_container.get_children():
 		child.queue_free()
 
-	# 3. Calculate Calendar Math
+	# Calculate Calendar Math
 	var current_day_index = (time_mgr.current_day - 1) % 7 
 	var successes_assigned = 0
 
-	# 4. Build the 7-Day Calendar
+	# Build the 7-Day Calendar
 	for day_i in range(7):
 		var row = HBoxContainer.new()
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -569,7 +569,7 @@ func _refresh_quota_tab():
 				free_label.modulate = Color(0.4, 1.0, 0.4)
 				today_vbox.add_child(free_label)
 			else:
-				# 1. Calculate and build the Progress Bar
+				# Calculate and build the Progress Bar
 				var total_req = 0.0
 				var total_have = 0.0
 				for item in quota_mgr.daily_requirements:
@@ -588,7 +588,7 @@ func _refresh_quota_tab():
 					
 				today_vbox.add_child(progress_bar)
 				
-				# 2. Build the Material Breakdown Text
+				# Build the Material Breakdown Text
 				var breakdown_hbox = HBoxContainer.new()
 				breakdown_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 				

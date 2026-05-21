@@ -170,13 +170,13 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 	var border = Color(base_color.r, base_color.g, base_color.b, 0.8)
 	var font = _font
 	
-	# 1. FILTER THE TILES
+	# FILTER THE TILES
 	var filtered_tiles = {}
 	for tile in tiles.keys():
 		if tiles[tile] >= threshold:
 			filtered_tiles[tile] = tiles[tile]
 
-	# 2. DRAW FILLS AND NUMBERS
+	# DRAW FILLS AND NUMBERS
 	for tile in filtered_tiles.keys():
 		var overlaps = filtered_tiles[tile]
 		
@@ -192,7 +192,7 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 			var text_pos = local_pos + half_offset + Vector2(-text_size.x / 2.0, text_size.y / 3.0)
 			draw_string(font, text_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.8))
 
-	# 3. DRAW SHRINK-WRAPPED BORDERS
+	# DRAW SHRINK-WRAPPED BORDERS
 	for tile in filtered_tiles.keys():
 		var pos = level.object_layer.map_to_local(tile) - half_offset
 		var tl = pos
@@ -275,18 +275,18 @@ func _draw_hover_footprint():
 		
 	var buildings_to_highlight = []
 	
-	# 1. Grab the currently hovered building
+	# Grab the currently hovered building
 	if is_instance_valid(InputManager.hovered_building):
 		buildings_to_highlight.append(InputManager.hovered_building)
 		
-	# 2. Search for the building that is pinned open in the UI
+	# Search for the building that is pinned open in the UI
 	if level.building_manager:
 		for b in level.building_manager.buildings:
 			if is_instance_valid(b) and b.get("is_selected") and not buildings_to_highlight.has(b):
 				buildings_to_highlight.append(b)
 	
 	
-	# 3. Draw them all!
+	# Draw them all!
 	for b in buildings_to_highlight:
 		if is_instance_valid(b) and b is Building and not b.is_ghost:
 			var tile_size = 32.0

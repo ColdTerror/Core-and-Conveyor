@@ -150,7 +150,7 @@ func _process(_delta):
 var categorized_buildings := {}
 
 func _setup_hotbar_items():
-	# 1. Define the Nested Folders
+	# Define the Nested Folders
 	categorized_buildings = {
 		"Logistics": [
 			{"name": "Belt", "scene": conveyor_scene},
@@ -177,7 +177,7 @@ func _setup_hotbar_items():
 		]
 	}
 	
-	# 2. Start the game with just the Core button
+	# Start the game with just the Core button
 	_add_building_to_bar("Core", core_scene)
 
 func _on_core_placed():
@@ -421,13 +421,13 @@ func _on_pause_menu_save_requested(slot: int):
 	
 func get_map_save_data() -> Dictionary:
 	var terrain_data = {}
-	# 1. Save the floor (Grass, Sand, Water, etc.)
+	# Save the floor (Grass, Sand, Water, etc.)
 	for pos in terrain_layer.get_used_cells():
 		var atlas = terrain_layer.get_cell_atlas_coords(pos)
 		terrain_data[var_to_str(pos)] = var_to_str(atlas)
 
 	var object_data = {}
-	# 2. Save the resources (Trees, Stone) and their current HP
+	# Save the resources (Trees, Stone) and their current HP
 	for pos in active_grid_objects:
 		var obj = active_grid_objects[pos]
 		var correct_index = tile_library.find(obj["data"])
@@ -457,21 +457,21 @@ func get_map_save_data() -> Dictionary:
 	}
 
 func load_map_save_data(data: Dictionary):
-	# 1. Wipe the current blank slate
+	# Wipe the current blank slate
 	terrain_layer.clear()
 	object_layer.clear()
 	active_grid_objects.clear()
 
 	current_map_type = data.get("map_type", 0)
 
-	# 2. Rebuild the Floor
+	# Rebuild the Floor
 	var terrain_data = data.get("terrain", {})
 	for pos_str in terrain_data:
 		var pos = str_to_var(pos_str)
 		var atlas = str_to_var(terrain_data[pos_str])
 		terrain_layer.set_cell(pos, 0, atlas)
 
-	# 3. Rebuild the Trees and Rocks
+	# Rebuild the Trees and Rocks
 	var object_data = data.get("objects", {})
 	for pos_str in object_data:
 		var pos = str_to_var(pos_str)

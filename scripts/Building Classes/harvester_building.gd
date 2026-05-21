@@ -201,7 +201,7 @@ func _try_output_item():
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# 1. Ensure the neighbor can physically accept items
+				# Ensure the neighbor can physically accept items
 				if neighbor.has_method("accept_item_node"):
 					var can_output = false
 					
@@ -209,7 +209,7 @@ func _try_output_item():
 					if neighbor is RouterBuilding:
 						can_output = true
 						
-					# 2. STRICT CHECK: Belts and Filters must point exactly away!
+					# STRICT CHECK: Belts and Filters must point exactly away!
 					elif neighbor is ConveyorBuilding or neighbor is FilterBuilding:
 						if neighbor.direction == offset:
 							can_output = true
@@ -227,7 +227,7 @@ func _try_output_item():
 func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_offset: Vector2i) -> bool:
 	if not generic_item_scene or not target_resource.item_drop: return false
 	
-	# 1. Create the Visual Node
+	# Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	if "item_data" in new_item_node: new_item_node.item_data = target_resource.item_drop
@@ -235,10 +235,10 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 	# ========================================
 	# FIXED: PERFECT POSITION SNAPPING
 	# ========================================
-	# 1. Find the exact pixel center of the specific 1x1 tile the item is leaving
+	# Find the exact pixel center of the specific 1x1 tile the item is leaving
 	var tile_center_px = level_ref.object_layer.map_to_local(source_tile)
 	
-	# 2. Push the item exactly 16 pixels (half a tile) in the orthogonal direction
+	# Push the item exactly 16 pixels (half a tile) in the orthogonal direction
 	var edge_px = tile_center_px + (Vector2(direction_offset) * 16.0)
 	
 	new_item_node.global_position = edge_px
@@ -248,7 +248,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	# 2. Try to hand it to the Receiver (Belt, Router, Filter)
+	# Try to hand it to the Receiver (Belt, Router, Filter)
 	if receiver.accept_item_node(new_item_node):
 		# Success!
 		stored_amount -= 1
@@ -301,14 +301,14 @@ func _clear_target_reservation():
 
 # HYBRID UPGRADE PIPELINE (Duck Typing)
 
-# 1. Pack the backpack before upgrading
+# Pack the backpack before upgrading
 func get_economy_assets() -> Dictionary:
 	var assets = {}
 	if stored_amount > 0 and target_resource and target_resource.item_drop:
 		assets[target_resource.item_drop.display_name] = stored_amount
 	return assets
 
-# 2. Unpack the backpack into the new Mk II Harvester
+# Unpack the backpack into the new Mk II Harvester
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	# Filter: Reject if it's not the exact item this harvester produces
 	if not target_resource or not target_resource.item_drop: return 0
@@ -332,10 +332,10 @@ func get_inventory_info() -> Dictionary:
 	
 # SAVE / LOAD SYSTEM (Harvester)
 func get_save_data() -> Dictionary:
-	# 1. Grab the base stats (health, building_name)
+	# Grab the base stats (health, building_name)
 	var data = super.get_save_data()
 	
-	# 2. Save the simple variables
+	# Save the simple variables
 	data["stored_amount"] = stored_amount
 	data["work_timer"] = work_timer
 	
@@ -345,10 +345,10 @@ func get_save_data() -> Dictionary:
 	return data
 
 func load_save_data(data: Dictionary):
-	# 1. Restore the base stats
+	# Restore the base stats
 	super.load_save_data(data)
 	
-	# 2. Restore the inventory count
+	# Restore the inventory count
 	stored_amount = data.get("stored_amount", 0)
 	work_timer = data.get("work_timer", 0.0)
 	

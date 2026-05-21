@@ -256,10 +256,10 @@ func _get_neighbor() -> Node:
 
 # SAVE / LOAD SYSTEM (Conveyor)
 func get_save_data() -> Dictionary:
-	# 1. Grab the base stats (health, building_name)
+	# Grab the base stats (health, building_name)
 	var data = super.get_save_data()
 	
-	# 2. Save Conveyor properties
+	# Save Conveyor properties
 	data["direction"] = var_to_str(direction)
 	data["is_moving_to_edge"] = is_moving_to_edge
 	data["push_cooldown"] = push_cooldown
@@ -273,10 +273,10 @@ func get_save_data() -> Dictionary:
 	return data
 
 func load_save_data(data: Dictionary):
-	# 1. Restore the base stats
+	# Restore the base stats
 	super.load_save_data(data)
 	
-	# 2. Restore Conveyor properties
+	# Restore Conveyor properties
 	if data.has("direction"):
 		direction = str_to_var(data["direction"])
 		rotation = Vector2(direction).angle() # Snap the sprite to the right rotation!

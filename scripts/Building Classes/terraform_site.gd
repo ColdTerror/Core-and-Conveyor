@@ -114,23 +114,23 @@ func _draw():
 	var outline_color = Color(1.0, 0.6, 0.0, 0.8)
 	var bg_color = Color(1.0, 0.6, 0.0, 0.15)
 	
-	# 1. Base background (faint orange)
+	# Base background (faint orange)
 	draw_rect(full_rect, bg_color, true)
 	
-	# 2. Draw the faint "X" underneath the progress
+	# Draw the faint "X" underneath the progress
 	draw_line(top_left, top_left + Vector2(tile_size, tile_size), Color(1.0, 0.6, 0.0, 0.3), 2.0)
 	draw_line(top_left + Vector2(tile_size, 0), top_left + Vector2(0, tile_size), Color(1.0, 0.6, 0.0, 0.3), 2.0)
 	
-	# 3. Calculate Build Percentage
+	# Calculate Build Percentage
 	var build_pct = clamp(float(health) / float(max_health), 0.0, 1.0)
 	
-	# 4. Draw Progress Fill (Brighter solid orange rising from the bottom)
+	# Draw Progress Fill (Brighter solid orange rising from the bottom)
 	if build_pct > 0:
 		var fill_h = tile_size * build_pct
 		var fill_rect = Rect2(Vector2(top_left.x, top_left.y + tile_size - fill_h), Vector2(tile_size, fill_h))
 		draw_rect(fill_rect, Color(1.0, 0.8, 0.0, 0.6), true)
 		
-	# 5. Draw border
+	# Draw border
 	draw_rect(full_rect, outline_color, false, 2.0)
 # SAVE / LOAD SYSTEM (Terraform Site)
 func get_save_data() -> Dictionary:

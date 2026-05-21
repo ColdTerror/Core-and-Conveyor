@@ -20,7 +20,7 @@ var blueprint_size: Vector2i = Vector2i(1, 1)
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 	
-# 1. THE DYNAMIC SETUP
+# THE DYNAMIC SETUP
 func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: Dictionary, b_size: Vector2i, target_name: String = ""):
 	level_ref = level_instance
 	target_building_scene = target_scene
@@ -49,11 +49,11 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 # THE UNIFIED DOOR
 # --- THE "LOOK AHEAD" CHECK FOR CONVEYOR BELTS ---
 func can_accept_item(item_res: ItemResource) -> bool:
-	# 1. Reject if we are already done collecting
+	# Reject if we are already done collecting
 	if is_ready_to_build: 
 		return false
 		
-	# 2. Reject if this isn't an item we need for the blueprint
+	# Reject if this isn't an item we need for the blueprint
 	var item_name = item_res.display_name 
 	if not required_items.has(item_name): 
 		return false
@@ -126,10 +126,10 @@ func add_build_progress(amount: int):
 func _finish_construction():
 	if not level_ref or not target_building_scene: return
 	
-	# 1. Spawn the real building
+	# Spawn the real building
 	var new_building = target_building_scene.instantiate()
 
-	# 2. Get our exact grid coordinate before we delete ourselves
+	# Get our exact grid coordinate before we delete ourselves
 	var my_grid = occupied_tiles[0]
 	
 	# --- PROPER PLACEMENT ---
@@ -143,11 +143,11 @@ func _finish_construction():
 	if has_meta("blueprint_data"):
 		var saved_data = get_meta("blueprint_data")
 		
-		# 1. Apply Upgrades & Rotations
+		# Apply Upgrades & Rotations
 		if new_building.has_method("apply_upgrade_data"):
 			new_building.apply_upgrade_data(saved_data)
 			
-		# 2. Unpack Memory Limbo Inventory
+		# Unpack Memory Limbo Inventory
 		if saved_data.has("saved_inventory") and new_building.has_method("add_item"):
 			var limbo_items = saved_data["saved_inventory"]
 			
@@ -194,10 +194,10 @@ func _draw():
 	if not is_ready_to_build:
 		# --- PHASE 1: WAITING FOR MATERIALS ---
 		
-		# 1. Base hologram (faint red)
+		# Base hologram (faint red)
 		draw_rect(full_rect, Color(1.0, 0.2, 0.2, 0.15), true)
 		
-		# 2. Calculate Delivery Percentage
+		# Calculate Delivery Percentage
 		var total_req = 0.0
 		var total_del = 0.0
 		for item in required_items.keys():
@@ -222,10 +222,10 @@ func _draw():
 	else:
 		# --- PHASE 2: ACTIVELY BEING BUILT ---
 		
-		# 1. Base background (faint yellow to show it's stocked)
+		# Base background (faint yellow to show it's stocked)
 		draw_rect(full_rect, Color(1.0, 0.8, 0.2, 0.15), true)
 		
-		# 2. Calculate Build Percentage
+		# Calculate Build Percentage
 		var build_pct = clamp(float(health) / float(max_health), 0.0, 1.0)
 		
 		# 3. Draw Build Progress (Green fill rising from bottom)
@@ -244,11 +244,11 @@ func get_save_data() -> Dictionary:
 	
 	data["building_name"] = building_name
 	
-	# 1. Save what we are building
+	# Save what we are building
 	if target_building_scene:
 		data["target_scene_path"] = target_building_scene.resource_path
 	
-	# 2. Save the string dictionaries directly! (No translation needed)
+	# Save the string dictionaries directly! (No translation needed)
 	data["required_items"] = required_items
 	data["delivered_items"] = delivered_items
 	data["is_ready_to_build"] = is_ready_to_build
@@ -274,14 +274,14 @@ func load_save_data(data: Dictionary):
 	if data.has("building_name"):
 		building_name = data["building_name"]
 		
-	# 1. Restore the blueprint
+	# Restore the blueprint
 	if data.has("target_scene_path"):
 		target_building_scene = load(data["target_scene_path"]) as PackedScene
 		
 	size = Vector2i(data.get("size_x", 1), data.get("size_y", 1))
 	blueprint_size = size # Keep the hologram visual in sync!
 	
-	# 2. Restore the dictionaries directly
+	# Restore the dictionaries directly
 	
 	if data.has("required_items"):
 		required_items = data["required_items"]

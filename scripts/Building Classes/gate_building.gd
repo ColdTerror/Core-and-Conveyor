@@ -55,11 +55,11 @@ func _ready():
 	if has_node("AutoCollisionBody"):
 		var static_body = $AutoCollisionBody
 		
-		# 1. Delete the giant shape the base class made
+		# Delete the giant shape the base class made
 		for child in static_body.get_children():
 			child.queue_free()
 			
-		# 2. Build 3 distinct 1x1 tiles
+		# Build 3 distinct 1x1 tiles
 		for i in range(3):
 			var shape = CollisionShape2D.new()
 			var rect = RectangleShape2D.new()
@@ -124,12 +124,12 @@ func _on_bot_exited(area: Area2D):
 func _set_gate_open(open: bool):
 	is_open = open
 	
-	# 1. ONLY drop the physical barrier for the center tile!
+	# ONLY drop the physical barrier for the center tile!
 	# We use set_deferred because Godot hates changing physics shapes in the middle of a collision calculation.
 	if has_node("AutoCollisionBody/DoorCollision"):
 		$AutoCollisionBody/DoorCollision.set_deferred("disabled", open)
 		
-	# 2. ONLY tell the Enemy Pathfinder that the center door is open!
+	# ONLY tell the Enemy Pathfinder that the center door is open!
 	if level_ref and level_ref.building_manager:
 		var center_tile = occupied_tiles[1]
 		level_ref.building_manager.pathfinder.set_gate_obstacle(center_tile, path_cost, is_open)

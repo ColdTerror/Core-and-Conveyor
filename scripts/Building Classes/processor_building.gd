@@ -43,12 +43,12 @@ func _ready():
 	super()
 #Log items when destroyed
 func die():
-	# 1. Log the unrefined ingredients that burn down
+	# Log the unrefined ingredients that burn down
 	for item_res in input_inventory.keys():
 		EconomyManager.log_item_consumed(item_res.display_name, input_inventory[item_res])
 	input_inventory.clear()
 	
-	# 2. Log the finished products that burn down
+	# Log the finished products that burn down
 	if output_inventory > 0 and active_recipe and active_recipe.output_item:
 		EconomyManager.log_item_consumed(active_recipe.output_item.display_name, output_inventory)
 	output_inventory = 0
@@ -59,7 +59,7 @@ func die():
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return true
 
-# 2. Unpack the backpack into the correct buffers
+# Unpack the backpack into the correct buffers
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	if not active_recipe: return 0
 	
@@ -111,7 +111,7 @@ func _check_can_start_work():
 	if not active_recipe: return
 	if output_inventory + active_recipe.output_count > buffer_capacity: return
 
-	# 1. Check if we have enough of EVERY required item
+	# Check if we have enough of EVERY required item
 	for req_item in active_recipe.inputs:
 		var req_amount = active_recipe.inputs[req_item]
 		var stored_amount = input_inventory.get(req_item, 0)
@@ -119,7 +119,7 @@ func _check_can_start_work():
 		if stored_amount < req_amount:
 			return # Missing an ingredient! Abort!
 
-	# 2. If we made it here, we have everything! Deduct them all.
+	# If we made it here, we have everything! Deduct them all.
 	for req_item in active_recipe.inputs:
 		var req_amount = active_recipe.inputs[req_item]
 		input_inventory[req_item] -= req_amount
@@ -169,7 +169,7 @@ func _try_output_item():
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# 1. Ensure the neighbor can physically accept items
+				# Ensure the neighbor can physically accept items
 				if neighbor.has_method("accept_item_node"):
 					var can_output = false
 					
@@ -177,7 +177,7 @@ func _try_output_item():
 					if neighbor is RouterBuilding:
 						can_output = true
 						
-					# 2. STRICT CHECK: Belts and Filters must point exactly away!
+					# STRICT CHECK: Belts and Filters must point exactly away!
 					elif neighbor is ConveyorBuilding or neighbor is FilterBuilding:
 						if neighbor.direction == offset:
 							can_output = true
@@ -196,7 +196,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 	# Safely check that we actually have a valid recipe and output item!
 	if not generic_item_scene or not active_recipe or not active_recipe.output_item: return false
 	
-	# 1. Create the Visual Node
+	# Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	if "item_data" in new_item_node: new_item_node.item_data = active_recipe.output_item
@@ -204,10 +204,10 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 	# ========================================
 	# FIXED: PERFECT POSITION SNAPPING
 	# ========================================
-	# 1. Find the exact pixel center of the specific 1x1 tile the item is leaving
+	# Find the exact pixel center of the specific 1x1 tile the item is leaving
 	var tile_center_px = level_ref.object_layer.map_to_local(source_tile)
 	
-	# 2. Push the item exactly 16 pixels (half a tile) in the orthogonal direction
+	# Push the item exactly 16 pixels (half a tile) in the orthogonal direction
 	var edge_px = tile_center_px + (Vector2(direction_offset) * 16.0)
 	
 	new_item_node.global_position = edge_px
@@ -215,7 +215,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	# 2. Try to hand it to the Receiver (Belt, Router, Filter)
+	# Try to hand it to the Receiver (Belt, Router, Filter)
 	if receiver.accept_item_node(new_item_node):
 		# Success! Processors use output_inventory instead of stored_amount
 		output_inventory -= 1
@@ -231,7 +231,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 
 # HYBRID UPGRADE PIPELINE (Duck Typing)
 
-# 1. Pack BOTH inventories into the backpack
+# Pack BOTH inventories into the backpack
 func get_economy_assets() -> Dictionary:
 	var assets = {}
 	
@@ -287,10 +287,10 @@ func cycle_recipe():
 	
 # SAVE / LOAD SYSTEM (Processor)
 func get_save_data() -> Dictionary:
-	# 1. Grab the base stats (health, building_name)
+	# Grab the base stats (health, building_name)
 	var data = super.get_save_data()
 	
-	# 2. Translate the input inventory (Resources -> Strings)
+	# Translate the input inventory (Resources -> Strings)
 	var saved_input = {}
 	for item_res in input_inventory.keys():
 		saved_input[item_res.display_name] = input_inventory[item_res]
@@ -305,10 +305,10 @@ func get_save_data() -> Dictionary:
 	return data
 
 func load_save_data(data: Dictionary):
-	# 1. Restore the base stats
+	# Restore the base stats
 	super.load_save_data(data)
 	
-	# 2. Restore the simple variables
+	# Restore the simple variables
 	output_inventory = data.get("output_inventory", 0)
 	current_recipe_index = data.get("current_recipe_index", 0)
 	work_timer = data.get("work_timer", 0.0)

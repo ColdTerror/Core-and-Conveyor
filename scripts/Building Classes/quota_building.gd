@@ -32,7 +32,7 @@ func setup(level_instance: Node2D):
 func _update_lights():
 	if not _q_manager or not lights_parent: return
 	
-	# 1. GRACE PERIOD OVERRIDE: If no quota exists, turn all 7 lights ON!
+	# GRACE PERIOD OVERRIDE: If no quota exists, turn all 7 lights ON!
 	if _q_manager.daily_requirements.is_empty():
 		for day_index in range(1, 8):
 			var light_node = lights_parent.get_node_or_null("Light" + str(day_index))
@@ -40,7 +40,7 @@ func _update_lights():
 				light_node.visible = true
 		return # Exit early, we don't need to check history
 
-	# 2. NORMAL WEEK LOGIC
+	# NORMAL WEEK LOGIC
 	var history: Array[bool] = []
 	if "weekly_history" in _q_manager:
 		history = _q_manager.weekly_history
@@ -63,9 +63,9 @@ func _update_lights():
 				light_node.visible = false
 # BELT FEEDING LOGIC
 
-# 1. We NO LONGER use needs_materials(). Bots will ignore this building!
+# We NO LONGER use needs_materials(). Bots will ignore this building!
 
-# 2. Tell the belts they can push items directly into our tiles
+# Tell the belts they can push items directly into our tiles
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return true 
 

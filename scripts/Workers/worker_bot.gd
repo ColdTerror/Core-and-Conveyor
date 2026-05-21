@@ -1175,7 +1175,7 @@ func get_inventory_info() -> Dictionary:
 func _update_sprite(move_dir: Vector2 = Vector2.ZERO):
 	if not sprite: return
 	
-	# 1. Update our facing direction if we are actually moving
+	# Update our facing direction if we are actually moving
 	if move_dir.length_squared() > 0.1:
 		last_facing_dir = move_dir.normalized()
 		
@@ -1191,7 +1191,7 @@ func _update_sprite(move_dir: Vector2 = Vector2.ZERO):
 	elif current_state in [State.RECHARGING, State.PANIC_WAITING] or (current_priority == TaskPriority.STOPPED and current_state == State.IDLE):
 		last_facing_dir = Vector2.DOWN
 		
-	# 2. Determine base X coordinate based on task priority
+	# Determine base X coordinate based on task priority
 	var base_x: int = 8 # Default to the White "Zz" (Stopped) sprites
 	
 	match current_priority:
@@ -1208,7 +1208,7 @@ func _update_sprite(move_dir: Vector2 = Vector2.ZERO):
 					base_x = 6 # Swap to Pink Shovel!
 		TaskPriority.STOPPED: base_x = 8       # White
 
-	# 3. Determine the exact frame coordinates based on direction
+	# Determine the exact frame coordinates based on direction
 	var final_x: int = base_x
 	var final_y: int = 0
 	
@@ -1381,20 +1381,20 @@ func get_save_data() -> Dictionary:
 	}
 
 func load_save_data(data: Dictionary):
-	# 1. Restore position
+	# Restore position
 	global_position = Vector2(data.get("pos_x", 0.0), data.get("pos_y", 0.0))
 	
-	# 2. Restore grid coordinates
+	# Restore grid coordinates
 	home_tile = Vector2i(data.get("home_x", -1), data.get("home_y", -1))
 	target_tile = Vector2i(data.get("target_x", -1), data.get("target_y", -1))
 	
-	# 3. Restore veterancy and recalculate derived stats BEFORE restoring health,
+	# Restore veterancy and recalculate derived stats BEFORE restoring health,
 	#    so max_health is correct when we apply the saved health value below.
 	bot_level = data.get("bot_level", 1)
 	current_xp = data.get("current_xp", 0)
 	_recalculate_stats() # Sets _normal_speed, max_health, carry_capacity
 	
-	# 4. Restore state, health, and energy
+	# Restore state, health, and energy
 	current_priority = data.get("current_priority", TaskPriority.STOPPED) as TaskPriority
 	current_state = data.get("current_state", State.IDLE) as State
 	current_energy = data.get("current_energy", max_energy)
@@ -1402,7 +1402,7 @@ func load_save_data(data: Dictionary):
 	is_limping = data.get("is_limping", false)
 
 		
-	# 5. Restore inventory — look up the ItemResource from the saved display name
+	# Restore inventory — look up the ItemResource from the saved display name
 	carried_amount = data.get("carried_amount", 0)
 	carried_item_name = data.get("carried_item_name", "")
 	
@@ -1411,19 +1411,19 @@ func load_save_data(data: Dictionary):
 	else:
 		carried_item_res = null
 		
-	# 6. Restore the action timer if the bot was mid-action when saved
+	# Restore the action timer if the bot was mid-action when saved
 	var time_left = data.get("timer_time_left", 0.0)
 	if time_left > 0:
 		action_timer.start(time_left)
 		
-	# 7. Clear all volatile runtime data — paths and blacklists can't be meaningfully
+	# Clear all volatile runtime data — paths and blacklists can't be meaningfully
 	#    restored (the world may have changed) so we start fresh and let the brain rethink.
 	current_path.clear()
 	unreachable_tiles.clear()
 	full_storages_ignored.clear()
 	unreachable_storages.clear()
 	
-	# 8. If the bot was walking somewhere when saved, reset it to IDLE.
+	# If the bot was walking somewhere when saved, reset it to IDLE.
 	#    The world layout may have changed, so blindly resuming a stale path is unsafe.
 	var transit_states = [
 		State.MOVING_TO_RESOURCE, State.MOVING_TO_INVENTORY,

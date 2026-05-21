@@ -228,26 +228,26 @@ func _is_left_dragging(event: InputEvent) -> bool:
 
 # SPECIFIC MODE LOGIC
 func _handle_default_selection(grid_pos: Vector2i):
-	# 1. Did we click a bot?
+	# Did we click a bot?
 	if is_instance_valid(hovered_bot):
 		object_selected.emit(hovered_bot)
 			
 		get_viewport().set_input_as_handled()
 		return
 		
-	# 2. Did we click an Enemy?
+	# Did we click an Enemy?
 	if is_instance_valid(hovered_enemy):
 		object_selected.emit(hovered_enemy)
 		get_viewport().set_input_as_handled()
 		return
 	
-	# 3. Did we click a building's Area2D?
+	# Did we click a building's Area2D?
 	if is_instance_valid(hovered_building):
 		object_selected.emit(hovered_building)
 		get_viewport().set_input_as_handled()
 		return
 
-	# 4. We clicked empty terrain or grid!
+	# We clicked empty terrain or grid!
 	object_selected.emit(null)
 		
 func _handle_terraform_input(event: InputEvent, grid_pos: Vector2i):
@@ -276,7 +276,7 @@ func _handle_terraform_input(event: InputEvent, grid_pos: Vector2i):
 
 # UNIVERSAL HOVER LOGIC
 func _on_object_hovered(object: Node2D):
-	# 1. Update our state trackers so the click logic knows what we are looking at!
+	# Update our state trackers so the click logic knows what we are looking at!
 	if object.has_method("set_priority"): # Duck-typing for WorkerBot
 		hovered_bot = object
 	elif object is Building:
@@ -284,12 +284,12 @@ func _on_object_hovered(object: Node2D):
 	elif object is Enemy:
 		hovered_enemy = object
 
-	# 2. Show the tooltip popup!
+	# Show the tooltip popup!
 	if hover_popup and hover_popup.has_method("show_building_info"):
 		hover_popup.show_building_info(object)
 
 func _on_object_unhovered(object: Node2D):
-	# 1. Clear our state trackers safely
+	# Clear our state trackers safely
 	if hovered_bot == object: hovered_bot = null
 	if hovered_enemy == object: hovered_enemy = null
 	
@@ -299,7 +299,7 @@ func _on_object_unhovered(object: Node2D):
 		var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
 		if renderer: renderer.queue_redraw()
 
-	# 2. Hide the tooltip popup!
+	# Hide the tooltip popup!
 	if hover_popup and "current_building" in hover_popup:
 		if hover_popup.current_building == object:
 			hover_popup.hide()

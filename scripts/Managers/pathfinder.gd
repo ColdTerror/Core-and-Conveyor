@@ -49,11 +49,11 @@ func set_obstacle(coords: Vector2i, is_solid: bool):
 
 func set_weighted_obstacle(coords: Vector2i, cost: float, is_solid_for_bots: bool = false):
 	if enemy_astar.is_in_boundsv(coords):
-		# 1. Enemies ALWAYS see it as a costly path (so they attack it or wade through it)
+		# Enemies ALWAYS see it as a costly path (so they attack it or wade through it)
 		enemy_astar.set_point_solid(coords, false)
 		enemy_astar.set_point_weight_scale(coords, cost)
 		
-		# 2. Bots see it based on what you tell them!
+		# Bots see it based on what you tell them!
 		if is_solid_for_bots:
 			# It's a Wall! Completely block the bot.
 			bot_astar.set_point_solid(coords, true)
@@ -64,11 +64,11 @@ func set_weighted_obstacle(coords: Vector2i, cost: float, is_solid_for_bots: boo
 # The Gate Rule: Bots see gates as open, enemies see HP cost when closed
 func set_gate_obstacle(coords: Vector2i, cost: float, is_open: bool):
 	if enemy_astar.is_in_boundsv(coords):
-		# 1. Bots ALWAYS see gates as 1.0 cost (open doors)
+		# Bots ALWAYS see gates as 1.0 cost (open doors)
 		bot_astar.set_point_solid(coords, false)
 		bot_astar.set_point_weight_scale(coords, 1.0)
 		
-		# 2. Enemies see the truth! 1.0 if open, HP Cost if closed.
+		# Enemies see the truth! 1.0 if open, HP Cost if closed.
 		enemy_astar.set_point_solid(coords, false)
 		enemy_astar.set_point_weight_scale(coords, 1.0 if is_open else cost)
 

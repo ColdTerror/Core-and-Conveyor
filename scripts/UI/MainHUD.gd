@@ -24,13 +24,13 @@ func _ready():
 
 # The function that runs when the signal is heard
 func _on_open_research_tree():
-	# 1. Close the little popup menu so it's out of the way
+	# Close the little popup menu so it's out of the way
 	detail_menu.close_menu()
 	hotbar.hide()
 	
 	game_ui.hide()
 	
-	# 2. Open the massive fullscreen Tech Tree!
+	# Open the massive fullscreen Tech Tree!
 	research_screen.open_screen()
 
 func _on_close_research_tree():
@@ -38,8 +38,8 @@ func _on_close_research_tree():
 	hotbar.show()
 	
 func _on_quota_shortcut_clicked():
-	# 1. Open the Management Menu
+	# Open the Management Menu
 	management_menu.open_menu()
 	
-	# 2. Force it to switch immediately to Tab 4 (The Quota Tab)
+	# Force it to switch immediately to Tab 4 (The Quota Tab)
 	management_menu._on_tab_clicked(4)

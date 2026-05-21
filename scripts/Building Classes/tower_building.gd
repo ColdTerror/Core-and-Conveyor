@@ -57,10 +57,10 @@ func die():
 	var assets = get_economy_assets()
 	
 	if not assets.is_empty():
-		# 1. Erase from the global UI so the top bar doesn't lie!
+		# Erase from the global UI so the top bar doesn't lie!
 		EconomyManager.remove_resources_from_global(assets)
 		
-		# 2. Log it in the daily ledger as consumed/destroyed
+		# Log it in the daily ledger as consumed/destroyed
 		for item_name in assets.keys():
 			var amount_lost = assets[item_name]
 			EconomyManager.log_item_consumed(item_name, amount_lost)
@@ -183,11 +183,11 @@ func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 
 
 
-# --- 1. FILTERED INPUT ---
+# --- FILTERED INPUT ---
 
 # --- THE "SOFT CAP" ADD ITEM LOGIC ---
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
-	# 1. Filter: Reject if it's not the right ammo
+	# Filter: Reject if it's not the right ammo
 	if not item_res.is_ammo: return 0
 	if item_res.ammo_type != required_ammo_type: return 0
 	
@@ -225,7 +225,7 @@ func can_accept_item(item_res: ItemResource) -> bool:
 	
 	# Do we have space in the magazine?
 	return ammo_inventory.size() < ammo_capacity
-# --- 2. COMBAT LOOP ---
+# --- COMBAT LOOP ---
 
 func building_tick(delta: float) -> void:
 	if attack_cooldown > 0:
@@ -293,7 +293,7 @@ func _is_valid_target(target) -> bool:
 	return _cached_range_tiles.has(_get_enemy_tile(target))
 
 
-# --- 3. FIRING LOGIC ---
+# --- FIRING LOGIC ---
 
 func _shoot():
 	var ammo_data = ammo_inventory.pop_front()
@@ -369,16 +369,16 @@ func cycle_targeting_mode():
 	
 # SAVE / LOAD SYSTEM (Tower)
 func get_save_data() -> Dictionary:
-	# 1. Grab the base stats (health, building_name)
+	# Grab the base stats (health, building_name)
 	var data = super.get_save_data()
 	
-	# 2. Translate the Ammo Array (Resources -> Strings)
+	# Translate the Ammo Array (Resources -> Strings)
 	var saved_ammo = []
 	for ammo_res in ammo_inventory:
 		saved_ammo.append(ammo_res.display_name)
 	data["ammo_inventory"] = saved_ammo
 	
-	# 3. Save targeting logic and cooldowns
+	# Save targeting logic and cooldowns
 	data["targeting_mode"] = targeting_mode
 	data["current_targeting_index"] = current_targeting_index
 	data["attack_cooldown"] = attack_cooldown
@@ -386,15 +386,15 @@ func get_save_data() -> Dictionary:
 	return data
 
 func load_save_data(data: Dictionary):
-	# 1. Restore the base stats
+	# Restore the base stats
 	super.load_save_data(data)
 	
-	# 2. Restore the simple variables
+	# Restore the simple variables
 	targeting_mode = data.get("targeting_mode", "Closest")
 	current_targeting_index = data.get("current_targeting_index", 0)
 	attack_cooldown = data.get("attack_cooldown", 0.0)
 	
-	# 3. Rebuild the Ammo Array using the ItemDatabase
+	# Rebuild the Ammo Array using the ItemDatabase
 	ammo_inventory.clear()
 	if data.has("ammo_inventory"):
 		var saved_ammo_strings = data["ammo_inventory"]

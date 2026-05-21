@@ -141,7 +141,7 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 	var amount_left_to_store = amount
 	var total_consumed = 0
 	
-	# 1. INTERCEPT FOR BOT CONSTRUCTION
+	# INTERCEPT FOR BOT CONSTRUCTION
 	if is_building_bot and bot_bill.has(item_res):
 		var needed = bot_bill[item_res]
 		var consumed_for_bot = min(amount_left_to_store, needed)
@@ -161,7 +161,7 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 			inventory_changed.emit()
 			return total_consumed
 
-	# 2. INTERCEPT FOR RESEARCH
+	# INTERCEPT FOR RESEARCH
 	if active_research_name != "" and research_bill.has(item_res):
 		var needed = research_bill[item_res]
 		var consumed_for_research = min(amount_left_to_store, needed)
@@ -198,11 +198,11 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 	return total_consumed + amount_stored
 
 func can_accept_item(item_res: ItemResource) -> bool:
-	# 1. BOT OVERRIDE
+	# BOT OVERRIDE
 	if is_building_bot and bot_bill.has(item_res):
 		return true
 		
-	# 2. RESEARCH OVERRIDE
+	# RESEARCH OVERRIDE
 	if active_research_name != "" and research_bill.has(item_res):
 		return true
 		
@@ -361,13 +361,13 @@ func _trigger_game_over():
 func get_save_data() -> Dictionary:
 	var data = super.get_save_data()
 	
-	# 1. Translate the Inventory
+	# Translate the Inventory
 	var saved_inventory = {}
 	for item_res in inventory.keys():
 		saved_inventory[item_res.display_name] = inventory[item_res]
 	data["inventory"] = saved_inventory
 	
-	# 2. Translate the Active Research Bill
+	# Translate the Active Research Bill
 	var saved_bill = {}
 	for item_res in research_bill.keys():
 		saved_bill[item_res.display_name] = research_bill[item_res]

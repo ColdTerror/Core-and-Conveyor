@@ -125,7 +125,7 @@ func get_save_data() -> Dictionary:
 	}
 
 func load_save_data(data: Dictionary):
-	# 1. Reset all Autoload variables back to Day 1 defaults
+	# Reset all Autoload variables back to Day 1 defaults
 	tier_unlocked = 0
 	max_bots_allowed = 2 
 	bot_start_level = 1 
@@ -137,7 +137,7 @@ func load_save_data(data: Dictionary):
 	moon_measure_level = 0
 	unlocked_techs.clear()
 	
-	# 2. Quietly "re-research" everything from the save file
+	# Quietly "re-research" everything from the save file
 	if data.has("unlocked_techs"):
 		
 		var saved_techs: Array[String] = []

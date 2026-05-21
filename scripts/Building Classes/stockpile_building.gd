@@ -41,10 +41,10 @@ func die():
 	var assets = get_economy_assets()
 	
 	if not assets.is_empty():
-		# 1. Erase from the global UI so the top bar doesn't lie!
+		# Erase from the global UI so the top bar doesn't lie!
 		EconomyManager.remove_resources_from_global(assets)
 		
-		# 2. Log it in the daily ledger as consumed/destroyed
+		# Log it in the daily ledger as consumed/destroyed
 		for item_name in assets.keys():
 			var amount_lost = assets[item_name]
 			EconomyManager.log_item_consumed(item_name, amount_lost)
@@ -64,7 +64,7 @@ func building_tick(delta: float) -> void:
 
 # --- UI INTERACTION ---
 func cycle_output_mode():
-	# 1. Refresh available types from current inventory
+	# Refresh available types from current inventory
 	for item in inventory.keys():
 		var n = item.display_name
 		if not n in available_types:
@@ -74,7 +74,7 @@ func cycle_output_mode():
 		selected_output_name = ""
 		return
 
-	# 2. Cycle Logic
+	# Cycle Logic
 	if selected_output_name == "":
 		selected_output_name = available_types[0]
 	else:
@@ -105,7 +105,7 @@ func _try_output_item():
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# 1. Ensure the neighbor can physically accept items
+				# Ensure the neighbor can physically accept items
 				if neighbor.has_method("accept_item_node"):
 					var can_output = false
 					
@@ -113,30 +113,30 @@ func _try_output_item():
 					if neighbor is RouterBuilding:
 						can_output = true
 						
-					# 2. STRICT CHECK: Belts and Filters must point exactly away!
+					# STRICT CHECK: Belts and Filters must point exactly away!
 					elif neighbor is ConveyorBuilding or neighbor is FilterBuilding:
 						if neighbor.direction == offset:
 							can_output = true
 							
-					# 3. ANYTHING ELSE: Magic omnidirectional bypass!
+					# ANYTHING ELSE: Magic omnidirectional bypass!
 					else:
 						can_output = true
 							
-					# 4. If valid, attempt the transfer
+					# If valid, attempt the transfer
 					if can_output:
 						if _spawn_item_into_conveyor(neighbor, my_tile, offset):
 							return # Success! Stop trying other neighbors this tick.
 
 # --- FIXED: Accepts ANY node that has accept_item_node! ---
 func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_offset: Vector2i) -> bool:
-	# 1. Check if we actually have the selected item
+	# Check if we actually have the selected item
 	var item_res = _find_item_by_name(selected_output_name)
 	if not item_res or inventory.get(item_res, 0) <= 0:
 		return false # Inventory empty for this type
 	
 	if not generic_item_scene: return false
 	
-	# 2. Create the Visual Node
+	# Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	new_item_node.item_data = item_res
@@ -144,10 +144,10 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 	# ========================================
 	# FIXED: PERFECT POSITION SNAPPING
 	# ========================================
-	# 1. Find the exact pixel center of the specific 1x1 tile the item is leaving
+	# Find the exact pixel center of the specific 1x1 tile the item is leaving
 	var tile_center_px = level_ref.object_layer.map_to_local(source_tile)
 	
-	# 2. Push the item exactly 16 pixels (half a tile) in the orthogonal direction
+	# Push the item exactly 16 pixels (half a tile) in the orthogonal direction
 	var edge_px = tile_center_px + (Vector2(direction_offset) * 16.0)
 	
 	new_item_node.global_position = edge_px
@@ -184,11 +184,11 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	var space_left = 0
 
 	if is_dedicated_mode:
-		# 1. Lock onto the item if we are empty!
+		# Lock onto the item if we are empty!
 		if current_total == 0 and dedicated_item_name == "":
 			dedicated_item_name = item_res.display_name
 			
-		# 2. Reject if it's the wrong item
+		# Reject if it's the wrong item
 		if dedicated_item_name != "" and item_res.display_name != dedicated_item_name:
 			return 0 
 			
@@ -198,11 +198,11 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 		var current_amount = inventory.get(item_res, 0)
 		space_left = max_mixed_capacity - current_amount
 
-	# 3. Reject if full
+	# Reject if full
 	if space_left <= 0:
 		return 0
 
-	# 4. Take the items!
+	# Take the items!
 	var amount_to_take = min(amount, space_left)
 
 	if not item_res.display_name in available_types:
@@ -329,11 +329,11 @@ func toggle_inventory_mode():
 		if inventory.size() > 0:
 			var target_item_ref: ItemResource = null
 			
-			# 1. Prefer the currently selected output item
+			# Prefer the currently selected output item
 			if selected_output_name != "":
 				target_item_ref = _find_item_by_name(selected_output_name)
 				
-			# 2. Fall back to majority item if no output selected (or selected item not in inventory)
+			# Fall back to majority item if no output selected (or selected item not in inventory)
 			if target_item_ref == null:
 				var max_count: int = -1
 				for item in inventory.keys():
@@ -341,11 +341,11 @@ func toggle_inventory_mode():
 						max_count = inventory[item]
 						target_item_ref = item
 
-			# 3. Lock onto the winner!
+			# Lock onto the winner!
 			dedicated_item_name = target_item_ref.display_name
 			print("Switched to Dedicated. Locked to: ", dedicated_item_name)
 			
-			# 4. Void all the losers
+			# Void all the losers
 			var assets_to_remove = {}
 			var items_to_erase = []
 			
@@ -354,7 +354,7 @@ func toggle_inventory_mode():
 					assets_to_remove[item.display_name] = inventory[item]
 					items_to_erase.append(item)
 					
-			# 5. Clean up the economy and local data if anything was voided
+			# Clean up the economy and local data if anything was voided
 			if not assets_to_remove.is_empty():
 				EconomyManager.remove_resources_from_global(assets_to_remove)
 				
@@ -418,11 +418,11 @@ func _prune_available_types():
 	for item in inventory.keys():
 		current_names.append(item.display_name)
 		
-	# 1. Always remember the currently selected output!
+	# Always remember the currently selected output!
 	if selected_output_name != "" and not current_names.has(selected_output_name):
 		current_names.append(selected_output_name)
 		
-	# 2. Always remember the dedicated lock
+	# Always remember the dedicated lock
 	if is_dedicated_mode and dedicated_item_name != "" and not current_names.has(dedicated_item_name):
 		current_names.append(dedicated_item_name)
 		
@@ -430,15 +430,15 @@ func _prune_available_types():
 	
 # SAVE / LOAD SYSTEM (Stockpile)
 func get_save_data() -> Dictionary:
-	# 1. Get the basic box from the parent (health, building_name)
+	# Get the basic box from the parent (health, building_name)
 	var data = super.get_save_data()
 	
-	# 2. Translate the inventory (Resources -> Strings)
+	# Translate the inventory (Resources -> Strings)
 	var saved_inventory = {}
 	for item_res in inventory.keys():
 		saved_inventory[item_res.display_name] = inventory[item_res]
 		
-	# 3. Add the Stockpile's unique data
+	# Add the Stockpile's unique data
 	data["inventory"] = saved_inventory
 	data["is_dedicated_mode"] = is_dedicated_mode
 	data["dedicated_item_name"] = dedicated_item_name
@@ -448,16 +448,16 @@ func get_save_data() -> Dictionary:
 	return data
 
 func load_save_data(data: Dictionary):
-	# 1. Let the parent unpack the health!
+	# Let the parent unpack the health!
 	super.load_save_data(data)
 	
-	# 2. Unpack the simple settings
+	# Unpack the simple settings
 	is_dedicated_mode = data.get("is_dedicated_mode", false)
 	dedicated_item_name = data.get("dedicated_item_name", "")
 	selected_output_name = data.get("selected_output_name", "")
 	available_types = data.get("available_types", [])
 	
-	# 3. Rebuild the inventory (Strings -> Resources)
+	# Rebuild the inventory (Strings -> Resources)
 	inventory.clear()
 	if data.has("inventory"):
 		var saved_inv = data["inventory"]

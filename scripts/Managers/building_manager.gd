@@ -200,7 +200,7 @@ func start_relocating(building: Building):
 	var scene_path = building.scene_file_path
 	var target_scene = load(scene_path)
 	
-	# --- 1. Save the Start Position ---
+	# --- Save the Start Position ---
 	relocate_saved_pos = building.grid_origin
 	relocate_saved_scene = target_scene
 	
@@ -212,11 +212,11 @@ func start_relocating(building: Building):
 	if building.has_method("get_economy_assets"):
 		relocate_saved_inventory = building.get_economy_assets().duplicate()
 		
-	# 3. Cleanly remove the old building to enforce the Teleport Tax
+	# Cleanly remove the old building to enforce the Teleport Tax
 	_on_building_destroyed(building)
 	building.queue_free()
 	
-	# 4. Trigger standard placement with our special flags active!
+	# Trigger standard placement with our special flags active!
 	start_placing(target_scene)
 	is_relocating = true
 	
@@ -466,11 +466,11 @@ func add_wall_visual(tiles: Array[Vector2i]):
 func remove_wall_visual(tiles: Array[Vector2i]):
 	if not wall_layer: return
 	
-	# 1. Erase all the tiles completely
+	# Erase all the tiles completely
 	for tile in tiles:
 		wall_layer.set_cell(tile, -1)
 	
-	# 2. Gather ALL neighbors of ALL destroyed tiles to update connections
+	# Gather ALL neighbors of ALL destroyed tiles to update connections
 	var neighbors: Array[Vector2i] = []
 	for tile in tiles:
 		neighbors.append(tile + Vector2i(0, -1))
@@ -874,7 +874,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	var true_origin = old_building.grid_origin
 	var old_priority_index = master_priority_queue.find(old_building)
 	
-	# 1. EXTRACT ALL DATA BEFORE DESTRUCTION
+	# EXTRACT ALL DATA BEFORE DESTRUCTION
 	var saved_data = {}
 	if old_building.has_method("get_upgrade_data"):
 		saved_data = old_building.get_upgrade_data()
@@ -943,7 +943,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		var target_name = old_building.building_name + " (Upgrading)"
 		site.setup_blueprint(level_ref, old_building.upgrades_to, upgrade_cost_dict, old_building.size, target_name)
 		
-		# 2. APPLY INVENTORY MATH
+		# APPLY INVENTORY MATH
 		for item_name in upgrade_cost_dict.keys():
 			if old_inventory.has(item_name):
 				var needed = upgrade_cost_dict[item_name]
@@ -1085,15 +1085,15 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 	for b in buildings:
 		var matches = false
 		
-		# 1. Match Belts AND Belt Blueprints
+		# Match Belts AND Belt Blueprints
 		if group_name == "Belts":
 			matches = (b is ConveyorBuilding) or (b is ConstructionSite and "Conveyor" in b.building_name)
 			
-		# 2. Match Walls AND Wall Blueprints
+		# Match Walls AND Wall Blueprints
 		elif group_name == "Walls":
 			matches = (b is WallBuilding) or (b is ConstructionSite and "Wall" in b.building_name)
 			
-		# 3. Match Terraform (TerraformSite is already its own unique class!)
+		# Match Terraform (TerraformSite is already its own unique class!)
 		elif group_name == "Terraform":
 			matches = (b is TerraformSite)
 			
@@ -1186,10 +1186,10 @@ func get_save_data() -> Dictionary:
 		if not is_instance_valid(b) or b.is_ghost: 
 			continue
 
-		# 1. Ask the specific building to pack its own unique data!
+		# Ask the specific building to pack its own unique data!
 		var b_data = b.get_save_data() if b.has_method("get_save_data") else {}
 
-		# 2. Stamp the Spawner Data on the outside of the box
+		# Stamp the Spawner Data on the outside of the box
 		b_data["scene_file_path"] = b.scene_file_path
 		b_data["grid_origin_x"] = b.grid_origin.x
 		b_data["grid_origin_y"] = b.grid_origin.y
@@ -1213,7 +1213,7 @@ func load_save_data(data: Dictionary):
 			print("WARNING: Could not find scene file at: ", path)
 			continue
 
-		# 1. Spawn the blueprint!
+		# Spawn the blueprint!
 		var new_building = load(path).instantiate() as Building
 		if b_data.has("is_horizontal") and "is_horizontal" in new_building:
 			# This triggers the setter, making the size 1x3 BEFORE _ready() draws the physics!
@@ -1226,7 +1226,7 @@ func load_save_data(data: Dictionary):
 		new_building.place_at(grid_pos, object_layer)
 		new_building.set_ghost(false)
 
-		# 2. Run the Initial Setup
+		# Run the Initial Setup
 		if new_building is ConveyorBuilding:
 			# Conveyors need their direction *before* setup so they rotate correctly
 			var temp_dir = str_to_var(b_data.get("direction", "Vector2i(1, 0)"))
@@ -1238,11 +1238,11 @@ func load_save_data(data: Dictionary):
 		elif new_building.has_method("setup"):
 			new_building.setup(level_ref)
 
-		# 3. Hand the packed box back to the building so it can unpack its health/inventory!
+		# Hand the packed box back to the building so it can unpack its health/inventory!
 		if new_building.has_method("load_save_data"):
 			new_building.load_save_data(b_data)
 
-		# 4. Silently register it to the map (Bypassing the economy spending!)
+		# Silently register it to the map (Bypassing the economy spending!)
 		_register_building(new_building)
 		_add_safe_zone(new_building)
 		_add_build_zone(new_building)
@@ -1253,7 +1253,7 @@ func load_save_data(data: Dictionary):
 			
 		new_building.destroyed.connect(_on_building_destroyed)
 
-		# 5. Tell the pathfinder to navigate around it
+		# Tell the pathfinder to navigate around it
 		if pathfinder:
 			var footprint = new_building.get_footprint(grid_pos)
 			if new_building.is_solid_obstacle:

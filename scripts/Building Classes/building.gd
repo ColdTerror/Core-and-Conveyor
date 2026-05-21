@@ -79,7 +79,7 @@ func _ready():
 # UNIFIED PLACEMENT UPDATER
 func _update_collision(footprint_px: Vector2):
 	# --------------------------------------------------
-	# 1. Update or Create Area2D (For Mouse Hover/Clicks)
+	# Update or Create Area2D (For Mouse Hover/Clicks)
 	# --------------------------------------------------
 	var area: Area2D
 	var area_shape: CollisionShape2D
@@ -110,7 +110,7 @@ func _update_collision(footprint_px: Vector2):
 	area_shape.position = Vector2.ZERO
 
 	# --------------------------------------------------
-	# 2. Update or Create StaticBody2D (For Enemy Physics)
+	# Update or Create StaticBody2D (For Enemy Physics)
 	# --------------------------------------------------
 	var static_body: StaticBody2D
 	
@@ -207,10 +207,10 @@ func get_access_points(pathfinder_node: Pathfinder) -> Array[Vector2]:
 		for offset in neighbors:
 			var check_pos = tile_pos + offset
 			
-			# 1. Is it inside map bounds?
+			# Is it inside map bounds?
 			if not grid.is_in_boundsv(check_pos): continue
 			
-			# 2. Is it NOT solid? (i.e., Walkable)
+			# Is it NOT solid? (i.e., Walkable)
 			# We want to stand on empty ground, not inside a wall.
 			if not grid.is_point_solid(check_pos):
 				# Convert to World Position
@@ -392,9 +392,9 @@ func get_save_data() -> Dictionary:
 	return data
 
 func load_save_data(data: Dictionary):
-	# 1. Restore the base stats
+	# Restore the base stats
 	health = data.get("health", max_health)
 	
-	# 2. Trigger the UI to update the health bar if it took damage!
+	# Trigger the UI to update the health bar if it took damage!
 	if health < max_health:
 		health_changed.emit(health, max_health)

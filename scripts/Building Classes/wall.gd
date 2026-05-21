@@ -18,10 +18,10 @@ func setup(level_instance: Node2D):
 func _ready():
 	super()
 	
-	# 1. Force walls to be walkable obstacles
+	# Force walls to be walkable obstacles
 	is_solid_obstacle = false 
 	
-	# 2. Set our initial path cost to perfectly match our health
+	# Set our initial path cost to perfectly match our health
 	path_cost = float(health)
 	
 	if level_ref and level_ref.building_manager and (not is_ghost):
@@ -49,7 +49,7 @@ func die():
 	super()
 
 func take_damage(amount: int):
-	# 1. Run the base Building.gd script first! 
+	# Run the base Building.gd script first! 
 	# (This handles the actual HP subtraction, signals, and red flash)
 	super(amount)
 	
@@ -57,7 +57,7 @@ func take_damage(amount: int):
 	if health <= 0 or is_ghost:
 		return 
 		
-	# 2. Sync the pathfinder
+	# Sync the pathfinder
 	_sync_path_cost()
 
 # --- NEW: Keeps the pathfinder accurate when bots repair the wall ---

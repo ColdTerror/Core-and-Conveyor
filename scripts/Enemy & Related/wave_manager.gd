@@ -201,7 +201,7 @@ func apply_quota_penalty(penalty_amount: float):
 	
 # SAVE / LOAD SYSTEM
 func get_save_data() -> Dictionary:
-	# 1. Loop through all living enemies and pack them into an array of boxes
+	# Loop through all living enemies and pack them into an array of boxes
 	var live_enemies_data = []
 	for enemy in get_tree().get_nodes_in_group("Enemies"):
 		if enemy.has_method("get_save_data"):

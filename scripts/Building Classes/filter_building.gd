@@ -23,7 +23,7 @@ func _ready():
 		if not filter_options.has(item_name):
 			filter_options.append(item_name)
 
-# 1. SETUP: Lock the rotation visually!
+# SETUP: Lock the rotation visually!
 func setup(level_instance: Node2D, dir: Vector2i):
 	level_ref = level_instance
 	
@@ -31,7 +31,7 @@ func setup(level_instance: Node2D, dir: Vector2i):
 	direction = facing_direction # Set base direction
 	rotation = Vector2(facing_direction).angle()
 
-# 2. THE BOUNCER: Only accept items from the back!
+# THE BOUNCER: Only accept items from the back!
 func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -> bool:
 	if source_belt:
 		var manager = level_ref.building_manager
@@ -128,7 +128,7 @@ func _try_route():
 	
 # SAVE / LOAD SYSTEM (Filter)
 func get_save_data() -> Dictionary:
-	# 1. Grab everything from the Router parent
+	# Grab everything from the Router parent
 	var data = super.get_save_data()
 	
 	data["facing_direction"] = var_to_str(facing_direction)
@@ -139,7 +139,7 @@ func get_save_data() -> Dictionary:
 	return data
 
 func load_save_data(data: Dictionary):
-	# 1. Let the Router unpack the item and base stats
+	# Let the Router unpack the item and base stats
 	super.load_save_data(data)
 	
 	if data.has("facing_direction"):
@@ -154,7 +154,7 @@ func load_save_data(data: Dictionary):
 	is_split_mode = data.get("is_split_mode", true)
 	side_toggle = data.get("side_toggle", 0)
 	
-	# 2. Safely find the index based on the saved string
+	# Safely find the index based on the saved string
 	var saved_filter = data.get("active_filter_name", "None")
 	var found_index = filter_options.find(saved_filter)
 	

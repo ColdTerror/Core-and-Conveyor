@@ -26,16 +26,16 @@ signal resource_destroyed(tile: Vector2i)
 # --- UPDATED: Now returns an int! ---
 func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1) -> int:
 	
-	# 1. Early Exits (Return 0 items)
+	# Early Exits (Return 0 items)
 	if active_regrowth_tasks.has(tile): return 0
 	if mining_cooldowns.has(tile): return 0
 
 	var data = object_info["data"] as TileDataResource
 	
-	# 2. START COOLDOWN
+	# START COOLDOWN
 	mining_cooldowns[tile] = data.mining_time
 
-	# 3. THE MATH
+	# THE MATH
 	var requested_amount = amount if amount > 0 else data.amount_per_mine
 	
 	# Safely calculate exactly how much we can actually take
@@ -43,14 +43,14 @@ func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1) 
 	
 	object_info["health"] -= actual_yield
 
-	# 4. State Decision
+	# State Decision
 	if object_info["health"] <= 0:
 		object_info["health"] = 0
 		_handle_depletion(tile, data, object_info)
 	else:
 		_handle_hit(tile, data)
 
-	# 5. Return the exact amount we successfully mined!
+	# Return the exact amount we successfully mined!
 	return actual_yield
 
 func _process(delta):
@@ -116,12 +116,12 @@ func _finish_regrowth(tile: Vector2i):
 	var data = task["data"]
 	var target_dict = task["target_dict"]
 	
-	# 1. THE MATH (Reset Health)
+	# THE MATH (Reset Health)
 	# Because we stored the reference, this updates the dictionary inside Level.gd!
 	target_dict["health"] = data.total_resources
 	
-	# 2. Cleanup
+	# Cleanup
 	active_regrowth_tasks.erase(tile)
 	
-	# 3. Visuals
+	# Visuals
 	resource_state_changed.emit(tile, ResourceState.FULL, data)

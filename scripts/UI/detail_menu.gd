@@ -30,16 +30,16 @@ func _ready():
 	
 func _process(_delta):
 	if visible:
-		# 1. Safely close if the target was destroyed while we were looking at it
+		# Safely close if the target was destroyed while we were looking at it
 		if not is_instance_valid(selected_object):
 			close_menu()
 			return
 			
-		# 2. Live update for Enemies
+		# Live update for Enemies
 		if selected_object is Enemy:
 			info_label.text = "Health: %d / %d\nDamage: %d" % [selected_object.health, selected_object.max_health, selected_object.damage]
 			
-		# 3. Live update for Worker Bots
+		# Live update for Worker Bots
 		elif selected_object.has_method("set_priority"): 
 			var info = selected_object.get_inventory_info()
 			
@@ -280,7 +280,7 @@ func _setup_core_ui(b: CoreBuilding):
 	info_label.modulate = Color(0.8, 0.8, 1.0)
 	info_label.text = "" # Clear it completely first
 	
-	# 1. RESEARCH UI
+	# RESEARCH UI
 	if b.active_research_name != "":
 		info_label.text += "Researching: %s\n" % b.active_research_name
 		
@@ -305,7 +305,7 @@ func _setup_core_ui(b: CoreBuilding):
 	# Visual separator in the text
 	info_label.text += "\n----------------------\n\n"
 
-	# 2. BOT CONSTRUCTION UI
+	# BOT CONSTRUCTION UI
 	var current_bots = get_tree().get_nodes_in_group("Bots").size()
 	var max_bots = ResearchManager.max_bots_allowed if Engine.has_singleton("ResearchManager") else 2
 	
@@ -369,19 +369,19 @@ func _setup_quota_ui(b: QuotaBuilding):
 		)
 		return
 		
-	# 1. Color code the entire text block based on safety!
+	# Color code the entire text block based on safety!
 	if info.get("Status", "") == "SAFE TODAY":
 		info_label.modulate = Color(0.2, 1.0, 0.2) # Safe Green
 	else:
 		info_label.modulate = Color(1.0, 0.8, 0.2) # Warning Yellow
 		
-	# 2. Build the display string
+	# Build the display string
 	var details = ""
 	details += "Status: %s\n" % info.get("Status", "Unknown")
 	details += "Weekly Success: %s\n" % info.get("Weekly Success", "0 / 7 Days")
 	details += "--- Daily Requirements ---\n"
 	
-	# 3. Loop through the dictionary to find the raw material numbers
+	# Loop through the dictionary to find the raw material numbers
 	for key in info.keys():
 		# Skip the header info we already printed
 		if key == "Status" or key == "Weekly Success":
@@ -459,7 +459,7 @@ func _setup_enemy_ui(e: Enemy):
 
 # --- Belt UI Helper ---
 func _setup_conveyor_ui(b: ConveyorBuilding):
-	# 1. Update the Info Label
+	# Update the Info Label
 	var item_name = "Empty"
 	if b.held_item and "item_data" in b.held_item and b.held_item.item_data:
 		item_name = b.held_item.item_data.display_name
@@ -469,7 +469,7 @@ func _setup_conveyor_ui(b: ConveyorBuilding):
 		
 	info_label.text = "Held Item: %s" % item_name
 	
-	# 2. Add the Void Button (Only if holding an item)
+	# Add the Void Button (Only if holding an item)
 	if b.held_item and is_instance_valid(b.held_item):
 		_create_button("Void Item", Color(1.0, 0.3, 0.3), func():
 			if b.held_item and is_instance_valid(b.held_item):
