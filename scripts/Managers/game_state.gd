@@ -1,3 +1,10 @@
+# ==============================================================================
+# Script: Managers/game_state.gd
+# Purpose: Global state manager that routes full-screen UI panels, controls backwards-compatible menu open queries, and notifies UI overlay systems of layout updates.
+# Dependencies: Requires standard Godot Node parent.
+# Signals:
+#   - menu_changed: Emitted when active fullscreen panel type changes.
+# ==============================================================================
 extends Node
 
 # Add every full-screen or intercepting menu here
@@ -20,9 +27,7 @@ var is_menu_open: bool:
 	get:
 		return current_menu != MenuType.NONE
 
-# ==========================================
 # MENU ROUTING
-# ==========================================
 func open_menu(menu: MenuType) -> bool:
 	if current_menu == menu: 
 		return false # Menu is already open

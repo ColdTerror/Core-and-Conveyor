@@ -1,3 +1,10 @@
+# ==============================================================================
+# Script: UI/pause_menu.gd
+# Purpose: Dictates CanvasLayer pause screen interactions, handling manual/quick state saving and loading, audio volumes (SFX/Music mute toggles and linear sliders), and game exits.
+# Dependencies: Requires Autoloads AudioManager and SaveManager. Needs child button/slider UI node controls.
+# Signals:
+#   - save_requested(slot: int): Emitted when the user triggers a manual/quick save event.
+# ==============================================================================
 extends CanvasLayer
 
 signal save_requested(slot: int)
@@ -96,9 +103,7 @@ func resume_game():
 func exit_game():
 	get_tree().quit()
 
-# ==========================================
 # THE MAGIC REFRESH FUNCTION
-# ==========================================
 func _refresh_menu_state():
 	# Loop through all 3 slots and check if they exist
 	_update_load_slot_ui(1, load_1_btn, del_1_btn)

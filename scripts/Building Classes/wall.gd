@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Building Classes/wall.gd
+# Purpose: Defensive wall structure that registers as an expensive walkable obstacle with the Pathfinder, paints autotiles dynamically to connect neighboring walls, hides individual sprites on placement, and dynamically alters its path cost weight as health changes.
+# Dependencies: Inherits Building. Requires building manager visual painting, Pathfinder connections, and child nodes (Sprite2D).
+# Signals: Inherits signals from Building (such as health_changed).
+# ==============================================================================
 extends Building
 class_name WallBuilding
 

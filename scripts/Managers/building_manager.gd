@@ -1,17 +1,22 @@
+# ==============================================================================
+# Script: Managers/building_manager.gd
+# Purpose: Core coordinator that manages all building states, grid/tile occupation maps, range overlay grids, dragging/placement blueprints, upgrades, and bot job prioritizations.
+# Dependencies: Requires TileMapLayers (object, terrain, corruption, wall), hover popup Control, and integrates with Pathfinder and EconomyManager.
+# Signals:
+#   - placement_cost_updated: Emitted to update building blueprint preview costs.
+#   - placement_ended: Emitted when building placement mode cancels or finishes.
+#   - core_placed_event: Emitted when the first core building is placed.
+# ==============================================================================
 class_name BuildingManager
 extends Node2D
 
 
-# ==========================================
 # SIGNALS
-# ==========================================
 signal placement_cost_updated(building_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary)
 signal placement_ended
 signal core_placed_event
 
-# ==========================================
 # EXPORTS
-# ==========================================
 @export_group("Layers")
 @export var object_layer: TileMapLayer
 @export var terrain_layer: TileMapLayer
@@ -23,9 +28,7 @@ signal core_placed_event
 @export var construction_site_scene: PackedScene
 @export var terraform_site_scene: PackedScene
 
-# ==========================================
 # RUNTIME STATE
-# ==========================================
 
 # --- Core ---
 var is_core_placed: bool = false
@@ -69,9 +72,7 @@ var relocate_saved_data: Dictionary = {}      # <--- NEW: Holds configuration
 var relocate_saved_inventory: Dictionary = {} # <--- NEW: Holds items
 
 
-# ==========================================
 # PRIORITY SYSTEM
-# ==========================================
 # Index 0 = highest priority. Groups use strings, unique buildings use node refs.
 var master_priority_queue: Array = []
 
@@ -92,9 +93,7 @@ func _counts_towards_limit(building: Node) -> bool:
 	# it does NOT count towards the building limit!
 	return not _is_grouped_type(building)
 	
-# ==========================================
 # Virtual Methods
-# ==========================================
 func _ready():
 	# Listen for any economy changes!
 	EconomyManager.inventory_changed.connect(_on_inventory_changed)
@@ -107,9 +106,7 @@ func _process(delta):
 	if placing_building:
 		queue_redraw()
 
-# ==========================================
 # Setup Methods
-# ==========================================
 func initialize(level_instance: Node2D):
 	level_ref = level_instance
 
@@ -156,9 +153,7 @@ func _reset_auto_grids():
 	# Reset the tracker
 	_auto_enabled_grids = {"build": false, "safe": false, "attack": false}
 	
-# ==========================================
 # PLACEMENT: PUBLIC API
-# ==========================================
 
 func start_placing(scene: PackedScene):
 	if scene == null: return
@@ -260,16 +255,13 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	
 	var grid_pos = specific_pos if specific_pos != Vector2i(-1, -1) else _get_mouse_grid()
 
-	# ==========================================
 	# --- CHECK AFFORDABILITY FIRST! ---
-	# ==========================================
 	var cost = ghost_building.get_build_cost()
 	var is_instant = ghost_building is ConveyorBuilding or ghost_building is CoreBuilding or cost.is_empty()
 	
 	if is_instant and not cost.is_empty():
 		if not EconomyManager.can_afford(cost):
 			return false # We can't afford it! Abort BEFORE breaking anything!
-	# ==========================================
 
 	# Handle conveyor build-over (free rotation vs upgrade)
 	if occupied_tiles.has(grid_pos):
@@ -356,9 +348,7 @@ func rotate_ghost():
 		# Force the manager to redraw the green/red placement box and cost footprint
 		_update_ghost_position_to(_get_mouse_grid())
 
-# ==========================================
 # PLACEMENT: INTERNAL
-# ==========================================
 
 func _place_instant(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	EconomyManager.spend_resources(cost)
@@ -407,17 +397,13 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	var final_blueprint_data = {}
 	
 	if is_relocating:
-		# ==========================================
 		# --- THE WEAR AND TEAR TAX ---
-		# ==========================================
 		for item_name in site.required_items.keys():
 			var total_needed = site.required_items[item_name]
 			# Pre-fill exactly half the cost (Salvaged from the old building)
 			site.delivered_items[item_name] = floor(total_needed / 2.0)
 			
-		# ==========================================
 		# --- HYBRID PIPELINE: AUTO-APPLY INVENTORY ---
-		# ==========================================
 		for item_name in site.required_items.keys():
 			if relocate_saved_inventory.has(item_name):
 				# Calculate what is STILL needed after the salvage tax
@@ -441,7 +427,6 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 		is_relocating = false
 		relocate_saved_data.clear()
 		relocate_saved_inventory.clear()
-		# ==========================================
 	else:
 		# --- NORMAL PLACEMENT ---
 		# Extract the rotation/configuration data from the transparent ghost
@@ -473,9 +458,7 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	ghost_building = null
 
 
-# ==========================================
 # WALL AUTOTILING LOGIC
-# ==========================================
 func add_wall_visual(tiles: Array[Vector2i]):
 	if not wall_layer: return
 	wall_layer.set_cells_terrain_connect(tiles, 0, 0)
@@ -627,9 +610,7 @@ func _get_mouse_grid() -> Vector2i:
 		
 	return raw_grid
 
-# ==========================================
 # DRAG LOGIC
-# ==========================================
 
 func _update_drag_line(current_grid: Vector2i):
 	var points = _get_straight_line(drag_start, current_grid)
@@ -728,9 +709,7 @@ func _clear_drag_ghosts():
 		if is_instance_valid(g): g.queue_free()
 	drag_ghosts.clear()
 
-# ==========================================
 # BUILDING REGISTRATION & DESTRUCTION
-# ==========================================
 
 func _register_building(building: Building):
 	buildings.append(building)
@@ -800,9 +779,7 @@ func deconstruct_building_at(grid_pos: Vector2i):
 	building.die()
 
 
-# ==========================================
 # ZONE TRACKING
-# ==========================================
 
 func _get_tiles_in_radius(origin: Vector2i, building: Building, radius: float) -> Array[Vector2i]:
 	var tiles: Array[Vector2i] = []
@@ -877,9 +854,7 @@ func _remove_attack_zone(building: Building):
 			attack_tiles[tile] -= 1
 			if attack_tiles[tile] <= 0: attack_tiles.erase(tile)
 			
-# ==========================================
 # UPGRADE SYSTEM
-# ==========================================
 
 func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	if not occupied_tiles.has(grid_pos): return false
@@ -899,9 +874,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	var true_origin = old_building.grid_origin
 	var old_priority_index = master_priority_queue.find(old_building)
 	
-	# ==========================================
 	# 1. EXTRACT ALL DATA BEFORE DESTRUCTION
-	# ==========================================
 	var saved_data = {}
 	if old_building.has_method("get_upgrade_data"):
 		saved_data = old_building.get_upgrade_data()
@@ -913,7 +886,6 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	var old_inventory = {}
 	if old_building.has_method("get_economy_assets"):
 		old_inventory = old_building.get_economy_assets().duplicate()
-	# ==========================================
 	
 	_on_building_destroyed(old_building)
 	old_building.queue_free()
@@ -971,9 +943,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		var target_name = old_building.building_name + " (Upgrading)"
 		site.setup_blueprint(level_ref, old_building.upgrades_to, upgrade_cost_dict, old_building.size, target_name)
 		
-		# ==========================================
 		# 2. APPLY INVENTORY MATH
-		# ==========================================
 		for item_name in upgrade_cost_dict.keys():
 			if old_inventory.has(item_name):
 				var needed = upgrade_cost_dict[item_name]
@@ -999,7 +969,6 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 		# --- NEW: WAKE UP THE SITE ---
 		if site.has_method("evaluate_requirements"):
 			site.evaluate_requirements()
-		# ==========================================
 			
 		site.place_at(true_origin, level_ref.object_layer)
 		
@@ -1067,9 +1036,7 @@ func _get_upgrade_stats(b: Building) -> Dictionary:
 	temp.queue_free()
 	return stats
 
-# ==========================================
 # TERRAFORM
-# ==========================================
 
 func _try_add_terrain_job(grid_pos: Vector2i):
 	if occupied_tiles.has(grid_pos): return
@@ -1094,9 +1061,7 @@ func _try_add_terrain_job(grid_pos: Vector2i):
 	site.destroyed.connect(_on_building_destroyed)
 	site.destroyed.connect(func(_b): terraform_jobs.erase(grid_pos))
 
-# ==========================================
 # PRIORITY SYSTEM
-# ==========================================
 
 func get_highest_priority_job(bot_position: Vector2) -> Node:
 	for item in master_priority_queue:
@@ -1161,9 +1126,7 @@ func move_priority_down(item: Variant):
 		master_priority_queue[idx + 1] = item
 		master_priority_queue[idx] = temp
 
-# ==========================================
 # BOT SPAWNING HELPER
-# ==========================================
 
 func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
 	var valid_tiles: Array[Vector2i] = []
@@ -1184,9 +1147,7 @@ func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
 		
 	return valid_tiles
 
-# ==========================================
 # MATH HELPERS
-# ==========================================
 
 func _get_straight_line(start: Vector2i, end: Vector2i) -> Array[Vector2i]:
 	var points: Array[Vector2i] = []
@@ -1216,9 +1177,7 @@ func _calculate_cumulative_cost(base_cost: Dictionary, quantity: int) -> Diction
 	return total
 
 	
-# ==========================================
 # SAVE / LOAD SYSTEM (BuildingManager)
-# ==========================================
 func get_save_data() -> Dictionary:
 	var saved_buildings = []
 

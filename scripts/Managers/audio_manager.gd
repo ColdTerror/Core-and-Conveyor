@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Managers/audio_manager.gd
+# Purpose: Global audio controller that manages linear volume scales, channel mute states, dynamic time-based playlist changes, jukebox controls, and pitch-shifted polyphonic SFX pools.
+# Dependencies: Requires child nodes MusicPlayer and SFXPool, and coordinates with TimeManager.
+# Signals: Emits track_changed when a new music selection starts playing.
+# ==============================================================================
 extends Node2D
 
 @onready var music_player = $MusicPlayer
@@ -19,9 +25,7 @@ signal track_changed(track_name: String)
 var music_bus_index: int
 var sfx_bus_index: int
 
-# ==========================================
 # AUDIO DICTIONARIES (Future-Proofed)
-# ==========================================
 var music_tracks: Dictionary = {
 	"Forest_Ambience": preload("res://audio/Music/Forest Ambience.wav"),
 	"Sunrise": preload("res://audio/Music/Sunrise.wav"),
@@ -66,9 +70,7 @@ func _ready():
 	
 	
 
-# ==========================================
 # MUSIC LOGIC
-# ==========================================
 func play_music(track_name: String):
 	if not music_tracks.has(track_name):
 		push_warning("Music track not found: " + track_name)
@@ -144,9 +146,7 @@ func play_playlist_track(playlist_name: String, fade_duration: float = 2.0):
 func stop_music():
 	music_player.stop()
 
-# ==========================================
 # PLAYLIST SEQUENCING (Time-Based Looping)
-# ==========================================
 func _on_music_finished():
 	print("music finished signal")
 	
@@ -175,9 +175,7 @@ func _on_music_finished():
 	else:
 		play_playlist_track("Day", 0.25)
 
-# ==========================================
 # JUKEBOX CONTROLS
-# ==========================================
 func get_track_list() -> Array:
 	return music_tracks.keys()
 
@@ -191,9 +189,7 @@ func disable_jukebox():
 	# Instantly manually trigger the music end function to resync with the clock
 	_on_music_finished()
 
-# ==========================================
 # SFX LOGIC (Polyphonic, Positional & Pitch Shifted)
-# ==========================================
 func play_sfx(sfx_name: String, pos: Vector2 = Vector2.INF, randomize_pitch: bool = true):
 	if not sfx_tracks.has(sfx_name):
 		push_warning("SFX not found: " + sfx_name)
@@ -234,9 +230,7 @@ func play_sfx(sfx_name: String, pos: Vector2 = Vector2.INF, randomize_pitch: boo
 		fallback.pitch_scale = 1.0
 	fallback.play()
 	
-# ==========================================
 # SETTINGS & OPTIONS MENU HOOKS
-# ==========================================
 func set_music_volume(linear_volume: float):
 	default_music_volume_db = linear_to_db(max(linear_volume, 0.0001))
 	if not is_music_muted:
@@ -258,17 +252,13 @@ func set_sfx_muted(muted: bool):
 	is_sfx_muted = muted
 	AudioServer.set_bus_mute(sfx_bus_index, is_sfx_muted)
 		
-# ==========================================
 # AUDIO EFFECTS
-# ==========================================
 func set_music_muffled(is_muffled: bool):
 	# The '0' means we are targeting the very first effect added to the bus
 	AudioServer.set_bus_effect_enabled(music_bus_index, 0, is_muffled)
 	
 	
-# ==========================================
 # Utility
-# ==========================================
 # The UI needs to ask for a 0-1 percentage, so we convert the Decibels back!
 func get_music_volume_linear() -> float:
 	return db_to_linear(default_music_volume_db)
@@ -277,9 +267,7 @@ func get_sfx_volume_linear() -> float:
 	return db_to_linear(default_sfx_volume_db)
 	
 
-# ==========================================
 # Save Load
-# ==========================================
 func get_save_data() -> Dictionary:
 	return {
 		"music_vol": get_music_volume_linear(),

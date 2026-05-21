@@ -1,11 +1,15 @@
+# ==============================================================================
+# Script: Managers/Level.gd
+# Purpose: Core scene controller that governs procedural map generation, hotbar slot setup, UI popups, tile resource placement, projectile spawning, and save/load serialization for the entire level environment.
+# Dependencies: Requires global Autoloads (InputManager, ResourceManager, SaveManager, EconomyManager), child layers/managers, and PackagedScene references for building blueprints.
+# Signals: Emits and listens to signals for hotbar selection, resource destruction, and core placement.
+# ==============================================================================
 class_name Level
 extends Node2D
 
 
 
-# ==========================================
 # ENUMS & CONSTANTS
-# ==========================================
 enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
 
 const ATLAS_COLUMNS := 3
@@ -20,9 +24,7 @@ const TERRAIN_SAND := 2
 const RES_TREE := 3
 const RES_STONE := 4
 
-# ==========================================
 # EXPORTS & CONFIGURATION
-# ==========================================
 @export_group("Map Settings")
 @export var current_map_type: MapGenType = MapGenType.RIVER_DIVIDE
 @export var tile_size_px: Vector2 = Vector2(32, 32)
@@ -59,9 +61,7 @@ const RES_STONE := 4
 @export var projectile_scene: PackedScene
 
 
-# ==========================================
 # RUNTIME STATE VARIABLES
-# ==========================================
 var active_grid_objects := {}
 
 # Tool Trackers
@@ -69,9 +69,7 @@ var last_hovered_upgrade_tile := Vector2i(-1, -1)
 var is_terrain_remove_brush: bool = false
 var last_terrain_tile := Vector2i(-1, -1)
 
-# ==========================================
 # NODES & REFERENCES
-# ==========================================
 @onready var terrain_layer: TileMapLayer = $TerrainLayer
 @onready var object_layer: TileMapLayer = $ObjectLayer
 
@@ -87,9 +85,7 @@ var last_terrain_tile := Vector2i(-1, -1)
 @onready var quota_manager: QuotaManager = $QuotaManager
 @onready var pathfinder = $Pathfinder
 
-# ==========================================
 # SETUP & MAIN LOOP
-# ==========================================
 
 func _ready():
 	
@@ -150,9 +146,7 @@ func _process(_delta):
 			building_manager.placement_ended.emit() 
 
 
-# ==========================================
 # HOTBAR & UI
-# ==========================================
 var categorized_buildings := {}
 
 func _setup_hotbar_items():
@@ -238,9 +232,7 @@ func _on_hotbar_item_selected(data, is_building):
 			elif data == "ACTION_BACK":
 				_show_main_categories()
 
-# ==========================================
 # RESOURCES & ENVIRONMENT
-# ==========================================
 
 func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResource):
 	match state:
@@ -276,9 +268,7 @@ func get_object_tile_index(tile: Vector2i) -> int:
 	if atlas == Vector2i(-1, -1): return -1
 	return atlas.y * ATLAS_COLUMNS + atlas.x
 
-# ==========================================
 # COMBAT & PROJECTILES
-# ==========================================
 
 func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset):
 	if not projectile_scene:
@@ -296,9 +286,7 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 	if proj.has_method("setup"):
 		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower)
 
-# ==========================================
 # MAP GENERATION
-# ==========================================
 
 func generate_simple_map():
 	terrain_layer.clear()
@@ -424,9 +412,7 @@ func can_place_object(grid_pos: Vector2i) -> bool:
 
 	return true
 
-# ==========================================
 # MAP SAVE / LOAD
-# ==========================================
 
 # Add this helper function at the bottom:
 func _on_pause_menu_save_requested(slot: int):

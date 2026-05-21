@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: UI/hover_menu.tscn.gd
+# Purpose: Dictates the tooltips and hover info overlay menus that pop up when cursor details are hovered over buildings or bots, including health, progress meters, inv capacity, stats, and leveling.
+# Dependencies: Autoloads ResearchManager and EconomyManager. Also relies on child controls (name_label, health_label, stats_box, inventory_box, work_bar).
+# Signals: None.
+# ==============================================================================
 extends PanelContainer
 
 @onready var name_label = $VBoxContainer/Name

@@ -1,4 +1,11 @@
-# ResourceManager.gd
+# ==============================================================================
+# Script: Managers/resource_manager.gd
+# Purpose: Governs environmental object harvesting, coordinates tree regrowth queues/timers, and tracks individual resource extraction cooldowns for manual/automatic mining.
+# Dependencies: Requires TileDataResource resource structures.
+# Signals:
+#   - resource_state_changed: Emitted when a resource tile's depletion state transitions (Full, Harvesting, Depleted).
+#   - resource_destroyed: Emitted when a non-regrowable resource tile is fully depleted.
+# ==============================================================================
 extends Node
 
 enum ResourceState {
@@ -16,9 +23,6 @@ var mining_cooldowns := {}
 signal resource_state_changed(tile: Vector2i, state: ResourceState, data: TileDataResource)
 signal resource_destroyed(tile: Vector2i)
 
-# ---------------------------------------------------------
-# HARVEST LOGIC
-# ---------------------------------------------------------
 # --- UPDATED: Now returns an int! ---
 func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1) -> int:
 	
@@ -49,9 +53,6 @@ func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1) 
 	# 5. Return the exact amount we successfully mined!
 	return actual_yield
 
-# ---------------------------------------------------------
-# PROCESS LOOPS
-# ---------------------------------------------------------
 func _process(delta):
 	# Loop 1: Handle Mining Cooldowns (The new logic)
 	_process_mining_cooldowns(delta)
@@ -89,7 +90,7 @@ func _process_regrowth(delta: float):
 
 # ... (Keep _handle_hit, _handle_depletion, and _finish_regrowth exactly as they were) ...
 
-# --- Internal Logic ---
+# Internal Logic
 
 func _handle_hit(tile: Vector2i, data: TileDataResource):
 	# Tell Level to show "Leafless" or "Cracked" sprite

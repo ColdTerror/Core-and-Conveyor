@@ -1,5 +1,10 @@
+# ==============================================================================
+# Script: UI/statistics_menu.gd
+# Purpose: Orchestrates the Statistics Ledger Menu overlay, presenting a production and consumption ledger for today, yesterday, or weekly stats, integrating live archival history from EconomyManager.
+# Dependencies: Requires TimeManager (via export), and Autoloads GameState and EconomyManager. Child controls for lists, tabs, titles, and close buttons.
+# Signals: None.
+# ==============================================================================
 extends Control
-#stat menu
 
 @export var time_manager: TimeManager
 
@@ -28,9 +33,7 @@ func _ready():
 	if EconomyManager.has_signal("stats_updated"):
 		EconomyManager.stats_updated.connect(refresh_ui)
 
-# ==========================================
 # UI STATE MACHINE ROUTING
-# ==========================================
 func toggle_menu():
 	if visible: 
 		close_screen()
@@ -52,9 +55,7 @@ func _on_global_menu_changed(active_menu):
 	if active_menu != GameState.MenuType.STATS:
 		hide()
 
-# ==========================================
 # DATA & REFRESH LOGIC
-# ==========================================
 func _set_mode(new_mode: ViewMode):
 	current_mode = new_mode
 	refresh_ui()

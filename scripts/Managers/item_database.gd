@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Managers/item_database.gd
+# Purpose: Acts as a master database/lookup dictionary for ItemResource instances (Wood, Stone, Plank, Arrows, Stone Bricks) by name.
+# Dependencies: Preloaded ItemResource files.
+# Signals: None.
+# ==============================================================================
 extends Node
 
 # A master dictionary connecting the text name to the actual file!

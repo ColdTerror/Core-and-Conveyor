@@ -1,3 +1,10 @@
+# ==============================================================================
+# Script: UI/MainHUD.gd
+# Purpose: Main HUD layer coordinator that listens to detail menu and research screen
+#          signals to toggle layouts and menus.
+# Dependencies: DetailMenu, GameUI, HotBar_UI, ResearchScreen, ManagementMenu child nodes.
+# Signals: None.
+# ==============================================================================
 extends CanvasLayer # (Or whatever your main UI script is)
 
 @onready var detail_menu = $Popup_Layer/DetailMenu 

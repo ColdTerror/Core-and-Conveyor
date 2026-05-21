@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Building Classes/router_building.gd
+# Purpose: Round-robin splitter node that accepts items from any side and routes them evenly to available output neighbors (belts, routers, or structures), preventing backwards backtracking, and packing delivery port variables into save/load states.
+# Dependencies: Inherits ConveyorBuilding. Requires parent level reference level_ref, global Autoloads, and building manager metrics.
+# Signals: Emits item_changed (inherited from ConveyorBuilding).
+# ==============================================================================
 extends ConveyorBuilding
 class_name RouterBuilding
 
@@ -130,9 +136,7 @@ func _try_route():
 	# If all valid outputs are blocked, pause briefly before checking again
 	push_cooldown = 0.1
 	
-# ==========================================
 # SAVE / LOAD SYSTEM (Router)
-# ==========================================
 func get_save_data() -> Dictionary:
 	# 1. Grab everything from the Conveyor parent (including the physical item!)
 	var data = super.get_save_data()

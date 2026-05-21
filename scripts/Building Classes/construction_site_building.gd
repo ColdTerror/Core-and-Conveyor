@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Building Classes/construction_site_building.gd
+# Purpose: Dictates the blueprint state of a building under construction, accepting and storing items until 100% funded, transitioning to a buildable state where bots can build it, and spawning the finalized building while copying over metadata (upgrades, rotations, items in inventory).
+# Dependencies: Inherits Building. Needs global Autoloads EconomyManager and ItemDatabase. Uses blueprint_size, size, and updates area shapes.
+# Signals: Inherits signals from Building (such as inventory_changed, health_changed, destroyed).
+# ==============================================================================
 extends Building
 class_name ConstructionSite
 
@@ -14,9 +20,7 @@ var blueprint_size: Vector2i = Vector2i(1, 1)
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 	
-# ==========================================
 # 1. THE DYNAMIC SETUP
-# ==========================================
 func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: Dictionary, b_size: Vector2i, target_name: String = ""):
 	level_ref = level_instance
 	target_building_scene = target_scene
@@ -42,9 +46,7 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 	
 	queue_redraw()
 
-# ==========================================
 # THE UNIFIED DOOR
-# ==========================================
 # --- THE "LOOK AHEAD" CHECK FOR CONVEYOR BELTS ---
 func can_accept_item(item_res: ItemResource) -> bool:
 	# 1. Reject if we are already done collecting
@@ -83,9 +85,7 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	evaluate_requirements()
 	return amount_to_take
 
-# ==========================================
 # PUBLIC STATE CHECK
-# ==========================================
 func evaluate_requirements():
 	var all_met = true
 	
@@ -108,9 +108,7 @@ func evaluate_requirements():
 	# Always tell the UI to update the progress bar numbers!
 	if has_signal("inventory_changed"):
 		inventory_changed.emit()
-# ==========================================
 # NEW: DEDICATED BUILD LOGIC
-# ==========================================
 func add_build_progress(amount: int):
 	if not is_ready_to_build: return
 	
@@ -171,9 +169,7 @@ func _finish_construction():
 		destroyed.emit(self)
 	queue_free()
 
-# ==========================================
 # UI HELPERS
-# ==========================================
 func get_inventory_info() -> Dictionary:
 	var info = {}
 	if is_ready_to_build:
@@ -188,9 +184,7 @@ func get_inventory_info() -> Dictionary:
 			
 	return info
 	
-# ==========================================
 # VISUALS
-# ==========================================
 func _draw():
 	var w = blueprint_size.x * 32.0
 	var h = blueprint_size.y * 32.0
@@ -244,9 +238,7 @@ func _draw():
 		var border_color = Color(1.0, 0.8, 0.2, 0.8).lerp(Color(0.2, 1.0, 0.2, 0.8), build_pct)
 		draw_rect(full_rect, border_color, false, 2.0)
 
-# ==========================================
 # SAVE / LOAD SYSTEM (Construction Site)
-# ==========================================
 func get_save_data() -> Dictionary:
 	var data = super.get_save_data()
 	

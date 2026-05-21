@@ -1,9 +1,14 @@
+# ==============================================================================
+# Script: Managers/input_manager.gd
+# Purpose: Unified input controller that handles keyboard hotkeys, menu gatekeeping, continuous WASD camera movements, drag-and-drop building blueprint placements, mouse hover tracking, and state-machine selection routing.
+# Dependencies: Requires standard Godot Node2D parent and level tracking nodes, and coordinates with GameState and Camera.
+# Signals:
+#   - object_selected: Emitted when the selected target bot, building, or enemy changes.
+# ==============================================================================
 extends Node2D
 class_name InputController
 
-# ==========================================
 # REFERENCES (Filled by the Level on load)
-# ==========================================
 var level_ref: Node2D
 var building_manager: Node2D
 var wave_manager: Node2D
@@ -11,9 +16,7 @@ var management_menu: Control
 var stat_menu: Control
 var hover_popup: Control
 
-# ==========================================
 # STATE & TRACKERS
-# ==========================================
 enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM, SET_HOME }
 var current_mode: InteractionMode = InteractionMode.NONE
 
@@ -33,9 +36,7 @@ func _ready():
 	add_to_group("InputManager")
 
 
-# ==========================================
 # KEYBOARD INPUT (Menus & Mode Toggles)
-# ==========================================
 func _unhandled_key_input(event: InputEvent):
 	if not event.is_pressed() or event.is_echo(): return
 
@@ -82,9 +83,7 @@ func _unhandled_key_input(event: InputEvent):
 				building_manager.handle_overlay_hotkeys(event.keycode)
 			get_viewport().set_input_as_handled()
 	
-	# ==========================================
 	# --- 4. DEBUG TOOLS ---
-	# ==========================================
 	match event.keycode:
 		KEY_F8:
 			if level_ref and level_ref.has_node("TimeManager"):
@@ -98,9 +97,7 @@ func _unhandled_key_input(event: InputEvent):
 				level_ref.get_node("TimeManager").debug_skip_to_next_morning()
 			get_viewport().set_input_as_handled()
 
-# ==========================================
 # CONTINUOUS INPUT (WASD Camera Panning)
-# ==========================================
 func _process(delta):
 	# Gatekeeper: Don't allow camera panning if a menu is open!
 	if GameState.is_menu_open: return
@@ -121,9 +118,7 @@ func _process(delta):
 		if cam and cam.has_method("apply_pan"):
 			cam.apply_pan(move_dir, delta)
 
-# ==========================================
 # MOUSE INPUT (The State Machine)
-# ==========================================
 func _unhandled_input(event: InputEvent):
 	if not level_ref or not building_manager: return
 	
@@ -210,9 +205,7 @@ func _unhandled_input(event: InputEvent):
 			if event.is_action_pressed("ui_left"):
 				_handle_default_selection(grid_pos)
 
-# ==========================================
 # ACTION HELPERS
-# ==========================================
 func _cancel_current_action():
 	building_manager.cancel_placement()
 	
@@ -233,9 +226,7 @@ func _is_left_clicking(event: InputEvent) -> bool:
 func _is_left_dragging(event: InputEvent) -> bool:
 	return event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 
-# ==========================================
 # SPECIFIC MODE LOGIC
-# ==========================================
 func _handle_default_selection(grid_pos: Vector2i):
 	# 1. Did we click a bot?
 	if is_instance_valid(hovered_bot):
@@ -283,9 +274,7 @@ func _handle_terraform_input(event: InputEvent, grid_pos: Vector2i):
 			else:
 				building_manager._try_add_terrain_job(grid_pos)
 
-# ==========================================
 # UNIVERSAL HOVER LOGIC
-# ==========================================
 func _on_object_hovered(object: Node2D):
 	# 1. Update our state trackers so the click logic knows what we are looking at!
 	if object.has_method("set_priority"): # Duck-typing for WorkerBot

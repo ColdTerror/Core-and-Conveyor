@@ -1,3 +1,14 @@
+# ==============================================================================
+# Script: Building Classes/building.gd
+# Purpose: Base class representing all structures in the game. Handles base parameters (health, level, footprint size, build/upgrade costs, ranges), collision shapes (mouse hov/click Area2D and enemy body StaticBody2D), placement ghost visual effects, damage processing, and virtual method interfaces for saving, loading, item transportation, and resource spending.
+# Dependencies: Requires area nodes (Area2D, Area2D/CollisionShape2D), dynamic nodes (AutoCollisionBody), CostData resources, global Autoload InputManager, and references to Pathfinder.
+# Signals:
+#   - hovered(building: Building): Emitted when cursor hovers over a building.
+#   - unhovered(building: Building): Emitted when cursor leaves the building's hitbox.
+#   - inventory_changed: Emitted when stockpiled items are consumed/stored.
+#   - health_changed(current_hp: int, max_hp: int): Emitted when taking damage.
+#   - destroyed(building_instance: Building): Emitted when the building dies.
+# ==============================================================================
 extends Node2D
 class_name Building
 
@@ -65,9 +76,7 @@ func _ready():
 		if not $Area2D.mouse_exited.is_connected(_on_mouse_exited):
 			$Area2D.mouse_exited.connect(_on_mouse_exited)
 
-# ==========================================
 # UNIFIED PLACEMENT UPDATER
-# ==========================================
 func _update_collision(footprint_px: Vector2):
 	# --------------------------------------------------
 	# 1. Update or Create Area2D (For Mouse Hover/Clicks)
@@ -314,9 +323,7 @@ func die():
 func consume_resources(remaining_bill: Dictionary):
 	pass # Default behavior: Do nothing (Walls/Towers don't hold items)
 
-# ==========================================
 # UPGRADE STATE TRANSFER
-# ==========================================
 
 # Packs up important data before dying
 func get_upgrade_data() -> Dictionary:
@@ -373,9 +380,7 @@ func apply_upgrade_data(data: Dictionary):
 		self.set("is_horizontal", data["is_horizontal"])
 	
 
-# ==========================================
 # SAVE / LOAD SYSTEM (Base Class)
-# ==========================================
 func get_save_data() -> Dictionary:
 	var data = {
 		"building_name": building_name,

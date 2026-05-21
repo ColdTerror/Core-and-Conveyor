@@ -1,4 +1,9 @@
-# camera_controller.gd
+# ==============================================================================
+# Script: Managers/camera_controller.gd
+# Purpose: Smooth orthographic camera controller supporting WASD/edge screen panning, scroll zoom centered on mouse coordinates, target tracking interpolation, and viewport clamping bounds.
+# Dependencies: Requires standard Godot Camera2D parent and coordinates with InputManager for key inputs.
+# Signals: None.
+# ==============================================================================
 extends Camera2D
 
 # Pan settings
@@ -16,9 +21,7 @@ extends Camera2D
 
 var target_zoom := 1.0
 
-# ==========================================
 # CAMERA FOLLOW VARIABLES
-# ==========================================
 var follow_target: Node2D = null
 @export var follow_smoothing := 10.0 
 
@@ -39,9 +42,7 @@ func _process(delta):
 	# Apply zoom smoothing
 	zoom = Vector2(target_zoom, target_zoom)
 
-# ==========================================
 # CALLED BY INPUT MANAGER
-# ==========================================
 func apply_pan(move_direction: Vector2, delta: float):
 	if move_direction.length() > 0:
 		# BREAKAWAY LOGIC

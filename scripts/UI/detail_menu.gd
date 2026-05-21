@@ -1,3 +1,12 @@
+# ==============================================================================
+# Script: UI/detail_menu.gd
+# Purpose: Dictates UI interaction panels for inspected elements in the level (buildings, bots, enemies), showing health, priority rankings, recipes, inventory capacity, void/filter toggles, targeting routines, and building queues.
+# Dependencies: Requires a reference to BuildingManager (via export), and Autoloads ResearchManager and EconomyManager. Also relies on child controls (title_label, info_label, action_container, close_button).
+# Signals:
+#   - menu_closed: Emitted when the detail menu panel is closed.
+#   - research_button_clicked: Emitted when the user selects research tree triggers.
+#   - quota_shortcut_clicked: Emitted when the user chooses shortcuts to the quota management page.
+# ==============================================================================
 extends PanelContainer
 
 @onready var title_label = $VBoxContainer/TitleLabel
@@ -52,9 +61,7 @@ func _process(_delta):
 			
 			info_label.text = "%sHealth: %d / %d\nTarget: %s\nCarrying: %s" % [level_str, selected_object.health, selected_object.max_health, info["Target"], info["Carrying"]]
 
-# ==========================================
 # --- NEW: Helper to wake up the global renderer ---
-# ==========================================
 func _force_overlay_redraw():
 	if building_manager and building_manager.level_ref:
 		var overlay = building_manager.level_ref.get_node_or_null("OverlayRenderer")
@@ -273,9 +280,7 @@ func _setup_core_ui(b: CoreBuilding):
 	info_label.modulate = Color(0.8, 0.8, 1.0)
 	info_label.text = "" # Clear it completely first
 	
-	# ==========================================
 	# 1. RESEARCH UI
-	# ==========================================
 	if b.active_research_name != "":
 		info_label.text += "Researching: %s\n" % b.active_research_name
 		
@@ -300,9 +305,7 @@ func _setup_core_ui(b: CoreBuilding):
 	# Visual separator in the text
 	info_label.text += "\n----------------------\n\n"
 
-	# ==========================================
 	# 2. BOT CONSTRUCTION UI
-	# ==========================================
 	var current_bots = get_tree().get_nodes_in_group("Bots").size()
 	var max_bots = ResearchManager.max_bots_allowed if Engine.has_singleton("ResearchManager") else 2
 	
@@ -350,9 +353,7 @@ func _setup_quota_ui(b: QuotaBuilding):
 		info_label.modulate = Color(0.5, 0.5, 0.5)
 		return
 		
-	# ==========================================
 	# --- FIXED: GRACE PERIOD UI ---
-	# ==========================================
 	if info.get("Status", "") == "GRACE PERIOD":
 		var txt = "Status: GRACE PERIOD\n"
 		txt += "Weekly Success: 7 / 7 Days\n"
@@ -367,7 +368,6 @@ func _setup_quota_ui(b: QuotaBuilding):
 			close_menu() 
 		)
 		return
-	# ==========================================
 		
 	# 1. Color code the entire text block based on safety!
 	if info.get("Status", "") == "SAFE TODAY":

@@ -1,4 +1,10 @@
-# Projectile.gd
+# ==============================================================================
+# Script: projectile.gd
+# Purpose: Drives target-seeking and linear physics behavior of arrows/projectiles
+#          fired from defensive structures. Handles impact detection and damage.
+# Dependencies: Requires a Sprite2D child node. Connects to the Area2D body_entered signal.
+# Signals: None.
+# ==============================================================================
 extends Area2D
 
 var velocity: Vector2 = Vector2.ZERO

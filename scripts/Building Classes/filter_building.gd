@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Building Classes/filter_building.gd
+# Purpose: Class representing individual Filter Belt structures. Extends RouterBuilding but restricts item entry exclusively to the back side, matches items against a selected filter option or split mode, routes filtered items to the left/right sides alternately and non-matching items forward (or vice versa), and handles filter index saving/loading.
+# Dependencies: Inherits RouterBuilding. Relies on parent class attributes, global Autoload ItemDatabase, and manages direction and rotation properties.
+# Signals: None.
+# ==============================================================================
 extends RouterBuilding
 class_name FilterBuilding
 
@@ -17,9 +23,7 @@ func _ready():
 		if not filter_options.has(item_name):
 			filter_options.append(item_name)
 
-# ==========================================
 # 1. SETUP: Lock the rotation visually!
-# ==========================================
 func setup(level_instance: Node2D, dir: Vector2i):
 	level_ref = level_instance
 	
@@ -27,9 +31,7 @@ func setup(level_instance: Node2D, dir: Vector2i):
 	direction = facing_direction # Set base direction
 	rotation = Vector2(facing_direction).angle()
 
-# ==========================================
 # 2. THE BOUNCER: Only accept items from the back!
-# ==========================================
 func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -> bool:
 	if source_belt:
 		var manager = level_ref.building_manager
@@ -46,18 +48,14 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 	# If it is at the back door, run the normal router acceptance logic
 	return super.accept_item_node(item_node, source_belt)
 
-# ==========================================
 # UI TOGGLES
-# ==========================================
 func cycle_filter():
 	current_filter_index = (current_filter_index + 1) % filter_options.size()
 
 func toggle_filter_mode():
 	is_split_mode = not is_split_mode
 
-# ==========================================
 # 3. ROUTING: Clean, predictable math
-# ==========================================
 func _try_route():
 	if not held_item or not "item_data" in held_item: return
 	
@@ -128,9 +126,7 @@ func _try_route():
 	# --- UPGRADED: Instant reaction time instead of a 0.5-second nap! ---
 	push_cooldown = 0.1
 	
-# ==========================================
 # SAVE / LOAD SYSTEM (Filter)
-# ==========================================
 func get_save_data() -> Dictionary:
 	# 1. Grab everything from the Router parent
 	var data = super.get_save_data()

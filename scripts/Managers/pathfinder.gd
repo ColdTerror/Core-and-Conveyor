@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Managers/pathfinder.gd
+# Purpose: Implements two independent AStarGrid2D brains (one for worker bots, one for enemies) to calculate optimal pathways around solid buildings, walls, and water weight costs.
+# Dependencies: Requires TileMapLayer references and standard Godot AStarGrid2D resources.
+# Signals: None.
+# ==============================================================================
 extends Node
 class_name Pathfinder
 
@@ -55,9 +61,7 @@ func set_weighted_obstacle(coords: Vector2i, cost: float, is_solid_for_bots: boo
 			# It's Water/Mud! Let the bot walk through it, but apply the cost penalty.
 			bot_astar.set_point_solid(coords, false)
 			bot_astar.set_point_weight_scale(coords, cost)
-# ==========================================
-# NEW: THE GATE RULE
-# ==========================================
+# The Gate Rule: Bots see gates as open, enemies see HP cost when closed
 func set_gate_obstacle(coords: Vector2i, cost: float, is_open: bool):
 	if enemy_astar.is_in_boundsv(coords):
 		# 1. Bots ALWAYS see gates as 1.0 cost (open doors)

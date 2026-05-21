@@ -1,3 +1,11 @@
+# ==============================================================================
+# Script: research_screen.gd
+# Purpose: Handles rendering and arranging the interactive graph-based research tree 
+#          menu, toggling screens, and syncing with the global game state menus.
+# Dependencies: GameState Autoload. Expects a child GraphEdit node and a CloseButton.
+# Signals:
+#   - close_research_tree: Emitted when the research overlay is closed.
+# ==============================================================================
 @tool # <--- 1. Tell Godot to run this in the editor!
 extends CanvasLayer
 
@@ -28,9 +36,7 @@ func _ready():
 		if node is GraphNode and node.has_signal("research_started"):
 			node.research_started.connect(close_screen)
 
-# ==========================================
 # EDITOR LAYOUT TOOL
-# ==========================================
 func _arrange_nodes():
 	# Safely grab the GraphEdit (since @onready vars aren't always ready for @tool setters)
 	var ge = get_node_or_null("BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit")
@@ -55,9 +61,7 @@ func _arrange_nodes():
 	var row_global   = 800
 	var row_belt     = 1000
 	
-	# ==========================================
 	# POSITION EACH NODE
-	# ==========================================
 	_place(ge, "Core1", col_0, row_core)
 	_place(ge, "Core2", col_1, row_core)
 	
@@ -76,9 +80,7 @@ func _arrange_nodes():
 	_place(ge, "Belt1", col_0, row_belt)
 	_place(ge, "Belt2", col_1, row_belt)
 
-	# ==========================================
 	# WIRE THE CONNECTIONS
-	# ==========================================
 	ge.connect_node("Core1", 0, "Core2", 0)
 	ge.connect_node("Bot1", 0, "Bot2", 0)
 	ge.connect_node("Building1", 0, "Building2", 0)
@@ -88,9 +90,7 @@ func _arrange_nodes():
 	
 	print("Research Tree Successfully Arranged!")
 
-# ==========================================
 # HELPER
-# ==========================================
 func _place(ge: GraphEdit, node_name: String, x: float, y: float):
 	var node = ge.get_node_or_null(node_name)
 	if node:
@@ -99,9 +99,7 @@ func _place(ge: GraphEdit, node_name: String, x: float, y: float):
 	else:
 		push_warning("Research node not found: " + node_name)
 
-# ==========================================
 # UI LOGIC
-# ==========================================
 func open_screen():
 	if GameState.open_menu(GameState.MenuType.RESEARCH):
 		_refresh_all_nodes()

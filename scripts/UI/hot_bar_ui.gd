@@ -1,4 +1,11 @@
-# HotbarUI.gd
+# ==============================================================================
+# Script: UI/hot_bar_ui.gd
+# Purpose: Controls the build/select hotbar, dynamic button creation, selection emission,
+#          and core placement flashing animations.
+# Dependencies: Exports for BuildingManager.
+# Signals:
+#   - item_selected(data_wrapper, is_building): Emitted when a hotbar button is pressed.
+# ==============================================================================
 extends Control
 
 @onready var container = $PanelContainer/HBoxContainer
@@ -53,9 +60,7 @@ func clear_buttons():
 func _on_button_pressed(data, is_building):
 	item_selected.emit(data, is_building)
 
-# ==========================================
 # ANIMATION LOGIC
-# ==========================================
 func _start_core_flash():
 	if not core_button: return
 	
@@ -77,9 +82,7 @@ func _on_core_placed():
 	if core_button:
 		core_button.modulate = Color.WHITE
 		
-# ==========================================
 # UTILITY LOGIC
-# ==========================================
 func remove_button(button_name: String):
 	# Loop through all the buttons inside the HBoxContainer
 	for child in container.get_children():

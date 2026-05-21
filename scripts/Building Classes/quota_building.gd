@@ -1,4 +1,11 @@
 
+# ==============================================================================
+# Script: Building Classes/quota_building.gd
+# Purpose: Defensive quota receiver building that accepts required items from conveyor networks to fund/satisfy daily quotas, updates weekly progress indicator lights (grace period support), and communicates progress back to the global QuotaManager.
+# Dependencies: Inherits Building. Requires QuotaManager, global Autoload QuotaManager/EconomyManager, and child Light nodes.
+# Signals: Inherits signals from Building (such as inventory_changed).
+# ==============================================================================
+
 class_name QuotaBuilding
 extends Building
 
@@ -21,9 +28,7 @@ func setup(level_instance: Node2D):
 		
 		_update_lights()
 
-# ==========================================
 # --- UPGRADED: LIGHT UPDATE LOGIC ---
-# ==========================================
 func _update_lights():
 	if not _q_manager or not lights_parent: return
 	
@@ -56,9 +61,7 @@ func _update_lights():
 			else:
 				# FUTURE DAYS: Always off until we reach them
 				light_node.visible = false
-# ==========================================
 # BELT FEEDING LOGIC
-# ==========================================
 
 # 1. We NO LONGER use needs_materials(). Bots will ignore this building!
 
@@ -86,9 +89,7 @@ func add_item(item: ItemResource, amount: int) -> int:
 		
 	return 0 # Quota for this item is already 100% full
 
-# ==========================================
 # UI INFO FOR DETAIL MENU
-# ==========================================
 func get_inventory_info() -> Dictionary:
 	if not level_ref or not level_ref.has_node("QuotaManager"): 
 		return {}
@@ -96,14 +97,12 @@ func get_inventory_info() -> Dictionary:
 	var qm = level_ref.get_node("QuotaManager")
 	var info = {}
 	
-	# ==========================================
 	# --- NEW: GRACE PERIOD OVERRIDE ---
-	# ==========================================
 	if qm.daily_requirements.is_empty():
 		info["Status"] = "GRACE PERIOD"
 		info["Weekly Success"] = "7 / 7 Days"
 		return info
-	# ==========================================
+
 
 	# (Keep your existing logic below this!)
 	if qm._is_daily_quota_met():

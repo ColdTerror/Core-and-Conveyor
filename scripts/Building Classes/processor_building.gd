@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Building Classes/processor_building.gd
+# Purpose: Class representing processor structures (e.g., factories, refiners) that consume specific item ingredients according to selected recipes to craft new products over time, handle input/output item buffers, push finished products orthogonally to adjacent networks, support visual progress bar scales, and package local inventory/recipe indices into save/load states.
+# Dependencies: Inherits Building. Requires global Autoloads EconomyManager, ItemDatabase, expects RecipeResource instances, and a @export var generic_item_scene to instantiate physical item nodes.
+# Signals: Inherits signals from Building (such as inventory_changed).
+# ==============================================================================
 extends Building
 class_name ProcessorBuilding
 
@@ -143,9 +149,7 @@ func _finish_work():
 	inventory_changed.emit()
 	_check_can_start_work()
 
-# =================================================================
 # UPGRADED: OUTPUT LOGIC (Strict Belts & Filters, Permissive Routers)
-# =================================================================
 
 func _try_output_item():
 	if not level_ref: return
@@ -225,9 +229,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 		return false # RETURN FAILURE
 
 
-# ==========================================
 # HYBRID UPGRADE PIPELINE (Duck Typing)
-# ==========================================
 
 # 1. Pack BOTH inventories into the backpack
 func get_economy_assets() -> Dictionary:
@@ -283,9 +285,7 @@ func cycle_recipe():
 	print("Switched to recipe: " + active_recipe.recipe_name)
 	inventory_changed.emit()
 	
-# ==========================================
 # SAVE / LOAD SYSTEM (Processor)
-# ==========================================
 func get_save_data() -> Dictionary:
 	# 1. Grab the base stats (health, building_name)
 	var data = super.get_save_data()

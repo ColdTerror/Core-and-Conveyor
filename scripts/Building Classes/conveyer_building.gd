@@ -1,9 +1,13 @@
+# ==============================================================================
+# Script: Building Classes/conveyer_building.gd
+# Purpose: Class representing individual conveyor belt nodes that move items through the factory. Operates a two-phase movement loop (moving item from entry edge to exact center, and then center to exit edge), queries adjacent neighbors (belts or buildings) for compatibility/capacity before pushing, applies speed research upgrades dynamically, handles item node creation/cleanups, and packages itself for save/load states.
+# Dependencies: Inherits Building. Relies on parent level reference level_ref, global Autoloads ResearchManager, EconomyManager, ItemDatabase, dynamic group "Conveyors", and expects a @export var generic_item_scene to recreate items upon load.
+# Signals: Emits item_changed (connected to details panels for updating item displays).
+# ==============================================================================
 extends Building
 class_name ConveyorBuilding
 
-# ============================================================
 # EXPORTS & VARIABLES
-# ============================================================
 @export var generic_item_scene: PackedScene # <--- NEW: Needed to respawn items on load!
 
 @export var base_speed: float = 64.0  # Pixels per second the item travels
@@ -20,9 +24,7 @@ var push_cooldown: float = 0.0
 
 signal item_changed
 
-# ============================================================
 # SETUP & CLEANUP
-# ============================================================
 
 func _ready():
 	super()
@@ -55,9 +57,7 @@ func _exit_tree():
 		held_item.queue_free()
 		held_item = null
 	
-# ============================================================
 # ITEM ACCEPTANCE (INPUT)
-# ============================================================
 
 # Query function: Can this belt accept an item at the given tile?
 # Used by harvesters and other belts before attempting transfer
@@ -113,9 +113,7 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 
 
 
-# ============================================================
 # MOVEMENT LOOP (runs every frame)
-# ============================================================
 
 func _process(delta):
 	# Early exit: Nothing to move if belt is empty
@@ -186,9 +184,7 @@ func _process(delta):
 				if not neighbor is ConveyorBuilding:
 					push_cooldown = 0.5
 	
-# ============================================================
 # NEIGHBOR INTERACTION
-# ============================================================
 
 # Query: Can we push to the next belt/building?
 # This is called BEFORE we commit to moving the item to the edge
@@ -258,9 +254,7 @@ func _get_neighbor() -> Node:
 	# Nothing there (empty space)
 	return null
 
-# ==========================================
 # SAVE / LOAD SYSTEM (Conveyor)
-# ==========================================
 func get_save_data() -> Dictionary:
 	# 1. Grab the base stats (health, building_name)
 	var data = super.get_save_data()

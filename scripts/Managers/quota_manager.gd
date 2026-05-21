@@ -1,11 +1,15 @@
+# ==============================================================================
+# Script: Managers/quota_manager.gd
+# Purpose: Manages the progressive weekly quotas (infinite mathematically scaled algorithm), validates items fed from belts into the quota building, triggers daily score checks, and coordinates with wave/corruption managers on end-of-week failures.
+# Dependencies: Global EconomyManager autoload, Level scene structures.
+# Signals:
+#   - quota_progress_updated: Emitted when quota progress or deliveries change.
+# ==============================================================================
 class_name QuotaManager
 extends Node2D
 
 signal quota_progress_updated
 
-# ==========================================
-# STATE VARIABLES
-# ==========================================
 var current_week: int = 1
 var daily_requirements: Dictionary = {}
 var daily_delivered: Dictionary = {}
@@ -18,9 +22,6 @@ var level_ref: Node2D
 # --- NEW: Tracks if we already gave the player a point today! ---
 var is_today_scored: bool = false 
 
-# ==========================================
-# SETUP
-# ==========================================
 func initialize(level_instance: Node2D):
 	level_ref = level_instance
 	
@@ -29,9 +30,6 @@ func initialize(level_instance: Node2D):
 		
 	_reset_daily_deliveries()
 
-# ==========================================
-# THE INFINITE QUOTA ALGORITHM
-# ==========================================
 func get_quota_for_week(week: int) -> Dictionary:
 	if week <= 1:
 		return {} 
@@ -64,9 +62,6 @@ func get_quota_for_week(week: int) -> Dictionary:
 			
 	return quota
 
-# ==========================================
-# BELT INTERACTION LOGIC
-# ==========================================
 func can_accept_item(item_name: String) -> bool:
 	if not daily_requirements.has(item_name): 
 		return false 
@@ -100,10 +95,8 @@ func deliver_item(item_name: String, amount: int):
 	daily_delivered[item_name] += amount
 	EconomyManager.log_item_consumed(item_name, amount)
 	
-	# ==========================================
 	# --- NEW: INSTANT SCORING ---
 	# Award the point instantly without waiting for midnight!
-	# ==========================================
 	if not is_today_scored and _is_daily_quota_met():
 		is_today_scored = true
 		successful_days += 1
@@ -122,9 +115,6 @@ func _is_daily_quota_met() -> bool:
 			return false
 	return true
 
-# ==========================================
-# TIME & CORRUPTION LOGIC
-# ==========================================
 func process_end_of_day():
 	# Grace periods (Week 1) don't receive items, so they never trigger the instant score.
 	# We safely catch them here at midnight!
@@ -171,9 +161,6 @@ func _reset_daily_deliveries():
 	for key in daily_requirements.keys():
 		daily_delivered[key] = 0
 
-# ==========================================
-# SAVE / LOAD SYSTEM (Quota Manager)
-# ==========================================
 func get_save_data() -> Dictionary:
 	return {
 		"successful_days": successful_days,

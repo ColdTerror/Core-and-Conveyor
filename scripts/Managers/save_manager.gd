@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Managers/save_manager.gd
+# Purpose: Standard game state packaging and JSON-based file serialization system. Manages slot writing, directory creation, game reloading, and the sequential unpacking of state buffers across global autoloads and local node managers.
+# Dependencies: Requires Global Autoloads (EconomyManager, AudioManager, ResearchManager) and Level scene sub-managers.
+# Signals: None.
+# ==============================================================================
 extends Node
 
 #Saves to C:\Users\tcmar\AppData\Roaming\Godot\app_userdata\Core and Conveyor
@@ -7,9 +13,6 @@ var current_slot: int = 1 # Remembers the last slot used for "Quick Save"
 
 var pending_load_data: Dictionary = {}
 
-# ==========================================
-# SAVE LOGIC
-# ==========================================
 func save_game(level_ref: Node2D, slot: int = current_slot):
 	current_slot = slot
 	var save_data = {}
@@ -53,9 +56,6 @@ func save_game(level_ref: Node2D, slot: int = current_slot):
 	else:
 		print("ERROR: Could not save to ", file_path)
 
-# ==========================================
-# LOAD LOGIC
-# ==========================================
 func load_game(slot: int):
 	var file_path = SAVE_PATH_TEMPLATE % slot
 	
@@ -86,9 +86,6 @@ func load_game(slot: int):
 	return true
 	
 	
-# ==========================================
-# UNPACKING SEQUENCE (Called by the new scene)
-# ==========================================
 func unpack_save(level_ref: Node2D):
 	if pending_load_data.is_empty():
 		return
@@ -139,9 +136,6 @@ func unpack_save(level_ref: Node2D):
 	pending_load_data.clear()
 	print("SaveManager: Unpacking complete!")
 
-# ==========================================
-# UTILITY FUNCTIONS
-# ==========================================
 func does_save_exist(slot: int) -> bool:
 	var file_path = SAVE_PATH_TEMPLATE % slot
 	return FileAccess.file_exists(file_path)

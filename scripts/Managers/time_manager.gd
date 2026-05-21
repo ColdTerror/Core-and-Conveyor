@@ -1,21 +1,21 @@
+# ==============================================================================
+# Script: Managers/time_manager.gd
+# Purpose: Dynamic day/night clock, calendar system, lighting modulate transitions, moon phase rolling (Normal, Full, Blood Moon), and debug skip controllers.
+# Dependencies: Requires CanvasModulate node reference, global AudioManager, and coordinates with sub-managers.
+# Signals:
+#   - hour_passed: Emitted every in-game hour.
+#   - day_started: Emitted at sunrise.
+#   - night_started: Emitted at sunset.
+# ==============================================================================
 extends Node2D
 class_name TimeManager
 
-# ==========================================
-# SIGNALS
-# ==========================================
 signal hour_passed(hour: int)
 signal day_started(day_number: int)
 signal night_started(day_number: int)
 
-# ==========================================
-# ENUMS & CONSTANTS
-# ==========================================
 enum MoonPhase { NORMAL, FULL, BLOOD }
 
-# ==========================================
-# EXPORTS & CONFIGURATION
-# ==========================================
 @export var lighting_modulate: CanvasModulate
 @export var real_minutes_per_day: float = 2.0 
 
@@ -31,9 +31,6 @@ enum MoonPhase { NORMAL, FULL, BLOOD }
 @export var force_full_moon: bool = false
 @export var force_blood_moon: bool = false
 
-# ==========================================
-# RUNTIME STATE
-# ==========================================
 var is_time_running: bool = false
 var current_day: int = 1
 var current_time: float = 6.0 # Start at 6 AM
@@ -41,9 +38,6 @@ var current_hour: int = 6
 var is_night: bool = false
 var current_moon_phase: MoonPhase = MoonPhase.NORMAL
 
-# ==========================================
-# MAIN LOOP
-# ==========================================
 func _process(delta: float):
 	_update_lighting()
 	
@@ -66,18 +60,12 @@ func _process(delta: float):
 		hour_passed.emit(current_hour)
 		_check_day_night_triggers()
 
-# ==========================================
-# TIME EVENTS
-# ==========================================
-
 # Extracted so our Debug tool can forcefully trigger the end of the day!
 func _process_midnight():
 	# 1. CACHE THE OLD DAY
 	var yesterday = current_day 
 	
-	# ==========================================
 	# QUOTA MANAGER TRIGGERS
-	# ==========================================
 	var level_node = get_parent()
 	if level_node and level_node.has_node("QuotaManager"):
 		var quota_mgr = level_node.get_node("QuotaManager")
@@ -88,7 +76,6 @@ func _process_midnight():
 		# 2. If yesterday was day 7, 14, 21, etc., the week is over!
 		if yesterday % 7 == 0:
 			quota_mgr.process_end_of_week()
-	# ==========================================
 	
 	# 2. FLIP THE CALENDAR FIRST
 	current_day += 1
@@ -135,9 +122,6 @@ func _check_day_night_triggers():
 			_:
 				AudioManager.play_playlist_track("Night_Normal", 3.0)
 		
-# ==========================================
-# VISUALS & LIGHTING
-# ==========================================
 func _update_lighting():
 	if not lighting_modulate: return
 	
@@ -161,9 +145,6 @@ func _update_lighting():
 	else:
 		lighting_modulate.color = target_night_color
 
-# ==========================================
-# SAVE / LOAD SYSTEM
-# ==========================================
 func get_save_data() -> Dictionary:
 	return {
 		"is_time_running": is_time_running,
@@ -193,10 +174,6 @@ func load_save_data(data: Dictionary):
 		AudioManager.play_playlist_track("Sunrise", 0.5)
 	else:
 		AudioManager.play_playlist_track("Day", 0.5)
-
-# ==========================================
-# DEBUG API: TIME TRAVEL
-# ==========================================
 
 func debug_skip_to_night():
 	if is_night: return

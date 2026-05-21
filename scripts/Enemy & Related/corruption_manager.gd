@@ -1,3 +1,13 @@
+# ==============================================================================
+# Script: Enemy & Related/corruption_manager.gd
+# Purpose: Coordinates the purple fog corruption spread, day/night expansion rates,
+#          resource consumption (chewing trees/rocks), and mutation tier mechanics.
+# Dependencies: Autoload ResourceManager. Exports for level_ref, TileMapLayers 
+#               (corruption_layer, terrain_layer, object_layer), BuildingManager,
+#               WaveManager, TimeManager.
+# Signals:
+#   - corruption_evolved(new_tier: int): Emitted when corruption tier mutates.
+# ==============================================================================
 extends Node2D
 class_name CorruptionManager
 
@@ -45,10 +55,7 @@ func _ready():
 	if time_manager:
 		time_manager.day_started.connect(_on_day_started)
 		time_manager.night_started.connect(_on_night_started)
-
-# ==========================================
 # DAY/NIGHT REACTIONS
-# ==========================================
 func _on_day_started(_day_num: int):
 	# The sun is up, slow the corruption down!
 	if spread_timer:
@@ -70,9 +77,7 @@ func _on_night_started(_day_num: int):
 			spread_timer.wait_time = blood_moon_spread_time
 			print("The Blood Moon enrages the Corruption! (Speed: EXTREME)")
 
-# ==========================================
 # CORE SPREAD LOGIC
-# ==========================================
 
 # --- INITIAL OUTBREAK ---
 func start_outbreak(core_pos: Vector2i):
@@ -239,9 +244,7 @@ func _corrupt_tile(tile: Vector2i):
 	if not active_edges.has(tile):  
 		active_edges.append(tile)
 
-# ==========================================
 # QUOTA PENALTY API
-# ==========================================
 func apply_quota_penalty(penalty_amount: float):
 	print("Corruption Manager received penalty: ", penalty_amount)
 	
@@ -257,9 +260,7 @@ func apply_quota_penalty(penalty_amount: float):
 		for i in range(bonus_spread_ticks):
 			_on_spread_tick()
 	
-# ==========================================
 # SAVE / LOAD SYSTEM
-# ==========================================
 func get_save_data() -> Dictionary:
 	var active_edges_str = []
 	for edge in active_edges:

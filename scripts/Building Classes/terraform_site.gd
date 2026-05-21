@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Building Classes/terraform_site.gd
+# Purpose: Specialized labor site that clears debris/objects or fills in water tiles, querying local terrain atlas coordinates to auto-match neighboring ground types dynamically upon completion.
+# Dependencies: Inherits Building. Relies on parent level layers (terrain_layer, object_layer), Pathfinder, and QuotaManager.
+# Signals: Emits health_changed and destroyed (inherited from Building).
+# ==============================================================================
 extends Building # <--- THE FIX: It is now officially a building!
 class_name TerraformSite
 
@@ -98,9 +104,7 @@ func _finish_terraforming():
 
 	destroyed.emit(self)
 	queue_free()
-# ==========================================
 # VISUALS
-# ==========================================
 func _draw():
 	var tile_size = 32.0
 	var top_left = Vector2(-tile_size / 2.0, -tile_size / 2.0)
@@ -128,9 +132,7 @@ func _draw():
 		
 	# 5. Draw border
 	draw_rect(full_rect, outline_color, false, 2.0)
-# ==========================================
 # SAVE / LOAD SYSTEM (Terraform Site)
-# ==========================================
 func get_save_data() -> Dictionary:
 	var data = super.get_save_data()
 	data["job_type"] = job_type # e.g., 0 for Remove Object, 1 for Convert Water

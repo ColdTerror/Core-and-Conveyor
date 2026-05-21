@@ -1,9 +1,13 @@
+# ==============================================================================
+# Script: Building Classes/gate_building.gd
+# Purpose: Class representing security gate structures in defensive walls. Automatically detects worker bots entering its sensor range and slides open the center tile (disabling center physics collision and notifying the A* pathfinder that the center is passable), keeps outer pillars solid and expensive for enemies to attack, tracks damages, and supports dynamic horizontal/vertical orientation resizing.
+# Dependencies: Inherits Building. Relies on child sprite node (Sprite2D), child collision body (AutoCollisionBody), creates a dynamic Area2D detection sensor, and expects a class reference WorkerBot to trigger entry/exit callbacks.
+# Signals: None.
+# ==============================================================================
 extends Building
 class_name GateBuilding
 
-# ==========================================
-# GATE SPRITES 
-# ==========================================
+# GATE SPRITES
 @export var horizontal_closed: Texture2D
 @export var horizontal_open: Texture2D
 @export var vertical_closed: Texture2D
@@ -132,9 +136,7 @@ func _set_gate_open(open: bool):
 		
 	_update_gate_visuals()
 
-# ==========================================
 # DAMAGE OVERRIDE
-# ==========================================
 func take_damage(amount: int):
 	super(amount) # Subtracts HP and flashes red
 	if health <= 0 or is_ghost: return 

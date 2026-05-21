@@ -1,17 +1,20 @@
+# ==============================================================================
+# Script: Workers/worker_bot.gd
+# Purpose: Massive state-machine driven worker bot governing resource gathering, home relocation recharge paths, building/repairing tasks, ammo fetching, veterancy leveling XP, and enemy damage panic sprints.
+# Dependencies: Requires parent Level reference, child ActionTimer, ActionAudio, MoveAudio, Sprite2D nodes, and global autoloads (ResearchManager, EconomyManager, AudioManager, ItemDatabase, InputManager).
+# Signals:
+#   - inventory_changed: Fired whenever carried items change — UI listens to this.
+#   - hovered: Fired when the mouse enters the bot's Area2D.
+#   - unhovered: Fired when the mouse leaves the bot's Area2D.
+# ==============================================================================
 class_name WorkerBot
 extends Node2D
 
-
-# ==========================================
-# SIGNALS
-# ==========================================
 signal inventory_changed          # Fired whenever carried items change — UI listens to this
 signal hovered(bot: WorkerBot)    # Fired when the mouse enters the bot's Area2D
 signal unhovered(bot: WorkerBot)  # Fired when the mouse leaves the bot's Area2D
 
-# ==========================================
-# ENUMS
-# ==========================================
+# Enums
 
 # What high-level job the player has assigned this bot.
 # STOPPED is the default/idle assignment — the bot will go home and wait.
@@ -32,9 +35,7 @@ enum State {
 	PANIC_MOVING_HOME, PANIC_WAITING   # Emergency sprint home after taking damage
 }
 
-# ==========================================
-# IDENTITY
-# ==========================================
+# Identity variables
 var building_name: String = "Worker Bot"
 var health: int = 100
 var max_health: int = 100
@@ -48,9 +49,7 @@ var current_xp: int = 0
 # Index = level - 1. A bot starts at level 1 (threshold 0), levels up at 50 XP, etc.
 const XP_THRESHOLDS: Array[int] = [0, 50, 150, 300] # Thresholds for levels 1, 2, 3, 4
 
-# ==========================================
-# CONFIGURATION
-# ==========================================
+# Configuration variables
 @export_group("Base Stats")
 @export var base_speed: float = 75.0    # Pixels per second before any buffs
 @export var carry_capacity: int = 5     # Max items the bot can hold at once
@@ -63,10 +62,7 @@ const XP_THRESHOLDS: Array[int] = [0, 50, 150, 300] # Thresholds for levels 1, 2
 @export var health_recharge_rate: float = 10.0 # HP gained per second while resting at home
 @export var low_battery_threshold: float = 0.1
 
-# ==========================================
-# RUNTIME STATE
-# These variables change constantly during gameplay — do not tweak in the inspector.
-# ==========================================
+# Runtime State variables (do not tweak in the inspector)
 
 # --- Task & Movement ---
 var current_priority: TaskPriority = TaskPriority.STOPPED
@@ -144,11 +140,7 @@ var _step_cooldown: float = 0.0
 var last_facing_dir: Vector2 = Vector2.DOWN # Default to facing the camera
 @onready var sprite = $Sprite2D # Make sure this matches your actual node name!
 
-# ==========================================
-# READY
-
 # _ready() fires after the node is fully in the tree.
-# ==========================================
 
 func _ready():
 	# Allow the research tree to set a higher starting level (e.g. from a factory upgrade)
@@ -165,10 +157,7 @@ func _ready():
 	
 	_update_sprite()
 
-# ==========================================
-# MAIN LOOP
-# _process runs every frame. It handles energy drain and drives the state machine.
-# ==========================================
+# Main process loop (handles energy drain and drives state machine)
 func _process(delta):
 	queue_redraw() # Redraw debug overlays (path line, bars, home tile) every frame
 	_handle_energy(delta)
@@ -220,10 +209,7 @@ func _process(delta):
 		State.RECHARGING, State.PANIC_WAITING:
 			pass
 			
-# ==========================================
-# Draw
-# draw all the ui and debug info for the bot
-# ==========================================
+# UI and debug drawing for the bot
 func _draw():
 	_draw_path()
 	_draw_home_tile()
@@ -232,10 +218,7 @@ func _draw():
 	_draw_action_bar()
 	_draw_energy_bar()
 	
-# ==========================================
-# SETUP
 # setup() is called by the spawner before the node enters the scene tree.
-# ==========================================
 
 func setup(level: Node2D):
 	level_ref = level
@@ -251,12 +234,7 @@ func setup(level: Node2D):
 
 
 
-# ==========================================
-# STATS RECALCULATION
-# Called once on spawn, again on level-up, and again after any research unlock.
-# All stat values are derived fresh from base values + level + research every time,
-# so there's no risk of multipliers stacking if this is called more than once.
-# ==========================================
+# Stats Recalculation (called on spawn, level-up, and research unlock)
 func _recalculate_stats():
 	# Start from the designer-set base values
 	var calc_speed = base_speed
@@ -286,9 +264,7 @@ func _recalculate_stats():
 	max_health = calc_max_hp
 	health = int(max_health * hp_ratio)
 
-# ==========================================
-# XP & LEVELLING
-# ==========================================
+# XP & Leveling logic
 func _add_xp(amount: int):
 	# Respect the global max level gate set by the research tree.
 	# A bot at the current cap simply stops accumulating XP.
@@ -326,9 +302,7 @@ func _get_speed() -> float:
 
 	return _normal_speed * mult
 
-# ==========================================
-# ENERGY SYSTEM
-# ==========================================
+# Energy system logic
 func _handle_energy(delta: float):
 	# --- RECHARGING: Bot is resting at home ---
 	if current_state == State.RECHARGING or current_state == State.PANIC_WAITING:
@@ -389,11 +363,7 @@ func _handle_energy(delta: float):
 				else:
 					current_state = State.RECHARGING
 					
-# ==========================================
-# BRAIN: DECISION MAKING
-# These functions are the bot's "thinking" layer — they decide WHAT to do next
-# and then kick off movement toward the target. They run from IDLE state only.
-# ==========================================
+# Brain: Decision Making (runs from IDLE state only)
 
 # Entry point for GATHER_WOOD / GATHER_STONE modes.
 # Scans active_grid_objects for the nearest unclaimed resource and paths to it.
@@ -664,10 +634,7 @@ func _any_storage_has_space() -> bool:
 			
 	return false
 
-# ==========================================
-# LEGS: MOVEMENT
-# These functions handle pathfinding requests and stepping along the path each frame.
-# ==========================================
+# Legs: Movement and path calculation
 
 # Builds a path to the nearest walkable tile adjacent to a building's footprint.
 # Used for multi-tile buildings — the bot can't stand inside the building, so we
@@ -764,11 +731,7 @@ func _move_along_path(delta: float, next_state: State):
 	else:
 		global_position = global_position.move_toward(target_pos, move_step)
 
-# ==========================================
-# HANDS: ACTIONS
-# These functions execute the actual work once the bot has arrived at its target.
-# Actions are timer-driven: _start_action() sets the timer, the timeout fires _do_X().
-# ==========================================
+# Hands: Timer-driven actions
 
 # Starts the action timer for the current state. Duration varies by action type.
 func _start_action():
@@ -956,9 +919,7 @@ func _drop_inventory_and_work():
 	inventory_changed.emit()
 	current_state = State.IDLE
 
-# ==========================================
-# TILE MATH HELPERS
-# ==========================================
+# Tile Math Helpers
 
 # Finds the best tile to stand on when interacting with a multi-tile building.
 # Checks all tiles adjacent to the target footprint and returns the one with the
@@ -1018,11 +979,7 @@ func _escape_trapped_tile() -> bool:
 						
 	return false  # Completely surrounded — give up and let the next frame try again
 
-# ==========================================
-# HOME SYSTEM
-# The bot's home tile is its recharge station. It costs half the bot's current
-# energy to relocate home, encouraging the player to place homes thoughtfully.
-# ==========================================
+# Home System logic (recharge station and location costs)
 
 # Enables/disables the "pick a new home" drag mode, toggled by the UI.
 func toggle_set_home_mode(enabled: bool):
@@ -1091,11 +1048,7 @@ func _go_home_or_standby(wait_time: float):
 	current_state = State.ON_STANDBY
 	action_timer.start(wait_time)
 
-# ==========================================
-# COMBAT & PANIC
-# When hit, the bot instantly drops its inventory, ignores exhaustion, and sprints
-# home at 1.5x speed. If it's already home, it just cowers for 30 seconds.
-# ==========================================
+# Combat & Panic logic (adrenaline sprint home when damaged)
 
 func take_damage(damage: int, source: Node2D = null):
 	action_audio.stream = AudioManager.sfx_tracks["pain"]
@@ -1148,11 +1101,7 @@ func die():
 func _end_panic():
 	current_state = State.IDLE
 
-# ==========================================
-# RESERVATION SYSTEM
-# "reserved_by" is a soft lock — one bot claims a resource tile so other bots
-# skip it in their searches. It's cleared whenever the bot changes task or is done.
-# ==========================================
+# Reservation System logic (soft lock on resource tiles)
 
 func _clear_reservation():
 	if target_tile != Vector2i(-1, -1) and level_ref and level_ref.active_grid_objects.has(target_tile):
@@ -1222,9 +1171,7 @@ func get_inventory_info() -> Dictionary:
 		"Carrying": "%s (%d)" % [carried_item_name, carried_amount] if carried_amount > 0 else "Empty"
 	}
 
-# ==========================================
-# VISUALS & ANIMATION
-# ==========================================
+# Visuals & Animation updates
 func _update_sprite(move_dir: Vector2 = Vector2.ZERO):
 	if not sprite: return
 	
@@ -1287,11 +1234,7 @@ func _update_sprite(move_dir: Vector2 = Vector2.ZERO):
 	# Apply the grid coordinates to the sprite!
 	sprite.frame_coords = Vector2i(final_x, final_y)
 
-# ==========================================
-# DEBUG VISUALS
-# All drawing happens in _draw(), called automatically after queue_redraw().
-# Everything here is visual-only and has no effect on game logic.
-# ==========================================
+# Debug Visuals (visual-only, no effect on game logic)
 
 
 
@@ -1404,12 +1347,7 @@ func _draw_energy_bar():
 	draw_rect(Rect2(e_pos, Vector2(24.0 * (current_energy / max_energy), 4.0)), energy_color, true)
 	draw_rect(Rect2(e_pos, Vector2(24.0, 4.0)), Color(0.0, 0.0, 0.0, 1.0), false, 1.0)
 
-# ==========================================
-# SAVE / LOAD SYSTEM
-# Saves only the minimal persistent state needed to reconstruct the bot.
-# Volatile runtime data (paths, blacklists) is intentionally discarded — the bot
-# will recalculate everything safely from IDLE on the next frame after loading.
-# ==========================================
+# Save / Load System
 
 func get_save_data() -> Dictionary:
 	return {
@@ -1501,9 +1439,7 @@ func load_save_data(data: Dictionary):
 	
 	inventory_changed.emit() # Wake up any listening UI
 	
-# ==========================================
-# UI INTERACTION & PRIORITY LOGIC
-# ==========================================
+# UI Interaction & Priority Logic
 
 func _on_mouse_entered():
 	hovered.emit(self)
@@ -1515,9 +1451,7 @@ func _on_mouse_exited():
 		InputManager.hovered_bot = null
 		
 
-# ==========================================
-# ACTION TIMER
-# ==========================================
+# Action Timer callback
 func _on_action_timer_timeout():
 	match current_state:
 		State.HARVESTING:    _do_harvest()

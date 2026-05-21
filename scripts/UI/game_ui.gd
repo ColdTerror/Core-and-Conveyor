@@ -1,5 +1,13 @@
+# ==============================================================================
+# Script: UI/game_ui.gd
+# Purpose: Manages gameplay overlay panels including time clock, combat status,
+#          forecast indicators, corruption details, safe zone overlays, and inventory tracking.
+# Dependencies: Autoloads EconomyManager and ResearchManager. Requires references to
+#               WaveManager, TimeManager, BuildingManager, CorruptionManager,
+#               GameOverPanel and restart/exit buttons.
+# Signals: None.
+# ==============================================================================
 extends Control
-# game_ui.gd
 
 @onready var inventoryContainer = $InventoryPanel/HBoxContainer
 @onready var dateLabel = $VBoxContainer/DateLabel

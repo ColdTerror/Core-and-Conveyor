@@ -1,8 +1,14 @@
+# ==============================================================================
+# Script: research_manager.gd
+# Purpose: Global Autoload managing player technology unlocks, multiplier levels, 
+#          tier gates, and save/load state updates for player upgrades.
+# Dependencies: Global groups ("WorkerBots", "Towers", "Conveyors").
+# Signals:
+#   - research_unlocked: Emitted whenever a technology is successfully researched.
+# ==============================================================================
 extends Node
 
-# ==========================================
 # GLOBAL MULTIPLIERS & LIMITS
-# ==========================================
 var max_bots_allowed: int = 2     # --- Starts at 2, goes to 5 ---
 var bot_start_level: int = 1      # --- For future bots ---
 var bot_max_level: int = 2        # ---  Starts at 2, goes to 4 ---
@@ -13,9 +19,7 @@ var tower_damage_mult: float = 1.0
 
 signal research_unlocked
 
-# ==========================================
 # TIER GATING
-# ==========================================
 var tier_unlocked: int = 0  # 0 = nothing, 1 = tier 1 unlocked, 2 = tier 2, etc.
 
 # Which tier does each tech belong to?
@@ -41,18 +45,14 @@ var unlocked_techs: Array[String] = []
 var wave_measure: bool = false
 var moon_measure_level: int = 0
 
-# ==========================================
 # PUBLIC GETTERS (For Bots)
-# ==========================================
 func get_bot_start_level() -> int:
 	return bot_start_level
 	
 func get_bot_max_level() -> int:
 	return bot_max_level
 
-# ==========================================
 # UNLOCK ROUTER
-# ==========================================
 func can_research(tech_name: String) -> bool:
 	if tech_name in unlocked_techs: return false
 	var required_tier = TECH_TIERS.get(tech_name, 999)
@@ -108,9 +108,7 @@ func _apply_tech(tech_name: String):
 			print("WARNING: Unknown tech -> ", tech_name)
 	print(tech_name)
 
-# ==========================================
 # NOTIFY EXISTING UNITS
-# ==========================================
 func _update_living_bots():
 	get_tree().call_group("WorkerBots", "_recalculate_stats")
 
@@ -120,9 +118,7 @@ func _update_living_towers():
 func _update_living_belts():
 	get_tree().call_group("Conveyors", "apply_research_buffs")
 
-# ==========================================
 # SAVE / LOAD SYSTEM
-# ==========================================
 func get_save_data() -> Dictionary:
 	return {
 		"unlocked_techs": unlocked_techs

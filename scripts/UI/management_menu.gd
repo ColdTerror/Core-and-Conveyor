@@ -1,7 +1,10 @@
+# ==============================================================================
+# Script: UI/management_menu.gd
+# Purpose: Orchestrates the fullscreen multi-tab Management Menu, which allows players to arrange group/building priority queues, view worker bot task status and leash camera followings, pin resource ledgers to the screen, control tracks on the Jukebox audio player, and verify quota target progress calendars.
+# Dependencies: Requires BuildingManager (via export), and Autoloads GameState, AudioManager, EconomyManager. Child UI components for tabs, scroll boxes, list containers, and toggle switches.
+# Signals: None.
+# ==============================================================================
 extends Control
-# ==========================================
-# MANAGEMENT MENU (Priorities & Workers)
-# ==========================================
 
 @export var building_manager: BuildingManager
 
@@ -90,9 +93,7 @@ func _on_tab_clicked(tab_index):
 	# Force the tab to stay on the index the user clicked
 	tab_container.call_deferred("set_current_tab", target_tab)
 
-# ==========================================
 # UI STATE MACHINE ROUTING
-# ==========================================
 func toggle_menu():
 	if visible:
 		close_menu()
@@ -118,9 +119,7 @@ func _on_global_menu_changed(active_menu):
 	if active_menu != GameState.MenuType.MANAGEMENT:
 		hide()
 
-# ==========================================
 # PRIORITIES TAB LOGIC
-# ==========================================
 
 func _refresh_priority_tab():
 	if not priority_list_container: return
@@ -203,9 +202,7 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 	
 	priority_list_container.add_child(hbox)
 
-# ==========================================
 # WORKERS TAB LOGIC
-# ==========================================
 
 func _refresh_bot_tab(force_rebuild: bool = false):
 	if not bot_list_container: return
@@ -279,9 +276,7 @@ func _rebuild_bot_list(bots: Array):
 		
 		bot_index += 1
 
-# ==========================================
 # RESOURCES TAB LOGIC
-# ==========================================
 
 func _refresh_resource_tab():
 	if not resource_list_container: return
@@ -445,9 +440,7 @@ func _toggle_pin(item_name: String):
 	EconomyManager.inventory_changed.emit()
 	_refresh_resource_tab()
 
-# ==========================================
 # MUSIC TAB LOGIC 
-# ==========================================
 
 func _refresh_music_tab():
 	if not music_list_container: return
@@ -487,9 +480,7 @@ func _on_jukebox_toggled(is_enabled: bool):
 	else:
 		AudioManager.disable_jukebox()
 
-# ==========================================
 # QUOTA TAB LOGIC 
-# ==========================================
 
 func _refresh_quota_tab():
 	if not quota_list_container or not building_manager or not building_manager.level_ref: 

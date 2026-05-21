@@ -1,14 +1,18 @@
+# ==============================================================================
+# Script: Managers/economy_manager.gd
+# Purpose: Global manager that acts as the vault for resource inventory, registers/tracks secure/unsecure buildings, logs item production/consumption metrics, and archives daily stats.
+# Dependencies: Requires standard Godot Node parent, coordinates with TimeManager and SaveManager.
+# Signals:
+#   - inventory_changed: Emitted when global resources increase or decrease.
+#   - stats_updated: Emitted when daily ledger values are updated.
+# ==============================================================================
 extends Node
 
-# ==========================================
 # SIGNALS
-# ==========================================
 signal inventory_changed 
 signal stats_updated 
 
-# ==========================================
 # RUNTIME STATE (THE VAULT)
-# ==========================================
 var global_inventory: Dictionary = {"Wood": 0, "Stone": 0}
 
 
@@ -29,18 +33,14 @@ func unregister_source(b: Node):
 	secured_sources.erase(b)
 	unsecured_sources.erase(b)
 
-# ==========================================
 # STATISTICS LEDGER
-# ==========================================
 # Removed current_day variable (TimeManager tracks this now)
 var daily_production: Dictionary = {}
 var daily_consumption: Dictionary = {}
 var history_archive: Array[Dictionary] = []
 
 
-# ==========================================
 # CORE API: DEDICATED STAT LOGGING
-# ==========================================
 # Call this the exact second a Harvester or Factory spawns a brand new item!
 func log_item_produced(resource_name: String, amount: int = 1):
 	daily_production[resource_name] = daily_production.get(resource_name, 0) + amount
@@ -51,9 +51,7 @@ func log_item_consumed(resource_name: String, amount: int = 1):
 	daily_consumption[resource_name] = daily_consumption.get(resource_name, 0) + amount
 	stats_updated.emit()
 	
-# ==========================================
 # CORE API: PHYSICAL STORAGE (THE VAULT)
-# ==========================================
 # Used by Storage Buildings when an item enters their inventory
 func add_resources(resource_name: String, amount: int):
 	global_inventory[resource_name] = global_inventory.get(resource_name, 0) + amount
@@ -70,9 +68,7 @@ func remove_resources_from_global(cost: Dictionary):
 	
 	inventory_changed.emit()
 
-# ==========================================
 # CORE API: MAGIC PURCHASES (Placing Towers/Belts)
-# ==========================================
 func spend_resources(cost: Dictionary):
 	for resource_name in cost:
 		var amount = cost[resource_name]
@@ -115,9 +111,7 @@ func get_unsecured_inventory() -> Dictionary:
 				in_transit[item_name] = in_transit.get(item_name, 0) + assets[item_name]
 	return in_transit
 	
-# ==========================================
 # ARCHIVING LOGIC (Triggered by TimeManager)
-# ==========================================
 func archive_daily_stats(day_number: int):
 	var archive_entry = {
 		"day": day_number,
@@ -135,9 +129,7 @@ func archive_daily_stats(day_number: int):
 	# We just emit stats_updated so the UI knows the "Today" column is now empty
 	stats_updated.emit()
 
-# ==========================================
 # SAVE / LOAD SYSTEM
-# ==========================================
 func get_save_data() -> Dictionary:
 	return {
 		"daily_production": daily_production,

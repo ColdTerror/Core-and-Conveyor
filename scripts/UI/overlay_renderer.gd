@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: UI/overlay_renderer.gd
+# Purpose: Node2D class rendering custom gameplay overlay grids (buildable, safe, and attack heatmaps), ghost previews with ranges during dragging or placing, building footprint boxes for hovered/inspected nodes, and path cost indicators.
+# Dependencies: Relies on Level (as parent), BuildingManager (level.building_manager), InputManager to read hovered structures, and ThemeDB for fallback fonts.
+# Signals: None.
+# ==============================================================================
 class_name OverlayRenderer
 extends Node2D
 
@@ -95,9 +101,7 @@ func _draw():
 	_draw_hover_footprint()
 	_draw_path_costs()
 
-# ==========================================
 # TOOL HIGHLIGHT (cursor indicator)
-# ==========================================
 
 func _draw_tool_highlight():
 	match InputManager.current_mode:
@@ -121,9 +125,7 @@ func _draw_grid_highlight(fill_color: Color, outline_color: Color):
 	draw_rect(rect, outline_color, false, 2.0)
 
 
-# ==========================================
 # ZONE OVERLAYS (F1/F2/F3 hotkeys)
-# ==========================================
 
 func _draw_zone_overlays():
 	var bm = level.building_manager
@@ -203,9 +205,7 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 		if not filtered_tiles.has(tile + Vector2i.LEFT):  draw_line(tl, bl, border, b_width)
 		if not filtered_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, border, b_width)
 
-# ==========================================
 # GHOST PREVIEWS (building placement ranges)
-# ==========================================
 
 func _draw_ghost_previews():
 	var bm = level.building_manager
@@ -267,9 +267,7 @@ func _draw_ghost_previews():
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1,1))
 
 
-# ==========================================
 # Building Footprint when Hovering OR Selected
-# ==========================================
 func _draw_hover_footprint():
 	# Hide footprints if we are actively placing a new building
 	if level.building_manager and level.building_manager.placing_building:
@@ -304,9 +302,7 @@ func _draw_hover_footprint():
 			draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)  # Subtle Fill
 			draw_rect(rect, border_color, false, 2.0)         # Sharp Border
 			
-# ==========================================
 # PATH COST CACHING & DRAWING
-# ==========================================
 
 func _rebuild_path_cost_cache():
 	cached_path_draws.clear()

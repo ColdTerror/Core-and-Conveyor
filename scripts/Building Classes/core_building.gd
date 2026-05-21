@@ -1,3 +1,10 @@
+# ==============================================================================
+# Script: Building Classes/core_building.gd
+# Purpose: Class representing the main Command Core building of the factory. Integrates directly with global economy registries, handles generic storage capacities, manages research funding bills and worker bot construction queues, handles bot spawning and retrieval logic, processes game over checks on death/destruction, and packages research/bot construction/inventory dictionaries into save/load states.
+# Dependencies: Inherits Building. Relies on global Autoloads EconomyManager, ItemDatabase, ResearchManager, groups "Core", "PriorityTarget", and "GameUI" (which handles core destruction notifications).
+# Signals:
+#   - core_destroyed: Emitted when the core dies, pausing the game.
+# ==============================================================================
 extends Building
 class_name CoreBuilding
 
@@ -15,9 +22,7 @@ var active_research_name: String = ""
 var research_bill: Dictionary = {}
 var research_bill_max: Dictionary = {} # Keeps track of the original cost for the UI
 
-# ==========================================
 # --- NEW: BOT CONSTRUCTION TRACKING ---
-# ==========================================
 var is_building_bot: bool = false
 var bot_bill: Dictionary = {}
 var bot_bill_max: Dictionary = {}
@@ -46,9 +51,7 @@ func _exit_tree():
 	EconomyManager.unregister_source(self)
 
 
-# ==========================================
 # ---  BOT COST DEFINITION ---
-# ==========================================
 func get_bot_cost() -> Dictionary:
 	var cost = {}
 	
@@ -62,9 +65,7 @@ func get_bot_cost() -> Dictionary:
 	
 	return cost
 	
-# ==========================================
 # BILL MANAGEMENT (Research & Bots)
-# ==========================================
 
 func start_research(r_name: String, cost: Dictionary):
 	if active_research_name != "":
@@ -132,9 +133,7 @@ func _consume_existing_inventory_for_bill(target_bill: Dictionary, target_bill_m
 	if not consumed_amounts.is_empty():
 		EconomyManager.remove_resources_from_global(consumed_amounts)
 
-# ==========================================
 # INVENTORY LOGIC
-# ==========================================
 
 # Bots (and Conveyors) will call this to drop things off
 func add_item(item_res: ItemResource, amount: int) -> int:
@@ -217,9 +216,7 @@ func has_space_for(item_name: String) -> bool:
 			return inventory[item_res] < max_capacity_per_item
 	return true 
 
-# ==========================================
 # COMPLETION LOGIC
-# ==========================================
 
 func _check_research_completion():
 	if research_bill.is_empty() and active_research_name != "":
@@ -273,9 +270,7 @@ func _spawn_new_bot():
 		new_bot.bot_level = ResearchManager.bot_start_level
 
 
-# ==========================================
 # BOT RETRIEVAL LOGIC
-# ==========================================
 func take_item(item_name: String, requested_amount: int) -> Dictionary:
 	# Search our inventory for the actual ItemResource the bot wants
 	for item_res in inventory.keys():
@@ -334,9 +329,7 @@ func get_economy_assets() -> Dictionary:
 func get_inventory_info() -> Dictionary:
 	return inventory
 
-# ==========================================
 # GAME OVER LOGIC
-# ==========================================
 func take_damage(amount: int):
 	super(amount)
 	if health <= 0:
@@ -364,9 +357,7 @@ func _trigger_game_over():
 	core_destroyed.emit()
 	get_tree().paused = true
 	
-# ==========================================
 # SAVE / LOAD SYSTEM (Core)
-# ==========================================
 func get_save_data() -> Dictionary:
 	var data = super.get_save_data()
 	

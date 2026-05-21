@@ -1,11 +1,17 @@
+# ==============================================================================
+# Script: upgrade_node.gd
+# Purpose: Controls individual node cards inside the research GraphEdit tree, 
+#          displaying description, cost formats, and processing unlock states.
+# Dependencies: ResearchManager Autoload. Expects $DescLabel, $CostLabel, and $Button child nodes.
+# Signals:
+#   - research_started: Emitted when the user starts researching this specific node.
+# ==============================================================================
 @tool
 extends GraphNode
 
 signal research_started
 
-# ==========================================
 # EXPORTS (With Editor Setters)
-# ==========================================
 @export var research_name: String = "Bot Speed 1":
 	set(value):
 		research_name = value
@@ -21,16 +27,12 @@ signal research_started
 		research_cost = value
 		_refresh_editor_ui()
 
-# ==========================================
 # NODE REFERENCES
-# ==========================================
 @onready var desc_label = $DescLabel
 @onready var cost_label = $CostLabel
 @onready var research_button = $Button
 
-# ==========================================
 # INITIALIZATION
-# ==========================================
 func _ready():
 	# 1. Update the text immediately
 	_refresh_editor_ui()
@@ -46,9 +48,7 @@ func _ready():
 	ResearchManager.research_unlocked.connect(_refresh_button)
 	_refresh_button()
 
-# ==========================================
 # UI UPDATING
-# ==========================================
 func _refresh_editor_ui():
 	# CRITICAL: Prevent crashes if the setter fires before the node enters the scene tree
 	if not is_node_ready():
@@ -72,9 +72,7 @@ func _refresh_button():
 		research_button.text = "Research"
 		research_button.disabled = false
 
-# ==========================================
 # ACTIONS
-# ==========================================
 func _on_research_pressed():
 	if not ResearchManager.can_research(research_name):
 		print("Tier not unlocked yet!")

@@ -1,3 +1,10 @@
+# ==============================================================================
+# Script: Building Classes/tower_building.gd
+# Purpose: Defensive combat tower that requests specific ammo items from worker bots or belts, scans for local targets based on targeting priorities (Closest, Strongest, Weakest, Furthest), fires damage-scaled projectiles over fire-rate cooldown intervals, applies recoil tweens, and serializes magazine ammo arrays.
+# Dependencies: Inherits Building. Requires global Autoloads ResearchManager, EconomyManager, ItemDatabase, child nodes (Sprite2D), and communicates with projectiles.
+# Signals:
+#   - fired_projectile: Emitted when launching a projectile.
+# ==============================================================================
 extends Building
 class_name TowerBuilding
 
@@ -46,9 +53,7 @@ func _ready():
 	EconomyManager.register_source(self, false)
 
 func die():
-	# ==========================================
 	# --- UPGRADED: DESTROY ALL STORED AMMO! ---
-	# ==========================================
 	var assets = get_economy_assets()
 	
 	if not assets.is_empty():
@@ -61,7 +66,7 @@ func die():
 			EconomyManager.log_item_consumed(item_name, amount_lost)
 			
 	ammo_inventory.clear()
-	# ==========================================
+
 	
 	super()
 	
@@ -76,9 +81,7 @@ func apply_research_buffs():
 	damage_multiplier = base_damage_multiplier + (ResearchManager.tower_damage_mult - 1.0)
 
 
-# ============================================================
 #  RANGE VISUALIZATION (Grid-Based)
-# ============================================================
 
 func _draw():
 	if not show_range_overlay:
@@ -164,9 +167,7 @@ func _on_mouse_exited():
 		show_range_overlay = false
 
 
-# ============================================================
 #  TARGETING HELPERS
-# ============================================================
 
 func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 	var local_pos = enemy.global_position - global_position
@@ -180,8 +181,7 @@ func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 	)
 
 
-# ============================================================
-# ============================================================
+
 
 # --- 1. FILTERED INPUT ---
 
@@ -194,9 +194,7 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	var shots_to_add = 0
 	var return_val = 0
 	
-	# ==========================================
 	# --- HYBRID PIPELINE LOGIC ---
-	# ==========================================
 	if amount == 1:
 		# Scenario A: Bot/Belt Delivery! 
 		# If we are completely full, reject the bot.
@@ -211,7 +209,7 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 		# Force every single saved arrow into the new tower to perfectly preserve the state.
 		shots_to_add = amount
 		return_val = amount 
-	# ==========================================
+
 		
 	# Load the shots into the magazine
 	for i in range(shots_to_add):
@@ -369,9 +367,7 @@ func cycle_targeting_mode():
 	
 	print("Tower targeting set to: ", targeting_mode)
 	
-# ==========================================
 # SAVE / LOAD SYSTEM (Tower)
-# ==========================================
 func get_save_data() -> Dictionary:
 	# 1. Grab the base stats (health, building_name)
 	var data = super.get_save_data()

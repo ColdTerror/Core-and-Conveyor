@@ -1,3 +1,11 @@
+# ==============================================================================
+# Script: Enemy & Related/wave_manager.gd
+# Purpose: Manages wave pacing and scaling horde spawning during night event phases,
+#          applying time-of-day math, elite scaling, and quota penalties.
+# Dependencies: Requires TimeManager, CorruptionManager, exports for Level,
+#               corruption_layer, and enemy_scene. Group "Enemies".
+# Signals: None.
+# ==============================================================================
 extends Node2D
 class_name WaveManager
 
@@ -81,12 +89,10 @@ func _on_night_started(day_num: int):
 	print("Night %d [%s]: %d enemies inbound." % [current_wave, night_type, enemies_to_spawn])
 
 func _on_day_started(day_num: int):
-	# ==========================================
 	# --- THE FIX: SYNC THE CLOCK ---
 	# The sun just came up on a new day, which means the night 
 	# we just survived was "yesterday" (day_num - 1).
 	# max(1, ...) just prevents it from saying "Night 0" on the very first skip!
-	# ==========================================
 	current_wave = max(1, day_num - 1)
 	
 	if enemies_to_spawn > 0:
@@ -186,19 +192,14 @@ func get_estimated_enemies() -> int:
 		
 	return round(base_enemies + extra_enemies)
 	
-# ==========================================
 # QUOTA PENALTY API
-# ==========================================
 func apply_quota_penalty(penalty_amount: float):
 	print("WARNING: Quota failed! The horde is enraged for tomorrow night!")
-	# Save the penalty to be unleashed at the next sunset
 	pending_raid_penalty += penalty_amount
 	
 	
 	
-# ==========================================
 # SAVE / LOAD SYSTEM
-# ==========================================
 func get_save_data() -> Dictionary:
 	# 1. Loop through all living enemies and pack them into an array of boxes
 	var live_enemies_data = []

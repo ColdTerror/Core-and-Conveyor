@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Building Classes/stockpile_building.gd
+# Purpose: Modular warehousing structures supporting mixed or dedicated item inventories, manual or automatic outputs dynamically cycled via UI selection, bot retrieval requests, resource consumption requests, and save state serialization for inventory dictionaries.
+# Dependencies: Inherits Building. Requires global Autoloads EconomyManager, ItemDatabase, and @export var generic_item_scene to spawn items visually.
+# Signals: Emits inventory_changed (inherited from Building).
+# ==============================================================================
 extends Building
 class_name StockpileBuilding
 
@@ -80,9 +86,7 @@ func cycle_output_mode():
 			
 	print("Stockpile Output set to: ", selected_output_name if selected_output_name != "" else "OFF")
 
-# =================================================================
 # UPGRADED: OUTPUT LOGIC (Strict Belts & Filters, Permissive Routers)
-# =================================================================
 func _try_output_item():
 	if not level_ref: return
 	var manager = level_ref.building_manager
@@ -169,7 +173,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 		new_item_node.queue_free()
 		return false # Failed, try next neighbor
 
-# =================================================================
+
 
 # --------------------------------------------------
 # ITEM INTERFACE (called by Item / Conveyor systems)
@@ -219,9 +223,7 @@ func can_accept_item(item_res: ItemResource) -> bool:
 		var current_amount = inventory.get(item_res, 0)
 		return current_amount < max_mixed_capacity
 	
-# ==========================================
 # BOT RETRIEVAL LOGIC
-# ==========================================
 func take_item(item_name: String, requested_amount: int) -> Dictionary:
 	# Search our inventory for the item the bot is asking for
 	for item_res in inventory.keys():
@@ -426,9 +428,7 @@ func _prune_available_types():
 		
 	available_types = current_names
 	
-# ==========================================
 # SAVE / LOAD SYSTEM (Stockpile)
-# ==========================================
 func get_save_data() -> Dictionary:
 	# 1. Get the basic box from the parent (health, building_name)
 	var data = super.get_save_data()

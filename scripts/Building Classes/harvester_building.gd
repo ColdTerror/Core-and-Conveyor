@@ -1,3 +1,9 @@
+# ==============================================================================
+# Script: Building Classes/harvester_building.gd
+# Purpose: Class representing specialized harvester buildings (e.g. loggers, miners). Claims surrounding resource tiles in a circular scan radius, fires a laser beam at the closest matching claimed target to harvest it over intervals, stores items in an internal output buffer, pushes items out orthogonally to adjacent conveyors/routers/filters/stockpiles, handles visual range previews, and packages target coordinate vectors and buffer quantities into save/load states.
+# Dependencies: Inherits Building. Relies on child beam line node (Line2D), global Autoloads EconomyManager, ResourceManager, expects a TileDataResource representing the target resource tile type, and expects a @export var generic_item_scene to spawn items visually.
+# Signals: Inherits signals from Building (such as inventory_changed).
+# ==============================================================================
 extends Building
 class_name HarvesterBuilding
 
@@ -176,9 +182,7 @@ func _draw_beam(grid_pos: Vector2i):
 	beam_line.add_point(Vector2.ZERO)
 	beam_line.add_point(target_local)
 
-# =================================================================
 # NEW: OUTPUT LOGIC (Unified with Processor/Stockpile)
-# =================================================================
 func _try_output_item():
 	if not level_ref: return
 	var manager = level_ref.building_manager
@@ -257,9 +261,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 		new_item_node.queue_free()
 		return false # RETURN FAILURE
 
-# ==========================================
 # TERRITORY & DIBS SYSTEM
-# ==========================================
 func _claim_territory():
 	if not level_ref or not level_ref.object_layer: return
 	
@@ -297,9 +299,7 @@ func _clear_target_reservation():
 		if info.has("reserved_by") and info["reserved_by"] == self:
 			info["reserved_by"] = null
 
-# ==========================================
 # HYBRID UPGRADE PIPELINE (Duck Typing)
-# ==========================================
 
 # 1. Pack the backpack before upgrading
 func get_economy_assets() -> Dictionary:
@@ -330,9 +330,7 @@ func get_inventory_info() -> Dictionary:
 		return { target_resource.item_drop: stored_amount } 
 	return {}
 	
-# ==========================================
 # SAVE / LOAD SYSTEM (Harvester)
-# ==========================================
 func get_save_data() -> Dictionary:
 	# 1. Grab the base stats (health, building_name)
 	var data = super.get_save_data()

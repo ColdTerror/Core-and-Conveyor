@@ -1,3 +1,13 @@
+# ==============================================================================
+# Script: Enemy & Related/test_enemy.gd
+# Purpose: Manages individual enemy unit state, including swarm separation, 
+#          pathfinding to priority targets/bots, combat/attack execution,
+#          taking damage from towers, and state saving/loading.
+# Dependencies: Autoload InputManager. Pathfinder node in scene. Group "Enemies".
+#               Group "WorkerBots". Group "PriorityTarget".
+# Signals:
+#   - died(enemy_instance: Enemy): Emitted when health drops to or below zero.
+# ==============================================================================
 extends CharacterBody2D
 class_name Enemy
 
@@ -88,9 +98,7 @@ func _physics_process(delta):
 		# --- OUT OF RANGE ---
 		_process_movement(delta)
 
-# ---------------------------------------------------------
 # MOVEMENT LOGIC
-# ---------------------------------------------------------
 
 func _process_movement(delta):
 	# 1. Update Path periodically
@@ -188,9 +196,7 @@ func _execute_movement(dir: Vector2):
 			if hit_node == current_target or hit_node.has_method("take_damage"):
 				_try_structure_attack(hit_node)
 
-# ---------------------------------------------------------
 # COMBAT LOGIC
-# ---------------------------------------------------------
 
 func _try_attack(target):
 	if attack_cooldown > 0.0: return
@@ -227,9 +233,7 @@ func _spawn_projectile(target):
 		var dir = global_position.direction_to(target.global_position)
 		proj.setup(global_position, dir, 300.0, damage, null)
 
-# ---------------------------------------------------------
 # HELPERS
-# ---------------------------------------------------------
 func _get_current_speed() -> float:
 	var actual_speed = movement_speed
 	
@@ -427,9 +431,7 @@ func die():
 	queue_free()
 	
 		
-# ==========================================
 # SAVE / LOAD SYSTEM
-# ==========================================
 func get_save_data() -> Dictionary:
 	return {
 		"pos_x": global_position.x,
