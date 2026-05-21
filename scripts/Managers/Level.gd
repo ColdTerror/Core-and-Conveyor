@@ -7,8 +7,6 @@
 class_name Level
 extends Node2D
 
-
-
 # ENUMS & CONSTANTS
 enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
 
@@ -30,7 +28,6 @@ const RES_STONE := 4
 @export var tile_size_px: Vector2 = Vector2(32, 32)
 @export var tile_library: Array[TileDataResource] = []
 
-#logistics production defense infrastructure
 @export_group("Building Scenes")
 
 @export_subgroup("Logistics")
@@ -60,7 +57,6 @@ const RES_STONE := 4
 @export var core_scene: PackedScene 
 @export var projectile_scene: PackedScene
 
-
 # RUNTIME STATE VARIABLES
 var active_grid_objects := {}
 
@@ -85,10 +81,11 @@ var last_terrain_tile := Vector2i(-1, -1)
 @onready var quota_manager: QuotaManager = $QuotaManager
 @onready var pathfinder = $Pathfinder
 
-# SETUP & MAIN LOOP
 
+
+## Binds level references to autoloads, initializes sub-managers, hooks up HUD signals,
+## and triggers procedural map generation or unpacks saved slots on boot.
 func _ready():
-	
 	# Push all the necessary references up to the Autoload!
 	InputManager.level_ref = self
 	InputManager.building_manager = building_manager
@@ -97,14 +94,13 @@ func _ready():
 	InputManager.stat_menu = stat_menu
 	InputManager.hover_popup = hover_menu
 	
-		
 	hover_menu.hide()
 	
 	# Connect the resource signals
 	ResourceManager.resource_state_changed.connect(_on_resource_state_changed)
 	ResourceManager.resource_destroyed.connect(_on_resource_destroyed)
 	
-	#Setup pause menu signal
+	# Setup pause menu signal
 	var pause_menu = $CanvasLayer/PauseMenu 
 	pause_menu.save_requested.connect(_on_pause_menu_save_requested)
 	
@@ -126,14 +122,14 @@ func _ready():
 		SaveManager.unpack_save(self)
 	else:
 		generate_simple_map()
-		
 
 
+
+## Updates mouse location tracking, driving building upgrade visual preview overlays.
 func _process(_delta):
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = terrain_layer.local_to_map(mouse_pos)
 	
-	# --- UPGRADE HOVER UI ---
 	if InputManager.current_mode == InputManager.InteractionMode.UPGRADE:
 		# Only update the UI if the mouse moved to a NEW tile
 		if grid_pos != last_hovered_upgrade_tile:
@@ -146,11 +142,13 @@ func _process(_delta):
 			building_manager.placement_ended.emit() 
 
 
+
 # HOTBAR & UI
 var categorized_buildings := {}
 
+
+## Constructs and populates the categorised structure databases and setups initial core slot.
 func _setup_hotbar_items():
-	# Define the Nested Folders
 	categorized_buildings = {
 		"Logistics": [
 			{"name": "Belt", "scene": conveyor_scene},
@@ -173,17 +171,21 @@ func _setup_hotbar_items():
 			{"name": "Stockpile", "scene": stockpile_scene},
 			{"name": "Firepit", "scene": firepit_scene},
 			{"name": "QuotaBuilding", "scene": quota_building}
-			
 		]
 	}
 	
-	# Start the game with just the Core button
 	_add_building_to_bar("Core", core_scene)
 
+
+
+## Hooked to building manager core placement, expanding HUD options upon completion.
 func _on_core_placed():
 	print_debug("from level on core placed")
 	_show_main_categories()
-	
+
+
+
+## Renders primary building type folders in the hotbar HUD.
 func _show_main_categories():
 	if hotbar.has_method("clear_buttons"):
 		hotbar.clear_buttons()
@@ -193,38 +195,45 @@ func _show_main_categories():
 	_add_category_button("Defense")
 	_add_category_button("Infrastructure")
 
+
+
+## Opens a subfolder on the hotbar to display building blueprints.
 func _show_category(category_name: String):
 	if hotbar.has_method("clear_buttons"):
 		hotbar.clear_buttons()
 		
-	# Add a "Back" button first
 	hotbar.add_button("Back", null, "ACTION_BACK", false)
 	
-	# Populate the buildings for this category
 	var items = categorized_buildings[category_name]
 	for item in items:
 		_add_building_to_bar(item["name"], item["scene"])
 
+
+
+## Formats category directory buttons on the hotbar.
 func _add_category_button(category_name: String):
-	# We pass a custom string starting with "CAT_" as the data, and 'false' for is_building
 	hotbar.add_button(category_name, null, "CAT_" + category_name, false)
 
+
+
+## Instantiates a temporary scene reference to fetch custom button textures, adding it to hotbar.
 func _add_building_to_bar(name: String, packed_scene: PackedScene):
 	if not packed_scene: return
 	var temp = packed_scene.instantiate()
 	var icon = temp.icon if "icon" in temp else null
 	hotbar.add_button(name, icon, packed_scene, true)
 	temp.queue_free()
-	
+
+
+
+## Responds to button select, activating building placements or routing folders.
 func _on_hotbar_item_selected(data, is_building):
 	building_manager.cancel_placement()
 	
 	if is_building:
-		# It's a real building blueprint
 		InputManager.current_mode = InputManager.InteractionMode.PLACE_BUILDING
 		building_manager.start_placing(data)
 	else:
-		# It's a UI Navigation button (Category or Back)
 		if typeof(data) == TYPE_STRING:
 			if data.begins_with("CAT_"):
 				var cat_name = data.replace("CAT_", "")
@@ -232,8 +241,12 @@ func _on_hotbar_item_selected(data, is_building):
 			elif data == "ACTION_BACK":
 				_show_main_categories()
 
+
+
 # RESOURCES & ENVIRONMENT
 
+
+## Redraws individual resource sprites on the object layer when harvesting hits occur or regrowth finishes.
 func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResource):
 	match state:
 		ResourceManager.ResourceState.FULL:
@@ -249,6 +262,9 @@ func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResour
 			else:
 				object_layer.set_cell(tile, -1)
 
+
+
+## Clears depleted tiles and tells pathfinders to recalculate walkable statuses.
 func _on_resource_destroyed(tile: Vector2i):
 	if active_grid_objects.has(tile):
 		active_grid_objects.erase(tile)
@@ -258,18 +274,28 @@ func _on_resource_destroyed(tile: Vector2i):
 		building_manager.pathfinder.set_obstacle(tile, false)
 		building_manager.pathfinder.set_weighted_obstacle(tile, 1.0)
 
+
+
+## Forwards manual extraction input calls directly to global resource managers.
 func handle_harvest_input(grid_pos: Vector2i):
 	if not active_grid_objects.has(grid_pos): return
 	var obj_info = active_grid_objects[grid_pos]
 	ResourceManager.request_harvest(grid_pos, obj_info)
 
+
+
+## Queries atlas coordinates to identify matching resource library indexes.
 func get_object_tile_index(tile: Vector2i) -> int:
 	var atlas := object_layer.get_cell_atlas_coords(tile)
 	if atlas == Vector2i(-1, -1): return -1
 	return atlas.y * ATLAS_COLUMNS + atlas.x
 
+
+
 # COMBAT & PROJECTILES
 
+
+## Spawns dynamic projectiles in active world space, passing scaling parameters.
 func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset):
 	if not projectile_scene:
 		print("Error: Projectile Scene not assigned in Level Inspector")
@@ -286,8 +312,12 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 	if proj.has_method("setup"):
 		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower)
 
+
+
 # MAP GENERATION
 
+
+## Drives procedural map generation utilizing layered simplex noises and falloff gradients.
 func generate_simple_map():
 	terrain_layer.clear()
 	object_layer.clear()
@@ -371,11 +401,13 @@ func generate_simple_map():
 					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
 					if d_val > 0.60: place_resource_at(pos, RES_TREE)
 					
-	#setup pathfinder
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	print("Map generated: ", MapGenType.keys()[current_map_type])
 
+
+
+## Draws a resource node at the designated coordinate, tracking health buffers.
 func place_resource_at(grid_pos: Vector2i, resource_index: int):
 	if resource_index >= tile_library.size(): return
 	var data = tile_library[resource_index]
@@ -385,6 +417,9 @@ func place_resource_at(grid_pos: Vector2i, resource_index: int):
 		"data": data
 	}
 
+
+
+## Places an individual tile into active maps.
 func place_tile(grid_pos: Vector2i, data: TileDataResource):
 	var correct_index = tile_library.find(data)
 	if correct_index == -1: return
@@ -401,6 +436,9 @@ func place_tile(grid_pos: Vector2i, data: TileDataResource):
 				"data": data
 			}
 
+
+
+## Verifies whether the coordinate target is empty and walkable terrain.
 func can_place_object(grid_pos: Vector2i) -> bool:
 	var terrain_atlas = terrain_layer.get_cell_atlas_coords(grid_pos)
 	if terrain_atlas == Vector2i(-1, -1): return false 
@@ -412,22 +450,25 @@ func can_place_object(grid_pos: Vector2i) -> bool:
 
 	return true
 
+
+
 # MAP SAVE / LOAD
 
-# Add this helper function at the bottom:
+
+## Connects pause menus to save serializers.
 func _on_pause_menu_save_requested(slot: int):
-	# The Level passes itself!
 	SaveManager.save_game(self, slot)
 	
+
+
+## Packs level environment floor layouts, resources, camera vectors, and bots for saving.
 func get_map_save_data() -> Dictionary:
 	var terrain_data = {}
-	# Save the floor (Grass, Sand, Water, etc.)
 	for pos in terrain_layer.get_used_cells():
 		var atlas = terrain_layer.get_cell_atlas_coords(pos)
 		terrain_data[var_to_str(pos)] = var_to_str(atlas)
 
 	var object_data = {}
-	# Save the resources (Trees, Stone) and their current HP
 	for pos in active_grid_objects:
 		var obj = active_grid_objects[pos]
 		var correct_index = tile_library.find(obj["data"])
@@ -436,14 +477,11 @@ func get_map_save_data() -> Dictionary:
 			"lib_index": correct_index
 		}
 
-	# --- SAVE BOTS ---
 	var saved_bots = []
 	for bot in get_tree().get_nodes_in_group("WorkerBots"):
 		saved_bots.append(bot.get_save_data())
 		
-	# --- SAVE CAMERA ---
 	var current_camera = get_viewport().get_camera_2d()
-		
 		
 	return {
 		"map_type": current_map_type,
@@ -456,22 +494,21 @@ func get_map_save_data() -> Dictionary:
 		"camera_zoom_y": current_camera.zoom.y
 	}
 
+
+## Rebuilds the level environment floor map, objects, spawned bots, and camera placements from saves.
 func load_map_save_data(data: Dictionary):
-	# Wipe the current blank slate
 	terrain_layer.clear()
 	object_layer.clear()
 	active_grid_objects.clear()
 
 	current_map_type = data.get("map_type", 0)
 
-	# Rebuild the Floor
 	var terrain_data = data.get("terrain", {})
 	for pos_str in terrain_data:
 		var pos = str_to_var(pos_str)
 		var atlas = str_to_var(terrain_data[pos_str])
 		terrain_layer.set_cell(pos, 0, atlas)
 
-	# Rebuild the Trees and Rocks
 	var object_data = data.get("objects", {})
 	for pos_str in object_data:
 		var pos = str_to_var(pos_str)
@@ -481,7 +518,6 @@ func load_map_save_data(data: Dictionary):
 		if lib_idx >= 0 and lib_idx < tile_library.size():
 			var tile_data = tile_library[lib_idx]
 			
-			# Check if it was partially harvested so we use the right sprite!
 			var final_coords = tile_data.atlas_coords_full
 			if obj_info["health"] < tile_data.total_resources and tile_data.atlas_coords_harvesting != Vector2i(-1, -1):
 				final_coords = tile_data.atlas_coords_harvesting
@@ -492,11 +528,9 @@ func load_map_save_data(data: Dictionary):
 				"data": tile_data
 			}
 			
-	#setup pathfinder
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	
-	# --- LOAD BOTS ---
 	if data.has("worker_bots"):
 		var bot_scene = load("res://scenes/Workers/WorkerBot.tscn")
 		
@@ -507,7 +541,6 @@ func load_map_save_data(data: Dictionary):
 			new_bot.setup(self)
 			new_bot.load_save_data(b_data)
 			
-			# Re-connect the UI signals 
 			new_bot.hovered.connect(InputManager._on_object_hovered)
 			new_bot.unhovered.connect(InputManager._on_object_unhovered)
 	

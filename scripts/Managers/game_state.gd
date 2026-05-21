@@ -27,7 +27,9 @@ var is_menu_open: bool:
 	get:
 		return current_menu != MenuType.NONE
 
-# MENU ROUTING
+
+
+## Opens the specified menu and routes screen transitions, notifying UI overlays of updates.
 func open_menu(menu: MenuType) -> bool:
 	if current_menu == menu: 
 		return false # Menu is already open
@@ -36,6 +38,9 @@ func open_menu(menu: MenuType) -> bool:
 	menu_changed.emit(current_menu)
 	return true
 
+
+
+## Closes the currently active menu panel and resets global routing state to NONE.
 func close_menu():
 	if current_menu != MenuType.NONE:
 		current_menu = MenuType.NONE

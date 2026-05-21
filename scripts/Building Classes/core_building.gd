@@ -13,23 +13,20 @@ signal core_destroyed
 @export_group("Storage")
 @export var max_capacity_per_item: int = 50
 
-# --- INTERNAL INVENTORY ---
-var inventory: Dictionary = {} # Key: String (Item Name), Value: int
-# -------------------------------
+var inventory: Dictionary = {}
 
-# --- RESEARCH TRACKING ---
 var active_research_name: String = ""
 var research_bill: Dictionary = {}
-var research_bill_max: Dictionary = {} # Keeps track of the original cost for the UI
+var research_bill_max: Dictionary = {}
 
-# --- NEW: BOT CONSTRUCTION TRACKING ---
 var is_building_bot: bool = false
 var bot_bill: Dictionary = {}
 var bot_bill_max: Dictionary = {}
 
-# Make sure the Core has access to the level to spawn things!
 var level_ref: Node2D 
 
+
+## Registers the command core into active groups, UI signals, and global economy registries.
 func _ready():
 	super()
 	
@@ -40,33 +37,34 @@ func _ready():
 	if ui and ui.has_method("_on_core_destroyed"):
 		core_destroyed.connect(ui._on_core_destroyed)
 		
-	# Register as a physical storage container
 	EconomyManager.register_source(self, true)
 
+
+## Stores a reference to the active gameplay level instance.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
+
+## Unregisters the core structure from the global economy registries when removed.
 func _exit_tree():
-	# If the core dies, unregister it so the economy doesn't try to pull from a dead building
 	EconomyManager.unregister_source(self)
 
 
-# ---  BOT COST DEFINITION ---
+
+## Returns the required material resource costs to build a new worker bot.
 func get_bot_cost() -> Dictionary:
 	var cost = {}
-	
-	# Grab your items from the database
 	var wood_res = ItemDatabase.get_item("Wood")
 	var stone_res = ItemDatabase.get_item("Stone")
 	
-	# Define the price
 	if wood_res: cost[wood_res] = 50
 	if stone_res: cost[stone_res] = 20
 	
 	return cost
-	
-# BILL MANAGEMENT (Research & Bots)
 
+
+
+## Initiates a new research upgrade project, immediately funding it from available inventory.
 func start_research(r_name: String, cost: Dictionary):
 	if active_research_name != "":
 		print("Already researching something!")
@@ -80,6 +78,9 @@ func start_research(r_name: String, cost: Dictionary):
 	_check_research_completion()
 	inventory_changed.emit()
 
+
+
+## Enqueues construction of a new worker bot, validating current bot population limits.
 func start_bot_construction():
 	if is_building_bot:
 		print("Already building a bot!")
@@ -91,7 +92,6 @@ func start_bot_construction():
 		print("Max bots reached!")
 		return
 		
-	# Ask ourselves what the cost is!
 	var cost = get_bot_cost()
 		
 	is_building_bot = true
@@ -102,8 +102,10 @@ func start_bot_construction():
 	_check_bot_completion()
 	inventory_changed.emit()
 
+
+
+## Drains existing inventory items to satisfy portions of active bills.
 func _consume_existing_inventory_for_bill(target_bill: Dictionary, target_bill_max: Dictionary):
-	# Immediately consume any matching items already in the core
 	for item_res in inventory.keys():
 		if target_bill.has(item_res):
 			var needed = target_bill[item_res]
@@ -115,13 +117,11 @@ func _consume_existing_inventory_for_bill(target_bill: Dictionary, target_bill_m
 			
 			EconomyManager.log_item_consumed(item_res.display_name, consumed)
 			
-			# Clean up empty slots
 			if inventory[item_res] <= 0:
 				inventory.erase(item_res)
 			if target_bill[item_res] <= 0:
 				target_bill.erase(item_res)
 				
-	# Sync the economy since we just removed items
 	var consumed_amounts = {}
 	for res in target_bill_max.keys():
 		var originally_needed = target_bill_max[res]
@@ -133,15 +133,14 @@ func _consume_existing_inventory_for_bill(target_bill: Dictionary, target_bill_m
 	if not consumed_amounts.is_empty():
 		EconomyManager.remove_resources_from_global(consumed_amounts)
 
-# INVENTORY LOGIC
 
-# Bots (and Conveyors) will call this to drop things off
+
+## Receives incoming cargo items, intercepting them for active research or bot queues.
 func add_item(item_res: ItemResource, amount: int) -> int:
 	var item_name = item_res.display_name
 	var amount_left_to_store = amount
 	var total_consumed = 0
 	
-	# INTERCEPT FOR BOT CONSTRUCTION
 	if is_building_bot and bot_bill.has(item_res):
 		var needed = bot_bill[item_res]
 		var consumed_for_bot = min(amount_left_to_store, needed)
@@ -161,7 +160,6 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 			inventory_changed.emit()
 			return total_consumed
 
-	# INTERCEPT FOR RESEARCH
 	if active_research_name != "" and research_bill.has(item_res):
 		var needed = research_bill[item_res]
 		var consumed_for_research = min(amount_left_to_store, needed)
@@ -181,7 +179,6 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 			inventory_changed.emit()
 			return total_consumed
 			
-	# 3. STORE LEFTOVERS IN REGULAR INVENTORY
 	var current_amount = inventory.get(item_res, 0)
 	var space_left = max_capacity_per_item - current_amount
 	
@@ -197,27 +194,31 @@ func add_item(item_res: ItemResource, amount: int) -> int:
 	
 	return total_consumed + amount_stored
 
+
+
+## Verifies if the core currently accepts the cargo item type or has available capacity.
 func can_accept_item(item_res: ItemResource) -> bool:
-	# BOT OVERRIDE
 	if is_building_bot and bot_bill.has(item_res):
 		return true
 		
-	# RESEARCH OVERRIDE
 	if active_research_name != "" and research_bill.has(item_res):
 		return true
 		
-	# 3. STANDARD STORAGE
 	var current_amount = inventory.get(item_res, 0)
 	return current_amount < max_capacity_per_item
-	
+
+
+
+## Returns whether the core has room under its capacity limits for a specific item name.
 func has_space_for(item_name: String) -> bool:
 	for item_res in inventory.keys():
 		if item_res.display_name == item_name:
 			return inventory[item_res] < max_capacity_per_item
 	return true 
 
-# COMPLETION LOGIC
 
+
+## Evaluates if research funding has reached 100% and unlocks the technology.
 func _check_research_completion():
 	if research_bill.is_empty() and active_research_name != "":
 		print("RESEARCH COMPLETE: ", active_research_name)
@@ -226,6 +227,9 @@ func _check_research_completion():
 		research_bill_max.clear()
 		inventory_changed.emit()
 
+
+
+## Evaluates if bot construction is fully funded and spawns a new worker bot.
 func _check_bot_completion():
 	if bot_bill.is_empty() and is_building_bot:
 		print("BOT CONSTRUCTION COMPLETE!")
@@ -235,6 +239,9 @@ func _check_bot_completion():
 		_spawn_new_bot()
 		inventory_changed.emit()
 
+
+
+## Spawns the worker bot in the game world, positioning it in adjacent empty tiles.
 func _spawn_new_bot():
 	if not level_ref:
 		level_ref = get_tree().get_first_node_in_group("Level")
@@ -245,34 +252,31 @@ func _spawn_new_bot():
 	
 	level_ref.object_layer.add_child(new_bot)
 	
-	# Ask the BuildingManager for an empty tile right next to the core!
 	var bm = level_ref.building_manager
 	if bm and bm.has_method("_get_empty_tiles_around"):
 		var empty_tiles = bm._get_empty_tiles_around(self, 1)
 		if empty_tiles.size() > 0:
-			var tile = empty_tiles[0] # Grab the first open spot
+			var tile = empty_tiles[0]
 			new_bot.global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(tile))
 		else:
-			new_bot.global_position = global_position # Fallback to center if completely surrounded
+			new_bot.global_position = global_position
 	else:
 		new_bot.global_position = global_position
 		
 	if new_bot.has_method("setup"):
 		new_bot.setup(level_ref)
 		
-	# Connect global inputs
 	if InputManager:
 		new_bot.hovered.connect(InputManager._on_object_hovered)
 		new_bot.unhovered.connect(InputManager._on_object_unhovered)
 		
-	# --- APPLY RESEARCH LEVELS ---
 	if "bot_level" in new_bot and Engine.has_singleton("ResearchManager"):
 		new_bot.bot_level = ResearchManager.bot_start_level
 
 
-# BOT RETRIEVAL LOGIC
+
+## Dispenses a specified quantity of resources from the core inventory.
 func take_item(item_name: String, requested_amount: int) -> Dictionary:
-	# Search our inventory for the actual ItemResource the bot wants
 	for item_res in inventory.keys():
 		if item_res.display_name == item_name:
 			var available = inventory[item_res]
@@ -283,22 +287,20 @@ func take_item(item_name: String, requested_amount: int) -> Dictionary:
 			
 			inventory[item_res] -= amount_to_take
 			
-			# Clean up empty slots
 			if inventory[item_res] <= 0:
 				inventory.erase(item_res)
 				
 			inventory_changed.emit()
 			
-			# SYNC GLOBAL ECONOMY
 			EconomyManager.remove_resources_from_global({ item_name: amount_to_take })
 			
-			# Return the REAL Resource data AND the amount
 			return { "resource": item_res, "amount": amount_to_take }
 			
-	# We didn't have it!
 	return { "amount": 0 }
 
 
+
+## Drains multiple resource types from the core inventory to pay a bills ledger.
 func consume_resources(remaining_bill: Dictionary):
 	var needed_items = remaining_bill.keys() 
 	
@@ -320,21 +322,32 @@ func consume_resources(remaining_bill: Dictionary):
 				
 	inventory_changed.emit()
 
+
+
+## Translates inventory resources into a simplified name-to-quantity mapping.
 func get_economy_assets() -> Dictionary:
 	var string_inventory = {}
 	for res in inventory.keys():
 		string_inventory[res.display_name] = inventory[res]
 	return string_inventory
-	
+
+
+
+## Returns the raw resource-to-amount inventory dictionary for UI queries.
 func get_inventory_info() -> Dictionary:
 	return inventory
 
-# GAME OVER LOGIC
+
+
+## Implements health deductions, triggering game over if the core is destroyed.
 func take_damage(amount: int):
 	super(amount)
 	if health <= 0:
 		_trigger_game_over()
 
+
+
+## Clears all inventories, logging items as consumed, and triggers game over.
 func die():
 	var lost_items_dict = {}
 	
@@ -351,23 +364,26 @@ func die():
 	inventory.clear()
 	
 	_trigger_game_over()
-	
+
+
+
+## Pauses the active gameplay trees and triggers game over interface menus.
 func _trigger_game_over():
 	print("CORE DESTROYED! GAME OVER!")
 	core_destroyed.emit()
 	get_tree().paused = true
-	
-# SAVE / LOAD SYSTEM (Core)
+
+
+
+## Packs inventory lists, active technology bills, and bot queues for saves.
 func get_save_data() -> Dictionary:
 	var data = super.get_save_data()
 	
-	# Translate the Inventory
 	var saved_inventory = {}
 	for item_res in inventory.keys():
 		saved_inventory[item_res.display_name] = inventory[item_res]
 	data["inventory"] = saved_inventory
 	
-	# Translate the Active Research Bill
 	var saved_bill = {}
 	for item_res in research_bill.keys():
 		saved_bill[item_res.display_name] = research_bill[item_res]
@@ -379,8 +395,6 @@ func get_save_data() -> Dictionary:
 	data["research_bill_max"] = saved_bill_max
 	
 	data["active_research_name"] = active_research_name
-	
-	# 3. Translate the Bot Construction Bill
 	data["is_building_bot"] = is_building_bot
 	
 	var saved_bot_bill = {}
@@ -395,6 +409,8 @@ func get_save_data() -> Dictionary:
 	
 	return data
 
+
+## Reconstructs inventories, research projects, and bot construction queues from saved data.
 func load_save_data(data: Dictionary):
 	super.load_save_data(data)
 	

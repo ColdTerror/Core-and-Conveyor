@@ -59,6 +59,9 @@ var sfx_playlists: Dictionary = {
 	]
 }
 
+
+
+## Sets up default connections, grabs AudioServer bus indexes, and triggers initial music.
 func _ready():
 	music_player.finished.connect(_on_music_finished)
 	
@@ -67,10 +70,10 @@ func _ready():
 	
 	# We use play_next_track_with_fade so it broadcasts the track_changed signal right away!
 	play_next_track_with_fade("Sunrise", 0.5)
-	
-	
 
-# MUSIC LOGIC
+
+
+## Loads and plays a specified music track instantly.
 func play_music(track_name: String):
 	if not music_tracks.has(track_name):
 		push_warning("Music track not found: " + track_name)
@@ -82,14 +85,15 @@ func play_music(track_name: String):
 		return 
 		
 	current_track_name = track_name 
-	track_changed.emit(current_track_name) # Let the UI know!
+	track_changed.emit(current_track_name)
 	
 	music_player.stream = stream
 	music_player.play()
 
-# Added 'is_jukebox_override' so the UI can force a track, but the TimeManager gets blocked!
+
+
+## Transitions from the current track to a new track using crossfade tweens.
 func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0, is_jukebox_override: bool = false):
-	
 	# Block the TimeManager from interrupting the player's chosen song!
 	if is_jukebox_enabled and not is_jukebox_override:
 		return
@@ -104,7 +108,7 @@ func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0, i
 		return 
 		
 	current_track_name = track_name 
-	track_changed.emit(current_track_name) # Let the UI know!
+	track_changed.emit(current_track_name)
 		
 	if not music_player.playing:
 		music_player.stream = next_stream
@@ -126,8 +130,8 @@ func play_next_track_with_fade(track_name: String, fade_duration: float = 2.0, i
 	)
 
 
-# --- NEW HELPER FUNCTION ---
-# Call this instead of play_next_track_with_fade when relying on the time of day
+
+## Selects a random track from the specified playlist and plays it with crossfade transitions.
 func play_playlist_track(playlist_name: String, fade_duration: float = 2.0):
 	if not playlists.has(playlist_name):
 		push_warning("Playlist not found: " + playlist_name)
@@ -137,16 +141,18 @@ func play_playlist_track(playlist_name: String, fade_duration: float = 2.0):
 	if tracks.is_empty():
 		return
 		
-	# Pick a random song from the array!
 	var random_track_name = tracks.pick_random()
-	
-	# Pass it off to our existing fader function
 	play_next_track_with_fade(random_track_name, fade_duration)
-	
+
+
+
+## Instantly stops all playing music tracks.
 func stop_music():
 	music_player.stop()
 
-# PLAYLIST SEQUENCING (Time-Based Looping)
+
+
+## Automatically sequences and chains tracks based on active moon phase or time of day.
 func _on_music_finished():
 	print("music finished signal")
 	
@@ -161,13 +167,12 @@ func _on_music_finished():
 		return
 		
 	if time_manager.is_night:
-		# Check the specific moon phase enum!
 		match time_manager.current_moon_phase:
 			TimeManager.MoonPhase.BLOOD:
 				play_playlist_track("Night_Blood", 0.25)
 			TimeManager.MoonPhase.FULL:
 				play_playlist_track("Night_Full", 0.25)
-			_: # Normal Night (Default)
+			_:
 				play_playlist_track("Night_Normal", 0.25)
 				
 	elif time_manager.current_time >= 6.0 and time_manager.current_time < 8.0:
@@ -175,21 +180,27 @@ func _on_music_finished():
 	else:
 		play_playlist_track("Day", 0.25)
 
-# JUKEBOX CONTROLS
+
+
+## Returns a list array containing all registered jukebox song identifiers.
 func get_track_list() -> Array:
 	return music_tracks.keys()
 
+
+## Overrides clock events and forces a specific track to play in Jukebox mode.
 func force_play_track(track_name: String):
 	is_jukebox_enabled = true
-	# We pass 'true' at the end to bypass the TimeManager block
 	play_next_track_with_fade(track_name, 1.0, true)
-	
+
+
+## Deactivates jukebox mode and syncs active sound tracks back to TimeManager calendar phases.
 func disable_jukebox():
 	is_jukebox_enabled = false
-	# Instantly manually trigger the music end function to resync with the clock
 	_on_music_finished()
 
-# SFX LOGIC (Polyphonic, Positional & Pitch Shifted)
+
+
+## Plays non-positional UI sounds or positional 2D events with randomized pitch variations.
 func play_sfx(sfx_name: String, pos: Vector2 = Vector2.INF, randomize_pitch: bool = true):
 	if not sfx_tracks.has(sfx_name):
 		push_warning("SFX not found: " + sfx_name)
@@ -198,7 +209,6 @@ func play_sfx(sfx_name: String, pos: Vector2 = Vector2.INF, randomize_pitch: boo
 	var stream = sfx_tracks[sfx_name]
 	var target_pos = pos
 	
-	# If no position was given (UI sounds), snap it to the camera so it plays at full volume!
 	if target_pos == Vector2.INF:
 		var cam = get_viewport().get_camera_2d()
 		if cam:
@@ -209,7 +219,7 @@ func play_sfx(sfx_name: String, pos: Vector2 = Vector2.INF, randomize_pitch: boo
 	for player in sfx_pool.get_children():
 		if not player.playing:
 			player.stream = stream
-			player.global_position = target_pos # --- NEW: Move the speaker to the event! ---
+			player.global_position = target_pos
 			player.volume_db = default_sfx_volume_db
 			
 			if randomize_pitch:
@@ -222,25 +232,31 @@ func play_sfx(sfx_name: String, pos: Vector2 = Vector2.INF, randomize_pitch: boo
 			
 	var fallback = sfx_pool.get_child(0)
 	fallback.stream = stream
-	fallback.global_position = target_pos # --- Move the speaker to the event! ---
+	fallback.global_position = target_pos
 	fallback.volume_db = default_sfx_volume_db
 	if randomize_pitch:
 		fallback.pitch_scale = randf_range(0.85, 1.15)
 	else:
 		fallback.pitch_scale = 1.0
 	fallback.play()
-	
-# SETTINGS & OPTIONS MENU HOOKS
+
+
+
+## Sets music volume based on a linear slider input.
 func set_music_volume(linear_volume: float):
 	default_music_volume_db = linear_to_db(max(linear_volume, 0.0001))
 	if not is_music_muted:
 		music_player.volume_db = default_music_volume_db
 
+
+## Sets sound effects volume based on a linear slider input.
 func set_sfx_volume(linear_volume: float):
 	default_sfx_volume_db = linear_to_db(max(linear_volume, 0.0001))
 	if not is_sfx_muted:
 		AudioServer.set_bus_volume_db(sfx_bus_index, default_sfx_volume_db)
 
+
+## Toggles music mute states without losing custom volume preferences.
 func set_music_muted(muted: bool):
 	is_music_muted = muted
 	if is_music_muted:
@@ -248,26 +264,31 @@ func set_music_muted(muted: bool):
 	else:
 		music_player.volume_db = default_music_volume_db
 
+
+## Toggles sound effects bus mute states.
 func set_sfx_muted(muted: bool):
 	is_sfx_muted = muted
 	AudioServer.set_bus_mute(sfx_bus_index, is_sfx_muted)
-		
-# AUDIO EFFECTS
+
+
+## Activates or disables low-pass filter effect enables.
 func set_music_muffled(is_muffled: bool):
-	# The '0' means we are targeting the very first effect added to the bus
 	AudioServer.set_bus_effect_enabled(music_bus_index, 0, is_muffled)
-	
-	
-# Utility
-# The UI needs to ask for a 0-1 percentage, so we convert the Decibels back!
+
+
+
+## Queries current music volume, returning linear percentages.
 func get_music_volume_linear() -> float:
 	return db_to_linear(default_music_volume_db)
 
+
+## Queries current sound effects volume, returning linear percentages.
 func get_sfx_volume_linear() -> float:
 	return db_to_linear(default_sfx_volume_db)
-	
 
-# Save Load
+
+
+## Packages music and sound volume and mute state values for saves.
 func get_save_data() -> Dictionary:
 	return {
 		"music_vol": get_music_volume_linear(),
@@ -276,8 +297,9 @@ func get_save_data() -> Dictionary:
 		"sfx_muted": is_sfx_muted
 	}
 
+
+## Unpacks saved music state, applying customized decibel balances and track loops.
 func load_save_data(data: Dictionary):
-	# Pull the saved data, or default to 50% (0.5) if something is missing
 	set_music_volume(data.get("music_vol", 0.5))
 	set_sfx_volume(data.get("sfx_vol", 0.5))
 	set_music_muted(data.get("music_muted", false))

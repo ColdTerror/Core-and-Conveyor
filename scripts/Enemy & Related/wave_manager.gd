@@ -35,14 +35,16 @@ var enemies_to_spawn: int = 0
 var is_wave_active: bool = false
 var spawn_accumulator: float = 0.0
 
+## Connects dawn and dusk event signals from the TimeManager autoload.
 func _ready():
 	# Listen to the global clock!
 	if time_manager:
 		time_manager.night_started.connect(_on_night_started)
 		time_manager.day_started.connect(_on_day_started)
 
-# --- NIGHT EVENT LOGIC ---
 
+
+## Triggers the start of a night wave, calculating horde scaling and moon multipliers.
 func _on_night_started(day_num: int):
 	current_wave = day_num
 	is_wave_active = true
@@ -88,10 +90,11 @@ func _on_night_started(day_num: int):
 	
 	print("Night %d [%s]: %d enemies inbound." % [current_wave, night_type, enemies_to_spawn])
 
+
+
+## Concludes the active night wave and forces any unspawned horde units to dawn rush.
 func _on_day_started(day_num: int):
-	# --- THE FIX: SYNC THE CLOCK ---
-	# The sun just came up on a new day, which means the night 
-	# we just survived was "yesterday" (day_num - 1).
+	# The sun just came up on a new day, which means the night we just survived was "yesterday" (day_num - 1).
 	# max(1, ...) just prevents it from saying "Night 0" on the very first skip!
 	current_wave = max(1, day_num - 1)
 	
@@ -103,8 +106,9 @@ func _on_day_started(day_num: int):
 	is_wave_active = false
 	print("Sunrise! Night %d survived." % current_wave)
 
-# --- CONTINUOUS CURVE SPAWNING ---
 
+
+## Drives continuous curve spawning distribution throughout active night waves.
 func _process(delta: float):
 	if not is_wave_active or enemies_to_spawn <= 0: 
 		return
@@ -130,8 +134,9 @@ func _process(delta: float):
 		spawn_accumulator -= 1.0
 		_do_spawn()
 
-# --- SPAWN AND DEATH HANDLERS ---
 
+
+## Spawns an individual enemy unit, scales elite mutations, and registers death handlers.
 func _do_spawn():
 	enemies_to_spawn -= 1
 	
@@ -141,7 +146,6 @@ func _do_spawn():
 	var enemy = enemy_scene.instantiate()
 	
 	enemy.add_to_group("Enemies") 
-	
 	
 	if corruption_manager:
 		# 10% chance per corruption tier (Tier 1 = 10%, Tier 2 = 20%, etc.)
@@ -167,9 +171,15 @@ func _do_spawn():
 	if enemy.has_signal("died"):
 		enemy.died.connect(_on_enemy_died)
 
+
+
+## Handles actions needed when an individual enemy dies.
 func _on_enemy_died(_enemy_instance):
 	pass
 
+
+
+## Selects a spawn point within active purple fog zones or along fallback radiuses.
 func _get_best_spawn_position() -> Vector2:
 	if corruption_layer:
 		var used_cells = corruption_layer.get_used_cells()
@@ -179,7 +189,9 @@ func _get_best_spawn_position() -> Vector2:
 	var angle = randf() * TAU
 	return fallback_spawn_center + Vector2(cos(angle), sin(angle)) * fallback_spawn_radius
 
-# --- UI HELPER ---
+
+
+## Returns the expected number of enemy spawns for the upcoming night's wave.
 func get_estimated_enemies() -> int:
 	if not time_manager: return 0
 	
@@ -191,17 +203,18 @@ func get_estimated_enemies() -> int:
 		extra_enemies = round(land_size * corruption_penalty_factor)
 		
 	return round(base_enemies + extra_enemies)
-	
-# QUOTA PENALTY API
+
+
+
+## Records quota failure penalties to scale tomorrow night's wave intensity.
 func apply_quota_penalty(penalty_amount: float):
 	print("WARNING: Quota failed! The horde is enraged for tomorrow night!")
 	pending_raid_penalty += penalty_amount
-	
-	
-	
-# SAVE / LOAD SYSTEM
+
+
+
+## Serializes wave states and living enemy data for game save storage.
 func get_save_data() -> Dictionary:
-	# Loop through all living enemies and pack them into an array of boxes
 	var live_enemies_data = []
 	for enemy in get_tree().get_nodes_in_group("Enemies"):
 		if enemy.has_method("get_save_data"):
@@ -210,13 +223,16 @@ func get_save_data() -> Dictionary:
 	return {
 		"current_wave": current_wave,
 		"night_enemies_total": night_enemies_total,
-		"enemies_to_spawn": enemies_to_spawn, # Removed the + currently_alive refund!
+		"enemies_to_spawn": enemies_to_spawn,
 		"is_wave_active": is_wave_active,
 		"spawn_accumulator": spawn_accumulator,
 		"pending_raid_penalty": pending_raid_penalty,
-		"live_enemies": live_enemies_data # <--- NEW: Save the live horde!
+		"live_enemies": live_enemies_data
 	}
 
+
+
+## Restores wave progression and spawns saved enemies from game state dictionary.
 func load_save_data(data: Dictionary):
 	current_wave = data.get("current_wave", 0)
 	night_enemies_total = data.get("night_enemies_total", 0)
@@ -225,7 +241,7 @@ func load_save_data(data: Dictionary):
 	spawn_accumulator = data.get("spawn_accumulator", 0.0)
 	pending_raid_penalty = data.get("pending_raid_penalty", 0.0)
 	
-	# --- NEW: SPAWN THE SAVED ENEMIES ---
+	# Spawn the saved enemies
 	if data.has("live_enemies") and enemy_scene:
 		var saved_enemies = data["live_enemies"]
 		

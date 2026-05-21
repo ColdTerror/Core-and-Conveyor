@@ -32,11 +32,15 @@ var is_terrain_remove_brush: bool = false
 # Signals
 signal object_selected(target: Node2D)
 
+
+
+## Adds this node to global input manager group during ready initialization.
 func _ready():
 	add_to_group("InputManager")
 
 
-# KEYBOARD INPUT (Menus & Mode Toggles)
+
+## Processes discrete key strokes for menus, overlays, and developer skip tools.
 func _unhandled_key_input(event: InputEvent):
 	if not event.is_pressed() or event.is_echo(): return
 
@@ -59,14 +63,12 @@ func _unhandled_key_input(event: InputEvent):
 			get_viewport().set_input_as_handled()
 			return
 			
-		# Example: Routing a specific key to a specific menu
 		if GameState.current_menu == GameState.MenuType.RESEARCH:
 			if event.keycode == KEY_R: 
 				print("Special Research Hotkey Pressed!")
 				get_viewport().set_input_as_handled()
 				return
 				
-		# If a menu is open and the key wasn't caught above, swallow it!
 		get_viewport().set_input_as_handled()
 		return
 
@@ -77,7 +79,6 @@ func _unhandled_key_input(event: InputEvent):
 			current_mode = InteractionMode.NONE if current_mode == InteractionMode.TERRAFORM else InteractionMode.TERRAFORM
 			get_viewport().set_input_as_handled()
 			
-		# Pass overlay hotkeys to BuildingManager!
 		KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_EQUAL, KEY_MINUS, KEY_N:
 			if building_manager:
 				building_manager.handle_overlay_hotkeys(event.keycode)
@@ -97,7 +98,9 @@ func _unhandled_key_input(event: InputEvent):
 				level_ref.get_node("TimeManager").debug_skip_to_next_morning()
 			get_viewport().set_input_as_handled()
 
-# CONTINUOUS INPUT (WASD Camera Panning)
+
+
+## Handles continuous key inputs such as keyboard-based camera panning.
 func _process(delta):
 	# Gatekeeper: Don't allow camera panning if a menu is open!
 	if GameState.is_menu_open: return
@@ -118,12 +121,13 @@ func _process(delta):
 		if cam and cam.has_method("apply_pan"):
 			cam.apply_pan(move_dir, delta)
 
-# MOUSE INPUT (The State Machine)
+
+
+## Maps mouse clicks and drags to their matching interaction modes.
 func _unhandled_input(event: InputEvent):
 	if not level_ref or not building_manager: return
 	
 	# --- 1. THE GATEKEEPER: Block World Clicks ---
-	# Block clicks UNLESS we are specifically trying to click the grid for a bot!
 	if GameState.is_menu_open and current_mode != InteractionMode.SET_HOME:
 		if event is InputEventMouseButton:
 			get_viewport().set_input_as_handled()
@@ -145,7 +149,6 @@ func _unhandled_input(event: InputEvent):
 	# --- 3. NORMAL WORLD CLICKS ---
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = level_ref.terrain_layer.local_to_map(mouse_pos)
-
 
 	# --- 4. GLOBAL CANCEL & HOTKEYS ---
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("right_click"):
@@ -191,7 +194,7 @@ func _unhandled_input(event: InputEvent):
 					if bot_awaiting_home.has_method("is_valid_home_tile"):
 						if not bot_awaiting_home.is_valid_home_tile(grid_pos):
 							get_viewport().set_input_as_handled()
-							return # Invalid tile, keep trying!
+							return
 							
 					bot_awaiting_home.set_home(grid_pos)
 					if bot_awaiting_home.has_method("toggle_set_home_mode"):
@@ -205,10 +208,11 @@ func _unhandled_input(event: InputEvent):
 			if event.is_action_pressed("ui_left"):
 				_handle_default_selection(grid_pos)
 
-# ACTION HELPERS
+
+
+## Cancels active interaction states, clearing highlight variables and deactivating placement ghosts.
 func _cancel_current_action():
 	building_manager.cancel_placement()
-	
 	object_selected.emit(null)
 		
 	if current_mode == InteractionMode.SET_HOME and is_instance_valid(bot_awaiting_home):
@@ -220,18 +224,23 @@ func _cancel_current_action():
 	last_hovered_upgrade_tile = Vector2i(-1, -1)
 	last_terrain_tile = Vector2i(-1, -1)
 
+
+## Helper utility checks if left mouse click is down.
 func _is_left_clicking(event: InputEvent) -> bool:
 	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed
 
+
+## Helper utility checks if left mouse click is held while cursor is in motion.
 func _is_left_dragging(event: InputEvent) -> bool:
 	return event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 
-# SPECIFIC MODE LOGIC
+
+
+## Selects hovered bots, structures, or enemies when in default selection mode.
 func _handle_default_selection(grid_pos: Vector2i):
 	# Did we click a bot?
 	if is_instance_valid(hovered_bot):
 		object_selected.emit(hovered_bot)
-			
 		get_viewport().set_input_as_handled()
 		return
 		
@@ -249,7 +258,10 @@ func _handle_default_selection(grid_pos: Vector2i):
 
 	# We clicked empty terrain or grid!
 	object_selected.emit(null)
-		
+
+
+
+## Routes clicks and mouse drag brushes to assign or remove terrain terraforming jobs.
 func _handle_terraform_input(event: InputEvent, grid_pos: Vector2i):
 	if _is_left_clicking(event):
 		last_terrain_tile = grid_pos
@@ -274,9 +286,10 @@ func _handle_terraform_input(event: InputEvent, grid_pos: Vector2i):
 			else:
 				building_manager._try_add_terrain_job(grid_pos)
 
-# UNIVERSAL HOVER LOGIC
+
+
+## Caches references and activates detail tooltips when cursors hover over valid objects.
 func _on_object_hovered(object: Node2D):
-	# Update our state trackers so the click logic knows what we are looking at!
 	if object.has_method("set_priority"): # Duck-typing for WorkerBot
 		hovered_bot = object
 	elif object is Building:
@@ -284,22 +297,20 @@ func _on_object_hovered(object: Node2D):
 	elif object is Enemy:
 		hovered_enemy = object
 
-	# Show the tooltip popup!
 	if hover_popup and hover_popup.has_method("show_building_info"):
 		hover_popup.show_building_info(object)
 
+
+## Clears tracking variables and dismisses active tooltips when cursors unhover.
 func _on_object_unhovered(object: Node2D):
-	# Clear our state trackers safely
 	if hovered_bot == object: hovered_bot = null
 	if hovered_enemy == object: hovered_enemy = null
 	
 	if hovered_building == object: 
 		hovered_building = null
-		# Force the overlay to realize the hover is gone
 		var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
 		if renderer: renderer.queue_redraw()
 
-	# Hide the tooltip popup!
 	if hover_popup and "current_building" in hover_popup:
 		if hover_popup.current_building == object:
 			hover_popup.hide()

@@ -16,6 +16,9 @@ var items: Dictionary = {
 	"Stone Brick": preload("res://resources/items/refined_resources/stone_brick.tres"),
 }
 
+
+
+## Searches and returns the preloaded ItemResource instance matching the text name.
 func get_item(name: String) -> ItemResource:
 	if items.has(name):
 		return items[name]

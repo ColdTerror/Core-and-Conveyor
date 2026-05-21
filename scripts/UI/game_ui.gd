@@ -13,23 +13,19 @@ extends Control
 @onready var dateLabel = $VBoxContainer/DateLabel
 @onready var waveLabel = $VBoxContainer/WaveLabel
 
-# --- NEW: OVERLAY UI REFERENCE ---
 @onready var overlayLabel = $VBoxContainer/OverlayLabel
 
-# --- NEW: CORRUPTION UI REFERENCES ---
 @onready var corruptionLabel = $VBoxContainer/CorruptionLabel
 @onready var corruptionBar = $VBoxContainer/CorruptionBar
 
 @onready var costPanel = $CostPanel
 @onready var costLabel = $CostPanel/CostLabel
 
-# --- MANAGER REFERENCES ---
 @export var wave_manager: WaveManager 
 @export var time_manager: TimeManager
 @export var building_manager: BuildingManager
 @export var corruption_manager: CorruptionManager
 
-# --- GAME OVER REFERENCES ---
 @onready var game_over_panel = $"../../GameOverPanel"
 @onready var stats_label = $"../../GameOverPanel/VBoxContainer/Stats"
 @onready var restart_button = $"../../GameOverPanel/VBoxContainer/Restart"
@@ -37,6 +33,9 @@ extends Control
 
 var resource_labels: Dictionary = {}
 
+
+
+## Connects signals from EconomyManager, TimeManager, and BuildingManager, and hides the game over panel.
 func _ready():
 	update_labels()
 	EconomyManager.inventory_changed.connect(_on_inventory_changed)
@@ -51,9 +50,11 @@ func _ready():
 		building_manager.placement_cost_updated.connect(_on_placement_cost_updated)
 		building_manager.placement_ended.connect(_on_placement_ended)
 
-# --- PROCESS LOOP (UI UPDATES) ---
+
+
+## Updates gameplay labels including the clock, wave forecast, corruption state, and safe grid metrics.
 func _process(_delta):
-	# UPDATE THE CLOCK
+	# Update the clock
 	if time_manager and dateLabel:
 		var time = time_manager.current_time
 		var hours = int(time)
@@ -62,7 +63,7 @@ func _process(_delta):
 		
 		dateLabel.text = "Day %d | %s" % [time_manager.current_day, time_string]
 
-	# UPDATE THE COMBAT STATS
+	# Update combat stats
 	if wave_manager and waveLabel:
 		var enemies_alive = get_tree().get_nodes_in_group("Enemies").size()
 		
@@ -74,8 +75,6 @@ func _process(_delta):
 			]
 			waveLabel.modulate = Color(1.0, 0.4, 0.4) 
 		else:
-			# --- RESEARCH GATED FORECAST ---
-			
 			# NO RESEARCH: Completely blind!
 			if not ResearchManager.wave_measure:
 				waveLabel.text = "Night approaching..."
@@ -120,9 +119,7 @@ func _process(_delta):
 					else:
 						waveLabel.modulate = Color.WHITE
 						
-	# --- NEW: 3. UPDATE CORRUPTION UI ---
-	# We added safety checks (if corruptionLabel) so the game doesn't crash 
-	# if you haven't created the nodes in the editor yet!
+	# Update corruption UI with safety checks
 	if corruption_manager and corruptionLabel and corruptionBar:
 		var tier = corruption_manager.corruption_tier
 		var pressure = corruption_manager.current_pressure
@@ -134,16 +131,13 @@ func _process(_delta):
 		corruptionBar.max_value = threshold
 		corruptionBar.value = pressure
 		
-		# Optional: Tint the text so it looks dangerous
+		# Tint the text so it looks dangerous
 		corruptionLabel.modulate = Color(0.8, 0.2, 1.0) # Purple!
 		corruptionBar.modulate = Color(0.8, 0.2, 1.0)
-	# ------------------------------------
 	
-	# --- NEW: 4. UPDATE OVERLAY THRESHOLD UI ---
+	# Update overlay threshold UI
 	if building_manager and overlayLabel:
 		if building_manager.show_safe_grid or building_manager.show_attack_grid:
-			
-			# --- NEW: Format the text to show the live status of both controls! ---
 			var num_status = "ON" if building_manager.show_overlay_numbers else "OFF"
 			overlayLabel.text = "Threshold: %d  [+ / -]   |   Numbers: %s  [N]" % [building_manager.overlay_threshold, num_status]
 			
@@ -151,7 +145,6 @@ func _process(_delta):
 			overlayLabel.show()
 		else:
 			overlayLabel.hide()
-	# -------------------------------------------
 	
 	# Move the costPanel to follow mouse
 	if costPanel.visible: 
@@ -159,6 +152,8 @@ func _process(_delta):
 		costPanel.global_position = mouse_pos + Vector2(25, 25)
 
 
+
+## Refreshes pinning inventory slots in the top HUD panel with current count and in-transit numbers.
 func update_labels():
 	# Hide all existing labels
 	for key in resource_labels.keys():
@@ -194,6 +189,9 @@ func update_labels():
 		lbl.show()
 		inventoryContainer.move_child(lbl, i)
 
+
+
+## Updates and shows the float cost panel trailing the mouse cursor when placing structures.
 func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_afford: bool, extra_stats: Dictionary = {}):
 	costPanel.show()
 	
@@ -222,25 +220,39 @@ func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_affo
 		costLabel.modulate = Color(0.4, 1.0, 0.4) 
 	else:
 		costLabel.modulate = Color(1.0, 0.4, 0.4)
-		
+
+
+
+## Hides the floating structure placement cost card when building completes or cancels.
 func _on_placement_ended():
 	costPanel.hide()
 
-# --- GAME OVER LOGIC ---
+
+
+## Reveals the game over summary panel showing the final wave count upon the player's core destruction.
 func _on_core_destroyed():
 	if game_over_panel:
 		game_over_panel.show()
 		if wave_manager:
 			stats_label.text = "You survived until Wave %d." % wave_manager.current_wave
 
+
+
+## Resets inventories and reload-unpauses the game scene to begin a new round.
 func _on_restart_pressed():
 	get_tree().paused = false 
 	EconomyManager.global_inventory.clear()
 	EconomyManager.inventory_changed.emit()
 	get_tree().reload_current_scene()
 
+
+
+## Closes the application.
 func _on_exit_pressed():
 	get_tree().quit()
-	
+
+
+
+## Signal receiver that triggers standard UI HUD updates when player stock levels shift.
 func _on_inventory_changed():
 	update_labels()

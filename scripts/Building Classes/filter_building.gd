@@ -12,26 +12,30 @@ var current_filter_index: int = 0
 var is_split_mode: bool = true 
 var side_toggle: int = 0
 
-# --- NEW: Remember our true orientation because the base class 
-# temporarily changes 'direction' to slide items sideways! ---
+# True orientation is stored because the base class temporarily 
+# changes 'direction' to slide items sideways during transfer.
 var facing_direction: Vector2i = Vector2i.RIGHT 
 
+
+## Initializes filter structures, populating item options dynamically from the database.
 func _ready():
 	super()
-	# Dynamically grab every item from the database!
 	for item_name in ItemDatabase.items.keys():
 		if not filter_options.has(item_name):
 			filter_options.append(item_name)
 
-# SETUP: Lock the rotation visually!
+
+
+## Sets up the filter's true orientation and rotation.
 func setup(level_instance: Node2D, dir: Vector2i):
 	level_ref = level_instance
-	
 	facing_direction = dir if dir != Vector2i.ZERO else Vector2i.RIGHT
-	direction = facing_direction # Set base direction
+	direction = facing_direction
 	rotation = Vector2(facing_direction).angle()
 
-# THE BOUNCER: Only accept items from the back!
+
+
+## Restricts item receipt strictly to the rear entry side of the filter structure.
 func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -> bool:
 	if source_belt:
 		var manager = level_ref.building_manager
@@ -45,17 +49,22 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 		if source_grid != expected_input_grid:
 			return false 
 			
-	# If it is at the back door, run the normal router acceptance logic
 	return super.accept_item_node(item_node, source_belt)
 
-# UI TOGGLES
+
+
+## Cycles the current item filter selection forward to the next index.
 func cycle_filter():
 	current_filter_index = (current_filter_index + 1) % filter_options.size()
 
+
+## Toggles the split mode mapping between sorting filtered items sideways or forward.
 func toggle_filter_mode():
 	is_split_mode = not is_split_mode
 
-# 3. ROUTING: Clean, predictable math
+
+
+## Evaluates held item matching status to compute appropriate output directions.
 func _try_route():
 	if not held_item or not "item_data" in held_item: return
 	
@@ -66,7 +75,6 @@ func _try_route():
 	var item_name = held_item.item_data.display_name
 	var matches_filter = (item_name == current_filter)
 	
-	# Use our TRUE facing direction for the math
 	var forward_dir = facing_direction
 	var right_dir = Vector2i(-facing_direction.y, facing_direction.x)
 	var left_dir = Vector2i(facing_direction.y, -facing_direction.x)
@@ -87,7 +95,6 @@ func _try_route():
 		else:
 			target_dirs = [forward_dir]
 
-	# Attempt to push
 	for offset in target_dirs:
 		var target_pos = my_grid + offset
 		var can_push = false
@@ -95,40 +102,32 @@ func _try_route():
 		if manager.occupied_tiles.has(target_pos):
 			var neighbor = manager.occupied_tiles[target_pos]
 			
-			# CASE A: Output to a normal Conveyor
 			if neighbor is ConveyorBuilding and not neighbor is RouterBuilding:
-				# --- UPGRADED: Check explicit is_jammed flag! ---
 				if neighbor.direction == offset and (neighbor.held_item == null or (neighbor.is_moving_to_edge and not neighbor.is_jammed)):
 					can_push = true
 					
-			# CASE B: Output to another Router/Filter
 			elif neighbor is RouterBuilding:
-				# --- UPGRADED: Check explicit is_jammed flag! ---
 				if neighbor.held_item == null or (neighbor.is_moving_to_edge and not neighbor.is_jammed):
 					can_push = true
 					
-			# CASE C: Output to Factory/Stockpile
 			elif neighbor.has_method("can_accept_item") and "item_data" in held_item:
-				# --- UPGRADED: Explicitly ask permission before routing! ---
 				if neighbor.can_accept_item(held_item.item_data):
 					can_push = true
 
 		if can_push:
-			# Only toggle the side router if we actually succeeded in pushing!
 			if should_go_to_sides and offset == target_dirs[0]:
 				side_toggle = 1 if side_toggle == 0 else 0
 				
-			# Transition to Phase 2
 			direction = offset 
 			is_moving_to_edge = true 
 			return
 			
-	# --- UPGRADED: Instant reaction time instead of a 0.5-second nap! ---
 	push_cooldown = 0.1
-	
-# SAVE / LOAD SYSTEM (Filter)
+
+
+
+## Packs current filter item names, toggle states, and facing directions for save files.
 func get_save_data() -> Dictionary:
-	# Grab everything from the Router parent
 	var data = super.get_save_data()
 	
 	data["facing_direction"] = var_to_str(facing_direction)
@@ -138,23 +137,21 @@ func get_save_data() -> Dictionary:
 	
 	return data
 
+
+## Restores saved filter item names, toggle states, and true orientations.
 func load_save_data(data: Dictionary):
-	# Let the Router unpack the item and base stats
 	super.load_save_data(data)
 	
 	if data.has("facing_direction"):
 		facing_direction = str_to_var(data["facing_direction"])
 	else:
-		facing_direction = direction # Fallback for old saves
+		facing_direction = direction
 		
-	# Ensure 'direction' matches 'facing_direction' on load 
-	# so it doesn't default sideways if saved mid-transfer!
 	direction = facing_direction
 	
 	is_split_mode = data.get("is_split_mode", true)
 	side_toggle = data.get("side_toggle", 0)
 	
-	# Safely find the index based on the saved string
 	var saved_filter = data.get("active_filter_name", "None")
 	var found_index = filter_options.find(saved_filter)
 	

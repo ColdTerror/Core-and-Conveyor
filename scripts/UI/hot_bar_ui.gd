@@ -10,26 +10,28 @@ extends Control
 
 @onready var container = $PanelContainer/HBoxContainer
 
-# Defines a signal that Level.gd will listen to
-# data_wrapper can be a PackedScene (Building) or an Integer (Tile Index)
 signal item_selected(data_wrapper, is_building)
 
-# --- NEW: CORE FLASHING REFERENCES ---
-@export var building_manager: BuildingManager # Drag your BuildingManager here in the Inspector!
+@export var building_manager: BuildingManager
+
 var core_button: Button
 var flash_tween: Tween
-# -------------------------------------
 
+
+
+## Initializes the hotbar panel and connects global placement event signals.
 func _ready():
-	# Clear any placeholder buttons you added in editor
+	# Clear placeholder buttons
 	for child in container.get_children():
 		child.queue_free()
 		
-	# Listen for the Core placement signal!
+	# Listen for Core placement
 	if building_manager:
 		building_manager.core_placed_event.connect(_on_core_placed)
 
-# Function to add a button dynamically
+
+
+## Dynamically creates and registers a square selection button with bound action data inside the hotbar.
 func add_button(label_text: String, icon_texture: Texture2D, data, is_building: bool):
 	var btn = Button.new()
 	btn.text = label_text
@@ -37,56 +39,64 @@ func add_button(label_text: String, icon_texture: Texture2D, data, is_building: 
 	btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	btn.expand_icon = true
-	btn.custom_minimum_size = Vector2(64, 64) # Big square buttons
+	btn.custom_minimum_size = Vector2(64, 64)
 	
-	# Connect the click event
-	# We bind the specific data to the signal so we know what was clicked
+	# Connect click event binding data
 	btn.pressed.connect(_on_button_pressed.bind(data, is_building))
 	
 	container.add_child(btn)
 	
-	# --- NEW: CATCH THE CORE BUTTON ---
-	# IMPORTANT: Make sure "Core" perfectly matches whatever text you pass into this function!
+	# Check for Core button to flash
 	if label_text == "Core": 
 		core_button = btn
 		_start_core_flash()
-	# ----------------------------------
 
 
+
+## Purges all active selection buttons from the hotbar panel.
 func clear_buttons():
 	for child in container.get_children():
 		child.queue_free()
 
+
+
+## Emits selection data representing the pressed hotbar entry.
 func _on_button_pressed(data, is_building):
 	item_selected.emit(data, is_building)
 
-# ANIMATION LOGIC
+
+
+## Triggers a looping pulse animation overlaying the core construction card until placed.
 func _start_core_flash():
 	if not core_button: return
 	
-	# Create a tween that loops forever
+	# Create a looping tween
 	flash_tween = create_tween().set_loops()
 	
-	# Pulse to a bright greenish/yellow, then back to normal white
-	var highlight_color = Color(0.5, 0.5, 0.0, 1.0) # Overdriving values makes it glow!
+	# Pulse to a highlighted yellow/green color
+	var highlight_color = Color(0.5, 0.5, 0.0, 1.0)
 	
 	flash_tween.tween_property(core_button, "modulate", highlight_color, 0.6).set_trans(Tween.TRANS_SINE)
 	flash_tween.tween_property(core_button, "modulate", Color.WHITE, 0.6).set_trans(Tween.TRANS_SINE)
 
+
+
+## Halts core button flashing animations and restores standard button visuals when the core is constructed.
 func _on_core_placed():
-	# The Core is down! Kill the animation and reset the color.
+	# Halts animation and resets color when placed
 	if flash_tween:
 		flash_tween.kill()
 		flash_tween = null
 		
 	if core_button:
 		core_button.modulate = Color.WHITE
-		
-# UTILITY LOGIC
+
+
+
+## Finds and deletes a hotbar action button by its matching label text.
 func remove_button(button_name: String):
-	# Loop through all the buttons inside the HBoxContainer
+	# Loop through HBoxContainer buttons
 	for child in container.get_children():
-		# Check if it's a button and if the text matches
 		if child is Button and child.text == button_name:
-			child.queue_free() # Destroy it!
-			return # Stop searching since we found it
+			child.queue_free()
+			return

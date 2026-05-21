@@ -51,17 +51,21 @@ func _ready():
 	spread_timer.timeout.connect(_on_spread_tick)
 	add_child(spread_timer)
 	
-	# --- NEW: LISTEN TO THE CLOCK ---
 	if time_manager:
 		time_manager.day_started.connect(_on_day_started)
 		time_manager.night_started.connect(_on_night_started)
-# DAY/NIGHT REACTIONS
+
+
+
+## Adjusts the corruption spread rate to daytime settings.
 func _on_day_started(_day_num: int):
 	# The sun is up, slow the corruption down!
 	if spread_timer:
 		spread_timer.wait_time = day_spread_time
 		print("Corruption slows from the sunlight. (Speed: Slow)")
 
+
+## Adjusts the corruption spread rate based on night moon phase behavior.
 func _on_night_started(_day_num: int):
 	if not spread_timer or not time_manager: return
 	
@@ -77,9 +81,9 @@ func _on_night_started(_day_num: int):
 			spread_timer.wait_time = blood_moon_spread_time
 			print("The Blood Moon enrages the Corruption! (Speed: EXTREME)")
 
-# CORE SPREAD LOGIC
 
-# --- INITIAL OUTBREAK ---
+
+## Seeds the initial corruption outbreak at the absolute furthest buildable tile from the core.
 func start_outbreak(core_pos: Vector2i):
 	print_debug("start outbreak")
 	if is_active: return
@@ -108,8 +112,10 @@ func start_outbreak(core_pos: Vector2i):
 	is_active = true
 	spread_timer.start()
 	print("Corruption Outbreak Detected at: ", seed_pos)
-	
-# --- SPREAD LOGIC ---
+
+
+
+## Processes a spread tick by attempting to expand corruption to neighboring tiles from active edges.
 func _on_spread_tick():
 	if active_edges.is_empty(): 
 		return
@@ -147,6 +153,9 @@ func _on_spread_tick():
 	if blocked_attempts > 0:
 		_add_pressure(blocked_attempts * 1.0)
 
+
+
+## Attempts to infect neighboring cells of a center tile, respecting shields and obstacle chew-through logic.
 func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 	var directions = [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]
 	var has_empty_neighbors = false
@@ -158,7 +167,7 @@ func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 		if corruption_layer.get_cell_source_id(neighbor) != -1:
 			continue
 			
-		# --- RESISTANCE CHECK ---
+		# Resistance check
 		var resistance = building_manager.safe_tiles.get(neighbor, 0)
 		if resistance > 0:
 			if resistance >= corruption_tier:
@@ -166,12 +175,11 @@ func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 				continue # Blocked! 
 			else:
 				pass 
-		# ---------------------------------
 			
 		var has_floor = terrain_layer and terrain_layer.get_cell_source_id(neighbor) != -1
 		if has_floor:
 			
-			# --- NEW: TERRAIN RESISTANCE CHECK ---
+			# Terrain resistance check
 			var tile_data = terrain_layer.get_cell_tile_data(neighbor)
 			var is_water = false
 			if tile_data:
@@ -180,7 +188,6 @@ func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 			# If it's water, only spread 20% of the time (80% failure rate per tick)
 			if is_water and randf() > 0.20:
 				return {"has_empty": true, "blocked_count": blocked_count}
-			# -------------------------------------
 			
 			var has_obstacle = object_layer and object_layer.get_cell_source_id(neighbor) != -1
 			if has_obstacle:
@@ -217,7 +224,10 @@ func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 			return {"has_empty": true, "blocked_count": blocked_count}
 			
 	return {"has_empty": has_empty_neighbors, "blocked_count": blocked_count}
-	
+
+
+
+## Adds evolution pressure and mutates the corruption to higher tiers upon reaching threshold.
 func _add_pressure(amount: float):
 	current_pressure += amount
 	
@@ -234,17 +244,23 @@ func _add_pressure(amount: float):
 		print("!!! CORRUPTION MUTATED TO TIER %d !!!" % corruption_tier)
 		corruption_evolved.emit(corruption_tier)
 
-# Returns the total number of infected tiles on the map
+
+
+## Returns the total number of infected tiles on the map.
 func get_corruption_size() -> int:
 	if not corruption_layer: return 0
 	return corruption_layer.get_used_cells().size()
-	
+
+
+## Colors the target cell purple on the corruption layer and tracks it as an active edge.
 func _corrupt_tile(tile: Vector2i):
 	corruption_layer.set_cell(tile, corruption_source_id, corruption_atlas)
 	if not active_edges.has(tile):  
 		active_edges.append(tile)
 
-# QUOTA PENALTY API
+
+
+## Applies pressure and triggers immediate visual spread ticks as a penalty for quota failure.
 func apply_quota_penalty(penalty_amount: float):
 	print("Corruption Manager received penalty: ", penalty_amount)
 	
@@ -259,8 +275,10 @@ func apply_quota_penalty(penalty_amount: float):
 		print("The corruption violently expands by %d ticks!" % bonus_spread_ticks)
 		for i in range(bonus_spread_ticks):
 			_on_spread_tick()
-	
-# SAVE / LOAD SYSTEM
+
+
+
+## Packs the corruption state (tier, pressure, active edges, infected tiles) into a dictionary.
 func get_save_data() -> Dictionary:
 	var active_edges_str = []
 	for edge in active_edges:
@@ -279,6 +297,9 @@ func get_save_data() -> Dictionary:
 		"infected_tiles": infected_tiles_str
 	}
 
+
+
+## Restores the corruption state and repaints the fog from saved data.
 func load_save_data(data: Dictionary):
 	corruption_tier = data.get("corruption_tier", 1)
 	current_pressure = data.get("current_pressure", 0.0)

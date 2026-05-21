@@ -19,11 +19,13 @@ extends Control
 enum ViewMode { TODAY, YESTERDAY, WEEK }
 var current_mode: ViewMode = ViewMode.TODAY
 
+
+
+## Connects game menu states and registers stat update callbacks during setup.
 func _ready():
 	GameState.menu_changed.connect(_on_global_menu_changed)
 	hide() 
 	
-	# --- UPDATE: Point to close_screen ---
 	close_button.pressed.connect(close_screen)
 	
 	btn_today.pressed.connect(func(): _set_mode(ViewMode.TODAY))
@@ -33,33 +35,49 @@ func _ready():
 	if EconomyManager.has_signal("stats_updated"):
 		EconomyManager.stats_updated.connect(refresh_ui)
 
-# UI STATE MACHINE ROUTING
+
+
+## Toggles the visibility of the statistics ledger overlay.
 func toggle_menu():
 	if visible: 
 		close_screen()
 	else:
 		open_screen()
 
+
+
+## Locks menu focus and reveals the statistics board with populated tables.
 func open_screen():
-	# Ask GameState for permission. If it returns true, no other menus are blocking us!
+	# Check GameState menu lock
 	if GameState.open_menu(GameState.MenuType.STATS):
 		refresh_ui()
 		show()
 
+
+
+## Releases menu focus and hides the statistics board.
 func close_screen():
-	# Tell GameState to clear out
+	# Tell GameState to close
 	GameState.close_menu()
 
+
+
+## Automatically hides this ledger if another UI menu obtains focus.
 func _on_global_menu_changed(active_menu):
-	# If the active menu is NO LONGER the Stats menu, hide ourselves!
+	# Hide if focus lost
 	if active_menu != GameState.MenuType.STATS:
 		hide()
 
-# DATA & REFRESH LOGIC
+
+
+## Sets the active day scope (Today, Yesterday, or Week) and updates the ledger views.
 func _set_mode(new_mode: ViewMode):
 	current_mode = new_mode
 	refresh_ui()
 
+
+
+## Clears and rebuilds the lists of produced and consumed items within the selected timeframe.
 func refresh_ui():
 	for child in prod_list.get_children(): child.queue_free()
 	for child in cons_list.get_children(): child.queue_free()
@@ -109,6 +127,9 @@ func refresh_ui():
 		for item_name in cons_keys:
 			_create_stat_row(cons_list, item_name, "-%d" % cons_data[item_name], Color(1.0, 0.4, 0.4))
 
+
+
+## Combines daily live counts and historical archive records within the specified day range.
 func _get_stats_for_range(start_day: int, end_day: int) -> Dictionary:
 	var total_prod = {}
 	var total_cons = {}
@@ -125,10 +146,16 @@ func _get_stats_for_range(start_day: int, end_day: int) -> Dictionary:
 			
 	return {"prod": total_prod, "cons": total_cons}
 
+
+
+## Aggregates item counts from a source dictionary into a target dictionary.
 func _add_to_dict(target: Dictionary, source: Dictionary):
 	for item in source:
 		target[item] = target.get(item, 0) + source[item]
 
+
+
+## Instantiates a formatted horizontal label pair showing item name and change count.
 func _create_stat_row(parent_container: Control, text_left: String, text_right: String, val_color: Color):
 	var hbox = HBoxContainer.new()
 	var name_label = Label.new()

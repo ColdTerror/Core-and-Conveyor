@@ -38,6 +38,9 @@ var current_hour: int = 6
 var is_night: bool = false
 var current_moon_phase: MoonPhase = MoonPhase.NORMAL
 
+
+
+## Runs the real-time calendar clock, manages hourly signals, and transitions daytime color modulations.
 func _process(delta: float):
 	_update_lighting()
 	
@@ -51,7 +54,7 @@ func _process(delta: float):
 	# Handle Day Rollover (Midnight)
 	if current_time >= 24.0:
 		current_time -= 24.0
-		_process_midnight() # --- MOVED TO HELPER FUNCTION ---
+		_process_midnight()
 		
 	# Handle Hour Changes (For triggering waves!)
 	var new_hour = int(floor(current_time))
@@ -60,17 +63,16 @@ func _process(delta: float):
 		hour_passed.emit(current_hour)
 		_check_day_night_triggers()
 
-# Extracted so our Debug tool can forcefully trigger the end of the day!
+
+
+## Triggers daily score accounting, week ending checks, and archival metrics logs at midnight.
 func _process_midnight():
 	# CACHE THE OLD DAY
 	var yesterday = current_day 
 	
-	# QUOTA MANAGER TRIGGERS
 	var level_node = get_parent()
 	if level_node and level_node.has_node("QuotaManager"):
 		var quota_mgr = level_node.get_node("QuotaManager")
-		
-		# Process the daily score (did they feed it today?)
 		quota_mgr.process_end_of_day()
 		
 		# If yesterday was day 7, 14, 21, etc., the week is over!
@@ -85,6 +87,9 @@ func _process_midnight():
 	if EconomyManager.has_method("archive_daily_stats"):
 		EconomyManager.archive_daily_stats(yesterday)
 
+
+
+## Handles sunrise and sunset thresholds, rolling moon phases and updating audio playlists.
 func _check_day_night_triggers():
 	# --- SUNRISE ---
 	if current_hour == sunrise_hour and is_night:
@@ -121,7 +126,10 @@ func _check_day_night_triggers():
 				AudioManager.play_playlist_track("Night_Full", 3.0)
 			_:
 				AudioManager.play_playlist_track("Night_Normal", 3.0)
-		
+
+
+
+## Modulates the global canvas color to blend between day and night phases smoothly.
 func _update_lighting():
 	if not lighting_modulate: return
 	
@@ -145,6 +153,9 @@ func _update_lighting():
 	else:
 		lighting_modulate.color = target_night_color
 
+
+
+## Packages calendar date variables and current time variables for saving.
 func get_save_data() -> Dictionary:
 	return {
 		"is_time_running": is_time_running,
@@ -155,6 +166,8 @@ func get_save_data() -> Dictionary:
 		"current_moon_phase": current_moon_phase
 	}
 
+
+## Unpacks saved time parameters and restores appropriate playlist tracks.
 func load_save_data(data: Dictionary):
 	is_time_running = data.get("is_time_running", false)
 	current_day = data.get("current_day", 1)
@@ -175,6 +188,9 @@ func load_save_data(data: Dictionary):
 	else:
 		AudioManager.play_playlist_track("Day", 0.5)
 
+
+
+## Forcefully jumps clock to sunset to trigger evening transitions on subsequent frame.
 func debug_skip_to_night():
 	if is_night: return
 	
@@ -185,9 +201,10 @@ func debug_skip_to_night():
 	# On the next frame, it will see the hour changed to 18 and trigger the sunset logic!
 	current_hour = sunset_hour - 1
 	is_night = false 
-	
+
+
+## Forcefully rolls calendar to midnight and transitions to the subsequent sunrise.
 func debug_skip_to_next_morning():
-	# Forcefully trigger the midnight quota math
 	_process_midnight()
 	
 	# Set the clock to EXACTLY sunrise

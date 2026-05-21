@@ -22,6 +22,9 @@ var level_ref: Node2D
 # --- NEW: Tracks if we already gave the player a point today! ---
 var is_today_scored: bool = false 
 
+
+
+## Binds this manager to the active level and resets daily delivery tracking.
 func initialize(level_instance: Node2D):
 	level_ref = level_instance
 	
@@ -30,6 +33,9 @@ func initialize(level_instance: Node2D):
 		
 	_reset_daily_deliveries()
 
+
+
+## Computes resource quota requirements for the designated week using mathematical scaling.
 func get_quota_for_week(week: int) -> Dictionary:
 	if week <= 1:
 		return {} 
@@ -62,6 +68,9 @@ func get_quota_for_week(week: int) -> Dictionary:
 			
 	return quota
 
+
+
+## Checks whether the delivery of the specified resource is still required today.
 func can_accept_item(item_name: String) -> bool:
 	if not daily_requirements.has(item_name): 
 		return false 
@@ -71,6 +80,9 @@ func can_accept_item(item_name: String) -> bool:
 	
 	return have < needed 
 
+
+
+## Computes the exact amount needed to complete quota fulfillment for the resource.
 func get_needed_amount(item_name: String, offered_amount: int) -> int:
 	if not daily_requirements.has(item_name):
 		return 0
@@ -85,6 +97,9 @@ func get_needed_amount(item_name: String, offered_amount: int) -> int:
 		
 	return min(offered_amount, space_left)
 
+
+
+## Receives a delivery of items towards meeting daily quota requirements.
 func deliver_item(item_name: String, amount: int):
 	if not daily_requirements.has(item_name):
 		return
@@ -95,18 +110,20 @@ func deliver_item(item_name: String, amount: int):
 	daily_delivered[item_name] += amount
 	EconomyManager.log_item_consumed(item_name, amount)
 	
-	# --- NEW: INSTANT SCORING ---
 	# Award the point instantly without waiting for midnight!
 	if not is_today_scored and _is_daily_quota_met():
 		is_today_scored = true
 		successful_days += 1
 		
-		# TODO: QUOTA FINISH SOUND
+		# Quota finish sound placeholder
 		# if ClassDB.class_exists("AudioManager"):
 		# 	AudioManager.play_sfx("quota_complete")
 			
 	quota_progress_updated.emit()
 
+
+
+## Evaluates whether all daily requirements have been met.
 func _is_daily_quota_met() -> bool:
 	for item_name in daily_requirements:
 		var needed = daily_requirements[item_name]
@@ -115,6 +132,9 @@ func _is_daily_quota_met() -> bool:
 			return false
 	return true
 
+
+
+## Processes midnight score checking and resets deliveries.
 func process_end_of_day():
 	# Grace periods (Week 1) don't receive items, so they never trigger the instant score.
 	# We safely catch them here at midnight!
@@ -123,13 +143,14 @@ func process_end_of_day():
 		successful_days += 1
 		
 	weekly_history.append(is_today_scored)
-	
-	# Reset the flag for tomorrow!
 	is_today_scored = false
 	
 	_reset_daily_deliveries()
 	quota_progress_updated.emit()
 
+
+
+## Applies corruption penalties at the end of the week if quotas were failed.
 func process_end_of_week():
 	if current_week > 1:
 		var failure_ratio: float = 1.0 - (float(successful_days) / 7.0)
@@ -137,7 +158,7 @@ func process_end_of_week():
 		
 		if penalty > 0:
 			print("Week Failed! Applying penalty amount: ", penalty)
-			# TODO: Play a global warning siren here!
+			# Play a global warning siren here
 			
 			if level_ref:
 				level_ref.corruption_manager.apply_quota_penalty(penalty)
@@ -147,7 +168,7 @@ func process_end_of_week():
 			
 	successful_days = 0
 	weekly_history.clear()
-	is_today_scored = false # Safety clear
+	is_today_scored = false
 	_reset_daily_deliveries()
 	
 	current_week += 1
@@ -155,12 +176,18 @@ func process_end_of_week():
 	
 	quota_progress_updated.emit()
 
+
+
+## Empties daily delivery storage dict tracking resource counts.
 func _reset_daily_deliveries():
 	daily_delivered.clear()
 	
 	for key in daily_requirements.keys():
 		daily_delivered[key] = 0
 
+
+
+## Packages current quota scoring history and variables for saving.
 func get_save_data() -> Dictionary:
 	return {
 		"successful_days": successful_days,
@@ -168,15 +195,17 @@ func get_save_data() -> Dictionary:
 		"current_week": current_week,
 		"daily_requirements": daily_requirements,
 		"daily_delivered": daily_delivered,
-		"is_today_scored": is_today_scored # --- NEW: Save the flag
+		"is_today_scored": is_today_scored
 	}
 
+
+## Unpacks saved quota variables and updates UI state.
 func load_save_data(data: Dictionary):
 	successful_days = data.get("successful_days", 0)
-	var saved_history = data.get("weekly_history", []) #Use assign so the array is strict typed bool
+	var saved_history = data.get("weekly_history", [])
 	weekly_history.assign(saved_history)
 	current_week = data.get("current_week", 1)
-	is_today_scored = data.get("is_today_scored", false) # --- NEW: Load the flag
+	is_today_scored = data.get("is_today_scored", false)
 	
 	if data.has("daily_requirements"):
 		daily_requirements = data["daily_requirements"]

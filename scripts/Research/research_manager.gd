@@ -9,9 +9,9 @@
 extends Node
 
 # GLOBAL MULTIPLIERS & LIMITS
-var max_bots_allowed: int = 2     # --- Starts at 2, goes to 5 ---
-var bot_start_level: int = 1      # --- For future bots ---
-var bot_max_level: int = 2        # ---  Starts at 2, goes to 4 ---
+var max_bots_allowed: int = 2     # Starts at 2, goes to 5
+var bot_start_level: int = 1      # For future bots
+var bot_max_level: int = 2        # Starts at 2, goes to 4
 
 var belt_speed_mult: float = 1.0 
 var max_buildings_allowed: int = 10
@@ -41,23 +41,31 @@ const TECH_TIERS: Dictionary = {
 
 var unlocked_techs: Array[String] = []
 
-# --- INTEL TRACKERS ---
+# Intel trackers
 var wave_measure: bool = false
 var moon_measure_level: int = 0
 
-# PUBLIC GETTERS (For Bots)
+
+## Returns the starting level for newly constructed worker bots.
 func get_bot_start_level() -> int:
 	return bot_start_level
-	
+
+
+## Returns the maximum allowable level for worker bots.
 func get_bot_max_level() -> int:
 	return bot_max_level
 
-# UNLOCK ROUTER
+
+
+## Checks if a technology is available to be researched based on unlocking criteria and tier gates.
 func can_research(tech_name: String) -> bool:
 	if tech_name in unlocked_techs: return false
 	var required_tier = TECH_TIERS.get(tech_name, 999)
 	return tier_unlocked >= required_tier
 
+
+
+## Completes research on a specific technology, applying its effects, notifying active game systems, and emitting research_unlocked.
 func complete_research(tech_name: String):
 	if not can_research(tech_name):
 		print("Cannot research: ", tech_name, " (tier ", TECH_TIERS.get(tech_name), " locked)")
@@ -75,7 +83,9 @@ func complete_research(tech_name: String):
 	_update_living_belts() 
 	research_unlocked.emit()
 
-# --- Helper function to apply the stats silently ---
+
+
+## Applies technology multipliers to player capabilities and unlocks tier gates.
 func _apply_tech(tech_name: String):
 	match tech_name:
 		"Core Expansion 1":
@@ -108,22 +118,33 @@ func _apply_tech(tech_name: String):
 			print("WARNING: Unknown tech -> ", tech_name)
 	print(tech_name)
 
-# NOTIFY EXISTING UNITS
+
+
+## Forces existing worker bots to recalculate their stats after a research unlock.
 func _update_living_bots():
 	get_tree().call_group("WorkerBots", "_recalculate_stats")
 
+
+## Forces defensive towers to apply research buffs.
 func _update_living_towers():
 	get_tree().call_group("Towers", "apply_research_buffs")
 
+
+## Forces conveyors to apply belt speed upgrades.
 func _update_living_belts():
 	get_tree().call_group("Conveyors", "apply_research_buffs")
 
-# SAVE / LOAD SYSTEM
+
+
+## Packs the array of unlocked technology names into a dictionary for game saves.
 func get_save_data() -> Dictionary:
 	return {
 		"unlocked_techs": unlocked_techs
 	}
 
+
+
+## Resets research stats to defaults and restores unlocked technologies from saved data.
 func load_save_data(data: Dictionary):
 	# Reset all Autoload variables back to Day 1 defaults
 	tier_unlocked = 0
@@ -145,3 +166,4 @@ func load_save_data(data: Dictionary):
 		for tech in saved_techs:
 			unlocked_techs.append(tech)
 			_apply_tech(tech)
+

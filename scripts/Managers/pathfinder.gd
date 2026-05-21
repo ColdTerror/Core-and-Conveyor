@@ -12,6 +12,9 @@ var enemy_astar = AStarGrid2D.new()
 var bot_astar = AStarGrid2D.new()
 var main_layer: TileMapLayer 
 
+
+
+## Sets up both AStarGrid2D brains (enemy and bot) using terrain walkable/water rules.
 func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Rect2i):
 	print("Pathfinder: Setup Dual-Brains...")
 	main_layer = terrain_layer
@@ -42,11 +45,17 @@ func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Re
 				enemy_astar.set_point_solid(coords, true)
 				bot_astar.set_point_solid(coords, true)
 
+
+
+## Toggles the solid/obstacle state of a specific coordinate in both grids.
 func set_obstacle(coords: Vector2i, is_solid: bool):
 	if enemy_astar.is_in_boundsv(coords):
 		enemy_astar.set_point_solid(coords, is_solid)
 		bot_astar.set_point_solid(coords, is_solid)
 
+
+
+## Configures path weight scale costs for coordinate cells, differentiating enemy and bot behaviors.
 func set_weighted_obstacle(coords: Vector2i, cost: float, is_solid_for_bots: bool = false):
 	if enemy_astar.is_in_boundsv(coords):
 		# Enemies ALWAYS see it as a costly path (so they attack it or wade through it)
@@ -61,7 +70,10 @@ func set_weighted_obstacle(coords: Vector2i, cost: float, is_solid_for_bots: boo
 			# It's Water/Mud! Let the bot walk through it, but apply the cost penalty.
 			bot_astar.set_point_solid(coords, false)
 			bot_astar.set_point_weight_scale(coords, cost)
-# The Gate Rule: Bots see gates as open, enemies see HP cost when closed
+
+
+
+## Special gate path rules: bots treat gates as walkable, enemies calculate weights based on gate state.
 func set_gate_obstacle(coords: Vector2i, cost: float, is_open: bool):
 	if enemy_astar.is_in_boundsv(coords):
 		# Bots ALWAYS see gates as 1.0 cost (open doors)
@@ -72,7 +84,9 @@ func set_gate_obstacle(coords: Vector2i, cost: float, is_open: bool):
 		enemy_astar.set_point_solid(coords, false)
 		enemy_astar.set_point_weight_scale(coords, 1.0 if is_open else cost)
 
-# Add an optional 'is_bot' parameter to choose which brain to use!
+
+
+## Traces and returns a path routing vector array between two world space vectors.
 func get_path_route(start_world: Vector2, end_world: Vector2, is_bot: bool = false) -> PackedVector2Array:
 	var active_astar = bot_astar if is_bot else enemy_astar
 	

@@ -11,7 +11,6 @@ extends GraphNode
 
 signal research_started
 
-# EXPORTS (With Editor Setters)
 @export var research_name: String = "Bot Speed 1":
 	set(value):
 		research_name = value
@@ -27,28 +26,26 @@ signal research_started
 		research_cost = value
 		_refresh_editor_ui()
 
-# NODE REFERENCES
 @onready var desc_label = $DescLabel
 @onready var cost_label = $CostLabel
 @onready var research_button = $Button
 
-# INITIALIZATION
+
+## Initializes the node, setting UI text and connecting runtime signals.
 func _ready():
-	# Update the text immediately
 	_refresh_editor_ui()
 	
 	# EDITOR SAFETY CHECK: Stop here if we are inside the Godot Editor!
 	if Engine.is_editor_hint():
 		return
 		
-	# GAME RUNTIME ONLY: Connect signals
 	research_button.pressed.connect(_on_research_pressed)
 	
-	# Refresh button state whenever research changes
 	ResearchManager.research_unlocked.connect(_refresh_button)
 	_refresh_button()
 
-# UI UPDATING
+
+## Updates the title, description, and cost labels inside the editor and runtime UI.
 func _refresh_editor_ui():
 	# CRITICAL: Prevent crashes if the setter fires before the node enters the scene tree
 	if not is_node_ready():
@@ -58,6 +55,8 @@ func _refresh_editor_ui():
 	desc_label.text = desc
 	cost_label.text = _format_costs(research_cost)
 
+
+## Syncs the research button text and state (Researched, Locked, or Research) with current status.
 func _refresh_button():
 	var already_done = research_name in ResearchManager.unlocked_techs
 	var tier_met = ResearchManager.can_research(research_name)
@@ -72,7 +71,9 @@ func _refresh_button():
 		research_button.text = "Research"
 		research_button.disabled = false
 
-# ACTIONS
+
+
+## Triggered on button press; initiates research if valid and emits the research_started signal.
 func _on_research_pressed():
 	if not ResearchManager.can_research(research_name):
 		print("Tier not unlocked yet!")
@@ -83,6 +84,9 @@ func _on_research_pressed():
 		core.start_research(research_name, research_cost)
 		research_started.emit()
 
+
+
+## Formats the research resource costs dictionary into a comma-separated display string.
 func _format_costs(costs: Dictionary) -> String:
 	var parts: Array[String] = []
 	for resource in costs.keys():

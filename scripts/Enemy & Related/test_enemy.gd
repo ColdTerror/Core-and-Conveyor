@@ -53,6 +53,7 @@ var is_target_locked: bool = false
 var separation_update_timer: float = 0.0
 var cached_separation: Vector2 = Vector2.ZERO
 
+## Initializes pathfinder references, sets up mouse hover connections, and schedules initial target scan.
 func _ready():
 	pathfinder = get_tree().root.find_child("Pathfinder", true, false)
 	await get_tree().physics_frame
@@ -60,7 +61,7 @@ func _ready():
 	
 	separation_update_timer = randf_range(0.0, 0.1)
 	
-	# --- Hover Detection for the InputManager ---
+	# Hover Detection for the InputManager
 	input_pickable = true
 	mouse_entered.connect(func():
 		InputManager.hovered_enemy = self
@@ -68,7 +69,10 @@ func _ready():
 	mouse_exited.connect(func():
 		if InputManager.hovered_enemy == self: InputManager.hovered_enemy = null
 	)
-	
+
+
+
+## Handles standard frame-by-frame combat checks, attack cooldown updates, and movement orchestration.
 func _physics_process(delta):
 	if health <= 0: return
 
@@ -83,7 +87,6 @@ func _physics_process(delta):
 	var required_dist = attack_range + _get_target_radius(current_target)
 
 	if dist <= required_dist:
-		# --- IN RANGE ---
 		# Instead of completely stopping, let them keep pushing each other!
 		var separation = _calculate_separation()
 		velocity = separation * _get_current_speed()
@@ -95,11 +98,11 @@ func _physics_process(delta):
 		else:
 			_try_attack(current_target)
 	else:
-		# --- OUT OF RANGE ---
 		_process_movement(delta)
 
-# MOVEMENT LOGIC
 
+
+## Determines the navigation vector from A* paths or target proximity and drives steering.
 func _process_movement(delta):
 	# Update Path periodically
 	path_update_timer -= delta
@@ -111,7 +114,7 @@ func _process_movement(delta):
 
 	# Determine Direction
 	if current_path.is_empty():
-		# --- FINAL APPROACH (No Path, but close enough to charge) ---
+		# Final approach (no path, close enough to charge)
 		if is_instance_valid(current_target):
 			var dist = global_position.distance_to(current_target.global_position)
 			# Buffer ensures we don't stop exactly on the edge and miss the swing
@@ -120,7 +123,7 @@ func _process_movement(delta):
 			if dist < approach_limit:
 				move_dir = global_position.direction_to(current_target.global_position)
 	else:
-		# --- NORMAL PATHFINDING ---
+		# Normal pathfinding
 		var next_point = current_path[0]
 		move_dir = global_position.direction_to(next_point)
 		
@@ -140,13 +143,18 @@ func _process_movement(delta):
 	else:
 		velocity = Vector2.ZERO
 
+
+
+## Manages a throttled rate for updating the swarm separation vector.
 func _calculate_separation() -> Vector2:
 	separation_update_timer -= get_physics_process_delta_time()
 	if separation_update_timer <= 0.0:
 		separation_update_timer = 0.1  # recalculate 10 times per second instead of 60
 		cached_separation = _do_separation_calculation()
 	return cached_separation
-	
+
+
+## Performs neighbor distance checks and averages repulsion vectors to keep enemies clustered but not overlapping.
 func _do_separation_calculation() -> Vector2:
 	var separation_vector = Vector2.ZERO
 	var neighbors = 0
@@ -174,12 +182,15 @@ func _do_separation_calculation() -> Vector2:
 		separation_vector = (separation_vector / neighbors) * (separation_force / movement_speed)
 		
 	return separation_vector
-	
+
+
+
+## Slides the character along velocity and resolves obstacles/buildings impact checks.
 func _execute_movement(dir: Vector2):
 	velocity = dir * _get_current_speed()
 	move_and_slide()
 	
-	# --- UNIFIED BUMP LOGIC  ---
+	# Unified bump logic
 	if get_slide_collision_count() > 0:
 		for i in get_slide_collision_count():
 			var collider = get_slide_collision(i).get_collider()
@@ -196,8 +207,9 @@ func _execute_movement(dir: Vector2):
 			if hit_node == current_target or hit_node.has_method("take_damage"):
 				_try_structure_attack(hit_node)
 
-# COMBAT LOGIC
 
+
+## Attempts a melee bump or ranged projectile attack based on unit type and cooldown availability.
 func _try_attack(target):
 	if attack_cooldown > 0.0: return
 	
@@ -209,6 +221,9 @@ func _try_attack(target):
 	else: # Ranged
 		_spawn_projectile(target)
 
+
+
+## Forces a physical melee attack to chip away at obstructing wall obstacles.
 func _try_structure_attack(structure):
 	# Force melee attack logic for breaking walls (even for ranged units)
 	if attack_cooldown > 0.0: return
@@ -218,12 +233,18 @@ func _try_structure_attack(structure):
 	_animate_bump(structure.global_position)
 	if structure.has_method("take_damage"): structure.take_damage(damage)
 
+
+
+## Tweens the sprite towards the target point and back to visually represent physical impacts.
 func _animate_bump(target_pos: Vector2):
 	var tween = create_tween()
 	var dir = global_position.direction_to(target_pos)
 	tween.tween_property(self, "position", position + (dir * 8.0), 0.1)
 	tween.tween_property(self, "position", position, 0.1)
 
+
+
+## Spawns a target-seeking projectile at current coordinates if unit is a ranged type.
 func _spawn_projectile(target):
 	if not projectile_scene: return
 	var proj = projectile_scene.instantiate()
@@ -233,7 +254,9 @@ func _spawn_projectile(target):
 		var dir = global_position.direction_to(target.global_position)
 		proj.setup(global_position, dir, 300.0, damage, null)
 
-# HELPERS
+
+
+## Returns movement speed scaled down if character is currently navigating water cells.
 func _get_current_speed() -> float:
 	var actual_speed = movement_speed
 	
@@ -247,31 +270,35 @@ func _get_current_speed() -> float:
 			actual_speed = movement_speed * 0.4 
 			
 	return actual_speed
-	
+
+
+
+## Queries target size to prevent exact-point overlaps during proximity approaches.
 func _get_target_radius(node) -> float:
 	if node and node.has_method("get_radius"):
 		return node.get_radius()
 	return 16.0 # Default fallback (half tile)
 
+
+
+## Evaluates if current target is valid, alive, and within leash distances.
 func _validate_target(delta) -> bool:
 	if is_instance_valid(current_target):
 		if current_target is Building and current_target.is_ghost:
 			_reset_target()
 			return false
 			
-		# --- THE LEASH LOGIC ---
+		# Leash logic
 		if current_target.has_method("set_priority"): 
 			if global_position.distance_to(current_target.global_position) > bot_leash_radius:
 				is_target_locked = false 
 				_reset_target()
 				return false
-		# ------------------------------
 		
 		if is_target_locked:
 			return true
 			
-		# --- THE FIX: ACTIVE DISTRACTION RADAR ---
-		# Even if we have a valid building target, scan for bots every 0.5s!
+		# Active distraction radar: Even if we have a valid building target, scan for bots every 0.5s!
 		find_target_timer -= delta
 		if find_target_timer <= 0.0:
 			find_target_timer = 0.5
@@ -279,7 +306,6 @@ func _validate_target(delta) -> bool:
 			# Only scan for distractions if we aren't ALREADY chasing a bot!
 			if not current_target.has_method("set_priority"):
 				_scan_for_nearby_bots()
-		# -----------------------------------------
 		
 		return true
 		
@@ -289,13 +315,20 @@ func _validate_target(delta) -> bool:
 		_reset_target()
 		find_target_timer = 0.5
 	return false
+
+
+
+## Wipes target state and instantly triggers a fresh navigation radar scan.
 func _reset_target():
 	current_target = null
 	current_path = []
 	path_update_timer = 0.0
 	is_target_locked = false
 	_find_target()
-	
+
+
+
+## Runs a global radar search to find and lock the nearest priority building target.
 func _find_target():
 	# DISTRACTION CHECK
 	if not is_target_locked:
@@ -305,7 +338,7 @@ func _find_target():
 		if current_target != null and current_target.has_method("set_priority"):
 			return 
 
-	# GLOBAL RADAR (Look for priority targets/buildings)
+	# Global radar (look for priority targets/buildings)
 	var targets = get_tree().get_nodes_in_group("PriorityTarget")
 	var nearest: Node2D = null
 	var min_dist = INF
@@ -319,6 +352,9 @@ func _find_target():
 			
 	current_target = nearest
 
+
+
+## Scans nearby vicinity for worker bots to distract enemy aggro.
 func _scan_for_nearby_bots():
 	var bots = get_tree().get_nodes_in_group("WorkerBots")
 	var nearest_bot: Node2D = null
@@ -337,13 +373,15 @@ func _scan_for_nearby_bots():
 		current_target = nearest_bot
 		_recalculate_path()
 
+
+
+## Requests a fresh path route to current target from global pathfinding systems.
 func _recalculate_path():
 	if not pathfinder or not is_instance_valid(current_target): return
 	
 	var target_pos = current_target.global_position
 	
-	# --- NEW: SMART BUILDING TARGETING ---
-	# If the target is a building, ask "Where should I stand?"
+	# Smart building targeting
 	if current_target is Building:
 		var access_points = current_target.get_access_points(pathfinder)
 		
@@ -353,40 +391,41 @@ func _recalculate_path():
 			
 		var best_path = PackedVector2Array()
 		var best_cost := INF
-
+ 
 		for pt in access_points:
 			var path = pathfinder.get_path_route(global_position, pt)
 			if path.is_empty():
 				continue
-
+ 
 			var total_cost := 0.0
-
+ 
 			# Convert world positions back to grid coords
 			for world_point in path:
 				var local = pathfinder.main_layer.to_local(world_point)
 				var map_coords = pathfinder.main_layer.local_to_map(local)
-
+ 
 				var weight = pathfinder.enemy_astar.get_point_weight_scale(map_coords)
 				total_cost += weight
-
+ 
 			if best_path.is_empty() or total_cost < best_cost:
 				best_cost = total_cost
 				best_path = path
-
+ 
 		current_path = best_path
-
+ 
 		return
-
-	# -------------------------------------
 
 	var new_path = pathfinder.get_path_route(global_position, target_pos)
 	
 	# Prune start node logic (keeps movement smooth)
 	if not new_path.is_empty() and global_position.distance_to(new_path[0]) < 32.0:
 		new_path.remove_at(0)
-
+ 
 	current_path = new_path
 
+
+
+## Performs a raycast check to ensure no structural blockades sit between enemy and target.
 func _has_line_of_sight(target) -> bool:
 	var space = get_world_2d().direct_space_state
 	var query = PhysicsRayQueryParameters2D.create(global_position, target.global_position)
@@ -395,10 +434,16 @@ func _has_line_of_sight(target) -> bool:
 	if res and (res.collider.is_in_group("Structure") or res.collider is TileMapLayer):
 		return false
 	return true
-	
+
+
+
+## Redraws debug paths if active at runtime.
 func _process(_delta):
 	queue_redraw()
 
+
+
+## Draws polyline overlay of the current path for debug view rendering.
 func _draw():
 	if current_path.size() > 0:
 		var local_points = PackedVector2Array()
@@ -406,32 +451,36 @@ func _draw():
 		for point in current_path:
 			local_points.append(to_local(point))
 		draw_polyline(local_points, Color.CYAN, 2.0)
-		
 
-func take_damage(damage: int, source: Node2D = null): # <--- Added 'source'
+
+
+## Subtracts health points, handles death triggers, and switches target aggro to damage source.
+func take_damage(damage: int, source: Node2D = null):
 	health -= damage
 	
 	if health <= 0:
 		die()
 		return # Stop processing if dead
 		
-	# --- NEW: REVENGE AGGRO LOGIC ---
-	# If we got shot by a building, and we aren't already locked onto a defender
+	# Revenge aggro logic: If we got shot by a building, and we aren't already locked onto a defender
 	if source and not is_target_locked:
 		current_target = source
 		is_target_locked = true
 		
 		# Force the enemy to instantly turn around and attack the tower!
 		_recalculate_path() 
-	# --------------------------------
-		
+
+
+
+## Notifies listeners of unit death and schedules node deletion.
 func die():
 	print_debug("enemy died")
 	died.emit(self)
 	queue_free()
-	
-		
-# SAVE / LOAD SYSTEM
+
+
+
+## Serializes position, modular colors, scale sizes, and health trackers into a dictionary.
 func get_save_data() -> Dictionary:
 	return {
 		"pos_x": global_position.x,
@@ -443,6 +492,9 @@ func get_save_data() -> Dictionary:
 		"modulate": modulate.to_html() # Save the purple color as a string!
 	}
 
+
+
+## Restores enemy stats, positions, and elite color overlays from dictionary.
 func load_save_data(data: Dictionary):
 	# Snap to the exact saved position
 	global_position = Vector2(data.get("pos_x", 0), data.get("pos_y", 0))

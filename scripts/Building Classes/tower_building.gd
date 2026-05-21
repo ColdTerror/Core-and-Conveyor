@@ -21,7 +21,6 @@ class_name TowerBuilding
 @export var projectiles_per_shot: int = 1 
 @export var spread_degrees: float = 0.0 
 
-# Internal State
 var base_damage_multiplier: float = 1.0
 var ammo_inventory: Array[ItemResource] = []
 var attack_cooldown: float = 0.0
@@ -32,18 +31,19 @@ var targeting_modes: Array[String] = ["Closest", "Strongest", "Weakest", "Furthe
 var current_targeting_index: int = 0
 var targeting_mode: String = "Closest"
 
-# Cached range tiles - used by both visualization and targeting
 var _cached_range_tiles: Dictionary = {}
 
-# Signal: Source, Position, Target, ItemData, FinalDamage, Speed, SpreadOffset
-signal fired_projectile(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset)
-
-# --- VISUALIZATION VARIABLES ---
 var show_range_overlay := false:
 	set(value):
 		show_range_overlay = value
 		queue_redraw()
 
+signal fired_projectile(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset)
+
+
+
+## Initializes base stats, caches range tiles, registers with the economy manager,
+## and applies any research damage multiplier upgrades.
 func _ready():
 	super()
 	base_damage_multiplier = damage_multiplier
@@ -52,37 +52,39 @@ func _ready():
 	apply_research_buffs()
 	EconomyManager.register_source(self, false)
 
+
+
+## Custom destruction logic that empties the magazine, destroys all stored ammo
+## in the global economy tracking, and triggers base building cleanup.
 func die():
-	# --- UPGRADED: DESTROY ALL STORED AMMO! ---
 	var assets = get_economy_assets()
 	
 	if not assets.is_empty():
-		# Erase from the global UI so the top bar doesn't lie!
 		EconomyManager.remove_resources_from_global(assets)
 		
-		# Log it in the daily ledger as consumed/destroyed
 		for item_name in assets.keys():
 			var amount_lost = assets[item_name]
 			EconomyManager.log_item_consumed(item_name, amount_lost)
 			
 	ammo_inventory.clear()
-
 	
 	super()
-	
+
+
+
+## Links this tower to the active level instance.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
 
 
+## Calculates and applies upgraded damage multipliers based on technology research levels.
 func apply_research_buffs():
-	# Calculate the final multiplier cleanly from the base stat.
-	# Example: 1.25 + (1.15 - 1.0) = 1.40
 	damage_multiplier = base_damage_multiplier + (ResearchManager.tower_damage_mult - 1.0)
 
 
-#  RANGE VISUALIZATION (Grid-Based)
 
+## Draws the grid-based attack range outline when show_range_overlay is enabled.
 func _draw():
 	if not show_range_overlay:
 		return
@@ -115,6 +117,8 @@ func _draw():
 		if not tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, border_color, b_width)
 
 
+
+## Computes a local grid map of tiles falling within the tower's radial attack range.
 func _get_local_range_tiles() -> Dictionary:
 	var tiles = {}
 	var tile_size = 32.0 
@@ -151,24 +155,30 @@ func _get_local_range_tiles() -> Dictionary:
 	return tiles
 
 
-# Override Base Building functions to toggle range
+
+## Overrides ghost state activation and controls range overlay visibility.
 func set_ghost(enabled: bool):
 	super.set_ghost(enabled)
 	show_range_overlay = enabled 
 
+
+
+## Shows the range overlay when the cursor enters the building bounding box.
 func _on_mouse_entered():
 	super._on_mouse_entered()
 	if has_node("Area2D") and $Area2D.monitoring:
 		show_range_overlay = true
 
+
+## Hides the range overlay when the cursor leaves the building bounding box.
 func _on_mouse_exited():
 	super._on_mouse_exited()
 	if has_node("Area2D") and $Area2D.monitoring:
 		show_range_overlay = false
 
 
-#  TARGETING HELPERS
 
+## Determines which grid tile an enemy occupies relative to this tower's center.
 func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 	var local_pos = enemy.global_position - global_position
 	var tile_size = 32.0
@@ -182,51 +192,48 @@ func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 
 
 
-
-# --- FILTERED INPUT ---
-
-# --- THE "SOFT CAP" ADD ITEM LOGIC ---
+## Validates and appends delivered ammo items into the tower's ammunition inventory.
+## Rejects items if they do not match required ammo specifications.
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
-	# Filter: Reject if it's not the right ammo
 	if not item_res.is_ammo: return 0
 	if item_res.ammo_type != required_ammo_type: return 0
 	
 	var shots_to_add = 0
 	var return_val = 0
 	
-	# --- HYBRID PIPELINE LOGIC ---
+	# Hybrid pipeline logic:
 	if amount == 1:
-		# Scenario A: Bot/Belt Delivery! 
-		# If we are completely full, reject the bot.
+		# Scenario A: Bot/Belt Delivery!
+		# If completely full, reject delivery.
 		if ammo_inventory.size() >= ammo_capacity: 
 			return 0 
 			
-		# If we have ANY space, take the whole bundle to prevent stuck bots!
+		# If any space exists, accept the whole stack to prevent stuck worker bots.
 		shots_to_add = item_res.stack_size if "stack_size" in item_res else 1
 		return_val = 1 
 	else:
-		# Scenario B: Memory Limbo Injection! 
-		# Force every single saved arrow into the new tower to perfectly preserve the state.
+		# Scenario B: Saved State Injection!
+		# Accept the exact amount saved to perfectly restore game state.
 		shots_to_add = amount
 		return_val = amount 
-
 		
-	# Load the shots into the magazine
 	for i in range(shots_to_add):
 		ammo_inventory.append(item_res)
 		
 	inventory_changed.emit()
 	return return_val
-	
 
+
+## Checks whether this tower has space in its magazine to accept the specified ammo.
 func can_accept_item(item_res: ItemResource) -> bool:
 	if not item_res.is_ammo: return false
 	if item_res.ammo_type != required_ammo_type: return false
 	
-	# Do we have space in the magazine?
 	return ammo_inventory.size() < ammo_capacity
-# --- COMBAT LOOP ---
 
+
+
+## Ticks combat logic, managing weapon reload cooldowns and searching for targets.
 func building_tick(delta: float) -> void:
 	if attack_cooldown > 0:
 		attack_cooldown -= delta
@@ -236,65 +243,62 @@ func building_tick(delta: float) -> void:
 		if current_target:
 			_shoot()
 
+
+## Scans for targets, utilizing sticky targeting rules if set to "Closest".
 func _try_find_target():
-	# If mode is Closest, 'Sticky Targeting' is usually good so it finishes off 
-	# the enemy it started shooting at.
 	if targeting_mode == "Closest":
 		if _is_valid_target(current_target): return 
 		
-	# For Strongest/Weakest, we ALWAYS want to scan the area right before we 
-	# shoot to ensure we are hitting the absolute best target!
+	# For Strongest/Weakest, always scan right before shooting to guarantee best target priority.
 	current_target = _find_best_enemy()
 
+
+## Searches the active enemy pool to locate the optimal target matching the active priority mode.
 func _find_best_enemy() -> Node2D:
 	if not level_ref: return null
 	
 	var best_enemy: Node2D = null
-	
-	# Setup our starting comparisons based on the mode
 	var best_value = INF if targeting_mode in ["Closest", "Weakest"] else -INF
 	
 	for enemy in get_tree().get_nodes_in_group("Enemies"):
 		if _cached_range_tiles.has(_get_enemy_tile(enemy)):
 			
-			# Mode 1: Closest
 			if targeting_mode == "Closest":
 				var dist = global_position.distance_to(enemy.global_position)
 				if dist < best_value:
 					best_value = dist
 					best_enemy = enemy
 					
-			# Mode 2: Weakest (Lowest HP)
 			elif targeting_mode == "Weakest":
 				if "health" in enemy:
 					if enemy.health < best_value:
 						best_value = enemy.health
 						best_enemy = enemy
 						
-			# Mode 3: Strongest (Highest HP)
 			elif targeting_mode == "Strongest":
 				if "health" in enemy:
 					if enemy.health > best_value:
 						best_value = enemy.health
 						best_enemy = enemy
-			# --- NEW: Mode 4: Furthest ---
+
 			elif targeting_mode == "Furthest":
 				var dist = global_position.distance_to(enemy.global_position)
 				if dist > best_value:
 					best_value = dist
 					best_enemy = enemy
-			# -----------------------------
 
 	return best_enemy
 
+
+## Validates whether a target is healthy, active, and remains in attack range.
 func _is_valid_target(target) -> bool:
 	if not is_instance_valid(target): return false
 	if target.is_queued_for_deletion(): return false
 	return _cached_range_tiles.has(_get_enemy_tile(target))
 
 
-# --- FIRING LOGIC ---
 
+## Fires projectiles at the designated target, applying spread modifiers and a juice squash tween.
 func _shoot():
 	var ammo_data = ammo_inventory.pop_front()
 	inventory_changed.emit()
@@ -304,16 +308,13 @@ func _shoot():
 	attack_cooldown = 1.0 / fire_rate
 	var final_damage = roundi(ammo_data.damage * damage_multiplier)
 	
-	# --- FIXED: EDGE SPAWN CALCULATION ---
 	var spawn_pos = global_position
 	
-	# Only offset if the target hasn't been deleted in the last millisecond
+	# Only offset spawn if target is fully valid
 	if is_instance_valid(current_target):
 		var direction_to_enemy = global_position.direction_to(current_target.global_position)
-		# Push the arrow out by half a tile (adjust this if your tower is wider!)
 		var spawn_radius = 16.0 
 		spawn_pos = global_position + (direction_to_enemy * spawn_radius)
-	# -------------------------------------
 	
 	for i in range(projectiles_per_shot):
 		var angle_offset = 0.0
@@ -324,7 +325,7 @@ func _shoot():
 		
 		fired_projectile.emit(
 			self,
-			spawn_pos, # <--- Tell the Level to spawn it here!
+			spawn_pos,
 			current_target, 
 			ammo_data, 
 			final_damage, 
@@ -332,69 +333,68 @@ func _shoot():
 			angle_offset
 		)
 		
-	# --- JUICE: SQUISH RECOIL ---
 	if has_node("Sprite2D"):
 		var tween = create_tween()
-		# Instantly squish down and slightly wide
 		tween.tween_property($Sprite2D, "scale", Vector2(1.1, 0.9), 0.05)
-		# Smoothly pop back to normal
 		tween.tween_property($Sprite2D, "scale", Vector2(1.0, 1.0), 0.15)
 
-# --- UI ---
+
+
+## Returns descriptive UI dictionary containing current ammo counts and target specs.
 func get_inventory_info() -> Dictionary:
 	return { 
 		"Ammo": ammo_inventory.size(),
 		"Type": required_ammo_type
 	}
 
-# --- ECONOMY ---
+
+## Summarizes stored ammunition counts for game-wide economics tracking.
 func get_economy_assets() -> Dictionary:
 	var assets = {}
 	
-	# Count every single arrow in the magazine
 	for ammo_res in ammo_inventory:
 		var item_name = ammo_res.display_name
 		assets[item_name] = assets.get(item_name, 0) + 1
 		
 	return assets
-	
+
+
+
+## Cycles through targeting priorities (Closest, Strongest, Weakest, Furthest)
+## and clears active target to force immediate snap-to-new-priority.
 func cycle_targeting_mode():
 	current_targeting_index = (current_targeting_index + 1) % targeting_modes.size()
 	targeting_mode = targeting_modes[current_targeting_index]
-	
-	# Clear the current target so the tower immediately snaps to the new priority!
 	current_target = null 
 	
 	print("Tower targeting set to: ", targeting_mode)
-	
-# SAVE / LOAD SYSTEM (Tower)
+
+
+
+## Serializes internal combat state and ammunition counts into a dictionary for saves.
 func get_save_data() -> Dictionary:
-	# Grab the base stats (health, building_name)
 	var data = super.get_save_data()
 	
-	# Translate the Ammo Array (Resources -> Strings)
 	var saved_ammo = []
 	for ammo_res in ammo_inventory:
 		saved_ammo.append(ammo_res.display_name)
 	data["ammo_inventory"] = saved_ammo
 	
-	# Save targeting logic and cooldowns
 	data["targeting_mode"] = targeting_mode
 	data["current_targeting_index"] = current_targeting_index
 	data["attack_cooldown"] = attack_cooldown
 	
 	return data
 
+
+## Deserializes combat state, restoring ammunition inventory from saved strings.
 func load_save_data(data: Dictionary):
-	# Restore the base stats
 	super.load_save_data(data)
 	
-	# Restore the simple variables
 	targeting_mode = data.get("targeting_mode", "Closest")
 	current_targeting_index = data.get("current_targeting_index", 0)
 	attack_cooldown = data.get("attack_cooldown", 0.0)
 	
-	# Rebuild the Ammo Array using the ItemDatabase
 	ammo_inventory.clear()
 	if data.has("ammo_inventory"):
 		var saved_ammo_strings = data["ammo_inventory"]
@@ -403,8 +403,5 @@ func load_save_data(data: Dictionary):
 			if item_res:
 				ammo_inventory.append(item_res)
 				
-	# Clear the target so it instantly re-scans the area on load!
 	current_target = null
-				
-	# Tell the UI to update the ammo count!
 	inventory_changed.emit()

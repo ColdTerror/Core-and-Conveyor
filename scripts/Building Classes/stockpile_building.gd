@@ -9,62 +9,65 @@ class_name StockpileBuilding
 
 @export var generic_item_scene: PackedScene
 
-
-# --- NEW: INVENTORY MODES ---
 @export var max_mixed_capacity: int = 25
 @export var max_dedicated_capacity: int = 100
 
 var is_dedicated_mode: bool = false
-var dedicated_item_name: String = "" # Remembers what item it locked onto
-# ----------------------------
+var dedicated_item_name: String = ""
 
-var inventory: Dictionary = {}  # ItemResource → amount
+var inventory: Dictionary = {}
 
-# FILTER STATE
-var selected_output_name: String = "" # "" means output nothing
-var available_types: Array = [] # Cache of types we have seen (for cycling)
+var selected_output_name: String = ""
+var available_types: Array = []
 
 var level_ref: Node2D
 
-# --- SETUP ---
+
+## Configures stockpile structures with level references.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
-	
+
+
+## Registers stockpile vault spaces as global economy storage targets.
 func _ready():
-	super() # Run building class ready as well
+	super()
 	building_name = "Stockpile"
 	health = max_health - 10
 	EconomyManager.register_source(self, true)
 
 
+
+## Emits item consumption events to erase physical items from UI ledgers when destroyed.
 func die():
 	var assets = get_economy_assets()
 	
 	if not assets.is_empty():
-		# Erase from the global UI so the top bar doesn't lie!
 		EconomyManager.remove_resources_from_global(assets)
 		
-		# Log it in the daily ledger as consumed/destroyed
 		for item_name in assets.keys():
 			var amount_lost = assets[item_name]
 			EconomyManager.log_item_consumed(item_name, amount_lost)
 			
 	inventory.clear()
-	super() # Call the base class die() just in case!
+	super()
 
+
+
+## Unregisters stockpile vaults from the global economy registries when removed.
 func _exit_tree():
-	# Unregister Self
 	EconomyManager.unregister_source(self)
 
-#--- TICK LOOP ---
+
+
+## Runs stockpile tick, trying to dispense selected item buffers onto output directions.
 func building_tick(delta: float) -> void:
-	# Only output if we have a valid selection
 	if selected_output_name != "":
 		_try_output_item()
 
-# --- UI INTERACTION ---
+
+
+## Cycles active visual output selection modes between discovered inventories and off.
 func cycle_output_mode():
-	# Refresh available types from current inventory
 	for item in inventory.keys():
 		var n = item.display_name
 		if not n in available_types:
@@ -74,135 +77,109 @@ func cycle_output_mode():
 		selected_output_name = ""
 		return
 
-	# Cycle Logic
 	if selected_output_name == "":
 		selected_output_name = available_types[0]
 	else:
 		var idx = available_types.find(selected_output_name)
 		if idx == -1 or idx + 1 >= available_types.size():
-			selected_output_name = "" # Reset to OFF
+			selected_output_name = ""
 		else:
 			selected_output_name = available_types[idx + 1]
 			
 	print("Stockpile Output set to: ", selected_output_name if selected_output_name != "" else "OFF")
 
-# UPGRADED: OUTPUT LOGIC (Strict Belts & Filters, Permissive Routers)
+
+
+## Evaluates occupied tiles to find orthogonal adjacent recipients.
 func _try_output_item():
 	if not level_ref: return
 	var manager = level_ref.building_manager
 
-	# Loop through all tiles we occupy
 	for my_tile in occupied_tiles:
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
 		for offset in push_directions:
 			var target_pos = my_tile + offset
 			
-			# Don't output into ourself
 			if occupied_tiles.has(target_pos): continue
 			
-			# Check BuildingManager for neighbors
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# Ensure the neighbor can physically accept items
 				if neighbor.has_method("accept_item_node"):
 					var can_output = false
 					
-					# --- Catch the Router FIRST so it bypasses the Conveyor rules! ---
 					if neighbor is RouterBuilding:
 						can_output = true
 						
-					# STRICT CHECK: Belts and Filters must point exactly away!
 					elif neighbor is ConveyorBuilding or neighbor is FilterBuilding:
 						if neighbor.direction == offset:
 							can_output = true
 							
-					# ANYTHING ELSE: Magic omnidirectional bypass!
 					else:
 						can_output = true
 							
-					# If valid, attempt the transfer
 					if can_output:
 						if _spawn_item_into_conveyor(neighbor, my_tile, offset):
-							return # Success! Stop trying other neighbors this tick.
+							return
 
-# --- FIXED: Accepts ANY node that has accept_item_node! ---
+
+
+## Instantiates visual nodes, snaps coordinates, and passes items to adjacent receptors.
 func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_offset: Vector2i) -> bool:
-	# Check if we actually have the selected item
 	var item_res = _find_item_by_name(selected_output_name)
 	if not item_res or inventory.get(item_res, 0) <= 0:
-		return false # Inventory empty for this type
+		return false
 	
 	if not generic_item_scene: return false
 	
-	# Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	new_item_node.item_data = item_res
 	
-	# ========================================
-	# FIXED: PERFECT POSITION SNAPPING
-	# ========================================
-	# Find the exact pixel center of the specific 1x1 tile the item is leaving
+	# PERFECT POSITION SNAPPING
 	var tile_center_px = level_ref.object_layer.map_to_local(source_tile)
-	
-	# Push the item exactly 16 pixels (half a tile) in the orthogonal direction
 	var edge_px = tile_center_px + (Vector2(direction_offset) * 16.0)
-	
 	new_item_node.global_position = edge_px
-	# ========================================
 	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	# 3. Try to hand it to the Receiver (Belt, Router, Filter)
 	if receiver.accept_item_node(new_item_node):
-		
-		# A. Inventory Logic
 		inventory[item_res] -= 1
 		if inventory[item_res] <= 0:
 			inventory.erase(item_res)
 			_prune_available_types()
 			
-		# B. Economy Logic
 		EconomyManager.remove_resources_from_global({ item_res.display_name: 1 })
 		
 		inventory_changed.emit()
-		return true # Success!
+		return true
 	else:
 		new_item_node.queue_free()
-		return false # Failed, try next neighbor
+		return false
 
 
 
-# --------------------------------------------------
-# ITEM INTERFACE (called by Item / Conveyor systems)
-# --------------------------------------------------
-
+## Accepts items from belts, updating inventories and syncing with dedicated capacity states.
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	var current_total = get_total_items()
 	var space_left = 0
 
 	if is_dedicated_mode:
-		# Lock onto the item if we are empty!
 		if current_total == 0 and dedicated_item_name == "":
 			dedicated_item_name = item_res.display_name
 			
-		# Reject if it's the wrong item
 		if dedicated_item_name != "" and item_res.display_name != dedicated_item_name:
 			return 0 
 			
 		space_left = max_dedicated_capacity - current_total
 	else:
-		# MIXED MODE: Check specific item cap
 		var current_amount = inventory.get(item_res, 0)
 		space_left = max_mixed_capacity - current_amount
 
-	# Reject if full
 	if space_left <= 0:
 		return 0
 
-	# Take the items!
 	var amount_to_take = min(amount, space_left)
 
 	if not item_res.display_name in available_types:
@@ -214,6 +191,9 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	inventory_changed.emit()
 	return amount_to_take
 
+
+
+## Verifies if stockpile capacities allow incoming cargo items.
 func can_accept_item(item_res: ItemResource) -> bool:
 	if is_dedicated_mode:
 		if dedicated_item_name != "" and dedicated_item_name != item_res.display_name:
@@ -222,41 +202,36 @@ func can_accept_item(item_res: ItemResource) -> bool:
 	else:
 		var current_amount = inventory.get(item_res, 0)
 		return current_amount < max_mixed_capacity
-	
-# BOT RETRIEVAL LOGIC
+
+
+
+## Dispenses a specified cargo type to visiting worker bots, syncing economy registries.
 func take_item(item_name: String, requested_amount: int) -> Dictionary:
-	# Search our inventory for the item the bot is asking for
 	for item_res in inventory.keys():
 		if item_res.display_name == item_name:
 			var available = inventory[item_res]
 			
 			if available <= 0: continue
 			
-			# Give the bot what it asked for, OR whatever we have left
 			var amount_to_take = min(requested_amount, available)
 			
 			inventory[item_res] -= amount_to_take
 			
-			# --- THE FIX 1: Clean up empty slots ---
 			if inventory[item_res] <= 0:
 				inventory.erase(item_res)
-				_prune_available_types() # Keep the UI cycle options updated!
-			# ---------------------------------------
+				_prune_available_types()
 				
 			inventory_changed.emit()
 			
-			# --- THE FIX 2: Sync Global Economy ---
-			# Tell the UI that these items have physically left storage!
 			EconomyManager.remove_resources_from_global({ item_name: amount_to_take })
-			# --------------------------------------
 			
-			# Return the Resource data AND the amount so the bot can hold it
 			return { "resource": item_res, "amount": amount_to_take }
 			
-	# We didn't have it!
 	return { "amount": 0 }
 
 
+
+## Verifies space availability for specific item types.
 func has_space_for(item_name: String) -> bool:
 	if is_dedicated_mode:
 		if dedicated_item_name != "" and dedicated_item_name != item_name:
@@ -267,22 +242,28 @@ func has_space_for(item_name: String) -> bool:
 		var current = inventory.get(item_res, 0) if item_res else 0
 		return current < max_mixed_capacity
 
-# --------------------------------------------------
-# HELPERS
-# --------------------------------------------------
 
+
+## Summarizes totals of all mixed stored items.
 func get_total_items() -> int:
 	var total := 0
 	for amount in inventory.values():
 		total += amount
 	return total
 
+
+## Returns specific stock quantities of an item resource.
 func get_item_amount(item: ItemResource) -> int:
 	return inventory.get(item, 0)
-	
+
+
+
+## Returns raw item-drop capacity values to update info panels.
 func get_inventory_info() -> Dictionary:
 	return inventory
-	
+
+
+## Returns a simplified string mapping of active stock quantities.
 func get_economy_assets() -> Dictionary:
 	var assets = {}
 	for item in inventory:
@@ -291,7 +272,8 @@ func get_economy_assets() -> Dictionary:
 	return assets
 
 
-# 3. Implement Consumption Logic
+
+## Consumes items to fund gameplay construction bills.
 func consume_resources(remaining_bill: Dictionary):
 	var needed_items = remaining_bill.keys()
 	
@@ -314,14 +296,18 @@ func consume_resources(remaining_bill: Dictionary):
 	_prune_available_types()
 	inventory_changed.emit()
 
+
+
+## Returns cached ItemResource matches based on display names.
 func _find_item_by_name(name: String) -> ItemResource:
 	for item in inventory:
 		if item is ItemResource and item.display_name == name:
 			return item
 	return null
-	
 
-# --- UI ACTIONS ---
+
+
+## Toggles between dedicated and mixed capacity states, purging conflicting stocks.
 func toggle_inventory_mode():
 	is_dedicated_mode = not is_dedicated_mode
 	
@@ -329,11 +315,9 @@ func toggle_inventory_mode():
 		if inventory.size() > 0:
 			var target_item_ref: ItemResource = null
 			
-			# Prefer the currently selected output item
 			if selected_output_name != "":
 				target_item_ref = _find_item_by_name(selected_output_name)
 				
-			# Fall back to majority item if no output selected (or selected item not in inventory)
 			if target_item_ref == null:
 				var max_count: int = -1
 				for item in inventory.keys():
@@ -341,11 +325,9 @@ func toggle_inventory_mode():
 						max_count = inventory[item]
 						target_item_ref = item
 
-			# Lock onto the winner!
 			dedicated_item_name = target_item_ref.display_name
 			print("Switched to Dedicated. Locked to: ", dedicated_item_name)
 			
-			# Void all the losers
 			var assets_to_remove = {}
 			var items_to_erase = []
 			
@@ -354,30 +336,25 @@ func toggle_inventory_mode():
 					assets_to_remove[item.display_name] = inventory[item]
 					items_to_erase.append(item)
 					
-			# Clean up the economy and local data if anything was voided
 			if not assets_to_remove.is_empty():
 				EconomyManager.remove_resources_from_global(assets_to_remove)
 				
 				for item in items_to_erase:
 					inventory.erase(item)
 					
-				# Reset available types cache to just the winner
 				available_types.clear()
 				available_types.append(dedicated_item_name)
 				
-				# Safety check: if output was set to a voided item, turn it off
 				if selected_output_name != "" and selected_output_name != dedicated_item_name:
 					selected_output_name = ""
 					
 		else:
-			# Completely empty — wait for first item, but respect output selection as a hint
-			dedicated_item_name = selected_output_name # May be "" if output is OFF, that's fine
+			dedicated_item_name = selected_output_name
 			print("Switched to Dedicated. Locked to: ", dedicated_item_name if dedicated_item_name != "" else "waiting for first item...")
 	else:
 		dedicated_item_name = ""
 		print("Switched to Mixed mode.")
 		
-		# Trim any item types that exceed the mixed cap
 		var assets_to_remove = {}
 		for item in inventory.keys():
 			var excess = inventory[item] - max_mixed_capacity
@@ -389,56 +366,54 @@ func toggle_inventory_mode():
 			EconomyManager.remove_resources_from_global(assets_to_remove)
 	
 	inventory_changed.emit()
-	
+
+
+
+## Purges all stored items, updating global economy UI values and daily ledgers.
 func void_inventory():
 	var assets = get_economy_assets()
 	if not assets.is_empty():
-		# Erase from the global UI
 		EconomyManager.remove_resources_from_global(assets)
 		
-		#Consume assets for stats
 		for item_name in assets.keys():
 			var amount = assets[item_name]
 			EconomyManager.log_item_consumed(item_name, amount)
 		
-	# Completely clear local data
 	inventory.clear()
 	available_types.clear()
-	selected_output_name = "" # Turn off output
+	selected_output_name = ""
 	
-	# Reset the dedicated lock since it's empty now
 	if is_dedicated_mode:
 		dedicated_item_name = "" 
 	
 	inventory_changed.emit()
-	
-	
+
+
+
+## Re-evaluates available items list after extractions or voids.
 func _prune_available_types():
 	var current_names = []
 	for item in inventory.keys():
 		current_names.append(item.display_name)
 		
-	# Always remember the currently selected output!
 	if selected_output_name != "" and not current_names.has(selected_output_name):
 		current_names.append(selected_output_name)
 		
-	# Always remember the dedicated lock
 	if is_dedicated_mode and dedicated_item_name != "" and not current_names.has(dedicated_item_name):
 		current_names.append(dedicated_item_name)
 		
 	available_types = current_names
-	
-# SAVE / LOAD SYSTEM (Stockpile)
+
+
+
+## Packs stockpile inventories, modes, output selectors, and lists for saves.
 func get_save_data() -> Dictionary:
-	# Get the basic box from the parent (health, building_name)
 	var data = super.get_save_data()
 	
-	# Translate the inventory (Resources -> Strings)
 	var saved_inventory = {}
 	for item_res in inventory.keys():
 		saved_inventory[item_res.display_name] = inventory[item_res]
 		
-	# Add the Stockpile's unique data
 	data["inventory"] = saved_inventory
 	data["is_dedicated_mode"] = is_dedicated_mode
 	data["dedicated_item_name"] = dedicated_item_name
@@ -447,29 +422,27 @@ func get_save_data() -> Dictionary:
 	
 	return data
 
+
+## Restores stockpile inventories, modes, and output settings from saved files.
 func load_save_data(data: Dictionary):
-	# Let the parent unpack the health!
 	super.load_save_data(data)
 	
-	# Unpack the simple settings
 	is_dedicated_mode = data.get("is_dedicated_mode", false)
 	dedicated_item_name = data.get("dedicated_item_name", "")
 	selected_output_name = data.get("selected_output_name", "")
 	available_types = data.get("available_types", [])
 	
-	# Rebuild the inventory (Strings -> Resources)
 	inventory.clear()
 	if data.has("inventory"):
 		var saved_inv = data["inventory"]
 		for item_name in saved_inv.keys():
-			# We need to find the actual Resource file based on its name!
 			var item_res = _load_item_resource_by_name(item_name)
 			if item_res:
 				inventory[item_res] = int(saved_inv[item_name])
 				
-	# Tell the UI to update the numbers!
 	inventory_changed.emit()
 
-# --- HELPER TO FIND THE ITEM FILE ---
+
+## Finds database entries for restored item keys.
 func _load_item_resource_by_name(item_name: String) -> ItemResource:
 	return ItemDatabase.get_item(item_name)

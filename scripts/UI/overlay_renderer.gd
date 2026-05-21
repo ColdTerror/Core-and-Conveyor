@@ -7,14 +7,11 @@
 class_name OverlayRenderer
 extends Node2D
 
-
 @onready var level = get_parent()
 
-# --- CACHING VARIABLES ---
 var cached_path_draws: Array = []
 var _font: Font
 
-# Track previous overlay states to detect toggles
 var _prev_show_build_grid: bool = false
 var _prev_show_safe_grid: bool = false
 var _prev_show_attack_grid: bool = false
@@ -24,32 +21,34 @@ var _prev_hovered_building: Building = null
 var _prev_terraform_jobs_empty: bool = true
 var _prev_overlay_threshold: int = 1
 var _prev_show_overlay_numbers: bool = true
-
-# --- THE FIX: We don't care about the Level's mode anymore, we care about the Controller's mode!
 var _prev_mode: int = 0 
 
 var _overlay_tick_timer: float = 0.0
 const OVERLAY_TICK_RATE: float = 1.0
 
+
+
+## Initializes fonts and caching states for custom grid rendering.
 func _ready():
 	_font = ThemeDB.fallback_font
 
+
+
+## Detects state changes to trigger visual redraw requests on grid mode changes.
 func _process(delta):
 	var bm = level.building_manager
 	if not bm: return
 	
-	
-	
 	var current_mode = InputManager.current_mode
-	var current_hover = InputManager.hovered_building # Get the current hover
+	var current_hover = InputManager.hovered_building
 
 	var needs_redraw = false
 
-	# Path grid: rebuild cache on rising edge
+	# Path grid: rebuild cache
 	if bm.show_path_grid and not _prev_show_path_grid:
 		_rebuild_path_cost_cache()
 
-	# State-diff check (toggle on/off always gets an instant redraw)
+	# Diff-check for toggle redraws
 	if (bm.show_build_grid    != _prev_show_build_grid    or \
 		bm.show_safe_grid     != _prev_show_safe_grid     or \
 		bm.show_attack_grid   != _prev_show_attack_grid   or \
@@ -58,20 +57,19 @@ func _process(delta):
 		bm.terraform_jobs.is_empty() != _prev_terraform_jobs_empty or \
 		bm.overlay_threshold != _prev_overlay_threshold or \
 		bm.show_overlay_numbers != _prev_show_overlay_numbers or \
-		current_mode         != _prev_mode): # <- Updated to check Controller mode
+		current_mode         != _prev_mode):
 		needs_redraw = true
 		
-	# Check if the hovered building has changed
+	# Check if hovered building changed
 	if current_hover != _prev_hovered_building:
 		needs_redraw = true
 		_prev_hovered_building = current_hover
 		
-	# Ghost placement: always update instantly
-	# Note: 0 is InteractionMode.NONE
+	# Ghost placement update
 	if bm.placing_building or current_mode != 0: 
 		needs_redraw = true
 
-	# Dynamic overlays: throttled to once per second
+	# Throttled overlay ticks
 	var has_slow_overlay = bm.show_build_grid or bm.show_safe_grid or \
 						   bm.show_attack_grid or not bm.terraform_jobs.is_empty()
 	if has_slow_overlay:
@@ -89,11 +87,14 @@ func _process(delta):
 	_prev_terraform_jobs_empty   = bm.terraform_jobs.is_empty()
 	_prev_overlay_threshold      = bm.overlay_threshold
 	_prev_show_overlay_numbers   = bm.show_overlay_numbers
-	_prev_mode                   = current_mode # <- Save the Controller mode
+	_prev_mode                   = current_mode
 
 	if needs_redraw:
 		queue_redraw()
 
+
+
+## Main Godot draw hook that routes active layer drawing routines.
 func _draw():
 	_draw_tool_highlight()
 	_draw_zone_overlays()
@@ -101,8 +102,9 @@ func _draw():
 	_draw_hover_footprint()
 	_draw_path_costs()
 
-# TOOL HIGHLIGHT (cursor indicator)
 
+
+## Draws highlights under the mouse cursor depending on current interaction modes.
 func _draw_tool_highlight():
 	match InputManager.current_mode:
 		InputManager.InteractionMode.DECONSTRUCT:
@@ -112,6 +114,8 @@ func _draw_tool_highlight():
 		InputManager.InteractionMode.TERRAFORM:
 			_draw_grid_highlight(Color(1.0, 0.6, 0.0, 0.3), Color(1.0, 0.6, 0.0, 0.8))
 
+
+## Renders a filled and bordered outline for a single tile at map locations.
 func _draw_grid_highlight(fill_color: Color, outline_color: Color):
 	var mouse_pos = get_global_mouse_position()
 	var grid_pos = level.terrain_layer.local_to_map(mouse_pos)
@@ -125,8 +129,8 @@ func _draw_grid_highlight(fill_color: Color, outline_color: Color):
 	draw_rect(rect, outline_color, false, 2.0)
 
 
-# ZONE OVERLAYS (F1/F2/F3 hotkeys)
 
+## Draws overall buildable limits, safe areas, and attack coverage zones.
 func _draw_zone_overlays():
 	var bm = level.building_manager
 	if not bm: return
@@ -134,7 +138,6 @@ func _draw_zone_overlays():
 	var tile_size = 32.0
 	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
 	var b_width = 2.0
-	
 	
 	var show_nums = bm.show_overlay_numbers and not bm.placing_building
 
@@ -147,6 +150,8 @@ func _draw_zone_overlays():
 	if bm.show_attack_grid:
 		_draw_heatmap_tiles(bm.attack_tiles, Color(1.0, 0.2, 0.2), tile_size, half_offset, b_width, show_nums)
 
+
+## Renders a cohesive tile set with outline borders enclosing the shapes.
 func _draw_tile_set(tiles: Dictionary, fill: Color, border: Color, tile_size: float, half_offset: Vector2, b_width: float):
 	for tile in tiles.keys():
 		var local_pos = level.object_layer.map_to_local(tile) - half_offset
@@ -163,20 +168,21 @@ func _draw_tile_set(tiles: Dictionary, fill: Color, border: Color, tile_size: fl
 		if not tiles.has(tile + Vector2i.LEFT):  draw_line(tl, bl, border, b_width)
 		if not tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, border, b_width)
 
-# --- NEW: Added 'show_numbers: bool = true' to the arguments ---
+
+## Renders interactive colored transparency grids representing heatmaps.
 func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float, half_offset: Vector2, b_width: float, show_numbers: bool = true):
 	var bm = level.building_manager
 	var threshold = bm.overlay_threshold if bm else 1
 	var border = Color(base_color.r, base_color.g, base_color.b, 0.8)
 	var font = _font
 	
-	# FILTER THE TILES
+	# Filter heatmap tiles by threshold
 	var filtered_tiles = {}
 	for tile in tiles.keys():
 		if tiles[tile] >= threshold:
 			filtered_tiles[tile] = tiles[tile]
 
-	# DRAW FILLS AND NUMBERS
+	# Draw fills and overlap numbers
 	for tile in filtered_tiles.keys():
 		var overlaps = filtered_tiles[tile]
 		
@@ -185,14 +191,13 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 		var local_pos = level.object_layer.map_to_local(tile) - half_offset
 		draw_rect(Rect2(local_pos, Vector2(tile_size, tile_size)), fill)
 		
-		# --- FIXED: Only draw the text if the flag allows it! ---
 		if show_numbers:
 			var text = str(overlaps)
 			var text_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
 			var text_pos = local_pos + half_offset + Vector2(-text_size.x / 2.0, text_size.y / 3.0)
 			draw_string(font, text_pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.8))
 
-	# DRAW SHRINK-WRAPPED BORDERS
+	# Draw shrink-wrapped heatmap borders
 	for tile in filtered_tiles.keys():
 		var pos = level.object_layer.map_to_local(tile) - half_offset
 		var tl = pos
@@ -205,8 +210,9 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 		if not filtered_tiles.has(tile + Vector2i.LEFT):  draw_line(tl, bl, border, b_width)
 		if not filtered_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, border, b_width)
 
-# GHOST PREVIEWS (building placement ranges)
 
+
+## Renders drag preview rectangles, building footprints, and range circles.
 func _draw_ghost_previews():
 	var bm = level.building_manager
 	if not bm or not bm.placing_building: return
@@ -249,7 +255,7 @@ func _draw_ghost_previews():
 	_draw_tile_set(unique_build_tiles, Color(0,0,0,0), Color(0.2, 1.0, 0.2, 0.8), tile_size, half_offset, b_width)
 	_draw_tile_set(unique_safe_tiles,  Color(0,0,0,0), Color(0.2, 0.5, 1.0, 0.8), tile_size, half_offset, b_width)
 	
-	# Draw Exact Building Footprints
+	# Draw building footprints
 	for g in ghosts_to_draw:
 		if not is_instance_valid(g): continue
 		
@@ -267,26 +273,26 @@ func _draw_ghost_previews():
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1,1))
 
 
-# Building Footprint when Hovering OR Selected
+
+## Outlines the blueprint boxes of currently hovered or selected buildings.
 func _draw_hover_footprint():
-	# Hide footprints if we are actively placing a new building
+	# Hide footprints during placement
 	if level.building_manager and level.building_manager.placing_building:
 		return
 		
 	var buildings_to_highlight = []
 	
-	# Grab the currently hovered building
+	# Grab currently hovered building
 	if is_instance_valid(InputManager.hovered_building):
 		buildings_to_highlight.append(InputManager.hovered_building)
 		
-	# Search for the building that is pinned open in the UI
+	# Highlight selected menu targets
 	if level.building_manager:
 		for b in level.building_manager.buildings:
 			if is_instance_valid(b) and b.get("is_selected") and not buildings_to_highlight.has(b):
 				buildings_to_highlight.append(b)
 	
-	
-	# Draw them all!
+	# Draw active footprints
 	for b in buildings_to_highlight:
 		if is_instance_valid(b) and b is Building and not b.is_ghost:
 			var tile_size = 32.0
@@ -295,15 +301,28 @@ func _draw_hover_footprint():
 			
 			var rect = Rect2(top_left, footprint_px)
 			
-			# Make the border extra bright and solid if the UI menu is open!
+			# Enhance border for selections
 			var border_alpha = 0.9 if b.get("is_selected") else 0.5
 			var border_color = Color(1.0, 1.0, 1.0, border_alpha) 
 			
-			draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)  # Subtle Fill
-			draw_rect(rect, border_color, false, 2.0)         # Sharp Border
-			
-# PATH COST CACHING & DRAWING
+			draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)
+			draw_rect(rect, border_color, false, 2.0)
 
+
+
+## Draws text weights and blocked status grids.
+func _draw_path_costs():
+	var bm = level.building_manager
+	if not bm or not bm.show_path_grid: return
+	
+	var font = _font
+	
+	for item in cached_path_draws:
+		draw_string(font, item["pos"], item["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, item["color"])
+
+
+
+## Refreshes weights and sólido points on path grid structures.
 func _rebuild_path_cost_cache():
 	cached_path_draws.clear()
 	
@@ -321,7 +340,7 @@ func _rebuild_path_cost_cache():
 			var center_px = bm.terrain_layer.map_to_local(coords)
 			
 			if astar.is_point_solid(coords):
-				# Cache a Red X
+				# Cache blocked tile marker
 				var text = "X"
 				var t_size = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 				var draw_pos = center_px - Vector2(t_size.x/2.0, -t_size.y/3.0)
@@ -339,12 +358,3 @@ func _rebuild_path_cost_cache():
 					cached_path_draws.append({
 						"pos": draw_pos, "text": text, "color": Color(1.0, 0.0, 0.0, 1.0)
 					})
-
-func _draw_path_costs():
-	var bm = level.building_manager
-	if not bm or not bm.show_path_grid: return
-	
-	var font = _font
-	
-	for item in cached_path_draws:
-		draw_string(font, item["pos"], item["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, item["color"])

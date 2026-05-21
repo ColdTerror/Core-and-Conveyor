@@ -23,9 +23,11 @@ var mining_cooldowns := {}
 signal resource_state_changed(tile: Vector2i, state: ResourceState, data: TileDataResource)
 signal resource_destroyed(tile: Vector2i)
 
-# --- UPDATED: Now returns an int! ---
+
+
+## Validates mining cooldowns, calculates harvesting yield, adjusts node health,
+## and returns the harvested item quantity.
 func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1) -> int:
-	
 	# Early Exits (Return 0 items)
 	if active_regrowth_tasks.has(tile): return 0
 	if mining_cooldowns.has(tile): return 0
@@ -53,6 +55,9 @@ func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1) 
 	# Return the exact amount we successfully mined!
 	return actual_yield
 
+
+
+## Processes frame-rate delta, calling mining cooldowns and regrowth queue loops.
 func _process(delta):
 	# Loop 1: Handle Mining Cooldowns (The new logic)
 	_process_mining_cooldowns(delta)
@@ -60,6 +65,9 @@ func _process(delta):
 	# Loop 2: Handle Forest Regrowth (The existing logic)
 	_process_regrowth(delta)
 
+
+
+## Cycles active extraction cooldowns, clearing coordinates upon expiration.
 func _process_mining_cooldowns(delta: float):
 	if mining_cooldowns.is_empty(): return
 	
@@ -71,9 +79,12 @@ func _process_mining_cooldowns(delta: float):
 			finished_cooldowns.append(tile)
 			
 	for tile in finished_cooldowns:
+		mining_cooldowns[tile] = 0
 		mining_cooldowns.erase(tile)
-		# Optional: Emit a signal here if you want to show a "Ready to mine" UI icon
 
+
+
+## Processes regrowth timers for depleted tiles and triggers recovery upon timer completion.
 func _process_regrowth(delta: float):
 	if active_regrowth_tasks.is_empty(): return
 
@@ -88,14 +99,15 @@ func _process_regrowth(delta: float):
 	for tile in finished_regrowth:
 		_finish_regrowth(tile)
 
-# ... (Keep _handle_hit, _handle_depletion, and _finish_regrowth exactly as they were) ...
 
-# Internal Logic
 
+## Emits hit visual state signals when a resource tile takes mining impact.
 func _handle_hit(tile: Vector2i, data: TileDataResource):
-	# Tell Level to show "Leafless" or "Cracked" sprite
 	resource_state_changed.emit(tile, ResourceState.HARVESTING, data)
 
+
+
+## Evaluates regrowth potential of a depleted tile, placing it in regrowth queue or destroying it.
 func _handle_depletion(tile: Vector2i, data: TileDataResource, object_info: Dictionary):
 	if data.can_regrow:
 		# It's a tree! Tell Level to show the "Stump" sprite.
@@ -111,6 +123,8 @@ func _handle_depletion(tile: Vector2i, data: TileDataResource, object_info: Dict
 		resource_destroyed.emit(tile)
 
 
+
+## Resets a tile's resource health to full and restores its active state.
 func _finish_regrowth(tile: Vector2i):
 	var task = active_regrowth_tasks[tile]
 	var data = task["data"]
@@ -120,8 +134,6 @@ func _finish_regrowth(tile: Vector2i):
 	# Because we stored the reference, this updates the dictionary inside Level.gd!
 	target_dict["health"] = data.total_resources
 	
-	# Cleanup
 	active_regrowth_tasks.erase(tile)
 	
-	# Visuals
 	resource_state_changed.emit(tile, ResourceState.FULL, data)

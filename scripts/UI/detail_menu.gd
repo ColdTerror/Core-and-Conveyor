@@ -23,11 +23,17 @@ signal menu_closed
 signal research_button_clicked
 signal quota_shortcut_clicked
 
+
+
+## Initializes the detail menu, hiding it by default and connecting UI actions.
 func _ready():
 	hide()
 	close_button.pressed.connect(close_menu)
 	info_label.custom_minimum_size = Vector2(225, 50) 
-	
+
+
+
+## Monitores the validity and details of selected targets, auto-closing if a target is destroyed.
 func _process(_delta):
 	if visible:
 		# Safely close if the target was destroyed while we were looking at it
@@ -43,7 +49,7 @@ func _process(_delta):
 		elif selected_object.has_method("set_priority"): 
 			var info = selected_object.get_inventory_info()
 			
-			# --- Live-update the Level & XP string ---
+			# Live-update the Level & XP string
 			var level_str = ""
 			if "bot_level" in selected_object and "current_xp" in selected_object and "XP_THRESHOLDS" in selected_object:
 				var global_max = 2
@@ -57,17 +63,21 @@ func _process(_delta):
 				else:
 					var next_threshold = selected_object.XP_THRESHOLDS[selected_object.bot_level]
 					level_str += "XP: %d / %d\n" % [selected_object.current_xp, next_threshold]
-			# ----------------------------------------------
 			
 			info_label.text = "%sHealth: %d / %d\nTarget: %s\nCarrying: %s" % [level_str, selected_object.health, selected_object.max_health, info["Target"], info["Carrying"]]
 
-# --- NEW: Helper to wake up the global renderer ---
+
+
+## Triggers a redraw of the building overlay footprint to match current selections.
 func _force_overlay_redraw():
 	if building_manager and building_manager.level_ref:
 		var overlay = building_manager.level_ref.get_node_or_null("OverlayRenderer")
 		if overlay:
 			overlay.queue_redraw()
 
+
+
+## Focuses the inspection window on a new building or unit target and loads its interactive UI controls.
 func open_menu(target: Node2D):
 	if target == null:
 		close_menu()
@@ -76,7 +86,7 @@ func open_menu(target: Node2D):
 	var is_new_target = (selected_object != target)
 	var was_closed = not visible
 		
-	# --- UNSELECT OLD TARGET ---
+	# Unselect old target
 	if is_instance_valid(selected_object) and selected_object != target:
 		if "is_selected" in selected_object:
 			selected_object.is_selected = false
@@ -84,16 +94,15 @@ func open_menu(target: Node2D):
 	
 	selected_object = target
 	
-	# --- UPDATE: Handle Enemy vs Building names ---
+	# Handle Enemy vs Building names
 	if selected_object is Enemy:
 		title_label.text = selected_object.enemy_name
 	elif "building_name" in selected_object:
 		title_label.text = selected_object.building_name
 	else:
 		title_label.text = "Unknown Entity"
-	# ----------------------------------------------
 	
-	# --- SELECT NEW TARGET ---
+	# Select new target
 	if "is_selected" in selected_object:
 		selected_object.is_selected = true
 		selected_object.queue_redraw()
@@ -112,18 +121,20 @@ func open_menu(target: Node2D):
 	refresh_ui()
 	show()
 	
-	#only play the flash when switching targets or opening menu
+	# only play the flash when switching targets or opening menu
 	if is_new_target or was_closed:
 		_play_refresh_flash()
 
+
+
+## Closes the details menu, deselects the current target, and clears overlay footprints.
 func close_menu():
-	
 	if is_instance_valid(selected_object):
 		if selected_object.has_signal("inventory_changed"):
 			if selected_object.inventory_changed.is_connected(refresh_ui):
 				selected_object.inventory_changed.disconnect(refresh_ui)
 		
-		# --- UNSELECT & HIDE FOOTPRINT ON CLOSE ---
+		# Unselect and hide footprint on close
 		if "is_selected" in selected_object:
 			selected_object.is_selected = false
 			selected_object.queue_redraw()
@@ -144,6 +155,8 @@ func close_menu():
 	menu_closed.emit()
 
 
+
+## Rebuilds the action buttons and details display panel matching the currently inspected object.
 func refresh_ui():
 	if not is_instance_valid(selected_object): return
 	
@@ -153,13 +166,12 @@ func refresh_ui():
 	info_label.modulate = Color.WHITE
 	info_label.visible = true
 
-	# --- Change the focus text based on what we clicked! ---
+	# Change focus text based on selection
 	var focus_text = "Center Camera"
 	if selected_object.has_method("set_priority"):
 		focus_text = "Follow Bot"
 	elif selected_object is Enemy:
 		focus_text = "Follow Enemy"
-		
 		
 	_create_button(focus_text, Color(0.9, 0.9, 0.9), func():
 		var cam = get_tree().get_first_node_in_group("Camera")
@@ -182,7 +194,6 @@ func refresh_ui():
 			if building_manager.has_method("start_relocating"):
 				building_manager.start_relocating(selected_object)
 				close_menu()
-				
 		)
 	
 	if selected_object is ProcessorBuilding:
@@ -209,6 +220,9 @@ func refresh_ui():
 	if not selected_object.has_method("set_priority"):
 		_build_priority_widget(selected_object)
 
+
+
+## Instantiates and formats an interactive action button within the options layout container.
 func _create_button(btn_text: String, btn_color: Color, action_callable: Callable):
 	var btn = Button.new()
 	btn.text = btn_text
@@ -219,6 +233,8 @@ func _create_button(btn_text: String, btn_color: Color, action_callable: Callabl
 	)
 	action_container.add_child(btn)
 
+
+## Configures and formats recipes, requirements, and outputs details for processor buildings.
 func _setup_processor_ui(b: ProcessorBuilding):
 	if b.recipes.size() > 0:
 		var recipe = b.active_recipe
@@ -240,6 +256,8 @@ func _setup_processor_ui(b: ProcessorBuilding):
 	else:
 		info_label.text = "No Recipes Configured"
 
+
+## Prepares storage status labels, dedicated/mixed modes toggles, and void-all buttons.
 func _setup_stockpile_ui(b: StockpileBuilding):
 	if b.selected_output_name == "":
 		info_label.text = "Output: OFF"
@@ -266,6 +284,8 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 	if b.has_method("void_inventory"):
 		_create_button("Void All Items", Color(1.0, 0.3, 0.3), b.void_inventory)
 
+
+## Standardizes defense tower prioritization controls and targeting targets.
 func _setup_tower_ui(b: TowerBuilding):
 	info_label.text = "Priority: %s" % b.targeting_mode
 	match b.targeting_mode:
@@ -276,11 +296,13 @@ func _setup_tower_ui(b: TowerBuilding):
 
 	_create_button("Cycle Targeting", Color.WHITE, b.cycle_targeting_mode)
 
+
+## Displays ongoing tech research progress and handles robot assembly and cost information.
 func _setup_core_ui(b: CoreBuilding):
 	info_label.modulate = Color(0.8, 0.8, 1.0)
-	info_label.text = "" # Clear it completely first
+	info_label.text = ""
 	
-	# RESEARCH UI
+	# Research UI
 	if b.active_research_name != "":
 		info_label.text += "Researching: %s\n" % b.active_research_name
 		
@@ -305,7 +327,7 @@ func _setup_core_ui(b: CoreBuilding):
 	# Visual separator in the text
 	info_label.text += "\n----------------------\n\n"
 
-	# BOT CONSTRUCTION UI
+	# Bot construction UI
 	var current_bots = get_tree().get_nodes_in_group("Bots").size()
 	var max_bots = ResearchManager.max_bots_allowed if Engine.has_singleton("ResearchManager") else 2
 	
@@ -330,21 +352,22 @@ func _setup_core_ui(b: CoreBuilding):
 		if current_bots >= max_bots:
 			info_label.text += "Maximum bots reached.\n"
 		else:
-			# --- NEW: Show the player the cost before they buy! ---
+			# Show the player the cost before buying
 			var cost_text = "Cost: "
 			var cost_dict = b.get_bot_cost()
 			for item_res in cost_dict.keys():
 				cost_text += "%d %s, " % [cost_dict[item_res], item_res.display_name]
 			
-			# Trim the trailing comma and add a line break
 			info_label.text += cost_text.trim_suffix(", ") + "\n"
 
-			# --- FIXED: The button logic is now perfectly clean! ---
+			# Build worker bot button configuration
 			_create_button("Build Worker Bot", Color(0.4, 1.0, 0.4), func():
 				b.start_bot_construction()
 				refresh_ui()
 			)
-			
+
+
+## Renders current requirements, daily compliance status, and weekly safety goals.
 func _setup_quota_ui(b: QuotaBuilding):
 	var info = b.get_inventory_info()
 	
@@ -353,7 +376,7 @@ func _setup_quota_ui(b: QuotaBuilding):
 		info_label.modulate = Color(0.5, 0.5, 0.5)
 		return
 		
-	# --- FIXED: GRACE PERIOD UI ---
+	# Grace period UI
 	if info.get("Status", "") == "GRACE PERIOD":
 		var txt = "Status: GRACE PERIOD\n"
 		txt += "Weekly Success: 7 / 7 Days\n"
@@ -361,7 +384,7 @@ func _setup_quota_ui(b: QuotaBuilding):
 		txt += " • None! Free build time."
 		
 		info_label.text = txt
-		info_label.modulate = Color(0.4, 1.0, 0.4) # Safe Green
+		info_label.modulate = Color(0.4, 1.0, 0.4)
 		
 		_create_button("View Global Quota", Color(0.3, 0.8, 1.0), func():
 			quota_shortcut_clicked.emit()
@@ -371,9 +394,9 @@ func _setup_quota_ui(b: QuotaBuilding):
 		
 	# Color code the entire text block based on safety!
 	if info.get("Status", "") == "SAFE TODAY":
-		info_label.modulate = Color(0.2, 1.0, 0.2) # Safe Green
+		info_label.modulate = Color(0.2, 1.0, 0.2)
 	else:
-		info_label.modulate = Color(1.0, 0.8, 0.2) # Warning Yellow
+		info_label.modulate = Color(1.0, 0.8, 0.2)
 		
 	# Build the display string
 	var details = ""
@@ -394,13 +417,15 @@ func _setup_quota_ui(b: QuotaBuilding):
 	
 	_create_button("View Global Quota", Color(0.3, 0.8, 1.0), func():
 		quota_shortcut_clicked.emit()
-		close_menu() # Close this little hover menu since we are opening a big one!
+		close_menu()
 	)
-	
+
+
+## Handles level meters, inventory indicators, pathing targets, and directive priority hotkeys.
 func _setup_bot_ui(b: Node2D):
 	var info = b.get_inventory_info()
 	
-	# --- Build the Level & XP string ---
+	# Build the Level & XP string
 	var level_str = ""
 	if "bot_level" in b and "current_xp" in b and "XP_THRESHOLDS" in b:
 		var global_max = 2
@@ -414,32 +439,29 @@ func _setup_bot_ui(b: Node2D):
 		else:
 			var next_threshold = b.XP_THRESHOLDS[b.bot_level]
 			level_str += "XP: %d / %d\n" % [b.current_xp, next_threshold]
-	# ----------------------------------------
 
 	# Inject the level_str at the very beginning of the label
 	info_label.text = "%sHealth: %d / %d\nTarget: %s\nCarrying: %s" % [level_str, b.health, b.max_health, info["Target"], info["Carrying"]]
 	
-	# --- Match colors to the Bot Screen ---
+	# Match colors to bot screen
 	if info["Target"] == "Wood Only": 
-		info_label.modulate = Color(0.2, 0.8, 0.2) # Green (Axe)
+		info_label.modulate = Color(0.2, 0.8, 0.2)
 	elif info["Target"] == "Stone Only": 
-		info_label.modulate = Color(0.2, 0.6, 1.0) # Blue (Pickaxe)
+		info_label.modulate = Color(0.2, 0.6, 1.0)
 	elif info["Target"] == "Maintain": 
-		info_label.modulate = Color(1.0, 0.8, 0.2) # Yellow (Hammer)
+		info_label.modulate = Color(1.0, 0.8, 0.2)
 	elif info["Target"] == "Home": 
-		info_label.modulate = Color(1.0, 1.0, 1.0) # White (Zz)
+		info_label.modulate = Color(1.0, 1.0, 1.0)
 	else: 
 		info_label.modulate = Color(1.0, 1.0, 1.0)
 
-	# --- BUTTONS MATCHING THE SCREENS ---
+	# Buttons matching the screens
 	_create_button("Wood Only", Color(0.2, 0.8, 0.2), func(): b.set_priority(0))
 	_create_button("Stone Only", Color(0.2, 0.6, 1.0), func(): b.set_priority(1))
 	_create_button("Maintain", Color(1.0, 0.8, 0.2), func(): b.set_priority(2))
-	# Using a light gray for "Go Home" so it looks clickable against a dark UI
 	_create_button("Go Home", Color(0.8, 0.8, 0.8), func(): b.set_priority(3)) 
 	
-	# --- UPDATE: Tell InputManager to take over! ---
-	# Switched to Cyan so it doesn't clash with the Yellow Maintain button
+	# Tell InputManager to take over
 	_create_button("Set Home", Color(0.0, 0.8, 0.8), func(): 
 		var input = get_tree().get_first_node_in_group("InputManager")
 		if input:
@@ -450,22 +472,21 @@ func _setup_bot_ui(b: Node2D):
 			b.toggle_set_home_mode(true)
 	)
 
-# --- Enemy UI Helper ---
+
+## Displays general attributes and status indicators for targeted enemies.
 func _setup_enemy_ui(e: Enemy):
 	# We leave info_label blank here because _process() is updating it!
-	info_label.modulate = Color(1.0, 0.4, 0.4) # Red text!
-	
-	# Optional: You could add a button here to "Mark Priority Target" for towers later!
+	info_label.modulate = Color(1.0, 0.4, 0.4)
 
-# --- Belt UI Helper ---
+
+## Shows visual cargo info and lets players dump items off conveyor tracks.
 func _setup_conveyor_ui(b: ConveyorBuilding):
-	# Update the Info Label
 	var item_name = "Empty"
 	if b.held_item and "item_data" in b.held_item and b.held_item.item_data:
 		item_name = b.held_item.item_data.display_name
-		info_label.modulate = Color(0.4, 1.0, 0.4) # Green if holding something
+		info_label.modulate = Color(0.4, 1.0, 0.4)
 	else:
-		info_label.modulate = Color(0.5, 0.5, 0.5) # Gray if empty
+		info_label.modulate = Color(0.5, 0.5, 0.5)
 		
 	info_label.text = "Held Item: %s" % item_name
 	
@@ -484,7 +505,9 @@ func _setup_conveyor_ui(b: ConveyorBuilding):
 				# Refresh the menu so the button vanishes
 				refresh_ui()
 		)
-		
+
+
+## Displays active route filters and toggle commands for sorting belts.
 func _setup_filter_ui(b: FilterBuilding):
 	var current_filter = b.filter_options[b.current_filter_index]
 	var mode_text = "Output: Sides" if b.is_split_mode else "Output: Forward"
@@ -495,6 +518,8 @@ func _setup_filter_ui(b: FilterBuilding):
 	_create_button("Cycle Item", Color.WHITE, b.cycle_filter)
 	_create_button("Change Mode", Color(0.3, 0.8, 1.0), b.toggle_filter_mode)
 
+
+## Generates rank buttons for re-ordering building task workflows.
 func _build_priority_widget(b: Node):
 	if building_manager == null: return
 	var bm = building_manager
@@ -536,7 +561,9 @@ func _build_priority_widget(b: Node):
 	hbox.add_child(rank_label)
 	hbox.add_child(down_btn)
 	action_container.add_child(hbox)
-	
+
+
+## Initiates an entry transition tween effect for menu panels.
 func _play_refresh_flash():
 	# Kill any ongoing flashes so they don't overlap if the player clicks super fast
 	var tween = create_tween()

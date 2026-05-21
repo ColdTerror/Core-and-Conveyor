@@ -8,40 +8,34 @@ extends Control
 
 @export var building_manager: BuildingManager
 
-# --- UI REFERENCES ---
 @onready var tab_container = $PanelContainer/TabContainer
 
-# Priorities Tab
 @onready var priority_list_container = $PanelContainer/TabContainer/Priorities/VBoxContainer/ScrollContainer/ListContainer
 
-# Workers Tab
 @onready var bot_list_container = $PanelContainer/TabContainer/Workers/VBoxContainer/ScrollContainer/ListContainer
 
-# Resources Tab
 @onready var resource_list_container = $PanelContainer/TabContainer/Resources/VBoxContainer/ScrollContainer/ListContainer
 
-# --- Music Tab ---
 @onready var music_now_playing_label = $PanelContainer/TabContainer/Jukebox/VBoxContainer/NowPlaying
 @onready var music_jukebox_toggle = $PanelContainer/TabContainer/Jukebox/VBoxContainer/EnableJukebox
 @onready var music_list_container = $PanelContainer/TabContainer/Jukebox/VBoxContainer/ScrollContainer/TrackListContainer
 
-# --- Quota Tab ---
 @onready var quota_info_label = $PanelContainer/TabContainer/Quota/VBoxContainer/InfoLabel
 @onready var quota_list_container = $PanelContainer/TabContainer/Quota/VBoxContainer/ScrollContainer/ListContainer
 
-# Floating Close Button
 @onready var close_button = $PanelContainer/Close
 
-# --- LIVE UPDATE TRACKING ---
 var update_timer: float = 0.0
 var update_interval: float = 0.5 
 var bot_status_labels: Dictionary = {}
 
+
+
+## Connects signals from the Jukebox, global menu controllers, and tab components during initialization.
 func _ready():
-	# Listen to the global UI state machine
+	# Listen to global UI state machine
 	GameState.menu_changed.connect(_on_global_menu_changed)
 	
-	# --- NEW: Listen to the global Audio Manager ---
 	AudioManager.track_changed.connect(_on_audio_manager_track_changed)
 	
 	hide()
@@ -56,12 +50,14 @@ func _ready():
 		tab_bar.focus_mode = Control.FOCUS_NONE
 		tab_bar.tab_clicked.connect(_on_tab_clicked)
 		
-	# --- NEW: Wire up the Jukebox Toggle ---
 	if music_jukebox_toggle:
 		music_jukebox_toggle.toggled.connect(_on_jukebox_toggled)
 
+
+
+## Regularly triggers updates for the active sub-panels like bot registries or quota tables while visible.
 func _process(delta):
-	# Only refresh the live data if the menu is actually open
+	# Refresh live data if open
 	if not visible:
 		return
 		
@@ -70,19 +66,22 @@ func _process(delta):
 	if update_timer <= 0.0:
 		update_timer = update_interval 
 		
-		# ONLY run the soft update if they are looking at the Workers tab!
+		# Soft update active tabs
 		if tab_container and tab_container.current_tab == 1:
-			_refresh_bot_tab(false) # Soft update = false
+			_refresh_bot_tab(false)
 		elif tab_container and tab_container.current_tab == 4: 
 			_refresh_quota_tab()
 
+
+
+## Activates and focuses the selected panel, triggering a clean content refresh.
 func _on_tab_clicked(tab_index):
 	var target_tab = tab_index
 	
 	if target_tab == 0:
 		_refresh_priority_tab()
 	elif target_tab == 1:
-		_refresh_bot_tab(true) # Force rebuild = true
+		_refresh_bot_tab(true)
 	elif target_tab == 2:
 		_refresh_resource_tab()
 	elif target_tab == 3:
@@ -90,37 +89,49 @@ func _on_tab_clicked(tab_index):
 	elif target_tab == 4: 
 		_refresh_quota_tab()
 		
-	# Force the tab to stay on the index the user clicked
+	# Keep tab index focused
 	tab_container.call_deferred("set_current_tab", target_tab)
 
-# UI STATE MACHINE ROUTING
+
+
+## Toggles the fullscreen management overlay.
 func toggle_menu():
 	if visible:
 		close_menu()
 	else:
 		open_menu()
 
+
+
+## Registers menu focus within the GameState autoload and displays the UI panels.
 func open_menu():
-	# Ask GameState for permission!
+	# Check GameState focus approval
 	if GameState.open_menu(GameState.MenuType.MANAGEMENT):
 		_refresh_priority_tab()
-		_refresh_bot_tab(true) # Force rebuild when opening
+		_refresh_bot_tab(true)
 		_refresh_resource_tab()
 		_refresh_music_tab() 
 		_refresh_quota_tab()
 		show()
 
+
+
+## Releases menu focus and hides the management overlay.
 func close_menu():
-	# Tell GameState to clear out
+	# Tell GameState to close
 	GameState.close_menu()
 
+
+
+## Automatically hides the management menu if another panel gains focus.
 func _on_global_menu_changed(active_menu):
-	# If the active menu is NO LONGER the Management menu, hide ourselves!
+	# Hide if focus lost
 	if active_menu != GameState.MenuType.MANAGEMENT:
 		hide()
 
-# PRIORITIES TAB LOGIC
 
+
+## Rebuilds the master task queue rows containing priority sorting selectors.
 func _refresh_priority_tab():
 	if not priority_list_container: return
 	
@@ -132,22 +143,23 @@ func _refresh_priority_tab():
 		print("PriorityMenu: Building Manager not assigned!")
 		return
 		
-	# Grab the queue
+	# Get priority queue
 	var queue = building_manager.master_priority_queue
 	var max_rank = queue.size()
 	
-	# Build a row for every item
+	# Generate priority rows
 	for i in range(max_rank):
 		var item = queue[i]
 		var rank = i + 1
 		_create_priority_row(item, rank, max_rank)
 
+
+## Instantiates sorting cards with up/down arrows and leashed camera trackers.
 func _create_priority_row(item: Variant, rank: int, max_rank: int):
 	var hbox = HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
-	# --- UP ARROW ---
 	var up_btn = Button.new()
 	up_btn.text = " ▲ "
 	up_btn.disabled = (rank == 1)
@@ -156,13 +168,11 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 		_refresh_priority_tab()
 	)
 	
-	# --- DEDICATED RANK LABEL ---
 	var rank_label = Label.new()
 	rank_label.text = str(rank) + "."
 	rank_label.custom_minimum_size = Vector2(30, 0)
 	rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	
-	# --- NAME BUTTON ---
 	var name_btn = Button.new()
 	name_btn.custom_minimum_size = Vector2(200, 0)
 	name_btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -185,7 +195,6 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 			name_btn.text = "[Invalid]"
 			name_btn.disabled = true
 			
-	# --- DOWN ARROW ---
 	var down_btn = Button.new()
 	down_btn.text = " ▼ "
 	down_btn.disabled = (rank == max_rank)
@@ -194,7 +203,7 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 		_refresh_priority_tab()
 	)
 	
-	# Assemble the row
+	# Assemble priority row
 	hbox.add_child(up_btn)
 	hbox.add_child(rank_label)
 	hbox.add_child(name_btn)  
@@ -202,18 +211,19 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 	
 	priority_list_container.add_child(hbox)
 
-# WORKERS TAB LOGIC
 
+
+## Refreshes the registry of worker bots with active task descriptions and leashing commands.
 func _refresh_bot_tab(force_rebuild: bool = false):
 	if not bot_list_container: return
 	
 	var bots = get_tree().get_nodes_in_group("Bots")
 	
-	# Hard Rebuild if forced (tab clicked/menu opened) OR if a bot was born/died
+	# Rebuild list if needed
 	if force_rebuild or bots.size() != bot_status_labels.size():
 		_rebuild_bot_list(bots)
 	else:
-		# Soft Update! Change the text without deleting the buttons
+		# Soft update labels
 		for bot in bots:
 			if bot_status_labels.has(bot) and is_instance_valid(bot_status_labels[bot]):
 				if bot.has_method("get_inventory_info"):
@@ -221,8 +231,10 @@ func _refresh_bot_tab(force_rebuild: bool = false):
 					var new_text = "Task: %s | Carrying: %s" % [info.get("Target", "Idle"), info.get("Carrying", "Nothing")]
 					bot_status_labels[bot].text = new_text
 
+
+## Instantiates bot listings showing tasks, energy, and centering buttons.
 func _rebuild_bot_list(bots: Array):
-	# Clean up old UI rows and reset tracking
+	# Clean up previous rows
 	bot_status_labels.clear()
 	for child in bot_list_container.get_children():
 		child.queue_free()
@@ -238,12 +250,10 @@ func _rebuild_bot_list(bots: Array):
 		var row = HBoxContainer.new()
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
 		
-		# --- NAME ---
 		var name_label = Label.new()
 		name_label.text = "Bot #" + str(bot_index)
 		name_label.custom_minimum_size = Vector2(80, 0)
 		
-		# --- STATUS ---
 		var status_label = Label.new()
 		status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		if bot.has_method("get_inventory_info"):
@@ -252,10 +262,9 @@ func _rebuild_bot_list(bots: Array):
 		else:
 			status_label.text = "Task: Unknown"
 			
-		# SAVE LABEL IN DICTIONARY
+		# Save reference in tracker
 		bot_status_labels[bot] = status_label
 		
-		# --- FOLLOW BUTTON ---
 		var follow_btn = Button.new()
 		follow_btn.text = " Follow "
 		follow_btn.modulate = Color(0.3, 0.8, 1.0) 
@@ -276,8 +285,9 @@ func _rebuild_bot_list(bots: Array):
 		
 		bot_index += 1
 
-# RESOURCES TAB LOGIC
 
+
+## Pulls inventory databases to renderpinned lists and sub-ledgers of material counts.
 func _refresh_resource_tab():
 	if not resource_list_container: return
 	
@@ -291,11 +301,11 @@ func _refresh_resource_tab():
 	resource_list_container.add_child(header)
 	resource_list_container.add_child(HSeparator.new())
 	
-	# Grab BOTH ledgers
+	# Get secured and unsecured inventory ledgers
 	var secured_items = EconomyManager.global_inventory
 	var unsecured_items = EconomyManager.get_unsecured_inventory()
 	
-	# Combine the keys so we don't miss items that are ONLY in transit
+	# Combine inventory keys
 	var all_items_dict = {}
 	for key in secured_items.keys(): all_items_dict[key] = true
 	for key in unsecured_items.keys(): all_items_dict[key] = true
@@ -309,20 +319,16 @@ func _refresh_resource_tab():
 		resource_list_container.add_child(empty_label)
 		return
 
-	# Build a detailed row for every item
+	# Build resource widgets
 	for item_name in all_items:
 		var available = secured_items.get(item_name, 0)
 		var in_transit = unsecured_items.get(item_name, 0)
 		var is_pinned = EconomyManager.pinned_resources.has(item_name)
 		
-		# Example: If you have a custom UI row generator, you can pass both numbers!
-		# If you haven't updated _create_resource_row yet, you can format the string here:
-		var display_text = "%d" % available
-		if in_transit > 0:
-			display_text += " (+%d In Transit)" % in_transit
-			
 		_create_resource_row(item_name, available, in_transit, is_pinned)
 
+
+## Instantiates resource detail widgets featuring pinning buttons and expansion selectors.
 func _create_resource_row(item_name: String, available: int, in_transit: int, is_pinned: bool):
 	var wrapper = VBoxContainer.new()
 	var main_row = HBoxContainer.new()
@@ -342,7 +348,7 @@ func _create_resource_row(item_name: String, available: int, in_transit: int, is
 	var amount_label = Label.new()
 	amount_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
-	# Show "Available" and optionally "In Transit"
+	# Show transit details
 	var text = "Total: %d" % available
 	if in_transit > 0:
 		text += " (+%d)" % in_transit
@@ -365,7 +371,9 @@ func _create_resource_row(item_name: String, available: int, in_transit: int, is
 	
 	resource_list_container.add_child(wrapper)
 	resource_list_container.add_child(HSeparator.new())
-	
+
+
+## Queries stockpiles and cores to display exactly where a material is stored in the base.
 func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: Button):
 	if container.visible:
 		container.hide()
@@ -380,12 +388,11 @@ func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: 
 	
 	var found_any = false
 	
-	# Helper function to create the row
+	# Create detail row closure
 	var add_detail_row = func(b, amount, is_secured):
 		var b_row = HBoxContainer.new()
 		b_row.alignment = BoxContainer.ALIGNMENT_END
 		
-		# Indicate if it's secured/unsecured visually
 		var status_icon = " \u2713 " if is_secured else " \u23F3 " 
 		var b_label = Label.new()
 		b_label.text = "    %s %s: %d" % [status_icon, b.building_name, amount]
@@ -409,7 +416,7 @@ func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: 
 	for b in building_manager.buildings:
 		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
 		
-		# Determine if the building is a secured source (Stockpile/Core)
+		# Determine if secured
 		var is_secured = EconomyManager.secured_sources.has(b)
 		
 		var b_amount = 0
@@ -426,7 +433,9 @@ func _toggle_resource_details(item_name: String, container: VBoxContainer, btn: 
 		empty.text = "    \u2514 Not currently stored anywhere."
 		empty.modulate = Color(0.5, 0.5, 0.5)
 		container.add_child(empty)
-		
+
+
+## Registers or removes a material on the player's primary HUD pin list.
 func _toggle_pin(item_name: String):
 	if EconomyManager.pinned_resources.has(item_name):
 		EconomyManager.pinned_resources.erase(item_name)
@@ -440,23 +449,23 @@ func _toggle_pin(item_name: String):
 	EconomyManager.inventory_changed.emit()
 	_refresh_resource_tab()
 
-# MUSIC TAB LOGIC 
 
+
+## Syncs jukebox settings and builds lists of playable ambient tracks.
 func _refresh_music_tab():
 	if not music_list_container: return
 
-	# Setup the visual state of the Jukebox toggle
 	if music_jukebox_toggle:
 		music_jukebox_toggle.set_pressed_no_signal(AudioManager.is_jukebox_enabled)
 
-	# Setup the Now Playing label
+	# Update now playing text
 	_on_audio_manager_track_changed(AudioManager.current_track_name)
 
 	# Clean up old buttons
 	for child in music_list_container.get_children():
 		child.queue_free()
 
-	# Get the tracks and build the UI buttons
+	# Build track list buttons
 	var tracks = AudioManager.get_track_list()
 	for track_name in tracks:
 		var btn = Button.new()
@@ -470,18 +479,25 @@ func _refresh_music_tab():
 		
 		music_list_container.add_child(btn)
 
+
+
+## Updates labels showing the currently playing audio track.
 func _on_audio_manager_track_changed(new_track_name: String):
 	if music_now_playing_label:
 		music_now_playing_label.text = "Now Playing: " + new_track_name
 
+
+
+## Controls the global jukebox shuffle state.
 func _on_jukebox_toggled(is_enabled: bool):
 	if is_enabled:
 		AudioManager.is_jukebox_enabled = true
 	else:
 		AudioManager.disable_jukebox()
 
-# QUOTA TAB LOGIC 
 
+
+## Renders daily compliance graphs, material requirements, and corruption forecasts.
 func _refresh_quota_tab():
 	if not quota_list_container or not building_manager or not building_manager.level_ref: 
 		return
@@ -493,11 +509,10 @@ func _refresh_quota_tab():
 		print("Couldnt find quota or time manager")
 		return
 
-	# Update the Header Info & Weekly Totals
+	# Update weekly statistics
 	var failure_ratio: float = 1.0 - (float(quota_mgr.successful_days) / 7.0)
 	var current_penalty = quota_mgr.max_weekly_corruption * failure_ratio
 	
-	# --- FIXED: Handle empty Week 1 cleanly ---
 	var weekly_req_text = ""
 	if quota_mgr.daily_requirements.is_empty():
 		weekly_req_text = "GRACE PERIOD - FREE BUILD"
@@ -514,62 +529,58 @@ func _refresh_quota_tab():
 	quota_info_label.text += "Weekly Factory Target: [ %s ]\n" % weekly_req_text
 	quota_info_label.text += "Projected Corruption Penalty: +%d\n" % int(current_penalty)
 
-	# Clean up old rows
+	# Clear previous rows
 	for child in quota_list_container.get_children():
 		child.queue_free()
 
-	# Calculate Calendar Math
+	# Calculate calendar columns
 	var current_day_index = (time_mgr.current_day - 1) % 7 
 	var successes_assigned = 0
 
-	# Build the 7-Day Calendar
+	# Build weekly columns
 	for day_i in range(7):
 		var row = HBoxContainer.new()
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
 		
-		# Day Label
 		var day_label = Label.new()
 		day_label.text = "Day " + str(day_i + 1)
 		day_label.custom_minimum_size = Vector2(80, 0)
 		row.add_child(day_label)
 		
 		if day_i < current_day_index:
-			# --- UPGRADED: PAST DAYS (Using accurate history!) ---
+			# Check compliance history
 			var status_lbl = Label.new()
 			status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			
 			var passed_today = false
 			
-			# Check the exact history array!
 			if quota_mgr.daily_requirements.is_empty():
-				passed_today = true # Grace period is always a pass
+				passed_today = true
 			elif "weekly_history" in quota_mgr and day_i < quota_mgr.weekly_history.size():
 				passed_today = quota_mgr.weekly_history[day_i]
 				
 			if passed_today:
 				status_lbl.text = "QUOTA MET"
-				status_lbl.modulate = Color(0.2, 1.0, 0.2) # Green
+				status_lbl.modulate = Color(0.2, 1.0, 0.2)
 			else:
 				status_lbl.text = "MISSED"
-				status_lbl.modulate = Color(1.0, 0.2, 0.2) # Red
+				status_lbl.modulate = Color(1.0, 0.2, 0.2)
 				
 			row.add_child(status_lbl)
 			
 		elif day_i == current_day_index:
-			# --- TODAY ---
 			day_label.modulate = Color(1.0, 0.8, 0.2) 
 			
 			var today_vbox = VBoxContainer.new()
 			today_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			
-			# --- FIXED: Only draw the progress bar if there is a quota! ---
 			if quota_mgr.daily_requirements.is_empty():
 				var free_label = Label.new()
 				free_label.text = "Free Build Time! Expand your factory."
 				free_label.modulate = Color(0.4, 1.0, 0.4)
 				today_vbox.add_child(free_label)
 			else:
-				# Calculate and build the Progress Bar
+				# Build daily material bars
 				var total_req = 0.0
 				var total_have = 0.0
 				for item in quota_mgr.daily_requirements:
@@ -588,7 +599,7 @@ func _refresh_quota_tab():
 					
 				today_vbox.add_child(progress_bar)
 				
-				# Build the Material Breakdown Text
+				# Build material breakdown text
 				var breakdown_hbox = HBoxContainer.new()
 				breakdown_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 				
@@ -619,7 +630,6 @@ func _refresh_quota_tab():
 			row.add_child(today_vbox)
 			
 		else:
-			# --- FUTURE DAYS ---
 			var future_vbox = VBoxContainer.new()
 			future_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			
@@ -629,7 +639,6 @@ func _refresh_quota_tab():
 			future_vbox.add_child(status_lbl)
 			
 			var req_lbl = Label.new()
-			# --- FIXED: Print safe text for empty quotas ---
 			if quota_mgr.daily_requirements.is_empty():
 				req_lbl.text = "Requires: Nothing!"
 			else:

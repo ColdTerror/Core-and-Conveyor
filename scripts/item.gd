@@ -10,6 +10,8 @@ extends Sprite2D
 @export var item_data: ItemResource
 
 
-func _ready():
+## Initializes the item sprite by setting its texture from the item resource data.
+func _ready() -> void:
 	if item_data:
 		texture = item_data.texture
+

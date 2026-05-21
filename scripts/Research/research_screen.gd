@@ -6,28 +6,26 @@
 # Signals:
 #   - close_research_tree: Emitted when the research overlay is closed.
 # ==============================================================================
-@tool # <--- 1. Tell Godot to run this in the editor!
+@tool
 extends CanvasLayer
 
-# --- 2. THE MAGIC BUTTON ---
-# Clicking this checkbox in the Inspector triggers the layout function!
+# Clicking this checkbox in the Inspector triggers the layout function
 @export var click_to_arrange_tree: bool = false:
 	set(value):
 		_arrange_nodes()
 
-# Make sure this path points exactly to your GraphEdit node!
 @onready var graph_edit = $BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit
 @onready var close_button = $BackgroundBlocker/MarginContainer/VBoxContainer/Header/CloseButton
 
 signal close_research_tree
 
+
+## Sets up connections and sets initial visibility state during runtime initialization.
 func _ready():
-	# --- 3. EDITOR SAFETY CHECK ---
 	# We don't want to connect game signals or hide the UI while we are working in the editor!
 	if Engine.is_editor_hint():
 		return 
 		
-	# --- NORMAL GAME RUNTIME LOGIC ---
 	GameState.menu_changed.connect(_on_global_menu_changed)
 	hide() # Hide when the game starts
 	close_button.pressed.connect(close_screen)
@@ -36,7 +34,9 @@ func _ready():
 		if node is GraphNode and node.has_signal("research_started"):
 			node.research_started.connect(close_screen)
 
-# EDITOR LAYOUT TOOL
+
+
+## Automatically positions nodes and configures tree connections inside the editor or at runtime.
 func _arrange_nodes():
 	# Safely grab the GraphEdit (since @onready vars aren't always ready for @tool setters)
 	var ge = get_node_or_null("BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit")
@@ -90,7 +90,9 @@ func _arrange_nodes():
 	
 	print("Research Tree Successfully Arranged!")
 
-# HELPER
+
+
+## Places a specific GraphNode at coordinates (x, y) and disables manual dragging.
 func _place(ge: GraphEdit, node_name: String, x: float, y: float):
 	var node = ge.get_node_or_null(node_name)
 	if node:
@@ -99,20 +101,29 @@ func _place(ge: GraphEdit, node_name: String, x: float, y: float):
 	else:
 		push_warning("Research node not found: " + node_name)
 
-# UI LOGIC
+
+
+## Opens the research screen, updates all upgrade nodes, and registers menu focus.
 func open_screen():
 	if GameState.open_menu(GameState.MenuType.RESEARCH):
 		_refresh_all_nodes()
 		show()
-		
+
+
+## Iterates through children to refresh each upgrade node's research state.
 func _refresh_all_nodes():
 	for node in graph_edit.get_children():
 		if node is GraphNode and node.has_method("_refresh_button"):
 			node._refresh_button()
-			
+
+
+## Closes the research screen and releases menu focus.
 func close_screen():
 	GameState.close_menu()
 
+
+
+## Hides the research screen and emits closing notifications if focus shifts.
 func _on_global_menu_changed(active_menu):
 	if active_menu != GameState.MenuType.RESEARCH:
 		hide()

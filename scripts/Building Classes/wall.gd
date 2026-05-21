@@ -9,12 +9,18 @@ class_name WallBuilding
 
 var level_ref: Node2D
 
-# --- NEW: Grab the sprite so we can hide it! ---
 @onready var sprite = $Sprite2D
 
+
+
+## Links this wall to the active level instance.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
-	
+
+
+
+## Sets solid status, sets initial path costs, paints wall tiles dynamically,
+## and connects health signals to dynamically sync path costs.
 func _ready():
 	super()
 	
@@ -25,7 +31,6 @@ func _ready():
 	path_cost = float(health)
 	
 	if level_ref and level_ref.building_manager and (not is_ghost):
-		# --- NEW: Hide the standalone sprite and paint the autotile! ---
 		if sprite:
 			sprite.hide()
 			
@@ -35,11 +40,13 @@ func _ready():
 		for tile in occupied_tiles:
 			level_ref.building_manager.pathfinder.set_weighted_obstacle(tile, path_cost, true)
 			
-	# --- NEW: Listen for bot repairs so the path cost goes back UP! ---
 	if has_signal("health_changed"):
 		health_changed.connect(_on_health_changed)
 
-# --- NEW: Clean up the TileMap when destroyed ---
+
+
+## Custom death handler that erases the wall visual, updates neighboring wall tiles,
+## and runs the base Building destruction routine.
 func die():
 	if level_ref and level_ref.building_manager and (not is_ghost):
 		# Tell the TileMap to erase the visual and update neighbors
@@ -48,6 +55,9 @@ func die():
 	# Run normal death logic (which will call queue_free)
 	super()
 
+
+
+## Inflicts damage to the wall, updating active path cost weight.
 func take_damage(amount: int):
 	# Run the base Building.gd script first! 
 	# (This handles the actual HP subtraction, signals, and red flash)
@@ -57,13 +67,16 @@ func take_damage(amount: int):
 	if health <= 0 or is_ghost:
 		return 
 		
-	# Sync the pathfinder
 	_sync_path_cost()
 
-# --- NEW: Keeps the pathfinder accurate when bots repair the wall ---
+
+
+## Triggered when the wall's health is adjusted (e.g. from repairs), syncing costs.
 func _on_health_changed(_current_hp: int, _max_hp: int):
 	_sync_path_cost()
 
+
+## Synchronizes the pathfinder cost weights to perfectly match current health status.
 func _sync_path_cost():
 	if is_ghost: return
 	

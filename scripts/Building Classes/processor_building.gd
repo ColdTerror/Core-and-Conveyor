@@ -11,10 +11,8 @@ class_name ProcessorBuilding
 @export var recipes: Array[RecipeResource] = [] 
 @export var generic_item_scene: PackedScene 
 
-# NEW: 1.5 = 150% time (Slower). 0.8 = 80% time (Faster).
 @export var crafting_time_multiplier: float = 1.5
 
-# Recipe State
 var current_recipe_index: int = 0
 var active_recipe: RecipeResource:
 	get:
@@ -22,48 +20,51 @@ var active_recipe: RecipeResource:
 			return recipes[current_recipe_index]
 		return null
 
-# Buffers
-# CHANGED: Input inventory is now a Dictionary mapping ItemResource -> amount
 var input_inventory: Dictionary = {} 
 var output_inventory: int = 0
 @export var buffer_capacity: int = 10 
 
-# State
 var work_timer: float = 0.0
 var is_working: bool = false
 var level_ref: Node2D
 
 
-# --- SETUP ---
+## Configures the processor with the active level instance reference.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
+
+## Registers the processor as an active economic production source and runs base ready updates.
 func _ready():
 	EconomyManager.register_source(self, false)
 	super()
-#Log items when destroyed
+
+
+
+## Emits item consumption events for all inputs and products inside buffers when destroyed.
 func die():
-	# Log the unrefined ingredients that burn down
 	for item_res in input_inventory.keys():
 		EconomyManager.log_item_consumed(item_res.display_name, input_inventory[item_res])
 	input_inventory.clear()
 	
-	# Log the finished products that burn down
 	if output_inventory > 0 and active_recipe and active_recipe.output_item:
 		EconomyManager.log_item_consumed(active_recipe.output_item.display_name, output_inventory)
 	output_inventory = 0
 	
-	super() # Call the base class die() function!
-	
-# --- INPUT LOGIC (From Conveyors) ---
+	super()
+
+
+
+## Checks whether this processor accepts items entering through the specified tile.
 func accepts_item_at(_tile: Vector2i) -> bool:
 	return true
 
-# Unpack the backpack into the correct buffers
+
+
+## Deposits resources into input or output buffers during upgrades or normal gameplay.
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	if not active_recipe: return 0
 	
-	# --- SCENARIO A: Receiving Finished Products from Memory Limbo ---
 	if item_res == active_recipe.output_item:
 		var out_space_left = buffer_capacity - output_inventory
 		if out_space_left <= 0: return 0
@@ -73,7 +74,6 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 		inventory_changed.emit()
 		return out_take
 		
-	# --- SCENARIO B: Receiving Raw Ingredients (Normal Delivery or Limbo) ---
 	if not active_recipe.inputs.has(item_res): return 0 
 	
 	var current_stored = input_inventory.get(item_res, 0)
@@ -87,15 +87,19 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	
 	return amount_to_take
 
+
+
+## Verifies if the processor has room in its input buffer for a specific resource type.
 func can_accept_item(item_res: ItemResource) -> bool:
 	if not active_recipe: return false
 	if not active_recipe.inputs.has(item_res): return false 
 	
-	# Do we have space in the buffer?
 	var current_stored = input_inventory.get(item_res, 0)
 	return current_stored < buffer_capacity
-	
-# --- MAIN LOOP ---
+
+
+
+## Runs the periodic processing, crafting, and finished-product dispensing loop.
 func building_tick(delta: float) -> void:
 	if not level_ref or not active_recipe: return
 
@@ -107,19 +111,20 @@ func building_tick(delta: float) -> void:
 	else:
 		_check_can_start_work()
 
+
+
+## Evaluates recipes and input buffer quantities to consume ingredients and begin crafting.
 func _check_can_start_work():
 	if not active_recipe: return
 	if output_inventory + active_recipe.output_count > buffer_capacity: return
 
-	# Check if we have enough of EVERY required item
 	for req_item in active_recipe.inputs:
 		var req_amount = active_recipe.inputs[req_item]
 		var stored_amount = input_inventory.get(req_item, 0)
 		
 		if stored_amount < req_amount:
-			return # Missing an ingredient! Abort!
+			return
 
-	# If we made it here, we have everything! Deduct them all.
 	for req_item in active_recipe.inputs:
 		var req_amount = active_recipe.inputs[req_item]
 		input_inventory[req_item] -= req_amount
@@ -128,9 +133,12 @@ func _check_can_start_work():
 	inventory_changed.emit()
 	is_working = true
 	
-	# --- UPDATED: Apply the multiplier to the base recipe time! ---
+	# Apply craft speed multiplier
 	work_timer = active_recipe.craft_time * crafting_time_multiplier
 
+
+
+## Tracks remaining crafting progress time and transitions to completion when finished.
 func _process_work(delta: float):
 	if not active_recipe: return
 
@@ -138,6 +146,9 @@ func _process_work(delta: float):
 	if work_timer <= 0:
 		_finish_work()
 
+
+
+## Increments output product buffers, logs production, and checks for subsequent crafting cycles.
 func _finish_work():
 	if not active_recipe: return
 
@@ -149,106 +160,86 @@ func _finish_work():
 	inventory_changed.emit()
 	_check_can_start_work()
 
-# UPGRADED: OUTPUT LOGIC (Strict Belts & Filters, Permissive Routers)
 
+
+## Iterates occupied coordinates to locate orthongonal neighbors that can receive outputs.
 func _try_output_item():
 	if not level_ref: return
 	var manager = level_ref.building_manager
 
-	# Loop through all tiles we occupy
 	for my_tile in occupied_tiles:
 		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 		
 		for offset in push_directions:
 			var target_pos = my_tile + offset
 			
-			# Don't output into ourself
 			if occupied_tiles.has(target_pos): continue
 			
-			# Check BuildingManager for neighbors
 			if manager.occupied_tiles.has(target_pos):
 				var neighbor = manager.occupied_tiles[target_pos]
 				
-				# Ensure the neighbor can physically accept items
 				if neighbor.has_method("accept_item_node"):
 					var can_output = false
 					
-					# --- Catch the Router FIRST so it bypasses the Conveyor rules! ---
 					if neighbor is RouterBuilding:
 						can_output = true
 						
-					# STRICT CHECK: Belts and Filters must point exactly away!
 					elif neighbor is ConveyorBuilding or neighbor is FilterBuilding:
 						if neighbor.direction == offset:
 							can_output = true
 							
-					# 3. ANYTHING ELSE: Magic omnidirectional bypass!
 					else:
 						can_output = true
 							
-					# 4. If valid, attempt the transfer
 					if can_output:
 						if _spawn_item_into_conveyor(neighbor, my_tile, offset):
-							return # Success! Stop trying other neighbors this tick.
+							return
 
-# --- FIXED: Accepts ANY node that has accept_item_node! ---
+
+
+## Instantiates visual nodes, snaps coordinates, and passes items to adjacent receptors.
 func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_offset: Vector2i) -> bool:
-	# Safely check that we actually have a valid recipe and output item!
 	if not generic_item_scene or not active_recipe or not active_recipe.output_item: return false
 	
-	# Create the Visual Node
 	var new_item_node = generic_item_scene.instantiate()
 	if new_item_node.has_method("setup"): new_item_node.setup(level_ref)
 	if "item_data" in new_item_node: new_item_node.item_data = active_recipe.output_item
 	
-	# ========================================
-	# FIXED: PERFECT POSITION SNAPPING
-	# ========================================
-	# Find the exact pixel center of the specific 1x1 tile the item is leaving
+	# PERFECT POSITION SNAPPING
 	var tile_center_px = level_ref.object_layer.map_to_local(source_tile)
-	
-	# Push the item exactly 16 pixels (half a tile) in the orthogonal direction
 	var edge_px = tile_center_px + (Vector2(direction_offset) * 16.0)
-	
 	new_item_node.global_position = edge_px
-	# ========================================
 	
 	if new_item_node.has_method("_ready"): new_item_node._ready() 
 	
-	# Try to hand it to the Receiver (Belt, Router, Filter)
 	if receiver.accept_item_node(new_item_node):
-		# Success! Processors use output_inventory instead of stored_amount
 		output_inventory -= 1
 		inventory_changed.emit()
-		
-		return true # RETURN SUCCESS
+		return true
 		
 	else:
-		# Receiver was full or refused, delete the temp node
 		new_item_node.queue_free()
-		return false # RETURN FAILURE
+		return false
 
 
-# HYBRID UPGRADE PIPELINE (Duck Typing)
 
-# Pack BOTH inventories into the backpack
+## Summarizes all buffered inputs and finished product quantities for upgrade carrying.
 func get_economy_assets() -> Dictionary:
 	var assets = {}
 	
-	# Pack the raw ingredients
 	for item_res in input_inventory.keys():
 		if input_inventory[item_res] > 0:
 			assets[item_res.display_name] = input_inventory[item_res]
 			
-	# Pack the finished products
 	if output_inventory > 0 and active_recipe and active_recipe.output_item:
 		var out_name = active_recipe.output_item.display_name
-		# .get() just in case the input and output happen to be the exact same item
 		assets[out_name] = assets.get(out_name, 0) + output_inventory 
 		
 	return assets
-	
-# --- UI HELPERS ---
+
+
+
+## Packs current recipes, input inventories, and output buffer counts for info panels.
 func get_inventory_info() -> Dictionary:
 	var info = {}
 	if active_recipe:
@@ -265,14 +256,19 @@ func get_inventory_info() -> Dictionary:
 		
 	return info
 
+
+
+## Computes crafting percentage metrics with recipe speed multipliers.
 func get_progress_ratio() -> float:
 	if not is_working or not active_recipe or active_recipe.craft_time == 0:
 		return 0.0
 		
-	# --- UPDATED: Calculate the total modified time to get an accurate percentage ---
 	var total_time = active_recipe.craft_time * crafting_time_multiplier
 	return 1.0 - (work_timer / total_time)
 
+
+
+## Cycles active recipes, discarding active inputs and products on changes.
 func cycle_recipe():
 	if recipes.size() <= 1: return
 	
@@ -284,19 +280,18 @@ func cycle_recipe():
 	current_recipe_index = (current_recipe_index + 1) % recipes.size()
 	print("Switched to recipe: " + active_recipe.recipe_name)
 	inventory_changed.emit()
-	
-# SAVE / LOAD SYSTEM (Processor)
+
+
+
+## Serializes ingredients lists, recipe indices, work tickers, and buffers for saves.
 func get_save_data() -> Dictionary:
-	# Grab the base stats (health, building_name)
 	var data = super.get_save_data()
 	
-	# Translate the input inventory (Resources -> Strings)
 	var saved_input = {}
 	for item_res in input_inventory.keys():
 		saved_input[item_res.display_name] = input_inventory[item_res]
 	data["input_inventory"] = saved_input
 	
-	# 3. Save the simple state variables
 	data["output_inventory"] = output_inventory
 	data["current_recipe_index"] = current_recipe_index
 	data["work_timer"] = work_timer
@@ -304,17 +299,16 @@ func get_save_data() -> Dictionary:
 	
 	return data
 
+
+## Restores ingredients inventories, active recipe indices, work tickers, and buffers from saved records.
 func load_save_data(data: Dictionary):
-	# Restore the base stats
 	super.load_save_data(data)
 	
-	# Restore the simple variables
 	output_inventory = data.get("output_inventory", 0)
 	current_recipe_index = data.get("current_recipe_index", 0)
 	work_timer = data.get("work_timer", 0.0)
 	is_working = data.get("is_working", false)
 	
-	# 3. Rebuild the input inventory using the ItemDatabase
 	input_inventory.clear()
 	if data.has("input_inventory"):
 		var saved_inv = data["input_inventory"]
@@ -323,5 +317,4 @@ func load_save_data(data: Dictionary):
 			if item_res:
 				input_inventory[item_res] = int(saved_inv[item_name])
 				
-	# Tell the UI to update!
 	inventory_changed.emit()
