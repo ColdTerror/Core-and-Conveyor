@@ -12,7 +12,11 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"fbdef280-bc49-4132-b2fa-07e06707ba79"
+				"1f5141ae-60c4-405f-a89f-1ac9522e5835",
+				"167adbab-ea6b-48fa-9f4e-d1ba551e605c",
+				"b5d6a220-40b9-4279-a0eb-c338932d7bd9",
+				"4115b65f-3d39-45aa-9325-34be3abf531b",
+				"d98c15ec-6e53-4dc5-af15-4d92c4d08f6e"
 			]
 		},
 		{
@@ -1402,9 +1406,37 @@
 			"steps": []
 		},
 		{
-			"uuid": "fbdef280-bc49-4132-b2fa-07e06707ba79",
-			"title": "resource ui for health on hover?",
+			"uuid": "1f5141ae-60c4-405f-a89f-1ac9522e5835",
+			"title": "bots can walk thru eachother, they should not have collision but maybe claim tiles?",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "167adbab-ea6b-48fa-9f4e-d1ba551e605c",
+			"title": "bot homes should be forced on different tiles",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b5d6a220-40b9-4279-a0eb-c338932d7bd9",
+			"title": "bots shouldnt spawn in same spot",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "4115b65f-3d39-45aa-9325-34be3abf531b",
+			"title": "see all bot homes at once?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "d98c15ec-6e53-4dc5-af15-4d92c4d08f6e",
+			"title": "harvesting square shouldnt be green(maybe orange?)",
+			"description": "the harvest range blends with the building range\n",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

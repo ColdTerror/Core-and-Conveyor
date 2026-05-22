@@ -31,11 +31,14 @@ var history_archive: Array[Dictionary] = []
 
 
 ## Registers building node instances as resource sources.
-func register_source(b: Node, is_secured: bool = true):
+func register_source(b: Node, is_secured: bool = true, skip_ghost_check: bool = false):
+	if b.is_ghost and not skip_ghost_check: return
+	
 	if is_secured and not b in secured_sources:
 		secured_sources.append(b)
 	elif not is_secured and not b in unsecured_sources:
 		unsecured_sources.append(b)
+		print("b")
 
 
 ## Unregisters building node instances from active resource sources.

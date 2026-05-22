@@ -163,6 +163,7 @@ func start_placing(scene: PackedScene):
 		ghost_building = null
 
 	ghost_building = scene.instantiate() as Building
+	ghost_building.set_ghost(true)
 	
 	add_child(ghost_building)
 	
@@ -171,7 +172,6 @@ func start_placing(scene: PackedScene):
 	elif ghost_building.has_method("setup"):
 		ghost_building.setup(level_ref)
 
-	ghost_building.set_ghost(true)
 	placing_building = true
 	is_dragging = false
 	_clear_drag_ghosts()
@@ -726,6 +726,8 @@ func _clear_drag_ghosts():
 
 
 func _register_building(building: Building):
+	if building.is_ghost: return
+	
 	buildings.append(building)
 	_register_occupied_tiles(building)
 	

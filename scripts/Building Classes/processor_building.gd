@@ -53,7 +53,9 @@ func die():
 	
 	super()
 
-
+## Unregisters the core structure from the global economy registries when removed.
+func _exit_tree():
+	EconomyManager.unregister_source(self)
 
 ## Checks whether this processor accepts items entering through the specified tile.
 func accepts_item_at(_tile: Vector2i) -> bool:

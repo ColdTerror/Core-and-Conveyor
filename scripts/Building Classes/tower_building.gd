@@ -70,7 +70,9 @@ func die():
 	
 	super()
 
-
+## Unregisters the core structure from the global economy registries when removed.
+func _exit_tree():
+	EconomyManager.unregister_source(self)
 
 ## Links this tower to the active level instance.
 func setup(level_instance: Node2D):

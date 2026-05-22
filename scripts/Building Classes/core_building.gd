@@ -37,7 +37,7 @@ func _ready():
 	if ui and ui.has_method("_on_core_destroyed"):
 		core_destroyed.connect(ui._on_core_destroyed)
 		
-	EconomyManager.register_source(self, true)
+	EconomyManager.register_source(self, true, true)
 
 
 ## Stores a reference to the active gameplay level instance.

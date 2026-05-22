@@ -57,9 +57,9 @@ func die():
 	super()
 
 
-
-## Discards laser targets and unclaims territory mapping registries when removed from tree.
+## Discards laser targets and unclaims territory mapping registries when removed from tree. And Unregisters the building
 func _exit_tree():
+	EconomyManager.unregister_source(self)
 	_clear_target_reservation()
 	_unclaim_territory()
 
