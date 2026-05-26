@@ -114,3 +114,9 @@ func get_inventory_info() -> Dictionary:
 		info[item] = "%d / %d" % [have, needed]
 		
 	return info
+
+
+
+func _ready():
+	super()
+	add_to_group("PriorityTarget")

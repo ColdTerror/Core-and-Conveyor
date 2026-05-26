@@ -36,6 +36,7 @@ func setup(level_instance: Node2D):
 
 ## Registers the processor as an active economic production source and runs base ready updates.
 func _ready():
+	add_to_group("PriorityTarget")
 	EconomyManager.register_source(self, false)
 	super()
 

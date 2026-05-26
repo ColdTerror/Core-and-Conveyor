@@ -46,6 +46,7 @@ signal fired_projectile(source_tower, start_pos, target_node, item_data, final_d
 ## and applies any research damage multiplier upgrades.
 func _ready():
 	super()
+	add_to_group("PriorityTarget")
 	base_damage_multiplier = damage_multiplier
 	_cached_range_tiles = _get_local_range_tiles()
 	add_to_group("Towers")

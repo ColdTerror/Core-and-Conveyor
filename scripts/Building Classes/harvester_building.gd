@@ -38,6 +38,7 @@ func setup(level_instance: Node2D):
 
 ## Registers the harvester structure as an active economic production source.
 func _ready():
+	add_to_group("PriorityTarget")
 	EconomyManager.register_source(self, false)
 	super()
 	health = max_health - 10

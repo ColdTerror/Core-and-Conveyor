@@ -31,6 +31,7 @@ func setup(level_instance: Node2D):
 ## Registers stockpile vault spaces as global economy storage targets.
 func _ready():
 	super()
+	add_to_group("PriorityTarget")
 	building_name = "Stockpile"
 	health = max_health - 10
 	EconomyManager.register_source(self, true)
