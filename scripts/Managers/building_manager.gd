@@ -1204,12 +1204,21 @@ func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
 	var origin = building.grid_origin
 	var search_radius = 1
 	
+	# Collect all currently reserved bot home tiles to avoid spawning on them
+	var reserved_homes: Array[Vector2i] = []
+	if is_inside_tree():
+		for bot in get_tree().get_nodes_in_group("WorkerBots"):
+			if is_instance_valid(bot) and not bot.is_queued_for_deletion():
+				if "home_tile" in bot and bot.home_tile != Vector2i(-1, -1):
+					reserved_homes.append(bot.home_tile)
+					
 	while valid_tiles.size() < count and search_radius < 10:
 		for x in range(origin.x - search_radius, origin.x + building.size.x + search_radius):
 			for y in range(origin.y - search_radius, origin.y + building.size.y + search_radius):
 				var check_tile = Vector2i(x, y)
 				if building.occupied_tiles.has(check_tile): continue
 				if valid_tiles.has(check_tile): continue
+				if check_tile in reserved_homes: continue
 				if pathfinder and pathfinder.enemy_astar.is_in_boundsv(check_tile):
 					if not pathfinder.enemy_astar.is_point_solid(check_tile):
 						valid_tiles.append(check_tile)
@@ -1217,6 +1226,7 @@ func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
 		search_radius += 1
 		
 	return valid_tiles
+
 
 
 func _get_straight_line(start: Vector2i, end: Vector2i) -> Array[Vector2i]:

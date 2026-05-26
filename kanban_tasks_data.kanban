@@ -16,7 +16,9 @@
 				"167adbab-ea6b-48fa-9f4e-d1ba551e605c",
 				"b5d6a220-40b9-4279-a0eb-c338932d7bd9",
 				"4115b65f-3d39-45aa-9325-34be3abf531b",
-				"d98c15ec-6e53-4dc5-af15-4d92c4d08f6e"
+				"d98c15ec-6e53-4dc5-af15-4d92c4d08f6e",
+				"6ebe4ec2-c9aa-45b4-bdfb-d05ce8cf3feb",
+				"6ec2f4f3-78e3-40b3-8476-fecd29332dd6"
 			]
 		},
 		{
@@ -1437,6 +1439,20 @@
 			"uuid": "d98c15ec-6e53-4dc5-af15-4d92c4d08f6e",
 			"title": "harvesting square shouldnt be green(maybe orange?)",
 			"description": "the harvest range blends with the building range\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "6ebe4ec2-c9aa-45b4-bdfb-d05ce8cf3feb",
+			"title": "bridge building? or research conveyers that can go over water?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "6ec2f4f3-78e3-40b3-8476-fecd29332dd6",
+			"title": "canceling sethome doesnt get rid of the ui",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

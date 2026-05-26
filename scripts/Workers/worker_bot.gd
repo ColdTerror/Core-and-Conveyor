@@ -936,6 +936,19 @@ func set_home(grid_pos: Vector2i):
 		current_state = State.IDLE
 
 
+## Returns an array of Vector2i representing home tiles reserved by all OTHER worker bots.
+func get_reserved_home_tiles() -> Array[Vector2i]:
+	var reserved: Array[Vector2i] = []
+	if not is_inside_tree():
+		return reserved
+	for bot in get_tree().get_nodes_in_group("WorkerBots"):
+		if bot != self and is_instance_valid(bot) and not bot.is_queued_for_deletion():
+			if "home_tile" in bot and bot.home_tile != Vector2i(-1, -1):
+				reserved.append(bot.home_tile)
+	return reserved
+
+
+
 ## Validates home placement, ensuring target coordinate sits in build zones and is uncorrupted.
 func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	if not level_ref or not level_ref.building_manager: return false
@@ -950,7 +963,12 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	if bm.pathfinder and bm.pathfinder.bot_astar.is_point_solid(grid_pos):
 		return false
 		
+	# Check if the tile is already reserved by another worker bot
+	if grid_pos in get_reserved_home_tiles():
+		return false
+		
 	return true
+
 
 
 func _go_home_or_standby(wait_time: float):

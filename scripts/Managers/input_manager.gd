@@ -212,14 +212,14 @@ func _unhandled_input(event: InputEvent):
 
 ## Cancels active interaction states, clearing highlight variables and deactivating placement ghosts.
 func _cancel_current_action():
-	building_manager.cancel_placement()
 	object_selected.emit(null)
 		
 	if current_mode == InteractionMode.SET_HOME and is_instance_valid(bot_awaiting_home):
 		if bot_awaiting_home.has_method("toggle_set_home_mode"):
 			bot_awaiting_home.toggle_set_home_mode(false)
 		bot_awaiting_home = null
-		
+	
+	building_manager.cancel_placement()
 	current_mode = InteractionMode.NONE
 	last_hovered_upgrade_tile = Vector2i(-1, -1)
 	last_terrain_tile = Vector2i(-1, -1)
