@@ -338,14 +338,20 @@ func _find_target():
 		if current_target != null and current_target.has_method("set_priority"):
 			return 
 
-	# Global radar (look for priority targets/buildings)
+	# Global radar (look for priority targets/buildings) with 8 tiles of perception noise
 	var targets = get_tree().get_nodes_in_group("PriorityTarget")
 	var nearest: Node2D = null
 	var min_dist = INF
 	
 	for t in targets:
 		if not is_instance_valid(t) or (t is Building and t.is_ghost): continue
-		var d = global_position.distance_squared_to(t.global_position)
+		
+		# Add up to 8 tiles (256 pixels) of random noise to distribute aggro
+		var real_dist = global_position.distance_to(t.global_position)
+		var noise = randf_range(-256.0, 256.0) 
+		var perceived_dist = max(0.0, real_dist + noise)
+		var d = perceived_dist * perceived_dist
+		
 		if d < min_dist:
 			min_dist = d
 			nearest = t
