@@ -680,37 +680,7 @@ func _move_along_path(delta: float, next_state: State):
 		global_position = target_pos
 		current_path.pop_front()
 	else:
-		# Calculate dynamic soft repulsion steering force from other active worker bots
-		var separation := Vector2.ZERO
-		var separation_radius := 32.0 # Overlap threshold in pixels
-		var repulsion_strength := 50.0 # Separation push velocity
-		
-		for other in get_tree().get_nodes_in_group("Bots"):
-			if other != self and is_instance_valid(other) and not other.is_queued_for_deletion():
-				var d_vec = global_position - other.global_position
-				var d = d_vec.length()
-				if d > 0.0 and d < separation_radius:
-					# Push away, scaling the steering force stronger the closer they are
-					var force = (1.0 - (d / separation_radius)) * repulsion_strength
-					separation += d_vec.normalized() * force
-					
-		# Project separation force onto the perpendicular axis of movement.
-		# This guarantees that the repulsion only slides the bot laterally (sideways)
-		# around obstacles instead of slowing down or slingshotting in the forward direction.
-		var move_dir_norm = move_dir.normalized()
-		var perp_dir = Vector2(-move_dir_norm.y, move_dir_norm.x)
-		var proj_dist = separation.dot(perp_dir)
-		
-		# If perfectly head-on, add a tiny lateral bias to break symmetry and initiate sidestepping
-		if abs(proj_dist) < 2.0 and separation.length() > 0.0:
-			proj_dist += 6.0 * (1.0 if self.get_instance_id() % 2 == 0 else -1.0)
-			
-		var perp_separation = perp_dir * proj_dist
-		
-		# Combine direct A* pathing velocity with perpendicular steering separation force
-		var move_vel = move_dir_norm * _get_speed()
-		var velocity = move_vel + perp_separation
-		global_position += velocity * delta
+		global_position = global_position.move_toward(target_pos, move_step)
 
 
 
