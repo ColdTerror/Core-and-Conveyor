@@ -31,13 +31,9 @@ var show_range_overlay := false:
 
 const TILE_SIZE = 32
 
-var _claimed_tiles: Array[Vector2i] = []
-
-
-## Configures the harvester with level node references and claims adjacent resource territory.
+## Configures the harvester with level node references.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
-	_claim_territory()
 
 
 ## Registers the harvester structure as an active economic production source.
@@ -57,17 +53,16 @@ func die():
 	super()
 
 
-## Discards laser targets and unclaims territory mapping registries when removed from tree. And Unregisters the building
+## Discards laser targets when removed from tree, and unregisters the building.
 func _exit_tree():
 	EconomyManager.unregister_source(self)
 	_clear_target_reservation()
-	_unclaim_territory()
 
 
 
-## Draws the circular scan range visual overlay bounds when previewed or highlighted.
+## Draws the circular scan range visual overlay bounds when previewed, highlighted, or selected.
 func _draw():
-	if show_range_overlay and level_ref:
+	if (show_range_overlay or is_selected) and level_ref:
 		var center_tile = level_ref.object_layer.local_to_map(global_position)
 		var top_left_tile = center_tile - (size / 2)
 		var range_top_left = top_left_tile - Vector2i(scan_radius, scan_radius)
@@ -81,8 +76,10 @@ func _draw():
 		var size_px = Vector2(total_width, total_height) * TILE_SIZE
 		
 		var rect = Rect2(local_pos, size_px)
-		draw_rect(rect, Color(0.2, 0.8, 0.2, 0.2), true)
-		draw_rect(rect, Color(0.2, 1.0, 0.2, 0.5), false, 2.0)
+		var fill_alpha = 0.3 if is_ghost else 0.15
+		var border_alpha = 1.0 if is_ghost else 0.6
+		draw_rect(rect, Color(0.163, 0.162, 0.175, fill_alpha), true)
+		draw_rect(rect, Color(0.0, 0.0, 0.0, border_alpha), false, 2.0)
 
 
 
@@ -268,38 +265,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 
 
 
-## Registers harvester footprint scans on level grids to signal territorial claim counts.
-func _claim_territory():
-	if not level_ref or not level_ref.object_layer: return
-	
-	var center_tile = level_ref.object_layer.local_to_map(global_position)
-	var top_left_tile = center_tile - (size / 2)
-	
-	var start_x = top_left_tile.x - scan_radius
-	var end_x = top_left_tile.x + size.x + scan_radius - 1
-	var start_y = top_left_tile.y - scan_radius
-	var end_y = top_left_tile.y + size.y + scan_radius - 1
-	
-	for x in range(start_x, end_x + 1):
-		for y in range(start_y, end_y + 1):
-			var tile = Vector2i(x, y)
-			_claimed_tiles.append(tile)
-			if level_ref.active_grid_objects.has(tile):
-				var info = level_ref.active_grid_objects[tile]
-				info["harvester_claim_count"] = info.get("harvester_claim_count", 0) + 1
 
-
-## Deregisters territorial claims on adjacent grids to release resource rights.
-func _unclaim_territory():
-	for tile in _claimed_tiles:
-		if level_ref and level_ref.active_grid_objects.has(tile):
-			var info = level_ref.active_grid_objects[tile]
-			if info.has("harvester_claim_count"):
-				info["harvester_claim_count"] -= 1
-				if info["harvester_claim_count"] <= 0:
-					info.erase("harvester_claim_count")
-	
-	_claimed_tiles.clear()
 
 
 

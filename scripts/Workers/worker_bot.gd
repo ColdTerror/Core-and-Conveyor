@@ -329,8 +329,7 @@ func _find_nearest_resource():
 		
 		if info["health"] <= 0:
 			continue
-		if info.get("harvester_claim_count", 0) > 0:
-			continue
+
 			
 		if info.has("reserved_by") and is_instance_valid(info["reserved_by"]) and info["reserved_by"] != self:
 			continue

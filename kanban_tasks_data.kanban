@@ -11,14 +11,7 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"1f5141ae-60c4-405f-a89f-1ac9522e5835",
-				"167adbab-ea6b-48fa-9f4e-d1ba551e605c",
-				"b5d6a220-40b9-4279-a0eb-c338932d7bd9",
-				"4115b65f-3d39-45aa-9325-34be3abf531b",
-				"d98c15ec-6e53-4dc5-af15-4d92c4d08f6e",
-				"6ebe4ec2-c9aa-45b4-bdfb-d05ce8cf3feb",
-				"6ec2f4f3-78e3-40b3-8476-fecd29332dd6"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
 			]
 		},
 		{
@@ -33,6 +26,12 @@
 				"fd5aa34e-03b3-495f-a66a-774b620a638a",
 				"1927bc55-588d-42eb-a84a-ae6a053f5789",
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
+				"d98c15ec-6e53-4dc5-af15-4d92c4d08f6e",
+				"4115b65f-3d39-45aa-9325-34be3abf531b",
+				"1f5141ae-60c4-405f-a89f-1ac9522e5835",
+				"167adbab-ea6b-48fa-9f4e-d1ba551e605c",
+				"b5d6a220-40b9-4279-a0eb-c338932d7bd9",
+				"6ec2f4f3-78e3-40b3-8476-fecd29332dd6",
 				"5eac9efc-d2c9-4704-bf7f-65e20378d7df",
 				"56d27607-6419-44b9-a851-6a67c13fdacb",
 				"d355e88c-8c4a-400d-8936-14e3974d2624",
@@ -1439,13 +1438,6 @@
 			"uuid": "d98c15ec-6e53-4dc5-af15-4d92c4d08f6e",
 			"title": "harvesting square shouldnt be green(maybe orange?)",
 			"description": "the harvest range blends with the building range\n",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "6ebe4ec2-c9aa-45b4-bdfb-d05ce8cf3feb",
-			"title": "bridge building? or research conveyers that can go over water?",
-			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
