@@ -204,16 +204,23 @@ func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 					# Use the global Autoload to apply damage
 					ResourceManager.request_harvest(neighbor, obj_info, damage)
 					
-					# Did the corruption kill it?
+					# Did the corruption chew it up completely?
 					if obj_info["health"] <= 0:
 						# Cancel regrowth if it was a tree
 						if ResourceManager.active_regrowth_tasks.has(neighbor):
 							ResourceManager.active_regrowth_tasks.erase(neighbor)
 							
-						# Force delete from the map
-						object_layer.set_cell(neighbor, -1)
-						level_ref.active_grid_objects.erase(neighbor)
-						
+						# Let the level handle resource deletion and pathfinder clearing
+						if level_ref and level_ref.has_method("_on_resource_destroyed"):
+							level_ref._on_resource_destroyed(neighbor)
+						else:
+							# Fallback if level_ref is not valid or doesn't have the method
+							object_layer.set_cell(neighbor, -1)
+							level_ref.active_grid_objects.erase(neighbor)
+							if building_manager and building_manager.pathfinder:
+								building_manager.pathfinder.set_obstacle(neighbor, false)
+								building_manager.pathfinder.set_weighted_obstacle(neighbor, 1.0)
+							
 						# Spread into the barren tile
 						_corrupt_tile(neighbor)
 							

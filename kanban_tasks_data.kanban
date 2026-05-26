@@ -11,7 +11,9 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"b49683d8-aa8e-4e7e-8462-6749768ea16b",
+				"c3698bff-0223-4c9e-b3bb-a05810a41485"
 			]
 		},
 		{
@@ -24,6 +26,7 @@
 			"title": "Done",
 			"tasks": [
 				"fd5aa34e-03b3-495f-a66a-774b620a638a",
+				"8340d90d-f07b-4ed9-9608-296c9390ce8f",
 				"1927bc55-588d-42eb-a84a-ae6a053f5789",
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
 				"d98c15ec-6e53-4dc5-af15-4d92c4d08f6e",
@@ -1444,6 +1447,27 @@
 		{
 			"uuid": "6ec2f4f3-78e3-40b3-8476-fecd29332dd6",
 			"title": "canceling sethome doesnt get rid of the ui",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b49683d8-aa8e-4e7e-8462-6749768ea16b",
+			"title": "red blood moon is way to much",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c3698bff-0223-4c9e-b3bb-a05810a41485",
+			"title": "enemies should pick targets more randomly so their attacks are more spread out",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8340d90d-f07b-4ed9-9608-296c9390ce8f",
+			"title": "when corruption spreads to a resource tile it isnt freed from pathfinding",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
