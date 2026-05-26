@@ -381,15 +381,7 @@ func _place_instant(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	if building is CoreBuilding:
 		_on_core_placed(building, grid_pos)
 	
-	if pathfinder:
-		var footprint = building.get_footprint(grid_pos)
-		if building.is_solid_obstacle:
-			for tile in footprint: pathfinder.set_obstacle(tile, true)
-		else:
-			if (building is WallBuilding):
-				for tile in footprint: pathfinder.set_weighted_obstacle(tile, building.path_cost, true)
-			else:
-				for tile in footprint: pathfinder.set_weighted_obstacle(tile, building.path_cost, false)
+	_register_building_pathfinder(building, grid_pos)
 	
 	ghost_building = null
 
@@ -760,6 +752,39 @@ func _register_occupied_tiles(building: Building):
 
 
 
+## Registers the building on the pathfinder, creating solid centers and passable but costly outer rings for large structures.
+func _register_building_pathfinder(building: Building, grid_pos: Vector2i):
+	if not pathfinder: return
+	
+	var footprint = building.get_footprint(grid_pos)
+	var size = building.size
+	
+	# Determine outer ring and inner center tiles if building is large enough (>= 3x3)
+	var is_large_obstacle = building.is_solid_obstacle and size.x >= 3 and size.y >= 3
+	
+	if is_large_obstacle:
+		for x in range(size.x):
+			for y in range(size.y):
+				var tile = grid_pos + Vector2i(x, y)
+				var is_center = x >= 1 and x < size.x - 1 and y >= 1 and y < size.y - 1
+				if is_center:
+					pathfinder.set_obstacle(tile, true)
+				else:
+					pathfinder.set_weighted_obstacle(tile, 10.0, false)
+	else:
+		if building.is_solid_obstacle:
+			for tile in footprint:
+				pathfinder.set_obstacle(tile, true)
+		else:
+			if (building is WallBuilding):
+				for tile in footprint:
+					pathfinder.set_weighted_obstacle(tile, building.path_cost, true)
+			else:
+				for tile in footprint:
+					pathfinder.set_weighted_obstacle(tile, building.path_cost, false)
+
+
+
 ## Registers a building that has completed construction, mapping its status and priority correctly.
 func register_finished_building(new_building: Building, grid_pos: Vector2i):
 	var old_priority_index = -1
@@ -779,15 +804,7 @@ func register_finished_building(new_building: Building, grid_pos: Vector2i):
 		new_building.fired_projectile.connect(level_ref._on_tower_fired)
 	new_building.destroyed.connect(_on_building_destroyed)
 	
-	if pathfinder:
-		var footprint = new_building.get_footprint(grid_pos)
-		if new_building.is_solid_obstacle:
-			for tile in footprint: pathfinder.set_obstacle(tile, true)
-		else:
-			if (new_building is WallBuilding):
-				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
-			else:
-				for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
+	_register_building_pathfinder(new_building, grid_pos)
 
 
 
@@ -946,15 +963,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 			new_building.fired_projectile.connect(level_ref._on_tower_fired)
 		new_building.destroyed.connect(_on_building_destroyed)
 		
-		if pathfinder:
-			var footprint = new_building.get_footprint(grid_pos)
-			if new_building.is_solid_obstacle:
-				for tile in footprint: pathfinder.set_obstacle(tile, true)
-			else:
-				if (new_building is WallBuilding):
-					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
-				else:
-					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
+		_register_building_pathfinder(new_building, grid_pos)
 		
 		if not upgrade_cost_dict.is_empty():
 			EconomyManager.spend_resources(upgrade_cost_dict)
@@ -1365,15 +1374,7 @@ func load_save_data(data: Dictionary):
 			
 		new_building.destroyed.connect(_on_building_destroyed)
 
-		if pathfinder:
-			var footprint = new_building.get_footprint(grid_pos)
-			if new_building.is_solid_obstacle:
-				for tile in footprint: pathfinder.set_obstacle(tile, true)
-			else:
-				if (new_building is WallBuilding):
-					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, true)
-				else:
-					for tile in footprint: pathfinder.set_weighted_obstacle(tile, new_building.path_cost, false)
+		_register_building_pathfinder(new_building, grid_pos)
 	if is_core_placed:
 		print_debug("load placed")
 		core_placed_event.emit()
