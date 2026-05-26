@@ -1060,8 +1060,48 @@ func _get_upgrade_stats(b: Building) -> Dictionary:
 
 
 
+## Checks if the given grid position is adjacent (orthogonally or diagonally) to walkable land.
+func _is_adjacent_to_walkable_land(grid_pos: Vector2i) -> bool:
+	if not terrain_layer: return false
+	
+	var neighbors = [
+		Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1),
+		Vector2i(-1,  0),                  Vector2i(1,  0),
+		Vector2i(-1,  1), Vector2i(0,  1), Vector2i(1,  1)
+	]
+	
+	for offset in neighbors:
+		var n_tile = grid_pos + offset
+		var tile_data = terrain_layer.get_cell_tile_data(n_tile)
+		if tile_data != null and tile_data.get_custom_data("buildable") == true:
+			return true
+			
+	return false
+
+
+
+## Validates if the given grid position can be terraformed (either removing debris or converting adjacent water).
+func can_terraform(grid_pos: Vector2i) -> bool:
+	if occupied_tiles.has(grid_pos): return false
+	
+	if object_layer and object_layer.get_cell_source_id(grid_pos) != -1:
+		return true
+	if level_ref and level_ref.active_grid_objects.has(grid_pos):
+		return true
+		
+	if terrain_layer:
+		var tile_data = terrain_layer.get_cell_tile_data(grid_pos)
+		if tile_data != null and tile_data.get_custom_data("buildable") == false:
+			# Water tile found! Enforce solid-adjacent constraint.
+			return _is_adjacent_to_walkable_land(grid_pos)
+			
+	return false
+
+
+
 func _try_add_terrain_job(grid_pos: Vector2i):
-	if occupied_tiles.has(grid_pos): return
+	if not can_terraform(grid_pos):
+		return
 		
 	var job_type = -1
 	if object_layer.get_cell_source_id(grid_pos) != -1 or level_ref.active_grid_objects.has(grid_pos):
@@ -1070,10 +1110,8 @@ func _try_add_terrain_job(grid_pos: Vector2i):
 		var tile_data = terrain_layer.get_cell_tile_data(grid_pos)
 		if tile_data != null and tile_data.get_custom_data("buildable") == false:
 			job_type = TerraformSite.JobType.CONVERT_WATER
-			
-	if job_type == -1:
-		print("Nothing to remove at: ", grid_pos)
-		return
+
+
 		
 	var site = terraform_site_scene.instantiate() as TerraformSite
 	add_child(site)
@@ -1219,8 +1257,8 @@ func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
 				if building.occupied_tiles.has(check_tile): continue
 				if valid_tiles.has(check_tile): continue
 				if check_tile in reserved_homes: continue
-				if pathfinder and pathfinder.enemy_astar.is_in_boundsv(check_tile):
-					if not pathfinder.enemy_astar.is_point_solid(check_tile):
+				if pathfinder and pathfinder.bot_astar.is_in_boundsv(check_tile):
+					if not pathfinder.bot_astar.is_point_solid(check_tile):
 						valid_tiles.append(check_tile)
 						if valid_tiles.size() >= count: return valid_tiles
 		search_radius += 1

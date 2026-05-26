@@ -39,7 +39,8 @@ func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Re
 			var is_water = tile_data.get_custom_data("is_water")
 			if is_water:
 				enemy_astar.set_point_weight_scale(coords, 10.0)
-				bot_astar.set_point_weight_scale(coords, 10.0)
+				bot_astar.set_point_solid(coords, true)
+
 
 			if object_layer.get_cell_source_id(coords) != -1:
 				enemy_astar.set_point_solid(coords, true)

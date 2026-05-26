@@ -112,7 +112,16 @@ func _draw_tool_highlight():
 		InputManager.InteractionMode.UPGRADE:
 			_draw_grid_highlight(Color(0.2, 0.8, 1.0, 0.3), Color(0.2, 0.8, 1.0, 0.8))
 		InputManager.InteractionMode.TERRAFORM:
-			_draw_grid_highlight(Color(1.0, 0.6, 0.0, 0.3), Color(1.0, 0.6, 0.0, 0.8))
+			var mouse_pos = get_global_mouse_position()
+			var grid_pos = level.terrain_layer.local_to_map(mouse_pos)
+			var can_tf = false
+			if level.building_manager and level.building_manager.has_method("can_terraform"):
+				can_tf = level.building_manager.can_terraform(grid_pos)
+			
+			if can_tf:
+				_draw_grid_highlight(Color(1.0, 0.6, 0.0, 0.3), Color(1.0, 0.6, 0.0, 0.8))
+			else:
+				_draw_grid_highlight(Color(1.0, 0.2, 0.2, 0.3), Color(1.0, 0.2, 0.2, 0.8))
 
 
 ## Renders a filled and bordered outline for a single tile at map locations.
