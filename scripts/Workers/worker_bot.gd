@@ -951,7 +951,7 @@ func get_reserved_home_tiles() -> Array[Vector2i]:
 
 
 
-## Validates home placement, ensuring target coordinate sits in build zones and is uncorrupted.
+## Validates home placement, ensuring target coordinate sits in build zones, is uncorrupted, and is walkable from current position.
 func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	if not level_ref or not level_ref.building_manager: return false
 	var bm = level_ref.building_manager
@@ -969,7 +969,15 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	if grid_pos in get_reserved_home_tiles():
 		return false
 		
+	# Enforce path walkability check from bot's current position to target home tile
+	if bm.pathfinder:
+		var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(grid_pos))
+		var path = bm.pathfinder.get_path_route(global_position, target_world, true)
+		if path.is_empty():
+			return false
+			
 	return true
+
 
 
 
