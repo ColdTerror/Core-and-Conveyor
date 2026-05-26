@@ -4,7 +4,7 @@
 #          pathfinding to priority targets/bots, combat/attack execution,
 #          taking damage from towers, and state saving/loading.
 # Dependencies: Autoload InputManager. Pathfinder node in scene. Group "Enemies".
-#               Group "WorkerBots". Group "PriorityTarget".
+#               Group "Bots". Group "PriorityTarget".
 # Signals:
 #   - died(enemy_instance: Enemy): Emitted when health drops to or below zero.
 # ==============================================================================
@@ -356,7 +356,7 @@ func _find_target():
 
 ## Scans nearby vicinity for worker bots to distract enemy aggro.
 func _scan_for_nearby_bots():
-	var bots = get_tree().get_nodes_in_group("WorkerBots")
+	var bots = get_tree().get_nodes_in_group("Bots")
 	var nearest_bot: Node2D = null
 	var min_bot_dist = bot_aggro_radius * bot_aggro_radius 
 	

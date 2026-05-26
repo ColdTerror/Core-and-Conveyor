@@ -1207,7 +1207,7 @@ func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
 	# Collect all currently reserved bot home tiles to avoid spawning on them
 	var reserved_homes: Array[Vector2i] = []
 	if is_inside_tree():
-		for bot in get_tree().get_nodes_in_group("WorkerBots"):
+		for bot in get_tree().get_nodes_in_group("Bots"):
 			if is_instance_valid(bot) and not bot.is_queued_for_deletion():
 				if "home_tile" in bot and bot.home_tile != Vector2i(-1, -1):
 					reserved_homes.append(bot.home_tile)

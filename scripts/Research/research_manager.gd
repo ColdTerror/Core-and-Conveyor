@@ -2,7 +2,7 @@
 # Script: research_manager.gd
 # Purpose: Global Autoload managing player technology unlocks, multiplier levels, 
 #          tier gates, and save/load state updates for player upgrades.
-# Dependencies: Global groups ("WorkerBots", "Towers", "Conveyors").
+# Dependencies: Global groups ("Bots", "Towers", "Conveyors").
 # Signals:
 #   - research_unlocked: Emitted whenever a technology is successfully researched.
 # ==============================================================================
@@ -122,7 +122,7 @@ func _apply_tech(tech_name: String):
 
 ## Forces existing worker bots to recalculate their stats after a research unlock.
 func _update_living_bots():
-	get_tree().call_group("WorkerBots", "_recalculate_stats")
+	get_tree().call_group("Bots", "_recalculate_stats")
 
 
 ## Forces defensive towers to apply research buffs.

@@ -478,7 +478,7 @@ func get_map_save_data() -> Dictionary:
 		}
 
 	var saved_bots = []
-	for bot in get_tree().get_nodes_in_group("WorkerBots"):
+	for bot in get_tree().get_nodes_in_group("Bots"):
 		saved_bots.append(bot.get_save_data())
 		
 	var current_camera = get_viewport().get_camera_2d()
