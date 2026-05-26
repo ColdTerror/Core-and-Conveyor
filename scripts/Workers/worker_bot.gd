@@ -1174,6 +1174,14 @@ func _draw_set_home_preview():
 	if not is_setting_home: return
 	if not level_ref or not level_ref.object_layer: return
 	
+	# Faintly draw all other reserved bot homes in a soft, semi-transparent blue
+	var reserved = get_reserved_home_tiles()
+	for tile in reserved:
+		var tile_local = to_local(level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(tile)))
+		var reserved_rect = Rect2(tile_local - Vector2(16, 16), Vector2(32, 32))
+		draw_rect(reserved_rect, Color(0.2, 0.8, 1.0, 0.05), true)
+		draw_rect(reserved_rect, Color(0.2, 0.8, 1.0, 0.3), false, 1.5)
+		
 	var mouse_global = get_global_mouse_position()
 	var mouse_grid = level_ref.object_layer.local_to_map(level_ref.object_layer.to_local(mouse_global))
 	var preview_local = to_local(level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(mouse_grid)))
@@ -1184,6 +1192,7 @@ func _draw_set_home_preview():
 	var rect = Rect2(preview_local - Vector2(16, 16), Vector2(32, 32))
 	draw_rect(rect, Color(box_color.r, box_color.g, box_color.b, 0.2), true)
 	draw_rect(rect, Color(box_color.r, box_color.g, box_color.b, 0.8), false, 2.0)
+
 
 
 func _draw_target_tile():
