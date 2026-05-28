@@ -13,22 +13,9 @@ var level_ref: Node2D
 
 
 
-## Links this wall to the active level instance.
+## Links this wall to the active level instance and handles autotile initialization.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
-
-
-
-## Sets solid status, sets initial path costs, paints wall tiles dynamically,
-## and connects health signals to dynamically sync path costs.
-func _ready():
-	super()
-	
-	# Force walls to be walkable obstacles
-	is_solid_obstacle = false 
-	
-	# Set our initial path cost to perfectly match our health
-	path_cost = float(health)
 	
 	if level_ref and level_ref.building_manager and (not is_ghost):
 		if sprite:
@@ -39,7 +26,18 @@ func _ready():
 		# Set the initial pathfinder weights
 		for tile in occupied_tiles:
 			level_ref.building_manager.pathfinder.set_weighted_obstacle(tile, path_cost, true)
-			
+
+
+## Sets solid status, sets initial path costs, and connects health signals to dynamically sync path costs.
+func _ready():
+	super()
+	
+	# Force walls to be walkable obstacles
+	is_solid_obstacle = false 
+	
+	# Set our initial path cost to perfectly match our health
+	path_cost = float(health)
+	
 	if has_signal("health_changed"):
 		health_changed.connect(_on_health_changed)
 

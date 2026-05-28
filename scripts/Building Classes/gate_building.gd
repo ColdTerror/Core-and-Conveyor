@@ -26,19 +26,9 @@ var is_horizontal: bool = true:
 		_update_gate_visuals()
 
 
-## Caches the level node instance reference.
+## Caches the level node instance reference and handles visual and pathfinder anchoring.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
-
-
-
-## Configures gate shapes, dynamic detection areas, custom multi-block physics, and pathfinding weights.
-func _ready():
-	size = Vector2i(3, 1) if is_horizontal else Vector2i(1, 3)
-	super()
-	
-	is_solid_obstacle = false 
-	path_cost = float(health)
 	
 	if level_ref and level_ref.building_manager and (not is_ghost):
 		# Anchoring the gate endpoints to visual walls
@@ -51,7 +41,16 @@ func _ready():
 		
 		# Center door begins closed and weighted
 		level_ref.building_manager.pathfinder.set_weighted_obstacle(occupied_tiles[1], path_cost, true)
-		
+
+
+## Configures gate shapes, dynamic detection areas, custom multi-block physics, and pathfinding weights.
+func _ready():
+	size = Vector2i(3, 1) if is_horizontal else Vector2i(1, 3)
+	super()
+	
+	is_solid_obstacle = false 
+	path_cost = float(health)
+	
 	# Build 3 separate collision boxes instead of one giant 3x1 shape
 	if has_node("AutoCollisionBody"):
 		var static_body = $AutoCollisionBody

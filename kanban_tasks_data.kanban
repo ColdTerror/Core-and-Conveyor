@@ -11,23 +11,24 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"b49683d8-aa8e-4e7e-8462-6749768ea16b"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"c3698bff-0223-4c9e-b3bb-a05810a41485"
+				"8bf905f6-f048-41be-a1c5-8594f2b2da7c"
 			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
-				"fd5aa34e-03b3-495f-a66a-774b620a638a",
+				"c3698bff-0223-4c9e-b3bb-a05810a41485",
 				"8340d90d-f07b-4ed9-9608-296c9390ce8f",
+				"b49683d8-aa8e-4e7e-8462-6749768ea16b",
+				"604bde7a-a701-4193-b773-e96eadad0123",
 				"1927bc55-588d-42eb-a84a-ae6a053f5789",
 				"162acffc-a2cc-45f2-b6f5-4c7cddbb6860",
 				"d98c15ec-6e53-4dc5-af15-4d92c4d08f6e",
@@ -1404,13 +1405,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "fd5aa34e-03b3-495f-a66a-774b620a638a",
-			"title": "get antigravity to remove extra numbering",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "1f5141ae-60c4-405f-a89f-1ac9522e5835",
 			"title": "bots can walk thru eachother, they should not have collision but maybe claim tiles?",
 			"description": "",
@@ -1469,6 +1463,20 @@
 		{
 			"uuid": "8340d90d-f07b-4ed9-9608-296c9390ce8f",
 			"title": "when corruption spreads to a resource tile it isnt freed from pathfinding",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8bf905f6-f048-41be-a1c5-8594f2b2da7c",
+			"title": "router bridges",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "604bde7a-a701-4193-b773-e96eadad0123",
+			"title": "wall autotiling broken?",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

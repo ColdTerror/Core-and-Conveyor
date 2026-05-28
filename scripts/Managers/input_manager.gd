@@ -86,7 +86,7 @@ func _unhandled_key_input(event: InputEvent):
 	
 	# DEBUG TOOLS
 	match event.keycode:
-		KEY_F8:
+		KEY_F7:
 			if level_ref and level_ref.has_node("TimeManager"):
 				print("DEBUG: Force Skipping to Sunset...")
 				level_ref.get_node("TimeManager").debug_skip_to_night()
