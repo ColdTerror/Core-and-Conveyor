@@ -20,7 +20,7 @@ func setup(level_instance: Node2D, _dir: Vector2i):
 
 
 ## Welcomes an incoming item node and tracks its entry vector to avoid routing it backwards.
-func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -> bool:
+func accept_item_node(item_node: Node2D, source_belt: Node2D = null) -> bool:
 	if held_item != null or not level_ref: 
 		return false
 	

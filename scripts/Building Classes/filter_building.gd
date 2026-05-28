@@ -36,7 +36,7 @@ func setup(level_instance: Node2D, dir: Vector2i):
 
 
 ## Restricts item receipt strictly to the rear entry side of the filter structure.
-func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -> bool:
+func accept_item_node(item_node: Node2D, source_belt: Node2D = null) -> bool:
 	if source_belt:
 		var manager = level_ref.building_manager
 		var my_grid = manager.object_layer.local_to_map(global_position)

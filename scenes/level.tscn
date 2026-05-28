@@ -9,6 +9,7 @@
 [ext_resource type="Resource" uid="uid://cwk72joli5ujg" path="res://resources/tiles/3_Forest.tres" id="6_fpun6"]
 [ext_resource type="Resource" uid="uid://reqe4t0u3m16" path="res://resources/tiles/4_Stone.tres" id="7_wc255"]
 [ext_resource type="Script" uid="uid://c800uxnceihnq" path="res://scripts/Managers/camera_controller.gd" id="9_8iemx"]
+[ext_resource type="PackedScene" uid="uid://ciqng866yv11g" path="res://scenes/buildings & related/belts & items/conveyer_bridge.tscn" id="11_ok3ci"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="13_arp2o"]
 [ext_resource type="PackedScene" uid="uid://2d6c3otixyl3" path="res://scenes/buildings & related/towers & defense/gate_building.tscn" id="14_0fmhk"]
 [ext_resource type="PackedScene" uid="uid://cs65262rv84b4" path="res://scenes/buildings & related/belts & items/StockpileBuilding/stockpile_building1.tscn" id="14_ux5qa"]
@@ -144,6 +145,7 @@ tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResourc
 conveyor_scene = ExtResource("19_gur6y")
 router_scene = ExtResource("20_2e2fo")
 filter_scene = ExtResource("16_535f6")
+bridge_scene = ExtResource("11_ok3ci")
 lumberjack_scene = ExtResource("15_8gofh")
 sawmill_scene = ExtResource("16_pqd0y")
 mine_scene = ExtResource("17_w3o6u")

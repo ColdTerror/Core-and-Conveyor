@@ -210,6 +210,8 @@ func refresh_ui():
 		_setup_bot_ui(selected_object)
 	elif selected_object is Enemy:
 		_setup_enemy_ui(selected_object)
+	elif selected_object is ConveyorBridge:
+		_setup_conveyor_bridge_ui(selected_object as ConveyorBridge)
 	elif selected_object is ConveyorBuilding:
 		_setup_conveyor_ui(selected_object as ConveyorBuilding)
 	elif selected_object is FilterBuilding:
@@ -503,8 +505,47 @@ func _setup_conveyor_ui(b: ConveyorBuilding):
 				b.held_item = null
 				
 				# Refresh the menu so the button vanishes
+		)
+
+
+
+## Shows visual cargo info and lets players dump items off conveyor bridge tracks.
+func _setup_conveyor_bridge_ui(b: ConveyorBridge):
+	var h_item_name = "Empty"
+	if b.horizontal_held_item and is_instance_valid(b.horizontal_held_item) and b.horizontal_held_item.item_data:
+		h_item_name = b.horizontal_held_item.item_data.display_name
+		
+	var v_item_name = "Empty"
+	if b.vertical_held_item and is_instance_valid(b.vertical_held_item) and b.vertical_held_item.item_data:
+		v_item_name = b.vertical_held_item.item_data.display_name
+		
+	info_label.text = "Horizontal Channel: %s\nVertical Channel: %s" % [h_item_name, v_item_name]
+	
+	if h_item_name != "Empty" or v_item_name != "Empty":
+		info_label.modulate = Color(0.4, 1.0, 0.4)
+	else:
+		info_label.modulate = Color(0.5, 0.5, 0.5)
+		
+	if b.horizontal_held_item and is_instance_valid(b.horizontal_held_item):
+		_create_button("Void Horizontal", Color(1.0, 0.3, 0.3), func():
+			if b.horizontal_held_item and is_instance_valid(b.horizontal_held_item):
+				if "item_data" in b.horizontal_held_item and b.horizontal_held_item.item_data:
+					EconomyManager.log_item_consumed(b.horizontal_held_item.item_data.display_name, 1)
+				b.horizontal_held_item.queue_free()
+				b.horizontal_held_item = null
 				refresh_ui()
 		)
+		
+	if b.vertical_held_item and is_instance_valid(b.vertical_held_item):
+		_create_button("Void Vertical", Color(1.0, 0.3, 0.3), func():
+			if b.vertical_held_item and is_instance_valid(b.vertical_held_item):
+				if "item_data" in b.vertical_held_item and b.vertical_held_item.item_data:
+					EconomyManager.log_item_consumed(b.vertical_held_item.item_data.display_name, 1)
+				b.vertical_held_item.queue_free()
+				b.vertical_held_item = null
+				refresh_ui()
+		)
+
 
 
 ## Displays active route filters and toggle commands for sorting belts.

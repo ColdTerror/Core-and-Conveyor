@@ -63,7 +63,7 @@ func accepts_item_at(_tile: Vector2i) -> bool:
 
 
 ## Welcomes an incoming item node, updating its parent scene hierarchy and snapping its coordinates.
-func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -> bool:
+func accept_item_node(item_node: Node2D, source_belt: Node2D = null) -> bool:
 	if held_item != null or not level_ref: 
 		return false
 	
@@ -72,12 +72,19 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 	
 	var old_parent = item_node.get_parent()
 	var perpendicular_transfer = false
+	var prev_direction = direction
 	
 	if source_belt:
 		if source_belt is RouterBuilding: 
 			perpendicular_transfer = true 
+			prev_direction = source_belt.direction
 		else:
-			var prev_direction = source_belt.direction
+			prev_direction = source_belt.get("direction") if "direction" in source_belt else Vector2i.RIGHT
+			if source_belt is ConveyorBridge:
+				var manager = level_ref.building_manager
+				var my_grid = manager.object_layer.local_to_map(global_position)
+				var source_grid = manager.object_layer.local_to_map(source_belt.global_position)
+				prev_direction = my_grid - source_grid
 			perpendicular_transfer = (Vector2(prev_direction).dot(Vector2(direction)) == 0)
 	
 	if old_parent and old_parent != level_ref:
@@ -88,7 +95,7 @@ func accept_item_node(item_node: Node2D, source_belt: ConveyorBuilding = null) -
 	
 	if perpendicular_transfer:
 		# Snap exactly to the side it entered from to avoid 0.99 pixel desync that causes stutters
-		var entry_edge = global_position - (Vector2(source_belt.direction) * 16.0)
+		var entry_edge = global_position - (Vector2(prev_direction) * 16.0)
 		item_node.global_position = entry_edge
 	else:
 		var back_edge = global_position - (Vector2(direction) * 16.0)
@@ -165,6 +172,9 @@ func _can_push_to_neighbor() -> bool:
 	var neighbor = _get_neighbor()
 	if not neighbor: 
 		return false
+		
+	if neighbor.has_method("accepts_item_node_from"):
+		return neighbor.accepts_item_node_from(self)
 	
 	if neighbor is ConveyorBuilding:
 		return neighbor.held_item == null or (neighbor.is_moving_to_edge and not neighbor.is_jammed)
@@ -181,8 +191,14 @@ func _push_to_neighbor() -> bool:
 	var neighbor = _get_neighbor()
 	if not neighbor: 
 		return false
+		
+	if neighbor.has_method("accept_item_node") and not (neighbor is ConveyorBuilding):
+		if neighbor.accept_item_node(held_item, self):
+			held_item = null
+			item_changed.emit()
+			return true
 	
-	if neighbor is ConveyorBuilding:
+	elif neighbor is ConveyorBuilding:
 		if neighbor.accept_item_node(held_item, self):
 			held_item = null
 			item_changed.emit()

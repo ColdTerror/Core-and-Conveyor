@@ -269,6 +269,14 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 	if occupied_tiles.has(grid_pos):
 		var existing_building = occupied_tiles[grid_pos]
 		if existing_building is ConveyorBuilding and ghost_building is ConveyorBuilding:
+			var existing_is_advanced = existing_building is RouterBuilding or existing_building is ConveyorBridge
+			var ghost_is_advanced = ghost_building is RouterBuilding or ghost_building is ConveyorBridge
+			
+			if existing_is_advanced and not ghost_is_advanced:
+				ghost_building.queue_free()
+				ghost_building = null
+				return true
+				
 			if existing_building.building_name == ghost_building.building_name:
 				# Same type — free rotation
 				if existing_building.direction != ghost_building.direction:

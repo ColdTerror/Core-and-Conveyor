@@ -34,6 +34,7 @@ const RES_STONE := 4
 @export var conveyor_scene: PackedScene 
 @export var router_scene: PackedScene 
 @export var filter_scene: PackedScene
+@export var bridge_scene: PackedScene
 
 @export_subgroup("Production")
 @export var lumberjack_scene: PackedScene
@@ -153,7 +154,8 @@ func _setup_hotbar_items():
 		"Logistics": [
 			{"name": "Belt", "scene": conveyor_scene},
 			{"name": "Router", "scene": router_scene},
-			{"name": "Filter", "scene": filter_scene}
+			{"name": "Filter", "scene": filter_scene},
+			{"name": "Conveyer Bridge", "scene": bridge_scene}
 		],
 		"Production": [
 			{"name": "Hut", "scene": lumberjack_scene},

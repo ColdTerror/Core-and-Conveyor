@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://ciqng866yv11g"]
+
+[ext_resource type="Script" uid="uid://cqmijk6fvfwpf" path="res://scripts/Building Classes/conveyer_bridge.gd" id="1_agkdx"]
+[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_p304n"]
+
+[node name="ConveyerBridge" type="Node2D" unique_id=531706107]
+script = ExtResource("1_agkdx")
+is_solid_obstacle = false
+building_name = "Conveyer Bridge"
+icon = ExtResource("1_p304n")
+build_range = 2.0
+corruption_range = 0.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=227243104]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_p304n")
