@@ -51,10 +51,14 @@ func show_building_info(b: Node2D):
 	current_building = b
 	
 	var b_name = b.building_name if "building_name" in b else "Unknown Object"
-	if "building_level" in b:
-		name_label.text = "%s (Lv. %d)" % [b_name, b.building_level]
+	if b is CoreBuilding:
+		name_label.text = "%s [Tier %d]" % [b_name, ResearchManager.tier_unlocked]
 	else:
-		name_label.text = b_name
+		var has_upgrades = ("upgrades_to" in b and b.upgrades_to != null) or ("building_level" in b and b.building_level > 1)
+		if has_upgrades and "building_level" in b:
+			name_label.text = "%s (Lv %d)" % [b_name, b.building_level]
+		else:
+			name_label.text = b_name
 
 	if "health" in b and "max_health" in b:
 		health_label.visible = true
@@ -215,6 +219,8 @@ func _refresh_stats_ui(b: Node2D):
 	
 	if b.building_name == "Worker Bot":
 		_collect_bot_stats(b, stats)
+	elif b is CoreBuilding:
+		_collect_core_stats(b, stats)
 	elif b is TowerBuilding:
 		_collect_tower_stats(b, stats)
 	elif b is ProcessorBuilding:
@@ -256,6 +262,15 @@ func _collect_bot_stats(b: Node2D, stats: Array):
 	if "is_limping" in b and b.is_limping: stats.append("Status: Limping!")
 	if "is_flying" in b:
 		stats.append("Flight: Enabled" if b.is_flying else "Flight: Locked")
+
+
+
+## Formats core tech tier and worker bot population limits.
+func _collect_core_stats(b: Node2D, stats: Array):
+	stats.append("Core Tier: %d" % ResearchManager.tier_unlocked)
+	var current_bots = get_tree().get_nodes_in_group("Bots").size()
+	stats.append("Worker Bots: %d / %d" % [current_bots, ResearchManager.max_bots_allowed])
+
 
 
 ## Compiles defense turret rate of fire, damage, and ammunition stats.

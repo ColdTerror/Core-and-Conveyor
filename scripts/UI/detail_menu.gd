@@ -97,7 +97,14 @@ func open_menu(target: Node2D):
 	if selected_object is Enemy:
 		title_label.text = selected_object.enemy_name
 	elif "building_name" in selected_object:
-		title_label.text = selected_object.building_name
+		if selected_object is CoreBuilding:
+			title_label.text = "%s [Tier %d]" % [selected_object.building_name, ResearchManager.tier_unlocked]
+		else:
+			var has_upgrades = ("upgrades_to" in selected_object and selected_object.upgrades_to != null) or ("building_level" in selected_object and selected_object.building_level > 1)
+			if has_upgrades and "building_level" in selected_object:
+				title_label.text = "%s (Lv %d)" % [selected_object.building_name, selected_object.building_level]
+			else:
+				title_label.text = selected_object.building_name
 	else:
 		title_label.text = "Unknown Entity"
 	
