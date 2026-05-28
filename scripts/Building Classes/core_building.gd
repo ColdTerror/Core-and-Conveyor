@@ -87,7 +87,7 @@ func start_bot_construction():
 		return
 		
 	var current_bots = get_tree().get_nodes_in_group("Workers").size()
-	var max_bots = ResearchManager.max_bots_allowed if Engine.has_singleton("ResearchManager") else 2
+	var max_bots = ResearchManager.max_bots_allowed
 	if current_bots >= max_bots:
 		print("Max bots reached!")
 		return
@@ -270,7 +270,7 @@ func _spawn_new_bot():
 		new_bot.hovered.connect(InputManager._on_object_hovered)
 		new_bot.unhovered.connect(InputManager._on_object_unhovered)
 		
-	if "bot_level" in new_bot and Engine.has_singleton("ResearchManager"):
+	if "bot_level" in new_bot:
 		new_bot.bot_level = ResearchManager.bot_start_level
 
 

@@ -53,9 +53,8 @@ func _process(_delta):
 			var level_str = ""
 			if "bot_level" in selected_object and "current_xp" in selected_object and "XP_THRESHOLDS" in selected_object:
 				var global_max = 2
-				if ClassDB.class_exists("ResearchManager") or Engine.has_singleton("ResearchManager"):
-					if ResearchManager.has_method("get_bot_max_level"):
-						global_max = ResearchManager.get_bot_max_level()
+				if ResearchManager.has_method("get_bot_max_level"):
+					global_max = ResearchManager.get_bot_max_level()
 						
 				level_str = "Level: %d / %d | " % [selected_object.bot_level, global_max]
 				if selected_object.bot_level >= global_max:
@@ -331,7 +330,7 @@ func _setup_core_ui(b: CoreBuilding):
 
 	# Bot construction UI
 	var current_bots = get_tree().get_nodes_in_group("Bots").size()
-	var max_bots = ResearchManager.max_bots_allowed if Engine.has_singleton("ResearchManager") else 2
+	var max_bots = ResearchManager.max_bots_allowed
 	
 	info_label.text += "Worker Bots: %d / %d\n" % [current_bots, max_bots]
 
@@ -431,9 +430,7 @@ func _setup_bot_ui(b: Node2D):
 	var level_str = ""
 	if "bot_level" in b and "current_xp" in b and "XP_THRESHOLDS" in b:
 		var global_max = 2
-		if ClassDB.class_exists("ResearchManager") or Engine.has_singleton("ResearchManager"):
-			if ResearchManager.has_method("get_bot_max_level"):
-				global_max = ResearchManager.get_bot_max_level()
+			global_max = ResearchManager.get_bot_max_level()
 				
 		level_str = "Level: %d / %d | " % [b.bot_level, global_max]
 		if b.bot_level >= global_max:

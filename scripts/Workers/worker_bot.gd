@@ -76,6 +76,7 @@ var carried_item_res: Resource = null
 var current_energy: float = 100.0
 var is_limping: bool = false
 var is_flying: bool = false
+var _flight_time: float = 0.0
 var _health_accumulator: float = 0.0
 
 var target_tile: Vector2i = Vector2i(-1, -1)
@@ -118,6 +119,24 @@ func _process(delta):
 	queue_redraw()
 	_handle_energy(delta)
 	
+	if is_flying and sprite:
+		var is_on_unwalkable = false
+		if level_ref and level_ref.object_layer and level_ref.terrain_layer:
+			var current_tile = level_ref.object_layer.local_to_map(global_position)
+			var tile_data = level_ref.terrain_layer.get_cell_tile_data(current_tile)
+			if tile_data == null or not tile_data.get_custom_data("is_Walkable") or tile_data.get_custom_data("is_water"):
+				is_on_unwalkable = true
+				
+		if is_on_unwalkable:
+			_flight_time += delta
+			var base_float_y = -6.0
+			var bobble_y = sin(_flight_time * 5.0) * 3.0
+			sprite.position.y = base_float_y + bobble_y
+		else:
+			sprite.position.y = 0.0
+	elif sprite:
+		sprite.position.y = 0.0
+		
 	match current_state:
 		State.IDLE:
 			# Safety check: if a building was placed on top of the bot, pop it out first
@@ -210,8 +229,7 @@ func _recalculate_stats():
 	max_health = calc_max_hp
 	health = int(max_health * hp_ratio)
 	
-	if Engine.has_singleton("ResearchManager") or ClassDB.class_exists("ResearchManager"):
-		is_flying = "Thruster Upgrade" in ResearchManager.unlocked_techs
+	is_flying = "Thruster Upgrade" in ResearchManager.unlocked_techs
 
 
 ## Grants experience points to the bot, managing level boundaries.

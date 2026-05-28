@@ -112,7 +112,7 @@ func _apply_tech(tech_name: String):
 		"Building Limit 2":
 			max_buildings_allowed = 40
 		"Building Limit 3":
-			max_buildings_allowed = 60
+			max_buildings_allowed = 70
 		"Tower Damage 1":
 			tower_damage_mult = 1.10
 		"Tower Damage 2":

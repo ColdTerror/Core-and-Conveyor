@@ -254,6 +254,8 @@ func _collect_bot_stats(b: Node2D, stats: Array):
 	if "energy_recharge_rate" in b: stats.append("Recharge: %.0f/s" % b.energy_recharge_rate)
 	if "energy_drain_rate" in b: stats.append("Drain: %.0f/s" % b.energy_drain_rate)
 	if "is_limping" in b and b.is_limping: stats.append("Status: Limping!")
+	if "is_flying" in b:
+		stats.append("Flight: Enabled" if b.is_flying else "Flight: Locked")
 
 
 ## Compiles defense turret rate of fire, damage, and ammunition stats.

@@ -11,7 +11,8 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"bbff683d-57ba-462b-8fbd-a57233cee313"
 			]
 		},
 		{
@@ -25,6 +26,7 @@
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
+				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
 				"c3698bff-0223-4c9e-b3bb-a05810a41485",
 				"8340d90d-f07b-4ed9-9608-296c9390ce8f",
 				"8bf905f6-f048-41be-a1c5-8594f2b2da7c",
@@ -1518,6 +1520,20 @@
 		{
 			"uuid": "1feea0be-45a7-493d-b295-3af7049b113c",
 			"title": "scroll edit doesnt stick the first time, but the second time it does",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "bbff683d-57ba-462b-8fbd-a57233cee313",
+			"title": "max bots and max bot level isnt reflected in detail menu in core/bot",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "aad188c0-33fa-4d2f-8450-352cb9a3c612",
+			"title": "bot is flight isnt toggled? (maybe not in hover)",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

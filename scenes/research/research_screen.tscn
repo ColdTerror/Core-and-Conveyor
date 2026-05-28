@@ -147,7 +147,7 @@ slot/0/left_enabled = false
 research_name = "Core Expansion 1"
 desc = "Unlock Tier 0 Research"
 research_cost = {
-ExtResource("3_xgb3y"): 25
+ExtResource("3_xgb3y"): 1
 }
 
 [node name="Bot1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
@@ -231,7 +231,7 @@ slot/0/left_enabled = false
 research_name = "Wave Measurement"
 desc = "Estimate Enemy Count at Night"
 research_cost = {
-ExtResource("3_xgb3y"): 50
+ExtResource("3_xgb3y"): 1
 }
 
 [node name="Belt1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=780544748 instance=ExtResource("2_l6ox2")]
@@ -271,7 +271,7 @@ title = "Core Expansion 2"
 research_name = "Core Expansion 2"
 desc = "Unlock Tier 1 Research"
 research_cost = {
-ExtResource("3_xgb3y"): 25
+ExtResource("3_xgb3y"): 1
 }
 
 [node name="Bot2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=659654113 instance=ExtResource("2_l6ox2")]
@@ -351,7 +351,7 @@ title = "Moon Measurement 1"
 research_name = "Moon Measurement 1"
 desc = "Can see moon phase at 4pm"
 research_cost = {
-ExtResource("3_xgb3y"): 50
+ExtResource("3_xgb3y"): 1
 }
 
 [node name="Belt2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1969009587 instance=ExtResource("2_l6ox2")]
@@ -391,7 +391,7 @@ slot/0/right_enabled = false
 research_name = "Core Expansion 3"
 desc = "Unlock Tier 2 Research"
 research_cost = {
-ExtResource("3_xgb3y"): 25
+ExtResource("3_xgb3y"): 1
 }
 
 [node name="Bot3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1823735036 instance=ExtResource("2_l6ox2")]
@@ -430,7 +430,7 @@ selectable = false
 title = "Building Limit 3"
 slot/0/right_enabled = false
 research_name = "Building Limit 3"
-desc = "Increase Building Limit by 20"
+desc = "Increase Building Limit by 30"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
@@ -475,7 +475,7 @@ slot/0/right_enabled = false
 research_name = "Moon Measurement 2"
 desc = "Can see Moon Phase at Dawn"
 research_cost = {
-ExtResource("3_xgb3y"): 50
+ExtResource("3_xgb3y"): 1
 }
 
 [node name="Belt3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1739864172 instance=ExtResource("2_l6ox2")]
