@@ -49,6 +49,7 @@ text = "Close"
 [node name="GraphEdit" type="GraphEdit" parent="BackgroundBlocker/MarginContainer/VBoxContainer" unique_id=1474269741]
 layout_mode = 2
 size_flags_vertical = 3
+scroll_offset = Vector2(-375, -50)
 grid_pattern = 1
 snapping_distance = 50
 connections = Array[Dictionary]([{
@@ -58,10 +59,22 @@ connections = Array[Dictionary]([{
 "to_node": &"Core2",
 "to_port": 0
 }, {
+"from_node": &"Core2",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"Core3",
+"to_port": 0
+}, {
 "from_node": &"Bot1",
 "from_port": 0,
 "keep_alive": false,
 "to_node": &"Bot2",
+"to_port": 0
+}, {
+"from_node": &"Bot2",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"Bot3",
 "to_port": 0
 }, {
 "from_node": &"Building1",
@@ -70,10 +83,22 @@ connections = Array[Dictionary]([{
 "to_node": &"Building2",
 "to_port": 0
 }, {
+"from_node": &"Building2",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"Building3",
+"to_port": 0
+}, {
 "from_node": &"Tower1",
 "from_port": 0,
 "keep_alive": false,
 "to_node": &"Tower2",
+"to_port": 0
+}, {
+"from_node": &"Tower2",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"Tower3",
 "to_port": 0
 }, {
 "from_node": &"Global1",
@@ -82,10 +107,22 @@ connections = Array[Dictionary]([{
 "to_node": &"Global2",
 "to_port": 0
 }, {
+"from_node": &"Global2",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"Global3",
+"to_port": 0
+}, {
 "from_node": &"Belt1",
 "from_port": 0,
 "keep_alive": false,
 "to_node": &"Belt2",
+"to_port": 0
+}, {
+"from_node": &"Belt2",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"Belt3",
 "to_port": 0
 }])
 zoom = 0.75
@@ -95,13 +132,18 @@ show_minimap_button = false
 show_arrange_button = false
 
 [node name="Core1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1401898486 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_right = 350.0
-offset_bottom = 150.0
+offset_left = 375.0
+offset_top = 50.0
+offset_right = 775.0
+offset_bottom = 200.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 draggable = false
+selectable = false
 title = "Core Expansion 1"
+slot/0/left_enabled = false
 research_name = "Core Expansion 1"
 desc = "Unlock Tier 0 Research"
 research_cost = {
@@ -109,15 +151,19 @@ ExtResource("3_xgb3y"): 25
 }
 
 [node name="Bot1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_top = 150.0
-offset_right = 350.0
-offset_bottom = 300.0
+offset_left = 375.0
+offset_top = 200.0
+offset_right = 775.0
+offset_bottom = 350.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 200)
 draggable = false
+selectable = false
 title = "Fleet Expansion"
+slot/0/left_enabled = false
 research_name = "Fleet Expansion"
 desc = "Increase Max Bots to 5"
 research_cost = {
@@ -126,15 +172,19 @@ ExtResource("4_3s71f"): 1
 }
 
 [node name="Building1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_top = 300.0
-offset_right = 350.0
-offset_bottom = 450.0
+offset_left = 375.0
+offset_top = 350.0
+offset_right = 775.0
+offset_bottom = 500.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 400)
 draggable = false
+selectable = false
 title = "Building Limit 1"
+slot/0/left_enabled = false
 research_name = "Building Limit 1"
 desc = "Increase Building Limit by 10"
 research_cost = {
@@ -142,49 +192,62 @@ ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
 }
 
-[node name="Global1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
+[node name="Tower1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=919121047 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_top = 600.0
-offset_right = 350.0
-offset_bottom = 750.0
+offset_left = 375.0
+offset_top = 500.0
+offset_right = 775.0
+offset_bottom = 662.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(0, 600)
+draggable = false
+selectable = false
+title = "Tower Damage 1"
+slot/0/left_enabled = false
+research_name = "Tower Damage 1"
+desc = "Increase all Tower Damage by 10%
+Total(1.1x)"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Global1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 375.0
+offset_top = 650.0
+offset_right = 775.0
+offset_bottom = 800.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 800)
 draggable = false
+selectable = false
 title = "Wave Measurement"
+slot/0/left_enabled = false
 research_name = "Wave Measurement"
 desc = "Estimate Enemy Count at Night"
 research_cost = {
 ExtResource("3_xgb3y"): 50
 }
 
-[node name="Tower1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=919121047 instance=ExtResource("2_l6ox2")]
-layout_mode = 0
-offset_top = 450.0
-offset_right = 350.0
-offset_bottom = 600.0
-scale = Vector2(0.75, 0.75)
-mouse_filter = 1
-position_offset = Vector2(0, 600)
-draggable = false
-title = "Tower Damage 1"
-research_name = "Tower Damage 1"
-desc = "Increase all Tower Damage by 10%"
-research_cost = {
-ExtResource("3_xgb3y"): 50,
-ExtResource("4_3s71f"): 50
-}
-
 [node name="Belt1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=780544748 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_top = 750.0
-offset_right = 350.0
-offset_bottom = 900.0
+offset_left = 375.0
+offset_top = 800.0
+offset_right = 775.0
+offset_bottom = 950.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 1000)
 draggable = false
+selectable = false
 title = "Belt Speed 1"
+slot/0/left_enabled = false
 research_name = "Belt Speed 1"
 desc = "Sets Belt Speed to 1.25x"
 research_cost = {
@@ -193,14 +256,17 @@ ExtResource("4_3s71f"): 50
 }
 
 [node name="Core2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=134985909 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_right = 725.0
-offset_bottom = 150.0
+offset_left = 750.0
+offset_top = 50.0
+offset_right = 1150.0
+offset_bottom = 200.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 0)
 draggable = false
+selectable = false
 title = "Core Expansion 2"
 research_name = "Core Expansion 2"
 desc = "Unlock Tier 1 Research"
@@ -209,15 +275,17 @@ ExtResource("3_xgb3y"): 25
 }
 
 [node name="Bot2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=659654113 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 150.0
-offset_right = 725.0
-offset_bottom = 300.0
+offset_left = 750.0
+offset_top = 200.0
+offset_right = 1150.0
+offset_bottom = 350.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 200)
 draggable = false
+selectable = false
 title = "Advanced Tooling"
 research_name = "Advanced Tooling"
 desc = "Increase Max Bot Level to 4"
@@ -227,71 +295,206 @@ ExtResource("4_3s71f"): 1
 }
 
 [node name="Building2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=568078980 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 300.0
-offset_right = 725.0
-offset_bottom = 450.0
+offset_left = 750.0
+offset_top = 350.0
+offset_right = 1150.0
+offset_bottom = 500.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 400)
 draggable = false
+selectable = false
 title = "Building Limit 2"
 research_name = "Building Limit 2"
-desc = "Increase Building Limit by20"
+desc = "Increase Building Limit by 20"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Tower2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1143563071 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 750.0
+offset_top = 500.0
+offset_right = 1150.0
+offset_bottom = 662.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(500, 600)
+draggable = false
+selectable = false
+title = "Tower Damage 2"
+research_name = "Tower Damage 2"
+desc = "Increase all Tower Damage by 15%
+Total(1.25x)"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
 }
 
 [node name="Global2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=383648997 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 600.0
-offset_right = 739.0
-offset_bottom = 750.0
+offset_left = 750.0
+offset_top = 650.0
+offset_right = 1172.0
+offset_bottom = 800.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 800)
 draggable = false
-title = "Moon Measurement"
-research_name = "Moon Measurement"
-desc = "Tell what moon phase is coming that night"
+selectable = false
+title = "Moon Measurement 1"
+research_name = "Moon Measurement 1"
+desc = "Can see moon phase at 4pm"
 research_cost = {
 ExtResource("3_xgb3y"): 50
 }
 
-[node name="Tower2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1143563071 instance=ExtResource("2_l6ox2")]
+[node name="Belt2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1969009587 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 450.0
-offset_right = 725.0
-offset_bottom = 600.0
+offset_left = 750.0
+offset_top = 800.0
+offset_right = 1150.0
+offset_bottom = 950.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
-position_offset = Vector2(500, 600)
+position_offset = Vector2(500, 1000)
 draggable = false
-title = "Tower Damage 2"
-research_name = "Tower Damage 2"
-desc = "Increase all Tower Damage by 15%"
+selectable = false
+title = "Belt Speed 2"
+research_name = "Belt Speed 2"
+desc = "Sets Belt Speed to 1.5x"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
 }
 
-[node name="Belt2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1969009587 instance=ExtResource("2_l6ox2")]
+[node name="Core3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1126082275 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 750.0
-offset_right = 725.0
-offset_bottom = 900.0
+offset_left = 1125.0
+offset_top = 50.0
+offset_right = 1525.0
+offset_bottom = 200.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
-position_offset = Vector2(500, 1000)
+position_offset = Vector2(1000, 0)
 draggable = false
-title = "Belt Speed 2"
-research_name = "Belt Speed 2"
-desc = "Sets Belt Speed to 1.5x"
+selectable = false
+title = "Core Expansion 3"
+slot/0/right_enabled = false
+research_name = "Core Expansion 3"
+desc = "Unlock Tier 2 Research"
+research_cost = {
+ExtResource("3_xgb3y"): 25
+}
+
+[node name="Bot3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1823735036 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 1125.0
+offset_top = 200.0
+offset_right = 1525.0
+offset_bottom = 350.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1000, 200)
+draggable = false
+selectable = false
+title = "Thruster Upgrade"
+slot/0/right_enabled = false
+research_name = "Thruster Upgrade"
+desc = "Allow Bots to Navigate Difficult Terrain"
+research_cost = {
+ExtResource("3_xgb3y"): 1,
+ExtResource("4_3s71f"): 1
+}
+
+[node name="Building3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=538164323 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 1125.0
+offset_top = 350.0
+offset_right = 1525.0
+offset_bottom = 500.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1000, 400)
+draggable = false
+selectable = false
+title = "Building Limit 3"
+slot/0/right_enabled = false
+research_name = "Building Limit 3"
+desc = "Increase Building Limit by 20"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Tower3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=673479780 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 1125.0
+offset_top = 500.0
+offset_right = 1525.0
+offset_bottom = 662.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1000, 600)
+draggable = false
+selectable = false
+title = "Tower Damage 3"
+slot/0/right_enabled = false
+research_name = "Tower Damage 3"
+desc = "Increase all Tower Damage by 25%
+Total(1.5x)"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Global3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=865153567 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 1125.0
+offset_top = 650.0
+offset_right = 1525.0
+offset_bottom = 800.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1000, 800)
+draggable = false
+selectable = false
+title = "Moon Measurement 2"
+slot/0/right_enabled = false
+research_name = "Moon Measurement 2"
+desc = "Can see Moon Phase at Dawn"
+research_cost = {
+ExtResource("3_xgb3y"): 50
+}
+
+[node name="Belt3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1739864172 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 1125.0
+offset_top = 800.0
+offset_right = 1525.0
+offset_bottom = 962.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1000, 1000)
+draggable = false
+selectable = false
+title = "Pneumatic Logistics"
+slot/0/right_enabled = false
+research_name = "Pneumatic Logistics"
+desc = "Unlocks the Item Launcher and 
+Item Receiver structures"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50

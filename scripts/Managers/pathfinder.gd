@@ -7,20 +7,21 @@
 extends Node
 class_name Pathfinder
 
-# --- THE DUAL BRAINS ---
+# --- THE TRIPLE BRAINS ---
 var enemy_astar = AStarGrid2D.new()
 var bot_astar = AStarGrid2D.new()
+var flying_astar = AStarGrid2D.new()
 var main_layer: TileMapLayer 
 
 
 
-## Sets up both AStarGrid2D brains (enemy and bot) using terrain walkable/water rules.
+## Sets up all three AStarGrid2D brains (enemy, bot, and flying) using terrain walkable/water rules.
 func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Rect2i):
-	print("Pathfinder: Setup Dual-Brains...")
+	print("Pathfinder: Setup Triple-Brains...")
 	main_layer = terrain_layer
 	
-	# Setup both grids exactly the same
-	for astar in [enemy_astar, bot_astar]:
+	# Setup all three grids exactly the same
+	for astar in [enemy_astar, bot_astar, flying_astar]:
 		astar.region = map_rect
 		astar.cell_size = Vector2(1, 1)
 		astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
@@ -34,25 +35,31 @@ func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Re
 			if tile_data == null or not tile_data.get_custom_data("is_Walkable"):
 				enemy_astar.set_point_solid(coords, true)
 				bot_astar.set_point_solid(coords, true)
+				# Chasms are walkable for flying bots!
+				flying_astar.set_point_solid(coords, false)
 				continue
 				
 			var is_water = tile_data.get_custom_data("is_water")
 			if is_water:
 				enemy_astar.set_point_weight_scale(coords, 10.0)
 				bot_astar.set_point_solid(coords, true)
-
+				# Water is walkable for flying bots!
+				flying_astar.set_point_solid(coords, false)
 
 			if object_layer.get_cell_source_id(coords) != -1:
 				enemy_astar.set_point_solid(coords, true)
 				bot_astar.set_point_solid(coords, true)
+				# Real placed buildings are still solid for flying bots to prevent overlapping
+				flying_astar.set_point_solid(coords, true)
 
 
 
-## Toggles the solid/obstacle state of a specific coordinate in both grids.
+## Toggles the solid/obstacle state of a specific coordinate in all three grids.
 func set_obstacle(coords: Vector2i, is_solid: bool):
 	if enemy_astar.is_in_boundsv(coords):
 		enemy_astar.set_point_solid(coords, is_solid)
 		bot_astar.set_point_solid(coords, is_solid)
+		flying_astar.set_point_solid(coords, is_solid)
 
 
 
@@ -67,10 +74,14 @@ func set_weighted_obstacle(coords: Vector2i, cost: float, is_solid_for_bots: boo
 		if is_solid_for_bots:
 			# It's a Wall! Completely block the bot.
 			bot_astar.set_point_solid(coords, true)
+			# Flying bots fly over walls!
+			flying_astar.set_point_solid(coords, false)
 		else:
 			# It's Water/Mud! Let the bot walk through it, but apply the cost penalty.
 			bot_astar.set_point_solid(coords, false)
 			bot_astar.set_point_weight_scale(coords, cost)
+			
+			flying_astar.set_point_solid(coords, false)
 
 
 
@@ -81,6 +92,10 @@ func set_gate_obstacle(coords: Vector2i, cost: float, is_open: bool):
 		bot_astar.set_point_solid(coords, false)
 		bot_astar.set_point_weight_scale(coords, 1.0)
 		
+		# Flying bots also see gates as open doors
+		flying_astar.set_point_solid(coords, false)
+		flying_astar.set_point_weight_scale(coords, 1.0)
+		
 		# Enemies see the truth! 1.0 if open, HP Cost if closed.
 		enemy_astar.set_point_solid(coords, false)
 		enemy_astar.set_point_weight_scale(coords, 1.0 if is_open else cost)
@@ -88,8 +103,10 @@ func set_gate_obstacle(coords: Vector2i, cost: float, is_open: bool):
 
 
 ## Traces and returns a path routing vector array between two world space vectors.
-func get_path_route(start_world: Vector2, end_world: Vector2, is_bot: bool = false) -> PackedVector2Array:
-	var active_astar = bot_astar if is_bot else enemy_astar
+func get_path_route(start_world: Vector2, end_world: Vector2, is_bot: bool = false, is_flying: bool = false) -> PackedVector2Array:
+	var active_astar = enemy_astar
+	if is_bot:
+		active_astar = flying_astar if is_flying else bot_astar
 	
 	var start_local = main_layer.to_local(start_world)
 	var end_local = main_layer.to_local(end_world)

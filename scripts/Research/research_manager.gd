@@ -37,6 +37,11 @@ const TECH_TIERS: Dictionary = {
 	"Tower Damage 2":   2,
 	"Moon Measurement": 2,
 	"Core Expansion 3": 2,   # Requires tier 2, unlocks tier 3
+	"Building Limit 3": 3,
+	"Tower Damage 3":   3,
+	"Weekly Radar":     3,
+	"Thruster Upgrade": 3,
+	"Pneumatic Logistics": 3,
 }
 
 var unlocked_techs: Array[String] = []
@@ -106,14 +111,24 @@ func _apply_tech(tech_name: String):
 			max_buildings_allowed = 20
 		"Building Limit 2":
 			max_buildings_allowed = 40
+		"Building Limit 3":
+			max_buildings_allowed = 60
 		"Tower Damage 1":
 			tower_damage_mult = 1.10
 		"Tower Damage 2":
 			tower_damage_mult = 1.25
+		"Tower Damage 3":
+			tower_damage_mult = 1.50
 		"Wave Measurement":
 			wave_measure = true
-		"Moon Measurement", "Moon Measurement 1": 
+		"Moon Measurement 1": 
 			moon_measure_level = 1
+		"Moon Measurement 2":
+			moon_measure_level = 2
+		"Thruster Upgrade":
+			pass
+		"Pneumatic Logistics":
+			pass
 		_:
 			print("WARNING: Unknown tech -> ", tech_name)
 	print(tech_name)

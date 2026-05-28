@@ -75,6 +75,7 @@ var carried_item_res: Resource = null
 
 var current_energy: float = 100.0
 var is_limping: bool = false
+var is_flying: bool = false
 var _health_accumulator: float = 0.0
 
 var target_tile: Vector2i = Vector2i(-1, -1)
@@ -208,6 +209,9 @@ func _recalculate_stats():
 	var hp_ratio = float(health) / float(max_health)
 	max_health = calc_max_hp
 	health = int(max_health * hp_ratio)
+	
+	if Engine.has_singleton("ResearchManager") or ClassDB.class_exists("ResearchManager"):
+		is_flying = "Thruster Upgrade" in ResearchManager.unlocked_techs
 
 
 ## Grants experience points to the bot, managing level boundaries.
@@ -391,7 +395,7 @@ func _find_priority_job():
 	_clear_reservation()
 	if not level_ref or not level_ref.building_manager: return
 
-	var best_job = level_ref.building_manager.get_highest_priority_job(global_position)
+	var best_job = level_ref.building_manager.get_highest_priority_job(global_position, is_flying)
 
 	if best_job == null:
 		if carried_amount > 0:
@@ -622,7 +626,7 @@ func _request_path(target_tiles: Array, is_building: bool = false):
 		return
 		
 	var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(standing_tile))
-	var packed_path = pathfinder.get_path_route(global_position, target_world, true)
+	var packed_path = pathfinder.get_path_route(global_position, target_world, true, is_flying)
 	
 	if packed_path.is_empty():
 		if not is_building:
@@ -639,11 +643,12 @@ func _request_path_exact(target_grid: Vector2i) -> bool:
 	var pathfinder = level_ref.building_manager.pathfinder
 	if not pathfinder: return false
 	
-	if pathfinder.bot_astar.is_point_solid(target_grid):
+	var active_astar = pathfinder.flying_astar if is_flying else pathfinder.bot_astar
+	if active_astar.is_point_solid(target_grid):
 		return false
 		
 	var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(target_grid))
-	var packed_path = pathfinder.get_path_route(global_position, target_world, true)
+	var packed_path = pathfinder.get_path_route(global_position, target_world, true, is_flying)
 	if packed_path.is_empty(): return false
 	
 	current_path.clear()
@@ -864,8 +869,9 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 			if test_tile in target_tiles: continue
 				
 			# Verify neighbor is within limits and is walkable (not solid)
-			if pathfinder.bot_astar.is_in_boundsv(test_tile) and not pathfinder.bot_astar.is_point_solid(test_tile):
-				var path_array = pathfinder.bot_astar.get_id_path(my_grid, test_tile)
+			var active_astar = pathfinder.flying_astar if is_flying else pathfinder.bot_astar
+			if active_astar.is_in_boundsv(test_tile) and not active_astar.is_point_solid(test_tile):
+				var path_array = active_astar.get_id_path(my_grid, test_tile)
 				
 				# If path is empty and bot is not already standing on the test tile, it is unreachable
 				if path_array.is_empty() and my_grid != test_tile:
@@ -889,15 +895,17 @@ func _escape_trapped_tile() -> bool:
 	if not pathfinder: return false
 	
 	var my_grid = level_ref.object_layer.local_to_map(global_position)
-	if not pathfinder.bot_astar.is_point_solid(my_grid): return false
+	var active_astar = pathfinder.flying_astar if is_flying else pathfinder.bot_astar
+	if not active_astar.is_point_solid(my_grid): return false
 	
-	for radius in range(1, 3):
-		for x in range(-radius, radius + 1):
-			for y in range(-radius, radius + 1):
-				var test_tile = my_grid + Vector2i(x, y)
-				if pathfinder.bot_astar.is_in_boundsv(test_tile) and not pathfinder.bot_astar.is_point_solid(test_tile):
-					global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(test_tile))
-					return true
+	var neighbors = [Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)]
+	
+	# Attempt to find the nearest non-solid adjacent tile to escape to
+	for offset in neighbors:
+		var test_tile = my_grid + offset
+		if active_astar.is_in_boundsv(test_tile) and not active_astar.is_point_solid(test_tile):
+			global_position = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(test_tile))
+			return true
 						
 	return false
 
@@ -961,7 +969,8 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	if bm.corruption_layer and bm.corruption_layer.get_cell_source_id(grid_pos) != -1:
 		return false
 		
-	if bm.pathfinder and bm.pathfinder.bot_astar.is_point_solid(grid_pos):
+	var active_astar = bm.pathfinder.flying_astar if is_flying else bm.pathfinder.bot_astar
+	if bm.pathfinder and active_astar.is_point_solid(grid_pos):
 		return false
 		
 	# Check if the tile is already reserved by another worker bot
@@ -971,7 +980,7 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	# Enforce path walkability check from bot's current position to target home tile
 	if bm.pathfinder:
 		var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(grid_pos))
-		var path = bm.pathfinder.get_path_route(global_position, target_world, true)
+		var path = bm.pathfinder.get_path_route(global_position, target_world, true, is_flying)
 		if path.is_empty():
 			return false
 			

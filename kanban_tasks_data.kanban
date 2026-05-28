@@ -18,7 +18,7 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"8bf905f6-f048-41be-a1c5-8594f2b2da7c"
+				"0d63b10a-e5d6-4361-86ae-9fbc43a14259"
 			]
 		},
 		{
@@ -27,6 +27,8 @@
 			"tasks": [
 				"c3698bff-0223-4c9e-b3bb-a05810a41485",
 				"8340d90d-f07b-4ed9-9608-296c9390ce8f",
+				"8bf905f6-f048-41be-a1c5-8594f2b2da7c",
+				"1feea0be-45a7-493d-b295-3af7049b113c",
 				"b49683d8-aa8e-4e7e-8462-6749768ea16b",
 				"604bde7a-a701-4193-b773-e96eadad0123",
 				"1927bc55-588d-42eb-a84a-ae6a053f5789",
@@ -1477,6 +1479,45 @@
 		{
 			"uuid": "604bde7a-a701-4193-b773-e96eadad0123",
 			"title": "wall autotiling broken?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "0d63b10a-e5d6-4361-86ae-9fbc43a14259",
+			"title": "Item Launchers (2x2) and Receivers (2x2), alongside a high-tech Flying Thruster Bot upgrade",
+			"description": "Want to be Lower Tech, so instead of psenumatic, maybe have captapults, etc",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": [
+				{
+					"details": "Research Tree Integration",
+					"done": true
+				},
+				{
+					"details": "Flying Worker Bots",
+					"done": false
+				},
+				{
+					"details": "The Item Launcher (2x2)",
+					"done": false
+				},
+				{
+					"details": " The Item Receiver (2x2)",
+					"done": false
+				},
+				{
+					"details": "Visual Ballistic Trajectory",
+					"done": false
+				},
+				{
+					"details": "Linking UI and Pointer Inputs",
+					"done": false
+				}
+			]
+		},
+		{
+			"uuid": "1feea0be-45a7-493d-b295-3af7049b113c",
+			"title": "scroll edit doesnt stick the first time, but the second time it does",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

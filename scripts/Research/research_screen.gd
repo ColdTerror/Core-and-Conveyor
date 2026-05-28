@@ -33,6 +33,9 @@ func _ready():
 	for node in graph_edit.get_children():
 		if node is GraphNode and node.has_signal("research_started"):
 			node.research_started.connect(close_screen)
+			
+	# Restore the custom centered scroll offset at runtime
+	graph_edit.scroll_offset = Vector2(-375, -50)
 
 
 
@@ -64,29 +67,46 @@ func _arrange_nodes():
 	# POSITION EACH NODE
 	_place(ge, "Core1", col_0, row_core)
 	_place(ge, "Core2", col_1, row_core)
+	_place(ge, "Core3", col_2, row_core)
 	
 	_place(ge, "Bot1", col_0, row_bots)
 	_place(ge, "Bot2", col_1, row_bots)
+	_place(ge, "Bot3", col_2, row_bots)
 	
 	_place(ge, "Building1", col_0, row_buildings)
 	_place(ge, "Building2", col_1, row_buildings)
+	_place(ge, "Building3", col_2, row_buildings)
 	
 	_place(ge, "Tower1", col_0, row_towers)
 	_place(ge, "Tower2", col_1, row_towers)
+	_place(ge, "Tower3", col_2, row_towers)
 	
 	_place(ge, "Global1", col_0, row_global)
 	_place(ge, "Global2", col_1, row_global)
+	_place(ge, "Global3", col_2, row_global)
 	
 	_place(ge, "Belt1", col_0, row_belt)
 	_place(ge, "Belt2", col_1, row_belt)
+	_place(ge, "Belt3", col_2, row_belt)
 
 	# WIRE THE CONNECTIONS
 	ge.connect_node("Core1", 0, "Core2", 0)
+	ge.connect_node("Core2", 0, "Core3", 0)
+	
 	ge.connect_node("Bot1", 0, "Bot2", 0)
+	ge.connect_node("Bot2", 0, "Bot3", 0)
+	
 	ge.connect_node("Building1", 0, "Building2", 0)
+	ge.connect_node("Building2", 0, "Building3", 0)
+	
 	ge.connect_node("Tower1", 0, "Tower2", 0)
+	ge.connect_node("Tower2", 0, "Tower3", 0)
+	
 	ge.connect_node("Global1", 0, "Global2", 0)
+	ge.connect_node("Global2", 0, "Global3", 0)
+	
 	ge.connect_node("Belt1", 0, "Belt2", 0)
+	ge.connect_node("Belt2", 0, "Belt3", 0)
 	
 	print("Research Tree Successfully Arranged!")
 
@@ -108,6 +128,8 @@ func open_screen():
 	if GameState.open_menu(GameState.MenuType.RESEARCH):
 		_refresh_all_nodes()
 		show()
+		await get_tree().process_frame
+		graph_edit.scroll_offset = Vector2(-375, -50)
 
 
 ## Iterates through children to refresh each upgrade node's research state.

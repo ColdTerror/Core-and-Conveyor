@@ -1141,10 +1141,10 @@ func _try_add_terrain_job(grid_pos: Vector2i):
 
 
 ## Searches the queue to find the highest priority job needing bot interaction.
-func get_highest_priority_job(bot_position: Vector2) -> Node:
+func get_highest_priority_job(bot_position: Vector2, is_flying: bool = false) -> Node:
 	for item in master_priority_queue:
 		if typeof(item) == TYPE_STRING:
-			var best = _find_closest_needing_work_in_group(item, bot_position)
+			var best = _find_closest_needing_work_in_group(item, bot_position, is_flying)
 			if best != null: return best
 		else:
 			if is_instance_valid(item) and _building_needs_work(item):
@@ -1158,7 +1158,7 @@ func _building_needs_work(bldg: Node) -> bool:
 	return false
 
 
-func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -> Node:
+func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2, is_flying: bool = false) -> Node:
 	var candidates: Array = []
 	var bot_grid = terrain_layer.local_to_map(terrain_layer.to_local(bot_pos))
 	
@@ -1191,6 +1191,8 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 	
 	# Step 2: Compute pathfinding cost to the standable tiles adjacent to each candidate.
 	# Capping the search after checking the top 5 reachable jobs preserves excellent performance.
+	var active_astar = pathfinder.flying_astar if (is_flying and "flying_astar" in pathfinder) else pathfinder.bot_astar
+	
 	for cand in candidates:
 		if valid_paths_found >= 5:
 			break
@@ -1205,8 +1207,8 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2) -
 				var test_tile = t_tile + offset
 				if test_tile in b.occupied_tiles: continue
 				
-				if pathfinder and pathfinder.bot_astar.is_in_boundsv(test_tile) and not pathfinder.bot_astar.is_point_solid(test_tile):
-					var path_array = pathfinder.bot_astar.get_id_path(bot_grid, test_tile)
+				if pathfinder and active_astar.is_in_boundsv(test_tile) and not active_astar.is_point_solid(test_tile):
+					var path_array = active_astar.get_id_path(bot_grid, test_tile)
 					if not path_array.is_empty() or bot_grid == test_tile:
 						var path_len = path_array.size()
 						if path_len < shortest_cost:
