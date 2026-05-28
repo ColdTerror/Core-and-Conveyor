@@ -430,6 +430,7 @@ func _setup_bot_ui(b: Node2D):
 	var level_str = ""
 	if "bot_level" in b and "current_xp" in b and "XP_THRESHOLDS" in b:
 		var global_max = 2
+		if ResearchManager.has_method("get_bot_max_level"):
 			global_max = ResearchManager.get_bot_max_level()
 				
 		level_str = "Level: %d / %d | " % [b.bot_level, global_max]
