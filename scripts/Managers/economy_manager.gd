@@ -38,13 +38,23 @@ func register_source(b: Node, is_secured: bool = true, skip_ghost_check: bool = 
 		secured_sources.append(b)
 	elif not is_secured and not b in unsecured_sources:
 		unsecured_sources.append(b)
-		print("b")
+		
+	if b.has_signal("inventory_changed") and not b.inventory_changed.is_connected(_on_source_inventory_changed):
+		b.inventory_changed.connect(_on_source_inventory_changed)
+
 
 
 ## Unregisters building node instances from active resource sources.
 func unregister_source(b: Node):
 	secured_sources.erase(b)
 	unsecured_sources.erase(b)
+	if b.has_signal("inventory_changed") and b.inventory_changed.is_connected(_on_source_inventory_changed):
+		b.inventory_changed.disconnect(_on_source_inventory_changed)
+
+
+
+func _on_source_inventory_changed():
+	inventory_changed.emit()
 
 
 
