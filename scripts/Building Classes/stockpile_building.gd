@@ -21,6 +21,7 @@ var selected_output_name: String = ""
 var available_types: Array = []
 
 var level_ref: Node2D
+var last_output_port_pos: Vector2i = Vector2i(-99999, -99999)
 
 
 ## Configures stockpile structures with level references.
@@ -91,38 +92,61 @@ func cycle_output_mode():
 
 
 
-## Evaluates occupied tiles to find orthogonal adjacent recipients.
 func _try_output_item():
 	if not level_ref: return
-	var manager = level_ref.building_manager
-
-	for my_tile in occupied_tiles:
-		var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
+	var item_res = _find_item_by_name(selected_output_name)
+	if not item_res or inventory.get(item_res, 0) <= 0:
+		return
 		
+	var manager = level_ref.building_manager
+	var push_directions = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
+	
+	var ports = []
+	for tile in occupied_tiles:
 		for offset in push_directions:
-			var target_pos = my_tile + offset
-			
-			if occupied_tiles.has(target_pos): continue
-			
-			if manager.occupied_tiles.has(target_pos):
-				var neighbor = manager.occupied_tiles[target_pos]
+			var adj_pos = tile + offset
+			if occupied_tiles.has(adj_pos):
+				continue
 				
-				if neighbor.has_method("accept_item_node"):
+			if manager.occupied_tiles.has(adj_pos):
+				var neighbor = manager.occupied_tiles[adj_pos]
+				if neighbor and neighbor.has_method("accept_item_node"):
 					var can_output = false
 					
 					if neighbor is RouterBuilding:
 						can_output = true
-						
 					elif neighbor is ConveyorBuilding or neighbor is FilterBuilding:
 						if neighbor.direction == offset:
 							can_output = true
-							
 					else:
 						can_output = true
-							
+						
 					if can_output:
-						if _spawn_item_into_conveyor(neighbor, my_tile, offset):
-							return
+						ports.append({
+							"source_tile": tile,
+							"offset": offset,
+							"target_pos": adj_pos,
+							"neighbor": neighbor
+						})
+						
+	if ports.is_empty():
+		return
+		
+	var start_idx = 0
+	if last_output_port_pos != Vector2i(-99999, -99999):
+		for i in range(ports.size()):
+			if ports[i].target_pos == last_output_port_pos:
+				start_idx = (i + 1) % ports.size()
+				break
+				
+	var next_start_idx = start_idx
+	for k in range(ports.size()):
+		var idx = (next_start_idx + k) % ports.size()
+		var port = ports[idx]
+		
+		if _spawn_item_into_conveyor(port.neighbor, port.source_tile, port.offset):
+			last_output_port_pos = port.target_pos
+			return
 
 
 
