@@ -19,23 +19,37 @@ func _ready():
 	size = Vector2i(2, 2)
 	max_health = 200
 	
-	#var wood_cost = CostData.new()
-	#wood_cost.item_name = "Wood"
-	#wood_cost.amount = 20
-	#var stone_cost = CostData.new()
-	#stone_cost.item_name = "Stone"
-	#stone_cost.amount = 15
-	#build_costs = [wood_cost, stone_cost]
+	var wood_cost = CostData.new()
+	wood_cost.item_name = "Wood"
+	wood_cost.amount = 20
+	var stone_cost = CostData.new()
+	stone_cost.item_name = "Stone"
+	stone_cost.amount = 15
+	build_costs = [wood_cost, stone_cost]
 	
 	super()
 	
 	add_to_group("Receiver")
 	add_to_group("PriorityTarget")
+	EconomyManager.register_source(self, false)
 
 
 
 func setup(level_instance: Node2D):
 	level_ref = level_instance
+
+
+
+func _exit_tree():
+	EconomyManager.unregister_source(self)
+
+
+
+func get_economy_assets() -> Dictionary:
+	var assets = {}
+	for item in items_buffered:
+		assets[item.display_name] = assets.get(item.display_name, 0) + 1
+	return assets
 
 
 
@@ -101,18 +115,38 @@ func _unload_items_to_belts():
 			
 		if bm.occupied_tiles.has(adj_pos):
 			var b = bm.occupied_tiles[adj_pos]
-			if b and b.has_method("add_item") and b.has_method("can_accept_item"):
+			if b:
 				var next_item = items_buffered[0]
-				if b.can_accept_item(next_item):
-					var accepted = b.add_item(next_item, 1)
-					if accepted > 0:
-						items_buffered.remove_at(0)
-						inventory_changed.emit()
+				if b.has_method("add_item") and b.has_method("can_accept_item"):
+					if b.can_accept_item(next_item):
+						var accepted = b.add_item(next_item, 1)
+						if accepted > 0:
+							items_buffered.remove_at(0)
+							inventory_changed.emit()
+							
+							if is_selected:
+								var hud = get_tree().get_first_node_in_group("MainHUD")
+								if hud and hud.has_node("Popup_Layer/DetailMenu"):
+									hud.get_node("Popup_Layer/DetailMenu").refresh_ui()
+									
+				elif b.has_method("accept_item_node") and b.has_method("accepts_item_at"):
+					if b.accepts_item_at(adj_pos):
+						var item_scene = load("res://scenes/buildings & related/belts & items/item.tscn")
+						var new_item = item_scene.instantiate()
+						if new_item.has_method("setup"): new_item.setup(level_ref)
+						new_item.item_data = next_item
 						
-						if is_selected:
-							var hud = get_tree().get_first_node_in_group("MainHUD")
-							if hud and hud.has_node("Popup_Layer/DetailMenu"):
-								hud.get_node("Popup_Layer/DetailMenu").refresh_ui()
+						var success = b.accept_item_node(new_item, null)
+						if success:
+							items_buffered.remove_at(0)
+							inventory_changed.emit()
+							
+							if is_selected:
+								var hud = get_tree().get_first_node_in_group("MainHUD")
+								if hud and hud.has_node("Popup_Layer/DetailMenu"):
+									hud.get_node("Popup_Layer/DetailMenu").refresh_ui()
+						else:
+							new_item.queue_free()
 
 
 

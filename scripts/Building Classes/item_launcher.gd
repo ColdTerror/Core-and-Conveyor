@@ -24,18 +24,19 @@ func _ready():
 	size = Vector2i(2, 2)
 	max_health = 200
 	
-	#var wood_cost = CostData.new()
-	#wood_cost.item_name = "Wood"
-	#wood_cost.amount = 20
-	#var stone_cost = CostData.new()
-	#stone_cost.item_name = "Stone"
-	#stone_cost.amount = 15
-	#build_costs = [wood_cost, stone_cost]
+	var wood_cost = CostData.new()
+	wood_cost.item_name = "Wood"
+	wood_cost.amount = 20
+	var stone_cost = CostData.new()
+	stone_cost.item_name = "Stone"
+	stone_cost.amount = 15
+	build_costs = [wood_cost, stone_cost]
 	
 	super()
 	
 	add_to_group("Launcher")
 	add_to_group("PriorityTarget")
+	EconomyManager.register_source(self, false)
 
 
 
@@ -43,6 +44,19 @@ func setup(level_instance: Node2D):
 	level_ref = level_instance
 	if target_receiver_pos != Vector2i.ZERO:
 		call_deferred("_restore_linked_receiver")
+
+
+
+func _exit_tree():
+	EconomyManager.unregister_source(self)
+
+
+
+func get_economy_assets() -> Dictionary:
+	var assets = {}
+	for item in items_loaded:
+		assets[item.display_name] = assets.get(item.display_name, 0) + 1
+	return assets
 
 
 
