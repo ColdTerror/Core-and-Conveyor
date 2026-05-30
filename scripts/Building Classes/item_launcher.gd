@@ -181,25 +181,21 @@ func _spawn_visual_payload(payload: Array[ItemResource]):
 	var start_pos = global_position
 	var end_pos = target_receiver.global_position
 	
-	var tween_obj = { "progress": 0.0 }
 	var tween = create_tween().set_parallel(false)
 	
-	tween.tween_property(tween_obj, "progress", 1.0, 1.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	
-	var update_timer = Timer.new()
-	update_timer.wait_time = 0.016
-	update_timer.autostart = true
-	flying_sprite.add_child(update_timer)
-	
-	update_timer.timeout.connect(func():
-		var curr_pos = start_pos.lerp(end_pos, tween_obj.progress)
-		var height = sin(tween_obj.progress * PI) * -96.0
-		flying_sprite.global_position = curr_pos + Vector2(0, height)
-		flying_sprite.rotation = tween_obj.progress * TAU
-	)
+	tween.tween_method(
+		func(progress: float):
+			if not is_instance_valid(flying_sprite): return
+			var curr_pos = start_pos.lerp(end_pos, progress)
+			var height = sin(progress * PI) * -96.0
+			flying_sprite.global_position = curr_pos + Vector2(0, height)
+			flying_sprite.rotation = progress * TAU,
+		0.0, 1.0, 1.2
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	
 	tween.finished.connect(func():
-		flying_sprite.queue_free()
+		if is_instance_valid(flying_sprite):
+			flying_sprite.queue_free()
 		if is_instance_valid(target_receiver):
 			target_receiver.receive_bundle(payload)
 	)
