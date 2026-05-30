@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://bdjxyx6guat5q"]
+
+[ext_resource type="Script" uid="uid://bx7wpipe0oesx" path="res://scripts/Building Classes/item_launcher.gd" id="1_1pqm7"]
+[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_l21cp"]
+
+[node name="ItemLauncherBuilding1" type="Node2D" unique_id=1332514418]
+script = ExtResource("1_1pqm7")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=528455134]
+texture = ExtResource("1_l21cp")

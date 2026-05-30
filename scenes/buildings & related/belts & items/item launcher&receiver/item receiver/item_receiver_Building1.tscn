@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://caeee64b6tjas"]
+
+[ext_resource type="Script" uid="uid://bq4qpa2e8u8j2" path="res://scripts/Building Classes/item_receiver.gd" id="1_bh1mp"]
+[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_fgfs4"]
+
+[node name="ItemReceiverBuilding1" type="Node2D" unique_id=1370655738]
+script = ExtResource("1_bh1mp")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1546598604]
+texture = ExtResource("1_fgfs4")
