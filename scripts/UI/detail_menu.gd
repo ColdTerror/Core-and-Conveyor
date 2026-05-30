@@ -222,6 +222,10 @@ func refresh_ui():
 		_setup_conveyor_ui(selected_object as ConveyorBuilding)
 	elif selected_object is FilterBuilding:
 		_setup_filter_ui(selected_object as FilterBuilding)
+	elif selected_object is ItemLauncher:
+		_setup_launcher_ui(selected_object as ItemLauncher)
+	elif selected_object is ItemReceiver:
+		_setup_receiver_ui(selected_object as ItemReceiver)
 	else:
 		info_label.text = "No configurable options."
 		
@@ -619,3 +623,56 @@ func _play_refresh_flash():
 	
 	# Tween it back to pure white and 100% solid over 0.25 seconds
 	tween.tween_property(self, "modulate", Color.WHITE, 0.25).set_trans(Tween.TRANS_SINE)
+
+
+
+## Prepares status indicators and linking controls for item launchers.
+func _setup_launcher_ui(b: ItemLauncher):
+	var target_str = "None"
+	if is_instance_valid(b.target_receiver):
+		target_str = "Receiver (%s)" % str(b.target_receiver.grid_origin)
+	
+	info_label.text = "Target Receiver: %s\nLoaded Items: %d / 10\n" % [target_str, b.items_loaded.size()]
+	
+	if not b.items_loaded.is_empty():
+		info_label.text += "[Contents]"
+		var counts = {}
+		for item in b.items_loaded:
+			counts[item.display_name] = counts.get(item.display_name, 0) + 1
+		for name in counts.keys():
+			info_label.text += "\n • %s: %d" % [name, counts[name]]
+			
+	var link_btn_text = "Link Receiver"
+	if b.is_linking_mode:
+		link_btn_text = "Click a Receiver..."
+		info_label.modulate = Color(1.0, 0.8, 0.2)
+	else:
+		info_label.modulate = Color.WHITE
+		
+	_create_button(link_btn_text, Color(0.4, 0.8, 1.0), func():
+		b.start_linking()
+	)
+
+
+
+## Prepares status indicators and content lists for item receivers.
+func _setup_receiver_ui(b: ItemReceiver):
+	var status_str = "Idle"
+	if b.incoming_bundle_flying:
+		status_str = "INBOUND PAYLOAD"
+		info_label.modulate = Color(0.4, 1.0, 0.4)
+	elif not b.items_buffered.is_empty():
+		status_str = "Unloading Buffered Cargo"
+		info_label.modulate = Color(0.4, 0.8, 1.0)
+	else:
+		info_label.modulate = Color.WHITE
+		
+	info_label.text = "Status: %s\nBuffered: %d / 10\n" % [status_str, b.items_buffered.size()]
+	
+	if not b.items_buffered.is_empty():
+		info_label.text += "[Contents]"
+		var counts = {}
+		for item in b.items_buffered:
+			counts[item.display_name] = counts.get(item.display_name, 0) + 1
+		for name in counts.keys():
+			info_label.text += "\n • %s: %d" % [name, counts[name]]

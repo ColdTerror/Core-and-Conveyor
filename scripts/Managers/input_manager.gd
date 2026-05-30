@@ -17,13 +17,14 @@ var stat_menu: Control
 var hover_popup: Control
 
 # STATE & TRACKERS
-enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM, SET_HOME }
+enum InteractionMode { NONE, PLACE_BUILDING, DECONSTRUCT, UPGRADE, TERRAFORM, SET_HOME, LINK_RECEIVER }
 var current_mode: InteractionMode = InteractionMode.NONE
 
 var hovered_bot: WorkerBot = null
 var hovered_building: Building = null
 var hovered_enemy: Node2D = null
 var bot_awaiting_home: Node2D = null
+var launcher_awaiting_link: Node2D = null
 
 var last_hovered_upgrade_tile: Vector2i = Vector2i(-1, -1)
 var last_terrain_tile: Vector2i = Vector2i(-1, -1)
@@ -203,6 +204,19 @@ func _unhandled_input(event: InputEvent):
 				bot_awaiting_home = null
 				current_mode = InteractionMode.NONE
 				get_viewport().set_input_as_handled()
+			
+		InteractionMode.LINK_RECEIVER:
+			if _is_left_clicking(event):
+				if is_instance_valid(launcher_awaiting_link):
+					if is_instance_valid(hovered_building) and hovered_building.has_method("is_receiver"):
+						launcher_awaiting_link.link_receiver(hovered_building)
+					
+					if launcher_awaiting_link.has_method("toggle_linking_mode"):
+						launcher_awaiting_link.toggle_linking_mode(false)
+						
+				launcher_awaiting_link = null
+				current_mode = InteractionMode.NONE
+				get_viewport().set_input_as_handled()
 		
 		InteractionMode.NONE:
 			if event.is_action_pressed("ui_left"):
@@ -218,6 +232,11 @@ func _cancel_current_action():
 		if bot_awaiting_home.has_method("toggle_set_home_mode"):
 			bot_awaiting_home.toggle_set_home_mode(false)
 		bot_awaiting_home = null
+		
+	if current_mode == InteractionMode.LINK_RECEIVER and is_instance_valid(launcher_awaiting_link):
+		if launcher_awaiting_link.has_method("toggle_linking_mode"):
+			launcher_awaiting_link.toggle_linking_mode(false)
+		launcher_awaiting_link = null
 	
 	building_manager.cancel_placement()
 	current_mode = InteractionMode.NONE

@@ -316,6 +316,18 @@ func _draw_hover_footprint():
 			
 			draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)
 			draw_rect(rect, border_color, false, 2.0)
+			
+			if b.has_method("is_launcher"):
+				if is_instance_valid(b.get("target_receiver")):
+					var from_pos = to_local(b.global_position)
+					var to_pos = to_local(b.get("target_receiver").global_position)
+					draw_line(from_pos, to_pos, Color(0.2, 0.8, 1.0, 0.8), 2.0)
+					draw_circle(to_pos, 4.0, Color(0.2, 0.8, 1.0, 0.8))
+				if b.get("is_linking_mode"):
+					var from_pos = to_local(b.global_position)
+					var to_pos = to_local(get_global_mouse_position())
+					draw_line(from_pos, to_pos, Color(1.0, 0.8, 0.2, 0.8), 2.0)
+					draw_circle(to_pos, 4.0, Color(1.0, 0.8, 0.2, 0.8))
 
 
 

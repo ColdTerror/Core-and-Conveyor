@@ -35,6 +35,8 @@ const RES_STONE := 4
 @export var router_scene: PackedScene 
 @export var filter_scene: PackedScene
 @export var bridge_scene: PackedScene
+var launcher_scene: PackedScene = preload("res://scenes/buildings & related/belts & items/item launcher&receiver/item launcher/item_launcher_building1.tscn")
+var receiver_scene: PackedScene = preload("res://scenes/buildings & related/belts & items/item launcher&receiver/item receiver/item_receiver_Building1.tscn")
 
 @export_subgroup("Production")
 @export var lumberjack_scene: PackedScene
@@ -155,7 +157,9 @@ func _setup_hotbar_items():
 			{"name": "Belt", "scene": conveyor_scene},
 			{"name": "Router", "scene": router_scene},
 			{"name": "Filter", "scene": filter_scene},
-			{"name": "Conveyer Bridge", "scene": bridge_scene}
+			{"name": "Conveyer Bridge", "scene": bridge_scene},
+			{"name": "Launcher", "scene": launcher_scene},
+			{"name": "Receiver", "scene": receiver_scene}
 		],
 		"Production": [
 			{"name": "Hut", "scene": lumberjack_scene},
@@ -208,6 +212,8 @@ func _show_category(category_name: String):
 	
 	var items = categorized_buildings[category_name]
 	for item in items:
+		if item["name"] in ["Launcher", "Receiver"] and not ("Pneumatic Logistics" in ResearchManager.unlocked_techs):
+			continue
 		_add_building_to_bar(item["name"], item["scene"])
 
 

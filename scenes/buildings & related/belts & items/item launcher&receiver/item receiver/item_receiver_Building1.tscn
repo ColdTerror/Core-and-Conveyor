@@ -5,6 +5,10 @@
 
 [node name="ItemReceiverBuilding1" type="Node2D" unique_id=1370655738]
 script = ExtResource("1_bh1mp")
+building_name = "Receiver"
+size = Vector2i(2, 2)
+max_health = 200
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1546598604]
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("1_fgfs4")

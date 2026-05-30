@@ -49,7 +49,6 @@ text = "Close"
 [node name="GraphEdit" type="GraphEdit" parent="BackgroundBlocker/MarginContainer/VBoxContainer" unique_id=1474269741]
 layout_mode = 2
 size_flags_vertical = 3
-scroll_offset = Vector2(-375, -50)
 grid_pattern = 1
 snapping_distance = 50
 connections = Array[Dictionary]([{
@@ -134,10 +133,8 @@ show_arrange_button = false
 [node name="Core1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1401898486 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 50.0
-offset_right = 775.0
-offset_bottom = 200.0
+offset_right = 400.0
+offset_bottom = 150.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 draggable = false
@@ -153,10 +150,9 @@ ExtResource("3_xgb3y"): 1
 [node name="Bot1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 200.0
-offset_right = 775.0
-offset_bottom = 350.0
+offset_top = 150.0
+offset_right = 400.0
+offset_bottom = 300.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 200)
@@ -174,10 +170,9 @@ ExtResource("4_3s71f"): 1
 [node name="Building1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 350.0
-offset_right = 775.0
-offset_bottom = 500.0
+offset_top = 300.0
+offset_right = 400.0
+offset_bottom = 450.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 400)
@@ -195,10 +190,9 @@ ExtResource("4_3s71f"): 50
 [node name="Tower1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=919121047 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 500.0
-offset_right = 775.0
-offset_bottom = 662.0
+offset_top = 450.0
+offset_right = 400.0
+offset_bottom = 612.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 600)
@@ -217,10 +211,9 @@ ExtResource("4_3s71f"): 50
 [node name="Global1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=57414478 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 650.0
-offset_right = 775.0
-offset_bottom = 800.0
+offset_top = 600.0
+offset_right = 400.0
+offset_bottom = 750.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 800)
@@ -237,10 +230,9 @@ ExtResource("3_xgb3y"): 1
 [node name="Belt1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=780544748 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 375.0
-offset_top = 800.0
-offset_right = 775.0
-offset_bottom = 950.0
+offset_top = 750.0
+offset_right = 400.0
+offset_bottom = 900.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(0, 1000)
@@ -251,17 +243,16 @@ slot/0/left_enabled = false
 research_name = "Belt Speed 1"
 desc = "Sets Belt Speed to 1.25x"
 research_cost = {
-ExtResource("3_xgb3y"): 50,
-ExtResource("4_3s71f"): 50
+ExtResource("3_xgb3y"): 1,
+ExtResource("4_3s71f"): 1
 }
 
 [node name="Core2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=134985909 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 750.0
-offset_top = 50.0
-offset_right = 1150.0
-offset_bottom = 200.0
+offset_left = 375.0
+offset_right = 775.0
+offset_bottom = 150.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 0)
@@ -277,10 +268,10 @@ ExtResource("3_xgb3y"): 1
 [node name="Bot2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=659654113 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 750.0
-offset_top = 200.0
-offset_right = 1150.0
-offset_bottom = 350.0
+offset_left = 375.0
+offset_top = 150.0
+offset_right = 775.0
+offset_bottom = 300.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 200)
@@ -297,10 +288,10 @@ ExtResource("4_3s71f"): 1
 [node name="Building2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=568078980 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 750.0
-offset_top = 350.0
-offset_right = 1150.0
-offset_bottom = 500.0
+offset_left = 375.0
+offset_top = 300.0
+offset_right = 775.0
+offset_bottom = 450.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 400)
@@ -317,10 +308,10 @@ ExtResource("4_3s71f"): 50
 [node name="Tower2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1143563071 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 750.0
-offset_top = 500.0
-offset_right = 1150.0
-offset_bottom = 662.0
+offset_left = 375.0
+offset_top = 450.0
+offset_right = 775.0
+offset_bottom = 612.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 600)
@@ -338,10 +329,10 @@ ExtResource("4_3s71f"): 50
 [node name="Global2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=383648997 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 750.0
-offset_top = 650.0
-offset_right = 1172.0
-offset_bottom = 800.0
+offset_left = 375.0
+offset_top = 600.0
+offset_right = 797.0
+offset_bottom = 750.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 800)
@@ -357,10 +348,10 @@ ExtResource("3_xgb3y"): 1
 [node name="Belt2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1969009587 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 750.0
-offset_top = 800.0
-offset_right = 1150.0
-offset_bottom = 950.0
+offset_left = 375.0
+offset_top = 750.0
+offset_right = 775.0
+offset_bottom = 900.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(500, 1000)
@@ -370,17 +361,16 @@ title = "Belt Speed 2"
 research_name = "Belt Speed 2"
 desc = "Sets Belt Speed to 1.5x"
 research_cost = {
-ExtResource("3_xgb3y"): 50,
-ExtResource("4_3s71f"): 50
+ExtResource("3_xgb3y"): 1,
+ExtResource("4_3s71f"): 1
 }
 
 [node name="Core3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1126082275 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 1125.0
-offset_top = 50.0
-offset_right = 1525.0
-offset_bottom = 200.0
+offset_left = 750.0
+offset_right = 1150.0
+offset_bottom = 150.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(1000, 0)
@@ -397,10 +387,10 @@ ExtResource("3_xgb3y"): 1
 [node name="Bot3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1823735036 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 1125.0
-offset_top = 200.0
-offset_right = 1525.0
-offset_bottom = 350.0
+offset_left = 750.0
+offset_top = 150.0
+offset_right = 1150.0
+offset_bottom = 300.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(1000, 200)
@@ -418,10 +408,10 @@ ExtResource("4_3s71f"): 1
 [node name="Building3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=538164323 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 1125.0
-offset_top = 350.0
-offset_right = 1525.0
-offset_bottom = 500.0
+offset_left = 750.0
+offset_top = 300.0
+offset_right = 1150.0
+offset_bottom = 450.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(1000, 400)
@@ -439,10 +429,10 @@ ExtResource("4_3s71f"): 50
 [node name="Tower3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=673479780 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 1125.0
-offset_top = 500.0
-offset_right = 1525.0
-offset_bottom = 662.0
+offset_left = 750.0
+offset_top = 450.0
+offset_right = 1150.0
+offset_bottom = 612.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(1000, 600)
@@ -461,10 +451,10 @@ ExtResource("4_3s71f"): 50
 [node name="Global3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=865153567 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 1125.0
-offset_top = 650.0
-offset_right = 1525.0
-offset_bottom = 800.0
+offset_left = 750.0
+offset_top = 600.0
+offset_right = 1150.0
+offset_bottom = 750.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(1000, 800)
@@ -481,10 +471,10 @@ ExtResource("3_xgb3y"): 1
 [node name="Belt3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1739864172 instance=ExtResource("2_l6ox2")]
 custom_minimum_size = Vector2(400, 150)
 layout_mode = 0
-offset_left = 1125.0
-offset_top = 800.0
-offset_right = 1525.0
-offset_bottom = 962.0
+offset_left = 750.0
+offset_top = 750.0
+offset_right = 1150.0
+offset_bottom = 912.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 1
 position_offset = Vector2(1000, 1000)
@@ -496,6 +486,6 @@ research_name = "Pneumatic Logistics"
 desc = "Unlocks the Item Launcher and 
 Item Receiver structures"
 research_cost = {
-ExtResource("3_xgb3y"): 50,
-ExtResource("4_3s71f"): 50
+ExtResource("3_xgb3y"): 1,
+ExtResource("4_3s71f"): 1
 }

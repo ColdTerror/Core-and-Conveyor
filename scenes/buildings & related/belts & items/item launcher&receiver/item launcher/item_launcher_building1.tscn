@@ -5,6 +5,10 @@
 
 [node name="ItemLauncherBuilding1" type="Node2D" unique_id=1332514418]
 script = ExtResource("1_1pqm7")
+building_name = "Launcher"
+size = Vector2i(2, 2)
+max_health = 200
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=528455134]
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("1_l21cp")
