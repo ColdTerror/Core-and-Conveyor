@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bmdo6hq7k3awu"]
+
+[ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_5h60e"]
+[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="2_0vjae"]
+
+[resource]
+script = ExtResource("1_5h60e")
+display_name = "Pebble"
+texture = ExtResource("2_0vjae")
+description = "Pebble Ammo"
+is_ammo = true
+ammo_type = "Pebble"
+metadata/_custom_type_script = "uid://c1ggtlkymktgi"

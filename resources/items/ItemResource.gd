@@ -9,7 +9,7 @@ class_name ItemResource
 
 @export_group("Combat Stats")
 @export var is_ammo: bool = false
-@export_enum("None", "Arrow", "Rock", "Magic") var ammo_type: String = "None" # NEW
+@export_enum("None", "Arrow", "BallistaBolt", "Pebble", "Boulder", "Magic") var ammo_type: String = "None" # NEW
 @export var damage: int = 0
 @export var stack_size: int = 1
 @export var projectile_speed: float = 400.0

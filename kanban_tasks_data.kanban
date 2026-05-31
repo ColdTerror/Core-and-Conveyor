@@ -11,7 +11,8 @@
 			"uuid": "fce7c82e-c085-4975-b3bf-6d738addd891",
 			"title": "Todo",
 			"tasks": [
-				"d9d6b4ff-91c5-4607-8342-624e66e8bdad"
+				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
+				"efe7a730-b5a2-4caa-af39-07b9c0863bdc"
 			]
 		},
 		{
@@ -1542,6 +1543,13 @@
 			"uuid": "b8054745-f709-48b3-a60c-1d0f66c06097",
 			"title": "update other buildings to push out all ways all the time?",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "efe7a730-b5a2-4caa-af39-07b9c0863bdc",
+			"title": "Ammo Distributor",
+			"description": " A 1x1 structure that pulls ammo from a belt and distributes it to all adjacent towers in a small radius, reducing conveyor belt clutter around frontlines.\n",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

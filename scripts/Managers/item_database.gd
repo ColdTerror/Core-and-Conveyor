@@ -12,6 +12,9 @@ var items: Dictionary = {
 	"Stone": preload("res://resources/items/raw_resources/stone.tres"),
 	"Wooden Arrow": preload("res://resources/items/ammo/wooden_arrow.tres"),
 	"Stone Arrow": preload("res://resources/items/ammo/stone_arrow.tres"),
+	"Ballista Bolt": preload("res://resources/items/ammo/ballista_bolt.tres"),
+	"Boulder": preload("res://resources/items/ammo/boulder_ammo.tres"),
+	"Pebble": preload("res://resources/items/ammo/pebble_ammo.tres"),
 	"Plank": preload("res://resources/items/refined_resources/plank.tres"),
 	"Stone Brick": preload("res://resources/items/refined_resources/stone_brick.tres"),
 }

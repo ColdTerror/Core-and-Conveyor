@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://clj1tx1femxk3"]
+
+[ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_0ymsu"]
+
+[resource]
+script = ExtResource("1_0ymsu")
+display_name = "Boulder"
+description = "Boulder Ammo"
+is_ammo = true
+ammo_type = "Boulder"
+metadata/_custom_type_script = "uid://c1ggtlkymktgi"

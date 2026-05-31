@@ -9,7 +9,8 @@ extends Building
 class_name TowerBuilding
 
 @export_group("Tower Configuration")
-@export_enum("Arrow", "Rock", "Magic") var required_ammo_type: String = "Arrow"
+@export_enum("Arrow", "BallistaBolt", "Pebble", "Boulder", "Magic") var required_ammo_type: String = "Arrow"
+@export var compatible_ammo_types: Array[String] = ["Arrow"]
 @export var ammo_capacity: int = 20
 
 @export_group("Combat Stats")
@@ -199,7 +200,7 @@ func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 ## Rejects items if they do not match required ammo specifications.
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	if not item_res.is_ammo: return 0
-	if item_res.ammo_type != required_ammo_type: return 0
+	if not compatible_ammo_types.has(item_res.ammo_type): return 0
 	
 	var shots_to_add = 0
 	var return_val = 0
@@ -227,10 +228,11 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	return return_val
 
 
+
 ## Checks whether this tower has space in its magazine to accept the specified ammo.
 func can_accept_item(item_res: ItemResource) -> bool:
 	if not item_res.is_ammo: return false
-	if item_res.ammo_type != required_ammo_type: return false
+	if not compatible_ammo_types.has(item_res.ammo_type): return false
 	
 	return ammo_inventory.size() < ammo_capacity
 
@@ -310,6 +312,16 @@ func _shoot():
 	
 	attack_cooldown = 1.0 / fire_rate
 	var final_damage = roundi(ammo_data.damage * damage_multiplier)
+	var count = projectiles_per_shot
+	var spread = spread_degrees
+	
+	# Standardized Secondary Shotgun Blast Mode:
+	# If the fired ammo_type is compatible but NOT the primary required_ammo_type,
+	# we override projectiles_per_shot to 10 and spread to 30 degrees, dealing 50% damage per shot.
+	if ammo_data.ammo_type != required_ammo_type:
+		count = 10
+		spread = 30.0
+		final_damage = roundi(final_damage * 0.5)
 	
 	var spawn_pos = global_position
 	
@@ -319,11 +331,11 @@ func _shoot():
 		var spawn_radius = 16.0 
 		spawn_pos = global_position + (direction_to_enemy * spawn_radius)
 	
-	for i in range(projectiles_per_shot):
+	for i in range(count):
 		var angle_offset = 0.0
-		if projectiles_per_shot > 1:
-			var spread_rad = deg_to_rad(spread_degrees)
-			var step = spread_rad / (projectiles_per_shot - 1)
+		if count > 1:
+			var spread_rad = deg_to_rad(spread)
+			var step = spread_rad / (count - 1)
 			angle_offset = - (spread_rad / 2.0) + (i * step)
 		
 		fired_projectile.emit(
