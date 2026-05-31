@@ -297,9 +297,20 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 		_create_button("Void All Items", Color(1.0, 0.3, 0.3), b.void_inventory)
 
 
+
 ## Standardizes defense tower prioritization controls and targeting targets.
 func _setup_tower_ui(b: TowerBuilding):
-	info_label.text = "Priority: %s" % b.targeting_mode
+	info_label.text = "Priority: %s\n" % b.targeting_mode
+	
+	if b.ammo_inventory.is_empty():
+		info_label.text += "Ammo: Empty\n"
+	else:
+		var ammo_name = b.ammo_inventory[0].display_name
+		info_label.text += "Ammo: %s x %d / %d\n" % [ammo_name, b.ammo_inventory.size(), b.ammo_capacity]
+		
+	info_label.text += "Preferred Ammo: %s\n" % b.required_ammo_type
+	info_label.text += "Compatible: %s" % ", ".join(b.compatible_ammo_types)
+	
 	match b.targeting_mode:
 		"Closest": info_label.modulate = Color(0.8, 0.8, 1.0)
 		"Strongest": info_label.modulate = Color(1.0, 0.4, 0.4)
@@ -307,6 +318,8 @@ func _setup_tower_ui(b: TowerBuilding):
 		"Furthest": info_label.modulate = Color(0.8, 0.4, 1.0)
 
 	_create_button("Cycle Targeting", Color.WHITE, b.cycle_targeting_mode)
+	_create_button("Void Loaded Ammo", Color(1.0, 0.3, 0.3), b.void_inventory)
+
 
 
 ## Displays ongoing tech research progress and handles robot assembly and cost information.

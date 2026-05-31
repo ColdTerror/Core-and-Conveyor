@@ -201,6 +201,8 @@ func _get_enemy_tile(enemy: Node2D) -> Vector2i:
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	if not item_res.is_ammo: return 0
 	if not compatible_ammo_types.has(item_res.ammo_type): return 0
+	if not ammo_inventory.is_empty() and ammo_inventory[0].display_name != item_res.display_name:
+		return 0
 	
 	var shots_to_add = 0
 	var return_val = 0
@@ -233,8 +235,22 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 func can_accept_item(item_res: ItemResource) -> bool:
 	if not item_res.is_ammo: return false
 	if not compatible_ammo_types.has(item_res.ammo_type): return false
+	if not ammo_inventory.is_empty() and ammo_inventory[0].display_name != item_res.display_name:
+		return false
 	
 	return ammo_inventory.size() < ammo_capacity
+
+
+
+func void_inventory():
+	var assets = get_economy_assets()
+	if not assets.is_empty():
+		EconomyManager.remove_resources_from_global(assets)
+		for item_name in assets.keys():
+			var amount_lost = assets[item_name]
+			EconomyManager.log_item_consumed(item_name, amount_lost)
+	ammo_inventory.clear()
+	inventory_changed.emit()
 
 
 
