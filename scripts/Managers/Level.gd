@@ -44,6 +44,7 @@ var receiver_scene: PackedScene = preload("res://scenes/buildings & related/belt
 @export var mine_scene: PackedScene
 @export var stonemason_scene: PackedScene
 @export var fletcher_scene: PackedScene
+@export var stone_crusher_scene: PackedScene
 
 @export_subgroup("Defense")
 @export var bow_tower_scene: PackedScene
@@ -166,7 +167,8 @@ func _setup_hotbar_items():
 			{"name": "Sawmill", "scene": sawmill_scene},
 			{"name": "Mine", "scene": mine_scene},
 			{"name": "Stonemason", "scene": stonemason_scene},
-			{"name": "Fletcher", "scene": fletcher_scene}
+			{"name": "Fletcher", "scene": fletcher_scene},
+			{"name": "Stone Crusher", "scene": stone_crusher_scene}
 		],
 		"Defense": [
 			{"name": "Bow Tower", "scene": bow_tower_scene},
@@ -318,7 +320,10 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 	object_layer.add_child(proj)
 	
 	if proj.has_method("setup"):
-		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower)
+		var p_lifetime = 10.0
+		if "projectile_lifetime" in item_data:
+			p_lifetime = item_data.projectile_lifetime
+		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower, p_lifetime)
 
 
 

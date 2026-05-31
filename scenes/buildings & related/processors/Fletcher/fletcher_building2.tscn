@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="5_ywtpx"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="6_x7haa"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="7_odyi1"]
+[ext_resource type="Resource" uid="uid://bxbblerecipe3" path="res://resources/recipes/ballista_bolt_recipe.tres" id="8_bb_recipe"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5rwt6"]
 atlas = ExtResource("6_x7haa")
@@ -22,7 +23,7 @@ size = Vector2(128, 128)
 
 [node name="Fletcher2" type="Node2D" unique_id=2042910788 groups=["Structure"]]
 script = ExtResource("1_aexn6")
-recipes = Array[ExtResource("2_ejrgf")]([ExtResource("3_y1fah"), ExtResource("4_jtfag")])
+recipes = Array[ExtResource("2_ejrgf")]([ExtResource("3_y1fah"), ExtResource("4_jtfag"), ExtResource("8_bb_recipe")])
 generic_item_scene = ExtResource("5_ywtpx")
 crafting_time_multiplier = 1.0
 building_name = "Fletcher"

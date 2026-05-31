@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RecipeResource" format=3 uid="uid://bxbblerecipe3"]
+
+[ext_resource type="Resource" uid="uid://cnhueyxniv0a7" path="res://resources/items/refined_resources/plank.tres" id="1_plank"]
+[ext_resource type="Resource" uid="uid://b2175t1sagf73" path="res://resources/items/raw_resources/stone.tres" id="2_stone"]
+[ext_resource type="Resource" uid="uid://c2ucikxxnvycl" path="res://resources/items/ammo/ballista_bolt.tres" id="3_bolt"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="4_script"]
+
+[resource]
+script = ExtResource("4_script")
+recipe_name = "Ballista Bolt"
+craft_time = 2.5
+inputs = {
+ExtResource("1_plank"): 2,
+ExtResource("2_stone"): 1
+}
+output_item = ExtResource("3_bolt")
+output_count = 2
+metadata/_custom_type_script = "uid://cklg1indprsb3"

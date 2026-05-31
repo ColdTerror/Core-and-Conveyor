@@ -10,4 +10,5 @@ texture = ExtResource("2_0vjae")
 description = "Pebble Ammo"
 is_ammo = true
 ammo_type = "Pebble"
+damage = 5
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"

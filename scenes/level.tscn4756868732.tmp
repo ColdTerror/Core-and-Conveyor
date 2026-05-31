@@ -17,7 +17,6 @@
 [ext_resource type="Script" uid="uid://y8ifotnqs7ch" path="res://scripts/Managers/building_manager.gd" id="15_gunhw"]
 [ext_resource type="PackedScene" uid="uid://cayduqk5ki558" path="res://scenes/buildings & related/belts & items/filter_building.tscn" id="16_535f6"]
 [ext_resource type="PackedScene" uid="uid://b72vyugc0vaax" path="res://scenes/buildings & related/processors/Sawmill/sawmill_building1.tscn" id="16_pqd0y"]
-[ext_resource type="PackedScene" uid="uid://cq1v1xy4lslhk" path="res://scenes/buildings & related/processors/Stone Crusher/stone_crusher_building1.tscn" id="17_hv3ux"]
 [ext_resource type="PackedScene" uid="uid://datlui80eimn3" path="res://scenes/buildings & related/harvesters/Mine/MineBuilding1.tscn" id="17_w3o6u"]
 [ext_resource type="PackedScene" uid="uid://u8dr3txp3net" path="res://scenes/buildings & related/towers & defense/Bow Tower/bow_tower1.tscn" id="17_xy2fk"]
 [ext_resource type="PackedScene" uid="uid://2067p75ou047" path="res://scenes/ui/hover_menu.tscn" id="18_82cfe"]
@@ -152,7 +151,6 @@ sawmill_scene = ExtResource("16_pqd0y")
 mine_scene = ExtResource("17_w3o6u")
 stonemason_scene = ExtResource("18_gur6y")
 fletcher_scene = ExtResource("19_v3why")
-stone_crusher_scene = ExtResource("17_hv3ux")
 bow_tower_scene = ExtResource("17_xy2fk")
 wall_scene = ExtResource("18_kih21")
 gate_scene = ExtResource("14_0fmhk")
@@ -225,6 +223,7 @@ script = ExtResource("29_7agi7")
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
 real_minutes_per_day = 10.0
+force_full_moon = true
 
 [node name="QuotaManager" type="Node2D" parent="." unique_id=1743008909]
 script = ExtResource("36_uhfbm")

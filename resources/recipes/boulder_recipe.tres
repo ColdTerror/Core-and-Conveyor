@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RecipeResource" format=3 uid="uid://bxbblerecipe2"]
+
+[ext_resource type="Resource" uid="uid://b2175t1sagf73" path="res://resources/items/raw_resources/stone.tres" id="1_stone"]
+[ext_resource type="Resource" uid="uid://clj1tx1femxk3" path="res://resources/items/ammo/boulder_ammo.tres" id="2_boulder"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="3_script"]
+
+[resource]
+script = ExtResource("3_script")
+recipe_name = "Boulder"
+craft_time = 3.0
+inputs = {
+ExtResource("1_stone"): 2
+}
+output_item = ExtResource("2_boulder")
+metadata/_custom_type_script = "uid://cklg1indprsb3"

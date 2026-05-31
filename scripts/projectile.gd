@@ -15,12 +15,13 @@ var source_tower: Node2D = null
 
 
 ## Sets up the projectile's initial position, velocity direction, speed, damage, texture, and source tower.
-func setup(pos: Vector2, dir: Vector2, speed: float, dmg: int, texture: Texture2D, source: Node2D = null):
+func setup(pos: Vector2, dir: Vector2, speed: float, dmg: int, texture: Texture2D, source: Node2D = null, custom_lifetime: float = 10.0):
 	global_position = pos
 	rotation = dir.angle() + deg_to_rad(45)
 	velocity = dir * speed
 	damage = dmg
 	source_tower = source
+	lifetime = custom_lifetime
 	if texture: $Sprite2D.texture = texture
 
 

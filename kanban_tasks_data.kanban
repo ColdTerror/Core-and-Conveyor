@@ -12,7 +12,9 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"efe7a730-b5a2-4caa-af39-07b9c0863bdc"
+				"efe7a730-b5a2-4caa-af39-07b9c0863bdc",
+				"e643f502-bd6c-437c-843e-0ab8fa1f4d1e",
+				"668cc6ab-7b8f-4364-8863-c979696fb5a8"
 			]
 		},
 		{
@@ -26,6 +28,7 @@
 			"tasks": [
 				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
 				"c3698bff-0223-4c9e-b3bb-a05810a41485",
+				"0844484e-c417-4ab6-8811-ccc0836f50eb",
 				"0d63b10a-e5d6-4361-86ae-9fbc43a14259",
 				"b8054745-f709-48b3-a60c-1d0f66c06097",
 				"8340d90d-f07b-4ed9-9608-296c9390ce8f",
@@ -1550,6 +1553,27 @@
 			"uuid": "efe7a730-b5a2-4caa-af39-07b9c0863bdc",
 			"title": "Ammo Distributor",
 			"description": " A 1x1 structure that pulls ammo from a belt and distributes it to all adjacent towers in a small radius, reducing conveyor belt clutter around frontlines.\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "0844484e-c417-4ab6-8811-ccc0836f50eb",
+			"title": "projectile lifetime doesnt match resource",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e643f502-bd6c-437c-843e-0ab8fa1f4d1e",
+			"title": "tower detail menu shows preferred ammo type only, not whats instead",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "668cc6ab-7b8f-4364-8863-c979696fb5a8",
+			"title": "tower hover menu should list preferred ammo and all compatible",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://cq1v1xy4lslhk"]
+
+[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/Building Classes/processor_building.gd" id="1_2kttw"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_bm01l"]
+[ext_resource type="Resource" uid="uid://bxbblerecipe1" path="res://resources/recipes/pebble_recipe.tres" id="3_yddp3"]
+[ext_resource type="Resource" uid="uid://bxbblerecipe2" path="res://resources/recipes/boulder_recipe.tres" id="4_cx7it"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="5_u4vde"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="6_8jyln"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="7_tsife"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_crusher"]
+atlas = ExtResource("6_8jyln")
+region = Rect2(640, 192, 64, 64)
+
+[sub_resource type="Resource" id="Resource_cost_wood"]
+script = ExtResource("7_tsife")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_cost_stone"]
+script = ExtResource("7_tsife")
+item_name = "Stone"
+amount = 15
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[node name="StoneCrusher1" type="Node2D" unique_id=2042910790 groups=["Structure"]]
+script = ExtResource("1_2kttw")
+recipes = Array[ExtResource("2_bm01l")]([ExtResource("3_yddp3"), ExtResource("4_cx7it")])
+generic_item_scene = ExtResource("5_u4vde")
+building_name = "Stone Crusher"
+size = Vector2i(2, 2)
+icon = SubResource("AtlasTexture_crusher")
+build_costs = Array[ExtResource("7_tsife")]([SubResource("Resource_cost_wood"), SubResource("Resource_cost_stone")])
+build_range = 8.0
+corruption_range = 10.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015183]
+texture = ExtResource("6_8jyln")
+region_enabled = true
+region_rect = Rect2(640, 192, 64, 64)

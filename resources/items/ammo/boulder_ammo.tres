@@ -8,4 +8,5 @@ display_name = "Boulder"
 description = "Boulder Ammo"
 is_ammo = true
 ammo_type = "Boulder"
+damage = 20
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"

@@ -8,4 +8,5 @@ display_name = "Ballista Bolt"
 description = "Ballista Bolt Ammo"
 is_ammo = true
 ammo_type = "BallistaBolt"
+damage = 25
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"
