@@ -12,7 +12,12 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"efe7a730-b5a2-4caa-af39-07b9c0863bdc"
+				"efe7a730-b5a2-4caa-af39-07b9c0863bdc",
+				"3a47a767-8797-4811-954f-df196e2ff848",
+				"c9d3dbc2-a3cd-428b-801f-0dcb3aff1458",
+				"94fd5864-66d2-4981-b907-26f77a1f95ce",
+				"63a79e06-5eb6-4fd0-9f3a-4b61a2c53497",
+				"85885891-3c37-4a47-a697-0745b4555cd4"
 			]
 		},
 		{
@@ -1582,6 +1587,41 @@
 			"uuid": "924055fc-e265-41b0-8c05-298a77d7af4a",
 			"title": "update hover menu for new ammo stuff",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "3a47a767-8797-4811-954f-df196e2ff848",
+			"title": "check if area2d is needed for buildings or can we get rid of all of them for consistency",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c9d3dbc2-a3cd-428b-801f-0dcb3aff1458",
+			"title": "tower ui should say the ",
+			"description": "firing mode and the projectiles per shot /spread of that firing mode dependng on what ammo is in it",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "94fd5864-66d2-4981-b907-26f77a1f95ce",
+			"title": "ennemies should spawn earlier into the night",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "63a79e06-5eb6-4fd0-9f3a-4b61a2c53497",
+			"title": "when selected tower should display attack range",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "85885891-3c37-4a47-a697-0745b4555cd4",
+			"title": "tower should use the amount of ammo it shoots",
+			"description": "shotgns only use 1 ammo to shoot 5 bullets?!?",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

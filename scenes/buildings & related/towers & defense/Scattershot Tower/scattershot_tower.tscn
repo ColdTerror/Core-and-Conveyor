@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://dh4gda6idw4lt"]
+
+[ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/Building Classes/tower_building.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_atlas"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_cost_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_scattershot"]
+atlas = ExtResource("2_atlas")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="Resource" id="Resource_cost_plank"]
+script = ExtResource("3_cost_script")
+item_name = "Plank"
+amount = 0
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_cost_stone"]
+script = ExtResource("3_cost_script")
+item_name = "Stone"
+amount = 0
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[node name="ScattershotTower" type="Node2D" unique_id=454978290 groups=["PriorityTarget", "Structure"]]
+script = ExtResource("1_script")
+preferred_ammo_type = "Pebble"
+compatible_ammo_types = Array[String](["Pebble"])
+attack_range = 5
+fire_rate = 0.5
+projectiles_per_shot = 5
+spread_degrees = 20.0
+building_name = "Scattershot Tower"
+size = Vector2i(2, 2)
+icon = SubResource("AtlasTexture_scattershot")
+build_costs = Array[ExtResource("3_cost_script")]([SubResource("Resource_cost_plank"), SubResource("Resource_cost_stone")])
+build_range = 6
+corruption_range = 8
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156624]
+modulate = Color(0.8, 0.75, 0.7, 1)
+texture = ExtResource("2_atlas")
+region_enabled = true
+region_rect = Rect2(384, 0, 64, 64)
