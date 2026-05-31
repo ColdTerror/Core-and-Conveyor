@@ -269,23 +269,20 @@ func _collect_tower_stats(b: Node2D, stats: Array):
 		stats.append("Compatible: %s" % compatible_list)
 		
 	# Determine active ammo-dependent firing stats
-	var active_mode_name = "Primary"
-	var active_projectiles = b.projectiles_per_shot if "projectiles_per_shot" in b else 1
-	var active_spread = b.spread_degrees if "spread_degrees" in b else 0.0
-	
+	var is_alternate = false
 	if "ammo_inventory" in b and not b.ammo_inventory.is_empty():
 		var loaded_ammo = b.ammo_inventory[0]
 		if loaded_ammo.ammo_type != b.preferred_ammo_type:
-			var scale_pct = int((b.alternate_damage_scale if "alternate_damage_scale" in b else 0.5) * 100.0)
-			active_mode_name = "Alternate (%d%% Damage)" % scale_pct
+			is_alternate = true
 			
-	var mode_desc = ""
-	if active_projectiles > 1:
-		mode_desc = "%s (%dx, %d°)" % [active_mode_name, active_projectiles, int(active_spread)]
-	else:
-		mode_desc = "%s (1x)" % active_mode_name
+	if is_alternate:
+		var scale_pct = int((b.alternate_damage_scale if "alternate_damage_scale" in b else 0.5) * 100.0)
+		stats.append("Active Firing Mode: Alternate (%d%% Damage)" % scale_pct)
 		
-	stats.append("Active Mode: %s" % mode_desc)
+	var projectiles = b.projectiles_per_shot if "projectiles_per_shot" in b else 1
+	var spread = b.spread_degrees if "spread_degrees" in b else 0.0
+	if projectiles > 1:
+		stats.append("Projectiles: %dx (%d° Spread)" % [projectiles, int(spread)])
 	
 	if "ammo_inventory" in b and "ammo_capacity" in b:
 		if b.ammo_inventory.is_empty():
