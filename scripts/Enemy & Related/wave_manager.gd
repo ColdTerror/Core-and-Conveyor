@@ -28,6 +28,11 @@ class_name WaveManager
 @export var corruption_penalty_factor: float = 0.01 # <--- NEW: 1 extra enemy per 100 tiles
 var pending_raid_penalty: float = 0.0
 
+# --- WAVE SPAWNING CURVE ---
+@export_group("Wave Spawning Curve")
+@export var spawn_curve_exponent_dusk: float = 3.0
+@export var spawn_curve_exponent_dawn: float = 2.0
+
 # --- STATE ---
 var current_wave: int = 0
 var night_enemies_total: int = 0
@@ -122,10 +127,16 @@ func _process(delta: float):
 	else:
 		return 
 
-	var curve = 1.0 - (x * x)
+	var curve: float = 0.0
+	if x < 0.0:
+		curve = 1.0 - pow(abs(x), spawn_curve_exponent_dusk)
+	else:
+		curve = 1.0 - pow(abs(x), spawn_curve_exponent_dawn)
 
 	var night_duration_sec = (time_manager.real_minutes_per_day * 60.0) / 2.0
-	var peak_rate = (1.5 * night_enemies_total) / night_duration_sec
+	var area = 2.0 - (1.0 / (spawn_curve_exponent_dusk + 1.0)) - (1.0 / (spawn_curve_exponent_dawn + 1.0))
+	var normalization = 2.0 / area
+	var peak_rate = (normalization * night_enemies_total) / night_duration_sec
 	var current_spawn_rate = peak_rate * curve
 
 	spawn_accumulator += current_spawn_rate * delta
