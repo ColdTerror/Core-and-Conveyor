@@ -20,6 +20,9 @@ var current_building: Node2D = null
 func _ready():
 	work_bar.visible = false
 	hide()
+	
+	name_label.add_theme_font_size_override("font_size", 20)
+	health_label.add_theme_font_size_override("font_size",16)
 
 
 
@@ -164,6 +167,7 @@ func show_inventory(inventory: Dictionary):
 			var row = Label.new()
 			row.text = "%s: %s" % [key, inventory[key]]
 			row.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0))
+			row.add_theme_font_size_override("font_size", 16)
 			inventory_box.add_child(row)
 		return
 
@@ -179,6 +183,7 @@ func show_inventory(inventory: Dictionary):
 			
 		var row := Label.new()
 		row.text = "%s: %s" % [display_text, str(value)]
+		row.add_theme_font_size_override("font_size", 16)
 		
 		if current_building is ConstructionSite:
 			row.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2)) 
@@ -217,7 +222,7 @@ func _refresh_stats_ui(b: Node2D):
 		var row = Label.new()
 		row.text = stat_text
 		row.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-		row.add_theme_font_size_override("font_size", 12)
+		row.add_theme_font_size_override("font_size", 16)
 		stats_box.add_child(row)
 
 
@@ -260,24 +265,28 @@ func _collect_core_stats(b: Node2D, stats: Array):
 
 ## Compiles defense turret rate of fire, damage, and ammunition stats.
 func _collect_tower_stats(b: Node2D, stats: Array):
-	if "damage_multiplier" in b: stats.append("Damage Mult: %.2fx" % b.damage_multiplier)
-	if "fire_rate" in b: stats.append("Fire Rate: %.2f/s" % b.fire_rate)
-	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range))
-	if "preferred_ammo_type" in b: stats.append("Preferred Ammo: %s" % b.preferred_ammo_type)
-	if "compatible_ammo_types" in b and b.compatible_ammo_types.size() > 1:
-		var compatible_list = ", ".join(b.compatible_ammo_types)
-		stats.append("Compatible: %s" % compatible_list)
-		
 	# Determine active ammo-dependent firing stats
 	var is_alternate = false
 	if "ammo_inventory" in b and not b.ammo_inventory.is_empty():
 		var loaded_ammo = b.ammo_inventory[0]
 		if loaded_ammo.ammo_type != b.preferred_ammo_type:
 			is_alternate = true
-			
-	if is_alternate:
-		var scale_pct = int((b.alternate_damage_scale if "alternate_damage_scale" in b else 0.5) * 100.0)
-		stats.append("Active Firing Mode: Alternate (%d%% Damage)" % scale_pct)
+
+	if "damage_multiplier" in b:
+		var damage_mult = b.damage_multiplier
+		if is_alternate:
+			var scale = b.alternate_damage_scale if "alternate_damage_scale" in b else 0.5
+			var effective_mult = damage_mult * scale
+			stats.append("Damage Mult: %.2fx (Alternate)" % effective_mult)
+		else:
+			stats.append("Damage Mult: %.2fx" % damage_mult)
+
+	if "fire_rate" in b: stats.append("Fire Rate: %.2f/s" % b.fire_rate)
+	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range))
+	if "preferred_ammo_type" in b: stats.append("Preferred Ammo: %s" % b.preferred_ammo_type)
+	if "compatible_ammo_types" in b and b.compatible_ammo_types.size() > 1:
+		var compatible_list = ", ".join(b.compatible_ammo_types)
+		stats.append("Compatible: %s" % compatible_list)
 		
 	var projectiles = b.projectiles_per_shot if "projectiles_per_shot" in b else 1
 	var spread = b.spread_degrees if "spread_degrees" in b else 0.0

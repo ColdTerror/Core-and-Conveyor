@@ -30,6 +30,9 @@ func _ready():
 	hide()
 	close_button.pressed.connect(close_menu)
 	info_label.custom_minimum_size = Vector2(225, 50) 
+	
+	title_label.add_theme_font_size_override("font_size", 20)
+	info_label.add_theme_font_size_override("font_size", 16) 
 
 
 
@@ -229,6 +232,8 @@ func refresh_ui():
 	else:
 		info_label.text = "No configurable options."
 		
+	info_label.text = info_label.text.strip_edges()
+	
 	if not selected_object.has_method("set_priority"):
 		_build_priority_widget(selected_object)
 
@@ -319,11 +324,14 @@ func _setup_tower_ui(b: TowerBuilding):
 		if loaded_ammo.ammo_type != b.preferred_ammo_type:
 			is_alternate = true
 			
+	var effective_mult = b.damage_multiplier * b.alternate_damage_scale if is_alternate else b.damage_multiplier
 	if is_alternate:
-		info_label.text += "Firing Mode: Alternate (%d%% Damage)\n" % int(b.alternate_damage_scale * 100.0)
+		info_label.text += "Damage Mult: %.2fx (Alternate)\n" % effective_mult
+	else:
+		info_label.text += "Damage Mult: %.2fx\n" % effective_mult
 		
 	if b.projectiles_per_shot > 1:
-		info_label.text += "Projectiles: %dx (%d° Spread)\n" % [b.projectiles_per_shot, int(b.spread_degrees)]
+		info_label.text += "Projectiles: %dx (%d° Spread)" % [b.projectiles_per_shot, int(b.spread_degrees)]
 	
 	match b.targeting_mode:
 		"Closest": info_label.modulate = Color(0.8, 0.8, 1.0)
@@ -343,13 +351,13 @@ func _setup_core_ui(b: CoreBuilding):
 	
 	# Research UI
 	if b.active_research_name != "":
-		info_label.text += "Researching: %s\n" % b.active_research_name
+		info_label.text += "Researching: %s" % b.active_research_name
 		
 		for item_res in b.research_bill_max.keys():
 			var max_required = b.research_bill_max[item_res]
 			var still_needed = b.research_bill.get(item_res, 0)
 			var currently_deposited = max_required - still_needed
-			info_label.text += "%s: %d / %d\n" % [item_res.display_name, currently_deposited, max_required]
+			info_label.text += "%s: %d / %d" % [item_res.display_name, currently_deposited, max_required]
 			
 		_create_button("Cancel Research", Color(1.0, 0.4, 0.4), func():
 			b.active_research_name = ""
@@ -358,13 +366,13 @@ func _setup_core_ui(b: CoreBuilding):
 			refresh_ui()
 		)
 	else:
-		info_label.text += "No Current Research\n"
+		info_label.text += "No Current Research"
 		_create_button("Open Research Tree", Color(1.0, 0.84, 0.0), func(): 
 			research_button_clicked.emit()
 		)
 
 	# Visual separator in the text
-	info_label.text += "\n----------------------\n\n"
+	info_label.text += "\n----------------------\n"
 
 	# Bot construction UI
 	var current_bots = get_tree().get_nodes_in_group("Bots").size()
