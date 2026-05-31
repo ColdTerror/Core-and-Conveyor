@@ -278,8 +278,11 @@ func _collect_tower_stats(b: Node2D, stats: Array):
 	if "damage_multiplier" in b: stats.append("Damage Mult: %.2fx" % b.damage_multiplier)
 	if "fire_rate" in b: stats.append("Fire Rate: %.2f/s" % b.fire_rate)
 	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range))
-	if "ammo_inventory" in b and "ammo_capacity" in b:
-		stats.append("Ammo: %d / %d" % [b.ammo_inventory.size(), b.ammo_capacity])
+	if "preferred_ammo_type" in b: stats.append("Preferred Ammo: %s" % b.preferred_ammo_type)
+	if "compatible_ammo_types" in b:
+		var compatible_list = ", ".join(b.compatible_ammo_types)
+		stats.append("Compatible: %s" % compatible_list)
+
 
 
 ## Formats processor building crafting interval multipliers.

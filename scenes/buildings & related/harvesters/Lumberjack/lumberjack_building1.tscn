@@ -32,8 +32,8 @@ building_name = "Lumberjack"
 size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_tf3du")
 build_costs = Array[ExtResource("5_e6wq2")]([SubResource("Resource_3ltmk")])
-build_range = 8.0
-corruption_range = 10.0
+build_range = 6
+corruption_range = 8
 upgrades_to = ExtResource("6_w0gcj")
 upgrade_cost = Array[ExtResource("5_e6wq2")]([SubResource("Resource_w0gcj")])
 

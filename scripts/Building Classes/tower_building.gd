@@ -373,10 +373,10 @@ func _shoot():
 
 ## Returns descriptive UI dictionary containing current ammo counts and target specs.
 func get_inventory_info() -> Dictionary:
-	return { 
-		"Ammo": ammo_inventory.size(),
-		"Type": preferred_ammo_type
-	}
+	if ammo_inventory.is_empty():
+		return {}
+	return { ammo_inventory[0]: ammo_inventory.size() }
+
 
 
 ## Summarizes stored ammunition counts for game-wide economics tracking.
