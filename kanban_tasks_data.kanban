@@ -13,13 +13,15 @@
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
 				"efe7a730-b5a2-4caa-af39-07b9c0863bdc",
-				"94fd5864-66d2-4981-b907-26f77a1f95ce"
+				"b87c3853-295c-4ce8-8e40-a66e2c884e22"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"e027da0c-58bc-41a8-a13c-60a03ad97188"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -28,6 +30,7 @@
 				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
 				"c3698bff-0223-4c9e-b3bb-a05810a41485",
 				"c9d3dbc2-a3cd-428b-801f-0dcb3aff1458",
+				"94fd5864-66d2-4981-b907-26f77a1f95ce",
 				"3a47a767-8797-4811-954f-df196e2ff848",
 				"63a79e06-5eb6-4fd0-9f3a-4b61a2c53497",
 				"0844484e-c417-4ab6-8811-ccc0836f50eb",
@@ -1622,6 +1625,20 @@
 			"uuid": "85885891-3c37-4a47-a697-0745b4555cd4",
 			"title": "tower should use the amount of ammo it shoots",
 			"description": "shotgns only use 1 ammo to shoot 5 bullets?!?",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e027da0c-58bc-41a8-a13c-60a03ad97188",
+			"title": "rework ammo to a strong preferred type and an optional weak alternative",
+			"description": "simplifies ui and keeps towers consistent (ballista cant fire 10 arrows at once, but fires 1 weaker than a bolt)\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b87c3853-295c-4ce8-8e40-a66e2c884e22",
+			"title": "Hwacha tower that shoots 9 arrows targeting a 3x3 grid around the target",
+			"description": "maybe have a specific target mode for clumps so it targets groups of enemies",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

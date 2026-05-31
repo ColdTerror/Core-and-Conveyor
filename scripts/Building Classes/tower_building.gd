@@ -22,10 +22,8 @@ class_name TowerBuilding
 @export var projectiles_per_shot: int = 1
 @export var spread_degrees: float = 0.0 
 
-@export_subgroup("Secondary Multi-Shot")
-@export var secondary_projectiles_per_shot: int = 10
-@export var secondary_spread_degrees: float = 30.0
-@export var secondary_damage_scale: float = 0.5
+@export_subgroup("Alternate Ammo Override")
+@export var alternate_damage_scale: float = 0.5
 
 var base_damage_multiplier: float = 1.0
 var ammo_inventory: Array[ItemResource] = []
@@ -336,9 +334,7 @@ func _shoot():
 	var damage_scale = 1.0
 	
 	if not is_preferred:
-		requested_count = secondary_projectiles_per_shot
-		spread = secondary_spread_degrees
-		damage_scale = secondary_damage_scale
+		damage_scale = alternate_damage_scale
 		
 	var actual_count = min(requested_count, ammo_inventory.size())
 	if actual_count <= 0: return

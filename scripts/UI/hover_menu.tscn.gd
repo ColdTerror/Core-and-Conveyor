@@ -162,13 +162,6 @@ func show_inventory(inventory: Dictionary):
 		return
 
 	# Standard building logic
-	var is_buffer = false
-	var max_cap = 0
-	
-	if "buffer_capacity" in current_building:
-		is_buffer = true
-		max_cap = current_building.buffer_capacity
-
 	for key in inventory.keys():
 		var value = inventory[key] 
 		var display_text = "Unknown"
@@ -179,26 +172,12 @@ func show_inventory(inventory: Dictionary):
 			display_text = key
 			
 		var row := Label.new()
+		row.text = "%s: %s" % [display_text, str(value)]
 		
 		if current_building is ConstructionSite:
-			row.text = "%s: %s" % [display_text, str(value)]
 			row.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2)) 
-			
-		elif is_buffer and (value is int or value is float):
-			if max_cap > 0 and value >= max_cap:
-				row.text = "Buffer FULL [%s]: %d/%d" % [display_text, value, max_cap]
-				row.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3)) 
-			else:
-				var cap_str = str(max_cap) if max_cap > 0 else "?"
-				row.text = "Output Buffer [%s]: %d/%s" % [display_text, value, cap_str]
-				row.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7)) 
 		else:
-			if value is int or value is float:
-				row.text = "Secured [%s]: %d" % [display_text, value]
-			else:
-				row.text = "Secured [%s]: %s" % [display_text, str(value)]
-				
-			row.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
+			row.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
 			
 		inventory_box.add_child(row)
 
@@ -291,9 +270,8 @@ func _collect_tower_stats(b: Node2D, stats: Array):
 	if "ammo_inventory" in b and not b.ammo_inventory.is_empty():
 		var loaded_ammo = b.ammo_inventory[0]
 		if loaded_ammo.ammo_type != b.preferred_ammo_type:
-			active_mode_name = "Secondary"
-			active_projectiles = b.secondary_projectiles_per_shot if "secondary_projectiles_per_shot" in b else 10
-			active_spread = b.secondary_spread_degrees if "secondary_spread_degrees" in b else 30.0
+			var scale_pct = int((b.alternate_damage_scale if "alternate_damage_scale" in b else 0.5) * 100.0)
+			active_mode_name = "Alternate (%d%% Damage)" % scale_pct
 			
 	var mode_desc = ""
 	if active_projectiles > 1:

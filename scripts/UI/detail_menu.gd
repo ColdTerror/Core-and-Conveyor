@@ -319,9 +319,7 @@ func _setup_tower_ui(b: TowerBuilding):
 	if not b.ammo_inventory.is_empty():
 		var loaded_ammo = b.ammo_inventory[0]
 		if loaded_ammo.ammo_type != b.preferred_ammo_type:
-			active_mode_name = "Secondary"
-			active_projectiles = b.secondary_projectiles_per_shot
-			active_spread = b.secondary_spread_degrees
+			active_mode_name = "Alternate (%d%% Damage)" % int(b.alternate_damage_scale * 100.0)
 			
 	# Format detail rows
 	info_label.text += "Firing Mode: %s\n" % active_mode_name
