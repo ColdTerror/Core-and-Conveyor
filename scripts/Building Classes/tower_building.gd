@@ -326,23 +326,34 @@ func _is_valid_target(target) -> bool:
 
 ## Fires projectiles at the designated target, applying spread modifiers and a juice squash tween.
 func _shoot():
-	var ammo_data = ammo_inventory.pop_front()
+	if ammo_inventory.is_empty(): return
+	
+	var sample_ammo = ammo_inventory[0]
+	var is_preferred = sample_ammo.ammo_type == preferred_ammo_type
+	
+	var requested_count = projectiles_per_shot
+	var spread = spread_degrees
+	var damage_scale = 1.0
+	
+	if not is_preferred:
+		requested_count = secondary_projectiles_per_shot
+		spread = secondary_spread_degrees
+		damage_scale = secondary_damage_scale
+		
+	var actual_count = min(requested_count, ammo_inventory.size())
+	if actual_count <= 0: return
+	
+	# Consume actual ammo from the inventory
+	var ammo_data = sample_ammo
+	for i in range(actual_count):
+		var popped = ammo_inventory.pop_front()
+		if popped:
+			EconomyManager.log_item_consumed(popped.display_name, 1)
+			
 	inventory_changed.emit()
 	
-	EconomyManager.log_item_consumed(ammo_data.display_name, 1)
-	
 	attack_cooldown = 1.0 / fire_rate
-	var final_damage = roundi(ammo_data.damage * damage_multiplier)
-	var count = projectiles_per_shot
-	var spread = spread_degrees
-	
-	# Secondary Multi-Shot Mode:
-	# If the fired ammo_type is compatible but NOT the primary preferred_ammo_type,
-	# we override utilizing the secondary multi-shot export settings.
-	if ammo_data.ammo_type != preferred_ammo_type:
-		count = secondary_projectiles_per_shot
-		spread = secondary_spread_degrees
-		final_damage = roundi(final_damage * secondary_damage_scale)
+	var final_damage = roundi(ammo_data.damage * damage_multiplier * damage_scale)
 	
 	var spawn_pos = global_position
 	
@@ -352,11 +363,11 @@ func _shoot():
 		var spawn_radius = 16.0 
 		spawn_pos = global_position + (direction_to_enemy * spawn_radius)
 	
-	for i in range(count):
+	for i in range(actual_count):
 		var angle_offset = 0.0
-		if count > 1:
+		if actual_count > 1:
 			var spread_rad = deg_to_rad(spread)
-			var step = spread_rad / (count - 1)
+			var step = spread_rad / (actual_count - 1)
 			angle_offset = - (spread_rad / 2.0) + (i * step)
 		
 		fired_projectile.emit(
