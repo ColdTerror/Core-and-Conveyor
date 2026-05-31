@@ -14,7 +14,7 @@ class_name TowerBuilding
 @export var ammo_capacity: int = 20
 
 @export_group("Combat Stats")
-@export var attack_range: float = 200.0
+@export var attack_range: int = 7
 @export var fire_rate: float = 1.0 
 @export var damage_multiplier: float = 1.0 
 
@@ -137,8 +137,8 @@ func _get_local_range_tiles() -> Dictionary:
 	var rect_y_min = -half_h
 	var rect_y_max = half_h
 	
-	var max_dist_px = attack_range
-	var search_radius = ceil(attack_range / tile_size) + max(b_size.x, b_size.y)
+	var max_dist_px = attack_range * tile_size
+	var search_radius = attack_range + max(b_size.x, b_size.y)
 	
 	for x in range(-search_radius, search_radius + 1):
 		for y in range(-search_radius, search_radius + 1):

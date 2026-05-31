@@ -277,7 +277,7 @@ func _collect_core_stats(b: Node2D, stats: Array):
 func _collect_tower_stats(b: Node2D, stats: Array):
 	if "damage_multiplier" in b: stats.append("Damage Mult: %.2fx" % b.damage_multiplier)
 	if "fire_rate" in b: stats.append("Fire Rate: %.2f/s" % b.fire_rate)
-	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range / 32.0))
+	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range))
 	if "ammo_inventory" in b and "ammo_capacity" in b:
 		stats.append("Ammo: %d / %d" % [b.ammo_inventory.size(), b.ammo_capacity])
 

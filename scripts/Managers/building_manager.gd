@@ -1062,7 +1062,7 @@ func _get_upgrade_stats(b: Building) -> Dictionary:
 	if "work_interval" in b and "work_interval" in temp and b.work_interval != temp.work_interval:
 		stats["Time Per Harvest"] = "%.2fs -> %.2fs" % [b.work_interval, temp.work_interval]
 	if "attack_range" in b and "attack_range" in temp and b.attack_range != temp.attack_range:
-		stats["Attack Range"] = "%d -> %d Tiles" % [int(b.attack_range / 32.0), int(temp.attack_range / 32.0)]
+		stats["Attack Range"] = "%d -> %d Tiles" % [int(b.attack_range), int(temp.attack_range)]
 	if "fire_rate" in b and "fire_rate" in temp and b.fire_rate != temp.fire_rate:
 		stats["Fire Rate"] = "%d -> %d/s" % [b.fire_rate, temp.fire_rate]
 	if "damage_multiplier" in b and "damage_multiplier" in temp and b.damage_multiplier != temp.damage_multiplier:

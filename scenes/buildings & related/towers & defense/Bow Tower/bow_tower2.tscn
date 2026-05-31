@@ -23,7 +23,7 @@ size = Vector2(64, 64)
 [node name="BowTower2" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_h21cw")
 compatible_ammo_types = Array[String](["Arrow", "Pebble"])
-attack_range = 320.0
+attack_range = 10.0
 fire_rate = 2.0
 damage_multiplier = 1.5
 building_name = "Bow Tower"

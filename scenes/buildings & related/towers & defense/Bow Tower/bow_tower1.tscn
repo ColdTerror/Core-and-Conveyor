@@ -53,7 +53,7 @@ size = Vector2(64, 64)
 [node name="BowTower1" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_vc0d4")
 compatible_ammo_types = Array[String](["Arrow", "Pebble"])
-attack_range = 224.0
+attack_range = 7.0
 building_name = "Bow Tower"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_fp6y0")
