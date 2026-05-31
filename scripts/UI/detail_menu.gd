@@ -309,7 +309,8 @@ func _setup_tower_ui(b: TowerBuilding):
 		info_label.text += "Ammo: %s x %d / %d\n" % [ammo_name, b.ammo_inventory.size(), b.ammo_capacity]
 		
 	info_label.text += "Preferred Ammo: %s\n" % b.preferred_ammo_type
-	info_label.text += "Compatible: %s\n" % ", ".join(b.compatible_ammo_types)
+	if b.compatible_ammo_types.size() > 1:
+		info_label.text += "Compatible: %s\n" % ", ".join(b.compatible_ammo_types)
 	
 	# Determine active ammo-dependent firing stats
 	var active_mode_name = "Primary"

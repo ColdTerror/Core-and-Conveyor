@@ -124,6 +124,8 @@ func _update_health_text(current: int, max_hp: int):
 ## Triggers visual inventory card updates when stock levels shift on the target.
 func _on_inventory_changed():
 	_refresh_inventory_ui()
+	if current_building and is_instance_valid(current_building):
+		_refresh_stats_ui(current_building)
 
 
 
@@ -131,6 +133,10 @@ func _on_inventory_changed():
 func _refresh_inventory_ui():
 	if not current_building: return
 	
+	if current_building is TowerBuilding:
+		hide_inventory()
+		return
+		
 	if not current_building.has_method("get_inventory_info"):
 		hide_inventory()
 		return
@@ -258,7 +264,7 @@ func _collect_tower_stats(b: Node2D, stats: Array):
 	if "fire_rate" in b: stats.append("Fire Rate: %.2f/s" % b.fire_rate)
 	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range))
 	if "preferred_ammo_type" in b: stats.append("Preferred Ammo: %s" % b.preferred_ammo_type)
-	if "compatible_ammo_types" in b:
+	if "compatible_ammo_types" in b and b.compatible_ammo_types.size() > 1:
 		var compatible_list = ", ".join(b.compatible_ammo_types)
 		stats.append("Compatible: %s" % compatible_list)
 		
