@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://gksm6o3raeac"]
+
+[ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/Building Classes/tower_building.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_atlas"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_cost_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ballista"]
+atlas = ExtResource("2_atlas")
+region = Rect2(480, 0, 128, 128)
+
+[sub_resource type="Resource" id="Resource_cost_plank"]
+script = ExtResource("3_cost_script")
+item_name = "Plank"
+amount = 0
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_cost_stone_brick"]
+script = ExtResource("3_cost_script")
+item_name = "Stone Brick"
+amount = 0
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[node name="BallistaTower1" type="Node2D" unique_id=454978289 groups=["PriorityTarget", "Structure"]]
+script = ExtResource("1_script")
+preferred_ammo_type = "BallistaBolt"
+compatible_ammo_types = Array[String](["BallistaBolt", "Arrow"])
+attack_range = 350.0
+fire_rate = 0.3
+damage_multiplier = 3.0
+building_name = "Ballista Tower"
+size = Vector2i(3, 3)
+icon = SubResource("AtlasTexture_ballista")
+build_costs = Array[ExtResource("3_cost_script")]([SubResource("Resource_cost_plank"), SubResource("Resource_cost_stone_brick")])
+build_range = 8.0
+corruption_range = 10.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156623]
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("2_atlas")
+region_enabled = true
+region_rect = Rect2(128, 128, 96, 96)

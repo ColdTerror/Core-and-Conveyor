@@ -12,7 +12,8 @@
 			"title": "Todo",
 			"tasks": [
 				"d9d6b4ff-91c5-4607-8342-624e66e8bdad",
-				"efe7a730-b5a2-4caa-af39-07b9c0863bdc"
+				"efe7a730-b5a2-4caa-af39-07b9c0863bdc",
+				"924055fc-e265-41b0-8c05-298a77d7af4a"
 			]
 		},
 		{
@@ -1573,6 +1574,13 @@
 		{
 			"uuid": "668cc6ab-7b8f-4364-8863-c979696fb5a8",
 			"title": "tower hover menu should list preferred ammo and all compatible",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "924055fc-e265-41b0-8c05-298a77d7af4a",
+			"title": "update hover menu for new ammo stuff",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

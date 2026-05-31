@@ -308,7 +308,7 @@ func _setup_tower_ui(b: TowerBuilding):
 		var ammo_name = b.ammo_inventory[0].display_name
 		info_label.text += "Ammo: %s x %d / %d\n" % [ammo_name, b.ammo_inventory.size(), b.ammo_capacity]
 		
-	info_label.text += "Preferred Ammo: %s\n" % b.required_ammo_type
+	info_label.text += "Preferred Ammo: %s\n" % b.preferred_ammo_type
 	info_label.text += "Compatible: %s" % ", ".join(b.compatible_ammo_types)
 	
 	match b.targeting_mode:

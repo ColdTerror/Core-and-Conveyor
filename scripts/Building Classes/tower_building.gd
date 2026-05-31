@@ -9,7 +9,7 @@ extends Building
 class_name TowerBuilding
 
 @export_group("Tower Configuration")
-@export_enum("Arrow", "BallistaBolt", "Pebble", "Boulder", "Magic") var required_ammo_type: String = "Arrow"
+@export_enum("Arrow", "BallistaBolt", "Pebble", "Boulder", "Magic") var preferred_ammo_type: String = "Arrow"
 @export var compatible_ammo_types: Array[String] = ["Arrow"]
 @export var ammo_capacity: int = 20
 
@@ -332,9 +332,9 @@ func _shoot():
 	var spread = spread_degrees
 	
 	# Standardized Secondary Shotgun Blast Mode:
-	# If the fired ammo_type is compatible but NOT the primary required_ammo_type,
+	# If the fired ammo_type is compatible but NOT the primary preferred_ammo_type,
 	# we override projectiles_per_shot to 10 and spread to 30 degrees, dealing 50% damage per shot.
-	if ammo_data.ammo_type != required_ammo_type:
+	if ammo_data.ammo_type != preferred_ammo_type:
 		count = 10
 		spread = 30.0
 		final_damage = roundi(final_damage * 0.5)
@@ -375,7 +375,7 @@ func _shoot():
 func get_inventory_info() -> Dictionary:
 	return { 
 		"Ammo": ammo_inventory.size(),
-		"Type": required_ammo_type
+		"Type": preferred_ammo_type
 	}
 
 
