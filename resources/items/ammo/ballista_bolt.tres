@@ -1,12 +1,20 @@
 [gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://c2ucikxxnvycl"]
 
 [ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_nbgb8"]
+[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_3etx5"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8ouhh"]
+atlas = ExtResource("2_3etx5")
+region = Rect2(96, 0, 32, 32)
 
 [resource]
 script = ExtResource("1_nbgb8")
 display_name = "Ballista Bolt"
+texture = SubResource("AtlasTexture_8ouhh")
 description = "Ballista Bolt Ammo"
 is_ammo = true
 ammo_type = "BallistaBolt"
 damage = 25
+projectile_speed = 500.0
+projectile_lifetime = 5.0
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"

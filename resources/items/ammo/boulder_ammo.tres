@@ -1,12 +1,20 @@
 [gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://clj1tx1femxk3"]
 
 [ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_0ymsu"]
+[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_3my8l"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ib3sg"]
+atlas = ExtResource("2_3my8l")
+region = Rect2(32, 0, 32, 32)
 
 [resource]
 script = ExtResource("1_0ymsu")
 display_name = "Boulder"
+texture = SubResource("AtlasTexture_ib3sg")
 description = "Boulder Ammo"
 is_ammo = true
 ammo_type = "Boulder"
 damage = 20
+projectile_speed = 300.0
+projectile_lifetime = 4.0
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"

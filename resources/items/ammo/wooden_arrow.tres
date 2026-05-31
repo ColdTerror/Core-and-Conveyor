@@ -15,4 +15,5 @@ description = "Basic Wooden Arrow"
 is_ammo = true
 ammo_type = "Arrow"
 damage = 10
+projectile_lifetime = 3.0
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"
