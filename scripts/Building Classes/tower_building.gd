@@ -18,9 +18,14 @@ class_name TowerBuilding
 @export var fire_rate: float = 1.0 
 @export var damage_multiplier: float = 1.0 
 
-@export_subgroup("Multi-Shot (Shotgun)")
-@export var projectiles_per_shot: int = 1 
+@export_subgroup("Primary Multi-Shot")
+@export var projectiles_per_shot: int = 1
 @export var spread_degrees: float = 0.0 
+
+@export_subgroup("Secondary Multi-Shot")
+@export var secondary_projectiles_per_shot: int = 10
+@export var secondary_spread_degrees: float = 30.0
+@export var secondary_damage_scale: float = 0.5
 
 var base_damage_multiplier: float = 1.0
 var ammo_inventory: Array[ItemResource] = []
@@ -331,13 +336,13 @@ func _shoot():
 	var count = projectiles_per_shot
 	var spread = spread_degrees
 	
-	# Standardized Secondary Shotgun Blast Mode:
+	# Secondary Multi-Shot Mode:
 	# If the fired ammo_type is compatible but NOT the primary preferred_ammo_type,
-	# we override projectiles_per_shot to 10 and spread to 30 degrees, dealing 50% damage per shot.
+	# we override utilizing the secondary multi-shot export settings.
 	if ammo_data.ammo_type != preferred_ammo_type:
-		count = 10
-		spread = 30.0
-		final_damage = roundi(final_damage * 0.5)
+		count = secondary_projectiles_per_shot
+		spread = secondary_spread_degrees
+		final_damage = roundi(final_damage * secondary_damage_scale)
 	
 	var spawn_pos = global_position
 	
