@@ -23,9 +23,6 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 atlas = ExtResource("2_er36m")
 region = Rect2(160, 160, 32, 32)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_gxk2j"]
-size = Vector2(32, 32)
-
 [node name="Wall" type="Node2D" unique_id=1237469307 groups=["Structure"]]
 script = ExtResource("1_gxk2j")
 is_solid_obstacle = false
@@ -40,7 +37,3 @@ corruption_range = 0.0
 texture = SubResource("AtlasTexture_wr2mu")
 region_rect = Rect2(64, 0, 32, 32)
 
-[node name="Area2D" type="Area2D" parent="." unique_id=1119633970]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=495812014]
-shape = SubResource("RectangleShape2D_gxk2j")

@@ -47,9 +47,6 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 atlas = ExtResource("2_sa4vh")
 region = Rect2(384, 0, 64, 64)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_sa4vh"]
-size = Vector2(64, 64)
-
 [node name="BowTower1" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_vc0d4")
 compatible_ammo_types = Array[String](["Arrow", "Pebble"])
@@ -65,8 +62,3 @@ upgrade_cost = Array[ExtResource("3_fp6y0")]([SubResource("Resource_lsqhb"), Sub
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156622]
 texture = SubResource("AtlasTexture_nr8e2")
-
-[node name="Area2D" type="Area2D" parent="." unique_id=1304513059]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1849696759]
-shape = SubResource("RectangleShape2D_sa4vh")
