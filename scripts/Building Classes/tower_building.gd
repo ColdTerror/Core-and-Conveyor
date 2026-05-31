@@ -93,9 +93,9 @@ func apply_research_buffs():
 
 
 
-## Draws the grid-based attack range outline when show_range_overlay is enabled.
+## Draws the grid-based attack range outline when show_range_overlay is enabled or selected.
 func _draw():
-	if not show_range_overlay:
+	if not (show_range_overlay or is_selected):
 		return
 		
 	var tiles = _cached_range_tiles

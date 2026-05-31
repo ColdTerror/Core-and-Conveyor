@@ -282,6 +282,32 @@ func _collect_tower_stats(b: Node2D, stats: Array):
 	if "compatible_ammo_types" in b:
 		var compatible_list = ", ".join(b.compatible_ammo_types)
 		stats.append("Compatible: %s" % compatible_list)
+		
+	# Determine active ammo-dependent firing stats
+	var active_mode_name = "Primary"
+	var active_projectiles = b.projectiles_per_shot if "projectiles_per_shot" in b else 1
+	var active_spread = b.spread_degrees if "spread_degrees" in b else 0.0
+	
+	if "ammo_inventory" in b and not b.ammo_inventory.is_empty():
+		var loaded_ammo = b.ammo_inventory[0]
+		if loaded_ammo.ammo_type != b.preferred_ammo_type:
+			active_mode_name = "Secondary"
+			active_projectiles = b.secondary_projectiles_per_shot if "secondary_projectiles_per_shot" in b else 10
+			active_spread = b.secondary_spread_degrees if "secondary_spread_degrees" in b else 30.0
+			
+	var mode_desc = ""
+	if active_projectiles > 1:
+		mode_desc = "%s (%dx, %d°)" % [active_mode_name, active_projectiles, int(active_spread)]
+	else:
+		mode_desc = "%s (1x)" % active_mode_name
+		
+	stats.append("Active Mode: %s" % mode_desc)
+	
+	if "ammo_inventory" in b and "ammo_capacity" in b:
+		if b.ammo_inventory.is_empty():
+			stats.append("Ammo: Empty / %d" % b.ammo_capacity)
+		else:
+			stats.append("Ammo (%s): %d / %d" % [b.ammo_inventory[0].display_name, b.ammo_inventory.size(), b.ammo_capacity])
 
 
 

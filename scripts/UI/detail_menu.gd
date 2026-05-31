@@ -309,7 +309,27 @@ func _setup_tower_ui(b: TowerBuilding):
 		info_label.text += "Ammo: %s x %d / %d\n" % [ammo_name, b.ammo_inventory.size(), b.ammo_capacity]
 		
 	info_label.text += "Preferred Ammo: %s\n" % b.preferred_ammo_type
-	info_label.text += "Compatible: %s" % ", ".join(b.compatible_ammo_types)
+	info_label.text += "Compatible: %s\n" % ", ".join(b.compatible_ammo_types)
+	
+	# Determine active ammo-dependent firing stats
+	var active_mode_name = "Primary"
+	var active_projectiles = b.projectiles_per_shot
+	var active_spread = b.spread_degrees
+	
+	if not b.ammo_inventory.is_empty():
+		var loaded_ammo = b.ammo_inventory[0]
+		if loaded_ammo.ammo_type != b.preferred_ammo_type:
+			active_mode_name = "Secondary"
+			active_projectiles = b.secondary_projectiles_per_shot
+			active_spread = b.secondary_spread_degrees
+			
+	# Format detail rows
+	info_label.text += "Firing Mode: %s\n" % active_mode_name
+	info_label.text += "Projectiles per Shot: %d\n" % active_projectiles
+	if active_projectiles > 1:
+		info_label.text += "Spread Cone: %d°" % int(active_spread)
+	else:
+		info_label.text += "Spread Cone: None"
 	
 	match b.targeting_mode:
 		"Closest": info_label.modulate = Color(0.8, 0.8, 1.0)
