@@ -10,6 +10,8 @@
 [ext_resource type="Resource" uid="uid://reqe4t0u3m16" path="res://resources/tiles/4_Stone.tres" id="7_wc255"]
 [ext_resource type="Script" uid="uid://c800uxnceihnq" path="res://scripts/Managers/camera_controller.gd" id="9_8iemx"]
 [ext_resource type="PackedScene" uid="uid://ciqng866yv11g" path="res://scenes/buildings & related/belts & items/conveyer_bridge_building.tscn" id="11_ok3ci"]
+[ext_resource type="PackedScene" uid="uid://bdjxyx6guat5q" path="res://scenes/buildings & related/belts & items/item launcher&receiver/item launcher/item_launcher_building1.tscn" id="12_bo6tc"]
+[ext_resource type="PackedScene" uid="uid://caeee64b6tjas" path="res://scenes/buildings & related/belts & items/item launcher&receiver/item receiver/item_receiver_Building1.tscn" id="13_7iqcu"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="13_arp2o"]
 [ext_resource type="PackedScene" uid="uid://2d6c3otixyl3" path="res://scenes/buildings & related/towers & defense/gate_building.tscn" id="14_0fmhk"]
 [ext_resource type="PackedScene" uid="uid://cs65262rv84b4" path="res://scenes/buildings & related/belts & items/StockpileBuilding/stockpile_building1.tscn" id="14_ux5qa"]
@@ -30,8 +32,11 @@
 [ext_resource type="PackedScene" uid="uid://dstw12awamhw8" path="res://scenes/buildings & related/core_building.tscn" id="21_gur6y"]
 [ext_resource type="PackedScene" uid="uid://3nhjwgrvtktn" path="res://scenes/ui/game_ui.tscn" id="21_h6wmr"]
 [ext_resource type="PackedScene" uid="uid://dmibsmkeir6w2" path="res://scenes/buildings & related/quota_building.tscn" id="21_lqb7q"]
+[ext_resource type="PackedScene" uid="uid://gksm6o3raeac" path="res://scenes/buildings & related/towers & defense/Ballista Tower/ballista_tower.tscn" id="21_v4d4p"]
 [ext_resource type="PackedScene" uid="uid://dhwolugg4xg82" path="res://scenes/ui/detail_menu.tscn" id="21_wu01b"]
+[ext_resource type="PackedScene" uid="uid://dh4gda6idw4lt" path="res://scenes/buildings & related/towers & defense/Scattershot Tower/scattershot_tower1.tscn" id="22_30hdq"]
 [ext_resource type="PackedScene" uid="uid://0u5oiw0srd4h" path="res://scenes/buildings & related/firepit_building.tscn" id="22_iafhg"]
+[ext_resource type="PackedScene" uid="uid://c1vpexglljvf1" path="res://scenes/buildings & related/towers & defense/Sling Tower/Sling_Tower1.tscn" id="23_3fqns"]
 [ext_resource type="PackedScene" uid="uid://dwddqgu14pdbm" path="res://scenes/ui/hot_bar_ui.tscn" id="23_5k0ak"]
 [ext_resource type="Script" uid="uid://derk5dx603k7c" path="res://scripts/Managers/time_manager.gd" id="23_asl66"]
 [ext_resource type="Script" uid="uid://bdgkdni8jfnax" path="res://scripts/UI/overlay_renderer.gd" id="25_svjb4"]
@@ -147,6 +152,8 @@ conveyor_scene = ExtResource("19_gur6y")
 router_scene = ExtResource("20_2e2fo")
 filter_scene = ExtResource("16_535f6")
 bridge_scene = ExtResource("11_ok3ci")
+launcher_scene = ExtResource("12_bo6tc")
+receiver_scene = ExtResource("13_7iqcu")
 lumberjack_scene = ExtResource("15_8gofh")
 sawmill_scene = ExtResource("16_pqd0y")
 mine_scene = ExtResource("17_w3o6u")
@@ -154,6 +161,9 @@ stonemason_scene = ExtResource("18_gur6y")
 fletcher_scene = ExtResource("19_v3why")
 stone_crusher_scene = ExtResource("17_hv3ux")
 bow_tower_scene = ExtResource("17_xy2fk")
+ballista_tower_scene = ExtResource("21_v4d4p")
+scattershot_tower_scene = ExtResource("22_30hdq")
+sling_tower_scene = ExtResource("23_3fqns")
 wall_scene = ExtResource("18_kih21")
 gate_scene = ExtResource("14_0fmhk")
 stockpile_scene = ExtResource("14_ux5qa")

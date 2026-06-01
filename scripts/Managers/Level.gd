@@ -35,8 +35,8 @@ const RES_STONE := 4
 @export var router_scene: PackedScene 
 @export var filter_scene: PackedScene
 @export var bridge_scene: PackedScene
-var launcher_scene: PackedScene = preload("res://scenes/buildings & related/belts & items/item launcher&receiver/item launcher/item_launcher_building1.tscn")
-var receiver_scene: PackedScene = preload("res://scenes/buildings & related/belts & items/item launcher&receiver/item receiver/item_receiver_Building1.tscn")
+@export var launcher_scene: PackedScene
+@export var receiver_scene: PackedScene
 
 @export_subgroup("Production")
 @export var lumberjack_scene: PackedScene
@@ -48,8 +48,9 @@ var receiver_scene: PackedScene = preload("res://scenes/buildings & related/belt
 
 @export_subgroup("Defense")
 @export var bow_tower_scene: PackedScene
-var ballista_tower_scene: PackedScene = preload("res://scenes/buildings & related/towers & defense/Ballista Tower/ballista_tower.tscn")
-var scattershot_tower_scene: PackedScene = preload("res://scenes/buildings & related/towers & defense/Scattershot Tower/scattershot_tower.tscn")
+@export var ballista_tower_scene: PackedScene
+@export var scattershot_tower_scene: PackedScene
+@export var sling_tower_scene: PackedScene
 @export var wall_scene: PackedScene
 @export var gate_scene: PackedScene
 
@@ -176,6 +177,7 @@ func _setup_hotbar_items():
 			{"name": "Bow Tower", "scene": bow_tower_scene},
 			{"name": "Ballista Tower", "scene": ballista_tower_scene},
 			{"name": "Scattershot Tower", "scene": scattershot_tower_scene},
+			{"name": "Sling Tower", "scene": sling_tower_scene},
 			{"name": "Wall", "scene": wall_scene},
 			{"name": "Gate", "scene": gate_scene}
 		],

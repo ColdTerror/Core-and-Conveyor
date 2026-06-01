@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://c1vpexglljvf1"]
+
+[ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/Building Classes/tower_building.gd" id="1_he72y"]
+[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="2_cnmr7"]
+
+[node name="SlingTower1" type="Node2D" unique_id=678635894]
+script = ExtResource("1_he72y")
+preferred_ammo_type = "Pebble"
+compatible_ammo_types = Array[String](["Pebble"])
+ammo_capacity = 50
+fire_rate = 3.0
+building_name = "Sling Tower"
+size = Vector2i(2, 2)
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1404481897]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_cnmr7")
