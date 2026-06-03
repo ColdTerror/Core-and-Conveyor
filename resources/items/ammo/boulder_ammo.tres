@@ -5,7 +5,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ib3sg"]
 atlas = ExtResource("2_3my8l")
-region = Rect2(32, 0, 32, 32)
+region = Rect2(96, 96, 32, 32)
 
 [resource]
 script = ExtResource("1_0ymsu")
