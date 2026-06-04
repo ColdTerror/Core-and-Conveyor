@@ -25,6 +25,14 @@ class_name TowerBuilding
 @export_subgroup("Alternate Ammo Override")
 @export var alternate_damage_scale: float = 0.5
 
+@export_group("Turret Visuals")
+@export var rotation_speed: float = 5.0
+@export var firing_alignment_angle_degrees: float = 15.0
+@export var loaded_visual_delay: float = 0.25
+
+var turret_pivot: Node2D = null
+var loaded_sprite: Sprite2D = null
+var unloaded_sprite: Sprite2D = null
 var base_damage_multiplier: float = 1.0
 var ammo_inventory: Array[ItemResource] = []
 var attack_cooldown: float = 0.0
@@ -56,6 +64,13 @@ func _ready():
 	add_to_group("Towers")
 	apply_research_buffs()
 	EconomyManager.register_source(self, false)
+	
+	if has_node("TowerPivot"):
+		turret_pivot = get_node("TowerPivot")
+		if turret_pivot.has_node("Loaded"):
+			loaded_sprite = turret_pivot.get_node("Loaded")
+		if turret_pivot.has_node("Unloaded"):
+			unloaded_sprite = turret_pivot.get_node("Unloaded")
 
 
 
@@ -265,7 +280,32 @@ func building_tick(delta: float) -> void:
 	if attack_cooldown <= 0 and ammo_inventory.size() > 0:
 		_try_find_target()
 		if current_target:
-			_shoot()
+			if turret_pivot:
+				var target_angle = (current_target.global_position - global_position).angle()
+				var diff = abs(wrapf(target_angle - turret_pivot.global_rotation, -PI, PI))
+				if diff <= deg_to_rad(firing_alignment_angle_degrees):
+					_shoot()
+			else:
+				_shoot()
+
+
+
+## Updates turret rotation to track the current target smoothly and toggles Loaded/Unloaded sprites.
+func _process(delta: float) -> void:
+	if turret_pivot:
+		if current_target and is_instance_valid(current_target) and not current_target.is_queued_for_deletion():
+			var target_angle = (current_target.global_position - global_position).angle()
+			var angle_diff = wrapf(target_angle - turret_pivot.global_rotation, -PI, PI)
+			turret_pivot.global_rotation += clamp(angle_diff, -rotation_speed * delta, rotation_speed * delta)
+		
+		var max_visual_delay = (1.0 / fire_rate) * 0.4
+		var threshold = min(loaded_visual_delay, max_visual_delay)
+		var is_loaded = (attack_cooldown <= threshold) and not ammo_inventory.is_empty()
+		if loaded_sprite:
+			loaded_sprite.visible = is_loaded
+		if unloaded_sprite:
+			unloaded_sprite.visible = not is_loaded
+
 
 
 ## Scans for targets, utilizing sticky targeting rules if set to "Closest".

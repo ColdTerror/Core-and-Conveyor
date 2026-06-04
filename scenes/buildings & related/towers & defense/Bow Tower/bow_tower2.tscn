@@ -16,15 +16,13 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 [node name="BowTower2" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_h21cw")
 compatible_ammo_types = Array[String](["Arrow", "Pebble"])
-attack_range = 10.0
+attack_range = 10
 fire_rate = 2.0
 damage_multiplier = 1.5
 building_name = "Bow Tower"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_fp6y0")
 build_costs = Array[ExtResource("3_7n57p")]([SubResource("Resource_nr8e2")])
-build_range = 6.0
-corruption_range = 8.0
 building_level = 2
 
 [node name="Base" type="Sprite2D" parent="." unique_id=1497500471]
