@@ -82,6 +82,17 @@ func _process(_delta):
 				resist_str
 			]
 			
+		# Live update for Ammo Distributor
+		elif selected_object is AmmoDistributorBuilding:
+			var info_lines: Array[String] = []
+			if selected_object.inventory.is_empty():
+				info_lines.append("Stored Ammo: Empty")
+			else:
+				info_lines.append("Stored Ammo:")
+				for key in selected_object.inventory.keys():
+					info_lines.append("- %s: %d/10" % [key.display_name, selected_object.inventory[key]])
+			info_label.text = "\n".join(info_lines)
+			
 		# Live update for Worker Bots
 		elif selected_object.has_method("set_priority"): 
 			var info = selected_object.get_inventory_info()
@@ -249,6 +260,8 @@ func refresh_ui():
 		_setup_core_ui(selected_object as CoreBuilding)
 	elif selected_object is QuotaBuilding:
 		_setup_quota_ui(selected_object as QuotaBuilding)
+	elif selected_object is AmmoDistributorBuilding:
+		_setup_ammo_distributor_ui(selected_object as AmmoDistributorBuilding)
 	elif selected_object.has_method("set_priority"):
 		_setup_bot_ui(selected_object)
 	elif selected_object is Enemy:
@@ -446,6 +459,19 @@ func _setup_core_ui(b: CoreBuilding):
 				b.start_bot_construction()
 				refresh_ui()
 			)
+
+
+
+## Displays general attributes and status indicators for ammo distributors.
+func _setup_ammo_distributor_ui(b: AmmoDistributorBuilding):
+	info_label.modulate = Color(0.4, 0.85, 1.0)
+	
+	_create_button("Void Inventory", Color(1.0, 0.3, 0.3), func():
+		if is_instance_valid(b) and b.has_method("void_inventory"):
+			b.void_inventory()
+			refresh_ui()
+	)
+
 
 
 ## Renders current requirements, daily compliance status, and weekly safety goals.

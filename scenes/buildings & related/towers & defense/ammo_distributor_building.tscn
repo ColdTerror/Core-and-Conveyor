@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://cx6i12distr4a"]
+
+[ext_resource type="Script" uid="uid://bggeswiirj78i" path="res://scripts/Building Classes/ammo_distributor_building.gd" id="1_dist_script"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_build_tex"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_cost_script"]
+[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="4_godot_icon"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("2_build_tex")
+region = Rect2(96, 320, 64, 64)
+
+[sub_resource type="Resource" id="Resource_cost_plank"]
+script = ExtResource("3_cost_script")
+item_name = "Plank"
+amount = 0
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_cost_stone_brick"]
+script = ExtResource("3_cost_script")
+item_name = "Stone Brick"
+amount = 0
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[node name="AmmoDistributorBuilding" type="Node2D" unique_id=1798213177 groups=["PriorityTarget", "Structure"]]
+script = ExtResource("1_dist_script")
+building_name = "Ammo Distributor"
+size = Vector2i(2, 2)
+icon = SubResource("AtlasTexture_icon")
+build_costs = Array[ExtResource("3_cost_script")]([SubResource("Resource_cost_plank"), SubResource("Resource_cost_stone_brick")])
+
+[node name="Base" type="Sprite2D" parent="." unique_id=1153641874]
+modulate = Color(0.6, 0.85, 1, 1)
+texture = ExtResource("2_build_tex")
+region_enabled = true
+region_rect = Rect2(96, 320, 64, 64)
+
+[node name="CrateOverlay" type="Sprite2D" parent="." unique_id=94717593]
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("4_godot_icon")

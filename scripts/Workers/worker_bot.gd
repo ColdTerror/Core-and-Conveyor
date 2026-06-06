@@ -712,10 +712,10 @@ func _start_action():
 	
 	match current_state:
 		State.HARVESTING:  action_timer.start(harvest_time)
-		State.DEPOSITING:  action_timer.start(0.5)
-		State.REPAIRING:   action_timer.start(1.0)
-		State.BUILDING:    action_timer.start(1.0)
-		State.FETCHING:    action_timer.start(1.0)
+		State.DEPOSITING:  action_timer.start(1.0)
+		State.REPAIRING:   action_timer.start(4.0)
+		State.BUILDING:    action_timer.start(2.0)
+		State.FETCHING:    action_timer.start(2.0)
 		State.PANIC_WAITING: action_timer.start(30.0)
 
 

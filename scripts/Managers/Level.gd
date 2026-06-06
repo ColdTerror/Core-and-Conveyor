@@ -53,6 +53,7 @@ const RES_STONE := 4
 @export var sling_tower_scene: PackedScene
 @export var wall_scene: PackedScene
 @export var gate_scene: PackedScene
+@export var ammo_distributor_scene: PackedScene
 
 @export_subgroup("Infrastructure")
 @export var stockpile_scene: PackedScene 
@@ -179,7 +180,8 @@ func _setup_hotbar_items():
 			{"name": "Scattershot Tower", "scene": scattershot_tower_scene},
 			{"name": "Sling Tower", "scene": sling_tower_scene},
 			{"name": "Wall", "scene": wall_scene},
-			{"name": "Gate", "scene": gate_scene}
+			{"name": "Gate", "scene": gate_scene},
+			{"name": "Ammo Distributor", "scene": ammo_distributor_scene}
 		],
 		"Infrastructure": [
 			{"name": "Stockpile", "scene": stockpile_scene},
