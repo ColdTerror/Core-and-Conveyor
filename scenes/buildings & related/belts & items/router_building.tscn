@@ -17,9 +17,6 @@ script = ExtResource("3_hdl5s")
 item_name = "Stone"
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_y4pf7"]
-size = Vector2(32, 32)
-
 [node name="RouterBuilding" type="Node2D" unique_id=706441701]
 script = ExtResource("1_y4pf7")
 building_name = "Router"
@@ -38,8 +35,3 @@ z_index = 2
 texture = ExtResource("2_dawp2")
 region_enabled = true
 region_rect = Rect2(0, 160, 32, 32)
-
-[node name="Area2D" type="Area2D" parent="." unique_id=1456337677]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=404963682]
-shape = SubResource("RectangleShape2D_y4pf7")

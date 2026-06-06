@@ -9,7 +9,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cawij"]
 atlas = ExtResource("2_ush8g")
-region = Rect2(640, 0, 96, 128)
+region = Rect2(640, 0, 96, 96)
 
 [sub_resource type="Resource" id="Resource_u4cs1"]
 script = ExtResource("5_dp64x")
@@ -27,15 +27,12 @@ item_name = "Stone"
 amount = 50
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wcq7w"]
-size = Vector2(96, 128)
-
 [node name="MineBuilding1" type="Node2D" unique_id=1049048299 groups=["Structure"]]
 script = ExtResource("1_fgkgn")
 target_resource = ExtResource("2_im1p0")
 generic_item_scene = ExtResource("2_wcq7w")
 building_name = "Mine"
-size = Vector2i(3, 4)
+size = Vector2i(3, 3)
 icon = SubResource("AtlasTexture_cawij")
 build_costs = Array[ExtResource("5_dp64x")]([SubResource("Resource_u4cs1")])
 build_range = 8.0
@@ -46,12 +43,7 @@ upgrade_cost = Array[ExtResource("5_dp64x")]([SubResource("Resource_dp64x"), Sub
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
 texture = ExtResource("2_ush8g")
 region_enabled = true
-region_rect = Rect2(640, 0, 96, 128)
-
-[node name="Area2D" type="Area2D" parent="." unique_id=1711452867]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=603564727]
-shape = SubResource("RectangleShape2D_wcq7w")
+region_rect = Rect2(640, 0, 96, 96)
 
 [node name="Line2D" type="Line2D" parent="." unique_id=846815626]
 width = 2.0

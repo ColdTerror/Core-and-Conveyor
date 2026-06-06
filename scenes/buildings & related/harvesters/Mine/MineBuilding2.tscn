@@ -7,10 +7,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cawij"]
 atlas = ExtResource("4_jcc08")
-region = Rect2(640, 0, 96, 128)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wcq7w"]
-size = Vector2(96, 128)
+region = Rect2(640, 0, 96, 96)
 
 [node name="MineBuilding2" type="Node2D" unique_id=1049048299 groups=["Structure"]]
 script = ExtResource("1_cj2ae")
@@ -19,7 +16,7 @@ generic_item_scene = ExtResource("3_cv8an")
 scan_radius = 6
 harvest_damage = 3
 building_name = "Quarry"
-size = Vector2i(3, 4)
+size = Vector2i(3, 3)
 max_health = 150
 icon = SubResource("AtlasTexture_cawij")
 build_range = 8.0
@@ -29,12 +26,7 @@ building_level = 2
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
 texture = ExtResource("4_jcc08")
 region_enabled = true
-region_rect = Rect2(640, 0, 96, 128)
-
-[node name="Area2D" type="Area2D" parent="." unique_id=1711452867]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=603564727]
-shape = SubResource("RectangleShape2D_wcq7w")
+region_rect = Rect2(640, 0, 96, 96)
 
 [node name="Line2D" type="Line2D" parent="." unique_id=846815626]
 width = 2.0
