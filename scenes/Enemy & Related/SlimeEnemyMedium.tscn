@@ -14,6 +14,10 @@ child_slime_scene = ExtResource("3_small")
 enemy_name = "Medium Slime"
 max_health = 60
 movement_speed = 50.0
+damage_multipliers = {
+"Crushing": 1.2,
+"Piercing": 1.0
+}
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
 self_modulate = Color(0.15, 0.85, 0.15, 1)

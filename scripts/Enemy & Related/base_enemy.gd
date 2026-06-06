@@ -25,6 +25,10 @@ var health: int
 @export var attack_range: float = 40.0 
 @export var projectile_scene: PackedScene 
 @export var is_flying: bool = false
+@export var damage_multipliers: Dictionary = {
+	"Piercing": 1.0,
+	"Crushing": 1.0
+}
 
 # --- NEW: SEPARATION CONFIG ---
 @export_subgroup("Swarm Movement")
@@ -514,8 +518,12 @@ func _draw():
 
 
 ## Subtracts health points, handles death triggers, and switches target aggro to damage source.
-func take_damage(damage: int, source: Node2D = null):
-	health -= damage
+func take_damage(damage: int, source: Node2D = null, damage_type: String = "None"):
+	var multiplier := 1.0
+	if damage_type != "None" and damage_multipliers.has(damage_type):
+		multiplier = damage_multipliers[damage_type]
+	var final_damage := roundi(damage * multiplier)
+	health -= final_damage
 	
 	if health <= 0:
 		die()

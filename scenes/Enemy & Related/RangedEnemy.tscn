@@ -14,6 +14,10 @@ damage = 8
 combat_type = 1
 attack_range = 180.0
 projectile_scene = ExtResource("2_proj")
+damage_multipliers = {
+"Crushing": 1.2,
+"Piercing": 1.0
+}
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
 self_modulate = Color(1, 0.6, 0.2, 1)

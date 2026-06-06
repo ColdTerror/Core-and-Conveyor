@@ -15,6 +15,10 @@ enemy_name = "Large Slime"
 max_health = 120
 movement_speed = 40.0
 damage = 15
+damage_multipliers = {
+"Crushing": 1.2,
+"Piercing": 1.0
+}
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
 self_modulate = Color(0.1, 0.8, 0.1, 1)

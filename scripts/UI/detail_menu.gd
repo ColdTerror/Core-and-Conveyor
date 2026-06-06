@@ -52,7 +52,35 @@ func _process(_delta):
 				range_str = "\nRange: %.1f tiles" % tiles
 			else:
 				range_str = "\nRange: Melee"
-			info_label.text = "Health: %d / %d\nDamage: %d%s" % [selected_object.health, selected_object.max_health, selected_object.damage, range_str]
+				
+			var weak_list: Array[String] = []
+			var resist_list: Array[String] = []
+			if "damage_multipliers" in selected_object:
+				for dmg_type in selected_object.damage_multipliers:
+					var mult = selected_object.damage_multipliers[dmg_type]
+					if mult > 1.0:
+						var pct = roundi((mult - 1.0) * 100)
+						weak_list.append("%s (+%d%%)" % [dmg_type, pct])
+					elif mult < 1.0:
+						var pct = roundi((1.0 - mult) * 100)
+						resist_list.append("%s (-%d%%)" % [dmg_type, pct])
+			
+			var weak_str := ""
+			if not weak_list.is_empty():
+				weak_str = "\nWeak to: " + ", ".join(weak_list)
+				
+			var resist_str := ""
+			if not resist_list.is_empty():
+				resist_str = "\nResists: " + ", ".join(resist_list)
+				
+			info_label.text = "Health: %d / %d\nDamage: %d%s%s%s" % [
+				selected_object.health,
+				selected_object.max_health,
+				selected_object.damage,
+				range_str,
+				weak_str,
+				resist_str
+			]
 			
 		# Live update for Worker Bots
 		elif selected_object.has_method("set_priority"): 

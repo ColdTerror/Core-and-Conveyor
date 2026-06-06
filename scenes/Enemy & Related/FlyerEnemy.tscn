@@ -12,6 +12,10 @@ max_health = 35
 movement_speed = 75.0
 damage = 12
 is_flying = true
+damage_multipliers = {
+"Crushing": 1.0,
+"Piercing": 1.2
+}
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
 self_modulate = Color(0.2, 0.6, 1, 0.7)

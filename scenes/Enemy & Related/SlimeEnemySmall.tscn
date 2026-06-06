@@ -14,6 +14,10 @@ enemy_name = "Small Slime"
 max_health = 30
 movement_speed = 65.0
 damage = 5
+damage_multipliers = {
+"Crushing": 1.2,
+"Piercing": 1.0
+}
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
 self_modulate = Color(0.2, 0.9, 0.2, 1)

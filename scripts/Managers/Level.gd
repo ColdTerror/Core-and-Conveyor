@@ -329,7 +329,10 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 		var p_lifetime = 10.0
 		if "projectile_lifetime" in item_data:
 			p_lifetime = item_data.projectile_lifetime
-		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower, p_lifetime)
+		var p_dmg_type = "None"
+		if "damage_type" in item_data:
+			p_dmg_type = item_data.damage_type
+		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower, p_lifetime, p_dmg_type)
 
 
 

@@ -14,6 +14,7 @@ texture = SubResource("AtlasTexture_8vysk")
 description = "Basic Stone Arrow"
 is_ammo = true
 ammo_type = "Arrow"
+damage_type = "Piercing"
 damage = 15
 projectile_lifetime = 3.0
 metadata/_custom_type_script = "uid://c1ggtlkymktgi"
