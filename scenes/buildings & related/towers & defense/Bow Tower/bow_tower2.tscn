@@ -34,13 +34,11 @@ region_rect = Rect2(96, 320, 64, 64)
 
 [node name="Unloaded" type="Sprite2D" parent="TowerPivot" unique_id=1837234615]
 visible = false
-scale = Vector2(0.75, 0.75)
 texture = ExtResource("2_0lmhd")
 region_enabled = true
 region_rect = Rect2(32, 416, 32, 64)
 
 [node name="Loaded" type="Sprite2D" parent="TowerPivot" unique_id=76898402]
-scale = Vector2(0.75, 0.75)
 texture = ExtResource("2_0lmhd")
 region_enabled = true
 region_rect = Rect2(32, 480, 32, 64)

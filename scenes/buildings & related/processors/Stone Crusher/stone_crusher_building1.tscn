@@ -10,7 +10,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_crusher"]
 atlas = ExtResource("6_8jyln")
-region = Rect2(640, 192, 64, 64)
+region = Rect2(1024, 0, 128, 128)
 
 [sub_resource type="Resource" id="Resource_cost_wood"]
 script = ExtResource("7_tsife")
@@ -28,7 +28,7 @@ script = ExtResource("1_2kttw")
 recipes = Array[ExtResource("2_bm01l")]([ExtResource("3_yddp3"), ExtResource("4_cx7it")])
 generic_item_scene = ExtResource("5_u4vde")
 building_name = "Stone Crusher"
-size = Vector2i(2, 2)
+size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_crusher")
 build_costs = Array[ExtResource("7_tsife")]([SubResource("Resource_cost_wood"), SubResource("Resource_cost_stone")])
 build_range = 8.0
@@ -37,4 +37,4 @@ corruption_range = 10.0
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015183]
 texture = ExtResource("6_8jyln")
 region_enabled = true
-region_rect = Rect2(640, 192, 64, 64)
+region_rect = Rect2(1024, 0, 128, 128)

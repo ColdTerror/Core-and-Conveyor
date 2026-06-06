@@ -1,7 +1,11 @@
 [gd_scene format=3 uid="uid://c1vpexglljvf1"]
 
 [ext_resource type="Script" uid="uid://cjo82t2462a2a" path="res://scripts/Building Classes/tower_building.gd" id="1_he72y"]
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="2_cnmr7"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_cnmr7"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cnmr7"]
+atlas = ExtResource("2_cnmr7")
+region = Rect2(416, 320, 64, 64)
 
 [node name="SlingTower1" type="Node2D" unique_id=678635894]
 script = ExtResource("1_he72y")
@@ -11,7 +15,27 @@ ammo_capacity = 50
 fire_rate = 3.0
 building_name = "Sling Tower"
 size = Vector2i(2, 2)
+icon = SubResource("AtlasTexture_cnmr7")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1404481897]
-scale = Vector2(0.5, 0.5)
+[node name="Base" type="Sprite2D" parent="." unique_id=105209314]
 texture = ExtResource("2_cnmr7")
+region_enabled = true
+region_rect = Rect2(96, 320, 64, 64)
+
+[node name="Base2" type="Sprite2D" parent="." unique_id=2098825376]
+texture = ExtResource("2_cnmr7")
+region_enabled = true
+region_rect = Rect2(416, 448, 64, 64)
+
+[node name="TowerPivot" type="Node2D" parent="." unique_id=254909770]
+
+[node name="Unloaded" type="Sprite2D" parent="TowerPivot" unique_id=2069153528]
+visible = false
+texture = ExtResource("2_cnmr7")
+region_enabled = true
+region_rect = Rect2(352, 448, 64, 64)
+
+[node name="Loaded" type="Sprite2D" parent="TowerPivot" unique_id=389843241]
+texture = ExtResource("2_cnmr7")
+region_enabled = true
+region_rect = Rect2(352, 512, 64, 64)

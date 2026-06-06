@@ -6,7 +6,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_scattershot"]
 atlas = ExtResource("2_0sxo8")
-region = Rect2(384, 0, 64, 64)
+region = Rect2(352, 320, 64, 64)
 
 [sub_resource type="Resource" id="Resource_cost_plank"]
 script = ExtResource("3_ult6q")
@@ -35,8 +35,25 @@ build_costs = Array[ExtResource("3_ult6q")]([SubResource("Resource_cost_plank"),
 build_range = 6
 corruption_range = 8
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=794156624]
-modulate = Color(0.8, 0.75, 0.7, 1)
+[node name="Base" type="Sprite2D" parent="." unique_id=1758225478]
 texture = ExtResource("2_0sxo8")
 region_enabled = true
-region_rect = Rect2(384, 0, 64, 64)
+region_rect = Rect2(96, 320, 64, 64)
+
+[node name="Base2" type="Sprite2D" parent="." unique_id=743285966]
+texture = ExtResource("2_0sxo8")
+region_enabled = true
+region_rect = Rect2(320, 416, 32, 32)
+
+[node name="TowerPivot" type="Node2D" parent="." unique_id=195109603]
+
+[node name="Unloaded" type="Sprite2D" parent="TowerPivot" unique_id=1220225543]
+visible = false
+texture = ExtResource("2_0sxo8")
+region_enabled = true
+region_rect = Rect2(256, 480, 64, 64)
+
+[node name="Loaded" type="Sprite2D" parent="TowerPivot" unique_id=833272589]
+texture = ExtResource("2_0sxo8")
+region_enabled = true
+region_rect = Rect2(256, 480, 64, 64)
