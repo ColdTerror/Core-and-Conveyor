@@ -416,10 +416,10 @@ func _shoot():
 			angle_offset
 		)
 		
-	if has_node("Sprite2D"):
+	if turret_pivot:
 		var tween = create_tween()
-		tween.tween_property($Sprite2D, "scale", Vector2(1.1, 0.9), 0.05)
-		tween.tween_property($Sprite2D, "scale", Vector2(1.0, 1.0), 0.15)
+		tween.tween_property(turret_pivot, "scale", Vector2(0.85, 1.15), 0.05)
+		tween.tween_property(turret_pivot, "scale", Vector2(1.0, 1.0), 0.15)
 
 
 
