@@ -24,7 +24,8 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"0f0f06a1-3b34-45a9-b058-060424e103d2"
+				"0f0f06a1-3b34-45a9-b058-060424e103d2",
+				"599f2d37-cf48-4a46-9085-3a084df1e6ca"
 			]
 		},
 		{
@@ -1693,6 +1694,13 @@
 		{
 			"uuid": "0f0f06a1-3b34-45a9-b058-060424e103d2",
 			"title": "flying enemy should wobble like bots when flying and not be slowed in water",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "599f2d37-cf48-4a46-9085-3a084df1e6ca",
+			"title": "display ranged enemy range when their detail menu is open?",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

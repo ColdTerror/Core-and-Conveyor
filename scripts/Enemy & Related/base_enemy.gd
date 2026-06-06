@@ -438,10 +438,28 @@ func _recalculate_path():
 func _has_line_of_sight(target) -> bool:
 	var space = get_world_2d().direct_space_state
 	var query = PhysicsRayQueryParameters2D.create(global_position, target.global_position)
-	query.exclude = [self.get_rid(), target.get_rid()]
+	
+	var exclude_rids = [self.get_rid()]
+	if target.has_method("get_rid"):
+		exclude_rids.append(target.get_rid())
+		
+	if target.has_node("AutoCollisionBody"):
+		var body = target.get_node("AutoCollisionBody")
+		if body.has_method("get_rid"):
+			exclude_rids.append(body.get_rid())
+			
+	query.exclude = exclude_rids
 	var res = space.intersect_ray(query)
-	if res and (res.collider.is_in_group("Structure") or res.collider is TileMapLayer):
-		return false
+	
+	if res:
+		var collider = res.collider
+		if collider == target or collider.get_parent() == target:
+			return true
+			
+		var is_struct = collider.is_in_group("Structure") or (collider.get_parent() and collider.get_parent().is_in_group("Structure"))
+		if is_struct or collider is TileMapLayer:
+			return false
+			
 	return true
 
 
