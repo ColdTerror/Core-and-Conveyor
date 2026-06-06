@@ -22,8 +22,11 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"efe7a730-b5a2-4caa-af39-07b9c0863bdc",
-				"1d081420-4c70-475a-93ea-73fe5935b8c5"
+				"c83e6045-d63a-467b-a791-2213be22a0d3",
+				"99b024a0-9250-4cff-9a42-6d56c5031440",
+				"781f080d-7cc7-425f-93c0-0bf4d4826996",
+				"df82b91c-bf12-402b-bc0f-c4bdac11ade5",
+				"0aa4da94-5476-41f5-9f7c-914d8e54a3dd"
 			]
 		},
 		{
@@ -32,6 +35,10 @@
 			"tasks": [
 				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
 				"c2fc792a-4d44-4b37-a688-3b36bfc8d6a0",
+				"e65d93d6-ead4-4a82-a01a-e4a7d79e710c",
+				"1d081420-4c70-475a-93ea-73fe5935b8c5",
+				"45840111-c542-43f3-a4dd-d9fa617a53af",
+				"efe7a730-b5a2-4caa-af39-07b9c0863bdc",
 				"599f2d37-cf48-4a46-9085-3a084df1e6ca",
 				"cd5e64c7-2064-4368-a16d-a5c4a47c7282",
 				"8b749aff-166c-424f-93d3-f9df479d8a73",
@@ -1717,6 +1724,55 @@
 		{
 			"uuid": "1d081420-4c70-475a-93ea-73fe5935b8c5",
 			"title": "ammo distributor should priority sending preferred ammo",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e65d93d6-ead4-4a82-a01a-e4a7d79e710c",
+			"title": "more time",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c83e6045-d63a-467b-a791-2213be22a0d3",
+			"title": "more rock per tile in resourc",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "99b024a0-9250-4cff-9a42-6d56c5031440",
+			"title": "full moon lighting",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "781f080d-7cc7-425f-93c0-0bf4d4826996",
+			"title": "building wall doesnt have priority",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "45840111-c542-43f3-a4dd-d9fa617a53af",
+			"title": "gate is broken",
+			"description": "being placed right and up\nalso wrong orientation\nhorizontal works but not vertical\n\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "df82b91c-bf12-402b-bc0f-c4bdac11ade5",
+			"title": "bots should prioritize seperate jobs?",
+			"description": "so if another bot is working on a construction site it will try and find the next one",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "0aa4da94-5476-41f5-9f7c-914d8e54a3dd",
+			"title": "load confirmation in menu",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

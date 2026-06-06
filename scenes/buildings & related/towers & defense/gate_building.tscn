@@ -46,6 +46,5 @@ build_costs = Array[ExtResource("2_ubhqe")]([SubResource("Resource_gye0d")])
 build_range = 4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413850]
-z_index = -1
 texture = SubResource("AtlasTexture_gye0d")
 region_rect = Rect2(64, 0, 32, 32)

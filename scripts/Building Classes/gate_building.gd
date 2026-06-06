@@ -24,6 +24,19 @@ var is_horizontal: bool = true:
 		is_horizontal = value
 		size = Vector2i(3, 1) if is_horizontal else Vector2i(1, 3)
 		_update_gate_visuals()
+		
+		if not occupied_tiles.is_empty():
+			var obj_layer = null
+			if level_ref and level_ref.object_layer:
+				obj_layer = level_ref.object_layer
+			elif get_parent() and "object_layer" in get_parent():
+				obj_layer = get_parent().object_layer
+				
+			if obj_layer:
+				place_at(grid_origin, obj_layer)
+		elif has_node("AutoCollisionBody"):
+			_update_collision(Vector2(size.x * 32.0, size.y * 32.0))
+
 
 
 ## Caches the level node instance reference and handles visual and pathfinder anchoring.
@@ -43,6 +56,7 @@ func setup(level_instance: Node2D):
 		level_ref.building_manager.pathfinder.set_weighted_obstacle(occupied_tiles[1], path_cost, true)
 
 
+
 ## Configures gate shapes, dynamic detection areas, custom multi-block physics, and pathfinding weights.
 func _ready():
 	size = Vector2i(3, 1) if is_horizontal else Vector2i(1, 3)
@@ -51,11 +65,20 @@ func _ready():
 	is_solid_obstacle = false 
 	path_cost = float(health)
 	
-	# Build 3 separate collision boxes instead of one giant 3x1 shape
+	_update_gate_visuals()
+
+
+
+## Updates the mouse click/hover boundary, custom physical pillars, and bot detection sensor.
+func _update_collision(footprint_px: Vector2):
+	super(footprint_px)
+	
+	# Rebuild the 3 separate collision boxes inside AutoCollisionBody
 	if has_node("AutoCollisionBody"):
 		var static_body = $AutoCollisionBody
 		
 		for child in static_body.get_children():
+			static_body.remove_child(child)
 			child.queue_free()
 			
 		for i in range(3):
@@ -71,21 +94,32 @@ func _ready():
 				
 			if i == 1:
 				shape.name = "DoorCollision"
-				
+				if is_open:
+					shape.disabled = true
+					
 			static_body.add_child(shape)
 			
-	detection_area = Area2D.new()
-	var shape = CollisionShape2D.new()
-	var rect = RectangleShape2D.new()
+	# Create or update detection Area2D and its shape size
+	if not has_node("DetectionArea"):
+		detection_area = Area2D.new()
+		detection_area.name = "DetectionArea"
+		var det_shape = CollisionShape2D.new()
+		det_shape.name = "CollisionShape2D"
+		det_shape.shape = RectangleShape2D.new()
+		
+		detection_area.add_child(det_shape)
+		add_child(detection_area)
+		
+		detection_area.area_entered.connect(_on_bot_entered)
+		detection_area.area_exited.connect(_on_bot_exited)
+	else:
+		detection_area = $DetectionArea
+		
+	var det_shape = detection_area.get_child(0) as CollisionShape2D
+	if det_shape.shape == null:
+		det_shape.shape = RectangleShape2D.new()
+	var rect = det_shape.shape as RectangleShape2D
 	rect.size = Vector2(size.x * 32.0 + 64.0, size.y * 32.0 + 64.0)
-	shape.shape = rect
-	detection_area.add_child(shape)
-	add_child(detection_area)
-	
-	detection_area.area_entered.connect(_on_bot_entered)
-	detection_area.area_exited.connect(_on_bot_exited)
-	
-	_update_gate_visuals()
 
 
 
@@ -115,6 +149,7 @@ func _on_bot_entered(area: Area2D):
 		bots_in_gate += 1
 		if bots_in_gate > 0 and not is_open:
 			_set_gate_open(true)
+
 
 
 ## Closes the gate when the last worker bot exits the dynamic motion sensor area.

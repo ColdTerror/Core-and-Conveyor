@@ -209,6 +209,7 @@ z_index = -1
 tile_set = ExtResource("2_w8frs")
 
 [node name="BuildingManager" type="Node2D" parent="." unique_id=1124264917 node_paths=PackedStringArray("object_layer", "terrain_layer", "corruption_layer", "wall_layer", "hover_popup")]
+y_sort_enabled = true
 script = ExtResource("15_gunhw")
 object_layer = NodePath("../ObjectLayer")
 terrain_layer = NodePath("../TerrainLayer")
@@ -219,6 +220,7 @@ construction_site_scene = ExtResource("26_v3why")
 terraform_site_scene = ExtResource("27_q4oe8")
 
 [node name="WallLayer" type="TileMapLayer" parent="BuildingManager" unique_id=119110310]
+y_sort_enabled = true
 tile_set = SubResource("TileSet_lqb7q")
 
 [node name="ObjectLayer" type="TileMapLayer" parent="." unique_id=719217143]
@@ -244,7 +246,7 @@ script = ExtResource("29_7agi7")
 [node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
-real_minutes_per_day = 10.0
+real_minutes_per_day = 15.0
 
 [node name="QuotaManager" type="Node2D" parent="." unique_id=1743008909]
 script = ExtResource("36_uhfbm")

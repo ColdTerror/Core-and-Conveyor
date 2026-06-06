@@ -62,6 +62,7 @@ var is_selected: bool = false
 
 ## Initializes structure stats, footprint physics boundaries, and connects mouse collision shapes.
 func _ready():
+	y_sort_enabled = true
 	var footprint_px = Vector2(size.x * 32.0, size.y * 32.0)
 	_update_collision(footprint_px)
 	
