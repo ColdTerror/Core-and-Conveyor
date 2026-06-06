@@ -20,6 +20,7 @@ extends Camera2D
 @export var pan_smoothing := 10.0
 
 var target_zoom := 1.0
+var is_dragging := false
 
 # CAMERA FOLLOW VARIABLES
 var follow_target: Node2D = null
@@ -72,3 +73,19 @@ func apply_zoom(point: Vector2, zoom_change: float):
 	
 	if follow_target == null:
 		position += world_pos_before - world_pos_after
+
+
+
+## Sets the active dragging state and breaks target following.
+func set_drag_state(dragging: bool):
+	is_dragging = dragging
+	if is_dragging and follow_target != null:
+		follow_target = null
+
+
+
+## Drag-pans the camera by a relative screen vector, factoring in zoom and breakaway.
+func apply_drag_pan(relative: Vector2):
+	if follow_target != null:
+		follow_target = null
+	position -= relative / target_zoom

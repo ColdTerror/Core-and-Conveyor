@@ -128,11 +128,23 @@ func _process(delta):
 func _unhandled_input(event: InputEvent):
 	if not level_ref or not building_manager: return
 	
-	# THE GATEKEEPER: Block World Clicks
+	# THE GATEKEEPER: Block World Clicks/interactions when a menu is open,
+	# except zoom, middle-mouse drag press/release, and active drag motion.
 	if GameState.is_menu_open and current_mode != InteractionMode.SET_HOME:
+		var is_camera_input = false
 		if event is InputEventMouseButton:
-			get_viewport().set_input_as_handled()
-		return
+			if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_MIDDLE]:
+				is_camera_input = true
+			else:
+				# Consume left/right clicks
+				get_viewport().set_input_as_handled()
+		elif event is InputEventMouseMotion:
+			var cam = get_tree().get_first_node_in_group("Camera")
+			if cam and cam.is_dragging:
+				is_camera_input = true
+		
+		if not is_camera_input:
+			return
 
 	# CAMERA ZOOM
 	if event is InputEventMouseButton:
@@ -144,6 +156,19 @@ func _unhandled_input(event: InputEvent):
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 			var cam = get_tree().get_first_node_in_group("Camera")
 			if cam: cam.apply_zoom(event.position, 1 - cam.zoom_speed)
+			get_viewport().set_input_as_handled()
+			return
+		elif event.button_index == MOUSE_BUTTON_MIDDLE:
+			var cam = get_tree().get_first_node_in_group("Camera")
+			if cam: cam.set_drag_state(event.pressed)
+			get_viewport().set_input_as_handled()
+			return
+
+	# CAMERA DRAG PANNING
+	if event is InputEventMouseMotion:
+		var cam = get_tree().get_first_node_in_group("Camera")
+		if cam and cam.is_dragging:
+			cam.apply_drag_pan(event.relative)
 			get_viewport().set_input_as_handled()
 			return
 
@@ -244,9 +269,11 @@ func _cancel_current_action():
 	last_terrain_tile = Vector2i(-1, -1)
 
 
+
 ## Helper utility checks if left mouse click is down.
 func _is_left_clicking(event: InputEvent) -> bool:
 	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+
 
 
 ## Helper utility checks if left mouse click is held while cursor is in motion.
@@ -318,6 +345,7 @@ func _on_object_hovered(object: Node2D):
 
 	if hover_popup and hover_popup.has_method("show_building_info"):
 		hover_popup.show_building_info(object)
+
 
 
 ## Clears tracking variables and dismisses active tooltips when cursors unhover.
