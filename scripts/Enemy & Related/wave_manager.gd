@@ -252,7 +252,7 @@ func get_save_data() -> Dictionary:
 func _get_enemy_scene_for_wave(day: int) -> PackedScene:
 	# Define progressive weight table based on day.
 	# Weights format: [Regular, Fast, Ranged, SlimeLarge, Flyer]
-	var weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+	var weights = [0.2, 0.2, 20, 0.2, 0.2]
 	
 	if day == 2:
 		weights = [0.7, 0.3, 0.0, 0.0, 0.0]

@@ -45,23 +45,30 @@ var current_path: PackedVector2Array = []
 var path_update_timer: float = 0.0
 var find_target_timer: float = .5
 var attack_cooldown: float = 0.0
+var _flight_time: float = 0.0
+var _sprite_original_scale: Vector2 = Vector2(0.25, 0.25)
 
 
 signal died(enemy_instance: Enemy) 
 
 var is_target_locked: bool = false
+var is_selected: bool = false
 
 var separation_update_timer: float = 0.0
 var cached_separation: Vector2 = Vector2.ZERO
 
 ## Initializes pathfinder references, sets up mouse hover connections, and schedules initial target scan.
 func _ready():
-	health= max_health
+	health = max_health
 	pathfinder = get_tree().root.find_child("Pathfinder", true, false)
 	await get_tree().physics_frame
 	_find_target()
 	
 	separation_update_timer = randf_range(0.0, 0.1)
+	_flight_time = randf_range(0.0, 10.0)
+	
+	if has_node("Sprite2D"):
+		_sprite_original_scale = $Sprite2D.scale
 	
 	# Hover Detection for the InputManager
 	input_pickable = true
@@ -77,6 +84,13 @@ func _ready():
 ## Handles standard frame-by-frame combat checks, attack cooldown updates, and movement orchestration.
 func _physics_process(delta):
 	if health <= 0: return
+
+	# Flying Bobble Animation
+	if is_flying and has_node("Sprite2D"):
+		_flight_time += delta
+		var base_float_y = -8.0
+		var bobble_y = sin(_flight_time * 5.0) * 3.0
+		$Sprite2D.position.y = base_float_y + bobble_y
 
 	# Timers
 	if attack_cooldown > 0: attack_cooldown -= delta
@@ -219,9 +233,11 @@ func _try_attack(target):
 	
 	if combat_type == 0: # Melee
 		_animate_bump(target.global_position)
+		_animate_squash()
 		if target.has_method("take_damage"): target.take_damage(damage)
 	else: # Ranged
 		_spawn_projectile(target)
+		_animate_squash()
 
 
 
@@ -233,6 +249,7 @@ func _try_structure_attack(structure):
 	attack_cooldown = 1.0 / attack_speed
 	
 	_animate_bump(structure.global_position)
+	_animate_squash()
 	if structure.has_method("take_damage"): structure.take_damage(damage)
 
 
@@ -243,6 +260,16 @@ func _animate_bump(target_pos: Vector2):
 	var dir = global_position.direction_to(target_pos)
 	tween.tween_property(self, "position", position + (dir * 8.0), 0.1)
 	tween.tween_property(self, "position", position, 0.1)
+
+
+
+## Applies a quick squash-and-stretch juice tween to the sprite during attacks.
+func _animate_squash():
+	if has_node("Sprite2D"):
+		var sprite = $Sprite2D
+		var tween = create_tween()
+		tween.tween_property(sprite, "scale", _sprite_original_scale * Vector2(1.2, 0.8), 0.05)
+		tween.tween_property(sprite, "scale", _sprite_original_scale, 0.15)
 
 
 
@@ -267,8 +294,8 @@ func _get_current_speed() -> float:
 		var current_grid_pos = pathfinder.main_layer.local_to_map(global_position)
 		var tile_data = pathfinder.main_layer.get_cell_tile_data(current_grid_pos)
 		
-		# If it's water, apply the 40% speed penalty
-		if tile_data and tile_data.get_custom_data("is_water"):
+		# If it's water and we aren't flying, apply the 40% speed penalty
+		if not is_flying and tile_data and tile_data.get_custom_data("is_water"):
 			actual_speed = movement_speed * 0.4 
 			
 	return actual_speed
@@ -470,8 +497,13 @@ func _process(_delta):
 
 
 
-## Draws polyline overlay of the current path for debug view rendering.
+## Draws polyline overlay of the current path and selected ranged attack threat ring.
 func _draw():
+	if is_selected and combat_type == 1:
+		var circle_color = Color(1.0, 0.2, 0.2, 0.4) # Subtle red threat ring
+		var border_width = 1.5
+		draw_arc(Vector2.ZERO, attack_range, 0.0, TAU, 64, circle_color, border_width, true)
+		
 	if current_path.size() > 0:
 		var local_points = PackedVector2Array()
 		local_points.append(Vector2.ZERO)

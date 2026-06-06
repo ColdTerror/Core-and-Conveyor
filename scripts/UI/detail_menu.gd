@@ -46,7 +46,13 @@ func _process(_delta):
 			
 		# Live update for Enemies
 		if selected_object is Enemy:
-			info_label.text = "Health: %d / %d\nDamage: %d" % [selected_object.health, selected_object.max_health, selected_object.damage]
+			var range_str := ""
+			if "combat_type" in selected_object and selected_object.combat_type == 1:
+				var tiles = selected_object.attack_range / 32.0
+				range_str = "\nRange: %.1f tiles" % tiles
+			else:
+				range_str = "\nRange: Melee"
+			info_label.text = "Health: %d / %d\nDamage: %d%s" % [selected_object.health, selected_object.max_health, selected_object.damage, range_str]
 			
 		# Live update for Worker Bots
 		elif selected_object.has_method("set_priority"): 

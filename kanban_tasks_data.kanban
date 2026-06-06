@@ -24,8 +24,8 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"0f0f06a1-3b34-45a9-b058-060424e103d2",
-				"599f2d37-cf48-4a46-9085-3a084df1e6ca"
+				"599f2d37-cf48-4a46-9085-3a084df1e6ca",
+				"8b749aff-166c-424f-93d3-f9df479d8a73"
 			]
 		},
 		{
@@ -34,6 +34,7 @@
 			"tasks": [
 				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
 				"cd5e64c7-2064-4368-a16d-a5c4a47c7282",
+				"0f0f06a1-3b34-45a9-b058-060424e103d2",
 				"c3698bff-0223-4c9e-b3bb-a05810a41485",
 				"e027da0c-58bc-41a8-a13c-60a03ad97188",
 				"c9d3dbc2-a3cd-428b-801f-0dcb3aff1458",
@@ -1701,6 +1702,13 @@
 		{
 			"uuid": "599f2d37-cf48-4a46-9085-3a084df1e6ca",
 			"title": "display ranged enemy range when their detail menu is open?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8b749aff-166c-424f-93d3-f9df479d8a73",
+			"title": "enemy weaknesses",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
