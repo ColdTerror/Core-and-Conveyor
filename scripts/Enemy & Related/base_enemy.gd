@@ -1,5 +1,5 @@
 # ==============================================================================
-# Script: Enemy & Related/test_enemy.gd
+# Script: Enemy & Related/base_enemy.gd
 # Purpose: Manages individual enemy unit state, including swarm separation, 
 #          pathfinding to priority targets/bots, combat/attack execution,
 #          taking damage from towers, and state saving/loading.
@@ -15,7 +15,7 @@ class_name Enemy
 @export var enemy_name: String = "Enemy"
 @export_group("Stats")
 @export var max_health: int = 50
-var health: int = max_health
+var health: int
 @export var movement_speed: float = 60.0
 @export var damage: int = 10
 @export var attack_speed: float = 1.0 
@@ -24,6 +24,7 @@ var health: int = max_health
 @export_enum("Melee", "Ranged") var combat_type: int = 0 
 @export var attack_range: float = 40.0 
 @export var projectile_scene: PackedScene 
+@export var is_flying: bool = false
 
 # --- NEW: SEPARATION CONFIG ---
 @export_subgroup("Swarm Movement")
@@ -55,6 +56,7 @@ var cached_separation: Vector2 = Vector2.ZERO
 
 ## Initializes pathfinder references, sets up mouse hover connections, and schedules initial target scan.
 func _ready():
+	health= max_health
 	pathfinder = get_tree().root.find_child("Pathfinder", true, false)
 	await get_tree().physics_frame
 	_find_target()
@@ -399,7 +401,7 @@ func _recalculate_path():
 		var best_cost := INF
  
 		for pt in access_points:
-			var path = pathfinder.get_path_route(global_position, pt)
+			var path = pathfinder.get_path_route(global_position, pt, false, is_flying)
 			if path.is_empty():
 				continue
  
@@ -410,7 +412,8 @@ func _recalculate_path():
 				var local = pathfinder.main_layer.to_local(world_point)
 				var map_coords = pathfinder.main_layer.local_to_map(local)
  
-				var weight = pathfinder.enemy_astar.get_point_weight_scale(map_coords)
+				var active_astar = pathfinder.flying_astar if is_flying else pathfinder.enemy_astar
+				var weight = active_astar.get_point_weight_scale(map_coords)
 				total_cost += weight
  
 			if best_path.is_empty() or total_cost < best_cost:
@@ -420,8 +423,8 @@ func _recalculate_path():
 		current_path = best_path
  
 		return
-
-	var new_path = pathfinder.get_path_route(global_position, target_pos)
+ 
+	var new_path = pathfinder.get_path_route(global_position, target_pos, false, is_flying)
 	
 	# Prune start node logic (keeps movement smooth)
 	if not new_path.is_empty() and global_position.distance_to(new_path[0]) < 32.0:
@@ -495,7 +498,9 @@ func get_save_data() -> Dictionary:
 		"max_health": max_health,
 		"scale_x": scale.x,
 		"scale_y": scale.y,
-		"modulate": modulate.to_html() # Save the purple color as a string!
+		"modulate": modulate.to_html(), # Save the purple color as a string!
+		"is_flying": is_flying,
+		"scene_file_path": scene_file_path
 	}
 
 
@@ -513,3 +518,5 @@ func load_save_data(data: Dictionary):
 	scale = Vector2(data.get("scale_x", 1.0), data.get("scale_y", 1.0))
 	if data.has("modulate"):
 		modulate = Color(data["modulate"])
+		
+	is_flying = data.get("is_flying", is_flying)

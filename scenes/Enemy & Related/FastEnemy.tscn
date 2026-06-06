@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://cfastenemy1"]
+
+[ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/base_enemy.tscn" id="1_base"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_o8er6"]
+radius = 14.0
+
+[node name="FastEnemy" unique_id=815340172 instance=ExtResource("1_base")]
+enemy_name = "Fast Enemy"
+max_health = 25
+movement_speed = 100.0
+damage = 5
+
+[node name="Sprite2D" parent="." index="0" unique_id=1688166691]
+self_modulate = Color(1, 0.25, 0.25, 1)
+scale = Vector2(0.2, 0.2)
+
+[node name="CollisionShape2D" parent="." index="1" unique_id=850654236]
+shape = SubResource("CircleShape2D_o8er6")

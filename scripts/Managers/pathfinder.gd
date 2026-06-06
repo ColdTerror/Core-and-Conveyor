@@ -105,8 +105,10 @@ func set_gate_obstacle(coords: Vector2i, cost: float, is_open: bool):
 ## Traces and returns a path routing vector array between two world space vectors.
 func get_path_route(start_world: Vector2, end_world: Vector2, is_bot: bool = false, is_flying: bool = false) -> PackedVector2Array:
 	var active_astar = enemy_astar
-	if is_bot:
-		active_astar = flying_astar if is_flying else bot_astar
+	if is_flying:
+		active_astar = flying_astar
+	elif is_bot:
+		active_astar = bot_astar
 	
 	var start_local = main_layer.to_local(start_world)
 	var end_local = main_layer.to_local(end_world)

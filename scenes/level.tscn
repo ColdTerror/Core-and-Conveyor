@@ -41,7 +41,7 @@
 [ext_resource type="Script" uid="uid://derk5dx603k7c" path="res://scripts/Managers/time_manager.gd" id="23_asl66"]
 [ext_resource type="Script" uid="uid://bdgkdni8jfnax" path="res://scripts/UI/overlay_renderer.gd" id="25_svjb4"]
 [ext_resource type="PackedScene" uid="uid://ce1ik2gwvn5dc" path="res://scenes/buildings & related/construction_site_building.tscn" id="26_v3why"]
-[ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/test_enemy.tscn" id="27_cmcjb"]
+[ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/base_enemy.tscn" id="27_cmcjb"]
 [ext_resource type="PackedScene" uid="uid://bc7bv1elbmh38" path="res://scenes/buildings & related/terraform_site.tscn" id="27_q4oe8"]
 [ext_resource type="Script" uid="uid://fgv6db1xa3sc" path="res://scripts/Managers/pathfinder.gd" id="29_7agi7"]
 [ext_resource type="Script" uid="uid://cp1a4u82js3m8" path="res://scripts/UI/MainHUD.gd" id="30_2jdvr"]
@@ -53,6 +53,10 @@
 [ext_resource type="Script" uid="uid://deydh1cj8vtys" path="res://scripts/Managers/quota_manager.gd" id="36_uhfbm"]
 [ext_resource type="PackedScene" uid="uid://cmd0dxnybdaf8" path="res://scenes/ui/statistics_menu.tscn" id="38_50fbu"]
 [ext_resource type="PackedScene" uid="uid://bks37kepe8vmk" path="res://scenes/ui/pause_menu.tscn" id="43_iafhg"]
+[ext_resource type="PackedScene" uid="uid://cfastenemy1" path="res://scenes/Enemy & Related/FastEnemy.tscn" id="50_fast_scene"]
+[ext_resource type="PackedScene" uid="uid://crangedenemy1" path="res://scenes/Enemy & Related/RangedEnemy.tscn" id="51_ranged_scene"]
+[ext_resource type="PackedScene" uid="uid://cflyerenemy1" path="res://scenes/Enemy & Related/FlyerEnemy.tscn" id="52_flyer_scene"]
+[ext_resource type="PackedScene" uid="uid://cslimelarge1" path="res://scenes/Enemy & Related/SlimeEnemyLarge.tscn" id="53_slime_large_scene"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uhfbm"]
 texture = ExtResource("31_cr74b")
@@ -177,6 +181,10 @@ projectile_scene = ExtResource("18_cmcjb")
 level_ref = NodePath("..")
 corruption_layer = NodePath("../CorruptionLayer")
 enemy_scene = ExtResource("27_cmcjb")
+fast_scene = ExtResource("50_fast_scene")
+ranged_scene = ExtResource("51_ranged_scene")
+flyer_scene = ExtResource("52_flyer_scene")
+slime_large_scene = ExtResource("53_slime_large_scene")
 time_manager = NodePath("../TimeManager")
 corruption_manager = NodePath("../CorruptionManager")
 fallback_spawn_radius = 100.0

@@ -12,7 +12,11 @@ class_name WaveManager
 # --- REFERENCES ---
 @export var level_ref: Node2D
 @export var corruption_layer: TileMapLayer 
-@export var enemy_scene: PackedScene
+@export var enemy_scene: PackedScene # Fallback / Regular
+@export var fast_scene: PackedScene
+@export var ranged_scene: PackedScene
+@export var flyer_scene: PackedScene
+@export var slime_large_scene: PackedScene
 @export var time_manager: TimeManager
 @export var corruption_manager: CorruptionManager
 
@@ -153,8 +157,9 @@ func _do_spawn():
 	
 	var spawn_pos = _get_best_spawn_position()
 	
-	if not enemy_scene: return
-	var enemy = enemy_scene.instantiate()
+	var chosen_scene = _get_enemy_scene_for_wave(current_wave)
+	if not chosen_scene: return
+	var enemy = chosen_scene.instantiate()
 	
 	enemy.add_to_group("Enemies") 
 	
@@ -243,6 +248,37 @@ func get_save_data() -> Dictionary:
 
 
 
+## Selects the appropriate enemy scene to spawn based on progressive wave weights.
+func _get_enemy_scene_for_wave(day: int) -> PackedScene:
+	# Define progressive weight table based on day.
+	# Weights format: [Regular, Fast, Ranged, SlimeLarge, Flyer]
+	var weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+	
+	if day == 2:
+		weights = [0.7, 0.3, 0.0, 0.0, 0.0]
+	elif day == 3:
+		weights = [0.5, 0.3, 0.2, 0.0, 0.0]
+	elif day == 4:
+		weights = [0.4, 0.25, 0.2, 0.15, 0.0]
+	elif day >= 5:
+		weights = [0.3, 0.25, 0.2, 0.15, 0.1]
+		
+	var roll = randf()
+	var cumulative_weight = 0.0
+	var scenes = [enemy_scene, fast_scene, ranged_scene, slime_large_scene, flyer_scene]
+	
+	for i in range(weights.size()):
+		cumulative_weight += weights[i]
+		if roll <= cumulative_weight:
+			var scene = scenes[i]
+			if scene:
+				return scene
+			break
+			
+	return enemy_scene
+
+
+
 ## Restores wave progression and spawns saved enemies from game state dictionary.
 func load_save_data(data: Dictionary):
 	current_wave = data.get("current_wave", 0)
@@ -253,11 +289,19 @@ func load_save_data(data: Dictionary):
 	pending_raid_penalty = data.get("pending_raid_penalty", 0.0)
 	
 	# Spawn the saved enemies
-	if data.has("live_enemies") and enemy_scene:
+	if data.has("live_enemies"):
 		var saved_enemies = data["live_enemies"]
 		
 		for enemy_data in saved_enemies:
-			var enemy = enemy_scene.instantiate()
+			var scene_to_load = enemy_scene
+			var path = enemy_data.get("scene_file_path", "")
+			if path != "" and ResourceLoader.exists(path):
+				scene_to_load = load(path)
+				
+			if not scene_to_load:
+				continue
+				
+			var enemy = scene_to_load.instantiate()
 			enemy.add_to_group("Enemies")
 			
 			# Wire up signals
