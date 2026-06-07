@@ -80,6 +80,7 @@ var _flight_time: float = 0.0
 var _health_accumulator: float = 0.0
 
 var target_tile: Vector2i = Vector2i(-1, -1)
+var committed_job_tile: Vector2i = Vector2i(-1, -1)
 var current_path: Array[Vector2] = []
 
 var is_setting_home: bool = false
@@ -413,7 +414,7 @@ func _find_priority_job():
 	_clear_reservation()
 	if not level_ref or not level_ref.building_manager: return
 
-	var best_job = level_ref.building_manager.get_highest_priority_job(global_position, is_flying)
+	var best_job = level_ref.building_manager.get_highest_priority_job(global_position, is_flying, self)
 
 	if best_job == null:
 		if carried_amount > 0:
@@ -443,6 +444,7 @@ func _find_priority_job():
 		if best_job.is_ready_to_build:
 			_request_path(best_job.occupied_tiles, true)
 			if not current_path.is_empty():
+				committed_job_tile = best_job.occupied_tiles[0]
 				current_state = State.MOVING_TO_BUILD
 			else:
 				current_state = State.IDLE
@@ -450,6 +452,7 @@ func _find_priority_job():
 		elif carried_amount > 0:
 			_request_path(best_job.occupied_tiles, true)
 			if not current_path.is_empty():
+				committed_job_tile = best_job.occupied_tiles[0]
 				current_state = State.MOVING_TO_INVENTORY
 			else:
 				current_state = State.IDLE
@@ -459,20 +462,39 @@ func _find_priority_job():
 			for req_name in best_job.required_items.keys():
 				var needed = best_job.required_items[req_name]
 				var have = best_job.delivered_items.get(req_name, 0)
-				if have < needed:
+				
+				# Count in-transit delivery commitments of other bots for this item
+				var promised_by_others = 0
+				var b_tile = best_job.occupied_tiles[0]
+				var bots = level_ref.get_tree().get_nodes_in_group("Bots")
+				for bot in bots:
+					if bot != self and is_instance_valid(bot) and not bot.is_queued_for_deletion():
+						if "committed_job_tile" in bot and bot.committed_job_tile == b_tile:
+							if bot.carried_item_name == req_name:
+								var amount = bot.carried_amount if bot.carried_amount > 0 else bot.carry_capacity
+								promised_by_others += amount
+								
+				if have + promised_by_others < needed:
 					item_to_fetch = req_name
 					break
 
 			if item_to_fetch != "":
+				committed_job_tile = best_job.occupied_tiles[0]
+				carried_item_name = item_to_fetch
 				_find_stockpile_with_item(item_to_fetch)
+				if current_state != State.MOVING_TO_FETCH:
+					committed_job_tile = Vector2i(-1, -1)
+					carried_item_name = ""
 			else:
 				current_state = State.IDLE
 	else:
 		_request_path(best_job.occupied_tiles, true)
 		if not current_path.is_empty():
+			committed_job_tile = best_job.occupied_tiles[0]
 			current_state = State.MOVING_TO_REPAIR
 		else:
 			current_state = State.IDLE
+
 
 
 func _find_nearest_storage():
@@ -1074,6 +1096,8 @@ func _clear_reservation():
 		var info = level_ref.active_grid_objects[target_tile]
 		if info.has("reserved_by") and info["reserved_by"] == self:
 			info["reserved_by"] = null
+			
+	committed_job_tile = Vector2i(-1, -1)
 
 
 

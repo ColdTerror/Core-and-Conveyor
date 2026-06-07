@@ -664,6 +664,7 @@ func _setup_filter_ui(b: FilterBuilding):
 	_create_button("Change Mode", Color(0.3, 0.8, 1.0), b.toggle_filter_mode)
 
 
+
 ## Generates rank buttons for re-ordering building task workflows.
 func _build_priority_widget(b: Node):
 	if building_manager == null: return
@@ -674,6 +675,16 @@ func _build_priority_widget(b: Node):
 		priority_item = "Belts"
 	elif b is WallBuilding: 
 		priority_item = "Walls"
+	elif b is TerraformSite:
+		priority_item = "Terraform"
+	elif b is ConstructionSite:
+		var b_name = b.building_name if "building_name" in b else ""
+		if "Wall" in b_name:
+			priority_item = "Walls"
+		elif "Conveyor" in b_name or "Belt" in b_name or "Router" in b_name or "Filter" in b_name:
+			priority_item = "Belts"
+		elif "Terraform" in b_name:
+			priority_item = "Terraform"
 		
 	var current_rank = bm.get_priority_rank(priority_item)
 	var max_rank = bm.get_total_priority_ranks()
@@ -706,6 +717,7 @@ func _build_priority_widget(b: Node):
 	hbox.add_child(rank_label)
 	hbox.add_child(down_btn)
 	action_container.add_child(hbox)
+
 
 
 ## Initiates an entry transition tween effect for menu panels.

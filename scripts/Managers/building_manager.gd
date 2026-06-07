@@ -1141,24 +1141,151 @@ func _try_add_terrain_job(grid_pos: Vector2i):
 
 
 ## Searches the queue to find the highest priority job needing bot interaction.
-func get_highest_priority_job(bot_position: Vector2, is_flying: bool = false) -> Node:
+## Searches the queue to find the highest priority job needing bot interaction.
+func get_highest_priority_job(bot_position: Vector2, is_flying: bool = false, bot_requesting: Node = null) -> Node:
 	for item in master_priority_queue:
 		if typeof(item) == TYPE_STRING:
-			var best = _find_closest_needing_work_in_group(item, bot_position, is_flying)
+			var best = _find_closest_needing_work_in_group(item, bot_position, is_flying, bot_requesting)
 			if best != null: return best
 		else:
-			if is_instance_valid(item) and _building_needs_work(item):
+			if is_instance_valid(item) and _building_needs_work_with_commitments(item, bot_requesting):
 				return item
 	return null
 
 
-func _building_needs_work(bldg: Node) -> bool:
-	if bldg.has_method("needs_materials") and bldg.needs_materials(): return true
-	if bldg.health < bldg.max_health: return true
+
+## Standard raw check of whether a building requires material delivery or repair/construction progress.
+func _building_needs_work_raw(bldg: Node) -> bool:
+	if not is_instance_valid(bldg):
+		return false
+		
+	if bldg is ConstructionSite or bldg is TerraformSite:
+		if bldg.is_ready_to_build:
+			return bldg.health < bldg.max_health
+		else:
+			for req_name in bldg.required_items.keys():
+				var needed = bldg.required_items[req_name]
+				var delivered = bldg.delivered_items.get(req_name, 0)
+				if delivered < needed:
+					return true
+			return false
+			
+	if bldg.has_method("needs_materials") and bldg.needs_materials():
+		return true
+		
+	if bldg.health < bldg.max_health:
+		return true
+		
 	return false
 
 
-func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2, is_flying: bool = false) -> Node:
+
+## Scans the list of active buildings to check if any task currently has 0 bots assigned.
+func _has_unserved_jobs(bot_requesting: Node = null) -> bool:
+	if not level_ref:
+		return false
+		
+	var bots = level_ref.get_tree().get_nodes_in_group("Bots")
+	
+	for b in buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion():
+			continue
+			
+		if not _building_needs_work_raw(b):
+			continue
+			
+		var b_tile = b.occupied_tiles[0] if not b.occupied_tiles.is_empty() else Vector2i(-1, -1)
+		var is_served = false
+		
+		for bot in bots:
+			if not is_instance_valid(bot) or bot.is_queued_for_deletion():
+				continue
+			if bot == bot_requesting:
+				continue
+				
+			# Check delivery commitments
+			if "committed_job_tile" in bot and bot.committed_job_tile == b_tile:
+				is_served = true
+				break
+				
+			# Check building/repairing commitments
+			if bot.target_tile in b.occupied_tiles:
+				if bot.current_state in [bot.State.MOVING_TO_BUILD, bot.State.BUILDING, bot.State.MOVING_TO_REPAIR, bot.State.REPAIRING]:
+					is_served = true
+					break
+					
+		if not is_served:
+			return true
+			
+	return false
+
+
+
+## Evaluates whether a building needs work, taking in-transit deliveries and active workers into account.
+func _building_needs_work_with_commitments(bldg: Node, bot_requesting: Node = null) -> bool:
+	if not is_instance_valid(bldg):
+		return false
+		
+	if not _building_needs_work_raw(bldg):
+		return false
+		
+	var builders_or_repairers = 0
+	var delivery_promised = {}
+	var b_tile = bldg.occupied_tiles[0] if not bldg.occupied_tiles.is_empty() else Vector2i(-1, -1)
+	
+	if level_ref:
+		var bots = level_ref.get_tree().get_nodes_in_group("Bots")
+		for bot in bots:
+			if not is_instance_valid(bot) or bot.is_queued_for_deletion():
+				continue
+			if bot == bot_requesting:
+				continue
+				
+			# Check delivery commitments
+			if "committed_job_tile" in bot and bot.committed_job_tile == b_tile:
+				var item = bot.carried_item_name
+				if item != "":
+					var amount = bot.carried_amount if bot.carried_amount > 0 else bot.carry_capacity
+					delivery_promised[item] = delivery_promised.get(item, 0) + amount
+					
+			# Check building/repairing commitments
+			if bot.target_tile in bldg.occupied_tiles:
+				if bot.current_state in [bot.State.MOVING_TO_BUILD, bot.State.BUILDING, bot.State.MOVING_TO_REPAIR, bot.State.REPAIRING]:
+					builders_or_repairers += 1
+
+	if bldg is ConstructionSite or bldg is TerraformSite:
+		if bldg.is_ready_to_build:
+			# Soft cap of 1 builder: allow more if there are no unserved jobs on the map
+			if builders_or_repairers >= 1:
+				if _has_unserved_jobs(bot_requesting):
+					return false
+			return bldg.health < bldg.max_health
+		else:
+			# Hard delivery cap: check if any required item is not fully promised in-transit
+			for req_name in bldg.required_items.keys():
+				var needed = bldg.required_items[req_name]
+				var delivered = bldg.delivered_items.get(req_name, 0)
+				var promised = delivery_promised.get(req_name, 0)
+				if delivered + promised < needed:
+					return true
+			return false
+			
+	if bldg.has_method("needs_materials") and bldg.needs_materials():
+		return true
+		
+	if bldg.health < bldg.max_health:
+		# Soft cap of 1 repairer: allow more if there are no unserved jobs
+		if builders_or_repairers >= 1:
+			if _has_unserved_jobs(bot_requesting):
+				return false
+		return true
+		
+	return false
+
+
+
+## Finds the closest candidate node within a specific priority group that needs work.
+func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2, is_flying: bool = false, bot_requesting: Node = null) -> Node:
 	var candidates: Array = []
 	var bot_grid = terrain_layer.local_to_map(terrain_layer.to_local(bot_pos))
 	
@@ -1175,7 +1302,7 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2, i
 		elif group_name == "Terraform":
 			matches = (b is TerraformSite)
 			
-		if matches and _building_needs_work(b):
+		if matches and _building_needs_work_with_commitments(b, bot_requesting):
 			var dist = bot_pos.distance_squared_to(b.global_position)
 			candidates.append({
 				"building": b,
@@ -1219,10 +1346,7 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2, i
 			if shortest_cost < min_path_cost:
 				min_path_cost = shortest_cost
 				best_target = b
-				
 	return best_target
-
-
 
 
 
