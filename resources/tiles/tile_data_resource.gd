@@ -10,8 +10,6 @@ class_name TileDataResource
 
 @export_group("Mining & Resources")
 @export var total_resources: int = 10
-@export var amount_per_mine: int = 1
-@export var mining_time: float = 1.0
 
 @export_group("Regrowth")
 @export var can_regrow: bool = false

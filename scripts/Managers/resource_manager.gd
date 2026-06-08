@@ -1,6 +1,6 @@
 # ==============================================================================
 # Script: Managers/resource_manager.gd
-# Purpose: Governs environmental object harvesting, coordinates tree regrowth queues/timers, and tracks individual resource extraction cooldowns for manual/automatic mining.
+# Purpose: Governs environmental object harvesting and coordinates tree regrowth queues/timers.
 # Dependencies: Requires TileDataResource resource structures.
 # Signals:
 #   - resource_state_changed: Emitted when a resource tile's depletion state transitions (Full, Harvesting, Depleted).
@@ -17,31 +17,22 @@ enum ResourceState {
 # Key: Vector2i -> { "timer": float, "data": TileDataResource, "target_dict": Dictionary }
 var active_regrowth_tasks := {}
 
-# NEW: Key: Vector2i -> float (Time remaining)
-var mining_cooldowns := {} 
 
 signal resource_state_changed(tile: Vector2i, state: ResourceState, data: TileDataResource)
 signal resource_destroyed(tile: Vector2i)
 
 
 
-## Validates mining cooldowns, calculates harvesting yield, adjusts node health,
+## Validates environmental harvest states, calculates yield, adjusts node health,
 ## and returns the harvested item quantity.
-func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1) -> int:
+func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int) -> int:
 	# Early Exits (Return 0 items)
 	if active_regrowth_tasks.has(tile): return 0
-	if mining_cooldowns.has(tile): return 0
 
 	var data = object_info["data"] as TileDataResource
 	
-	# START COOLDOWN
-	mining_cooldowns[tile] = data.mining_time
-
-	# THE MATH
-	var requested_amount = amount if amount > 0 else data.amount_per_mine
-	
 	# Safely calculate exactly how much we can actually take
-	var actual_yield = min(requested_amount, object_info["health"])
+	var actual_yield = min(amount, object_info["health"])
 	
 	object_info["health"] -= actual_yield
 
@@ -57,30 +48,10 @@ func request_harvest(tile: Vector2i, object_info: Dictionary, amount: int = -1) 
 
 
 
-## Processes frame-rate delta, calling mining cooldowns and regrowth queue loops.
+## Processes frame-rate delta, updating active regrowth queues.
 func _process(delta):
-	# Loop 1: Handle Mining Cooldowns (The new logic)
-	_process_mining_cooldowns(delta)
-	
-	# Loop 2: Handle Forest Regrowth (The existing logic)
+	# Handle Forest Regrowth
 	_process_regrowth(delta)
-
-
-
-## Cycles active extraction cooldowns, clearing coordinates upon expiration.
-func _process_mining_cooldowns(delta: float):
-	if mining_cooldowns.is_empty(): return
-	
-	var finished_cooldowns := []
-	
-	for tile in mining_cooldowns:
-		mining_cooldowns[tile] -= delta
-		if mining_cooldowns[tile] <= 0:
-			finished_cooldowns.append(tile)
-			
-	for tile in finished_cooldowns:
-		mining_cooldowns[tile] = 0
-		mining_cooldowns.erase(tile)
 
 
 

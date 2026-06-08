@@ -294,14 +294,6 @@ func _on_resource_destroyed(tile: Vector2i):
 
 
 
-## Forwards manual extraction input calls directly to global resource managers.
-func handle_harvest_input(grid_pos: Vector2i):
-	if not active_grid_objects.has(grid_pos): return
-	var obj_info = active_grid_objects[grid_pos]
-	ResourceManager.request_harvest(grid_pos, obj_info)
-
-
-
 ## Queries atlas coordinates to identify matching resource library indexes.
 func get_object_tile_index(tile: Vector2i) -> int:
 	var atlas := object_layer.get_cell_atlas_coords(tile)
