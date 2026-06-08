@@ -23,7 +23,7 @@ enum MoonPhase { NORMAL, FULL, BLOOD }
 @export var day_color := Color(1.0, 1.0, 1.0, 1)       # Bright and normal
 @export var night_color := Color(0.5, 0.5, 0.8, 1)     # Dark, moody purple/blue
 @export var blood_moon_color := Color(0.9, 0.65, 0.65, 1.0)# Terrifying Red!
-@export var full_moon_color := Color(0.7, 0.8, 1.0, 1) # Bright, safe blue!
+@export var full_moon_color := Color(0.6, 0.7, 1.0, 1) # Bright, safe blue!
 @export var sunrise_hour: int = 6
 @export var sunset_hour: int = 18
 

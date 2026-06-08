@@ -27,6 +27,10 @@ signal save_requested(slot: int)
 @onready var sfx_mute = $CenterContainer/VBoxContainer/SfxMute
 @onready var sfx_slider = $CenterContainer/VBoxContainer/SfxSlider
 
+var confirm_dialog: ConfirmationDialog
+var _pending_load_slot: int = -1
+var _pending_load_button: Button = null
+
 
 
 ## Connects save/load buttons, slider volume signals, quicksave actions, and delete actions.
@@ -76,6 +80,19 @@ func _ready():
 	del_1_btn.pressed.connect(func(): _perform_delete(1))
 	del_2_btn.pressed.connect(func(): _perform_delete(2))
 	del_3_btn.pressed.connect(func(): _perform_delete(3))
+	
+	confirm_dialog = ConfirmationDialog.new()
+	confirm_dialog.title = "Confirm Load"
+	confirm_dialog.dialog_text = "Are you sure you want to load? Any unsaved progress will be lost."
+	confirm_dialog.ok_button_text = "Yes"
+	confirm_dialog.cancel_button_text = "No"
+	confirm_dialog.process_mode = PROCESS_MODE_ALWAYS
+	confirm_dialog.confirmed.connect(_on_load_confirmed)
+	confirm_dialog.canceled.connect(func():
+		_pending_load_slot = -1
+		_pending_load_button = null
+	)
+	add_child(confirm_dialog)
 
 
 
@@ -191,13 +208,24 @@ func _flash_button_success(button: Button):
 
 ## Initiates profiles recovery and handles failure alerts.
 func _perform_manual_load(slot: int, button: Button):
-	AudioManager.set_music_muffled(false)
-	# Execute load game
-	var success = SaveManager.load_game(slot)
+	_pending_load_slot = slot
+	_pending_load_button = button
+	confirm_dialog.popup_centered()
+
+
+
+## Confirms and recovers the selected profile slot.
+func _on_load_confirmed():
+	if _pending_load_slot == -1: return
 	
-	# Flash error if load fails
-	if not success:
-		_flash_button_error(button)
+	AudioManager.set_music_muffled(false)
+	var success = SaveManager.load_game(_pending_load_slot)
+	
+	if not success and is_instance_valid(_pending_load_button):
+		_flash_button_error(_pending_load_button)
+		
+	_pending_load_slot = -1
+	_pending_load_button = null
 
 
 

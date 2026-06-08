@@ -15,16 +15,15 @@
 				"b87c3853-295c-4ce8-8e40-a66e2c884e22",
 				"faa91590-4d07-4873-a40f-75d92acae4e6",
 				"2bb58485-20f1-408e-a109-4164d1fd7f21",
-				"210ddd1b-55b2-4b7d-ac2e-2456d69ae614"
+				"210ddd1b-55b2-4b7d-ac2e-2456d69ae614",
+				"3891b4b8-54ea-4e14-9ea6-a415a924710c"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"c83e6045-d63a-467b-a791-2213be22a0d3",
-				"99b024a0-9250-4cff-9a42-6d56c5031440",
-				"0aa4da94-5476-41f5-9f7c-914d8e54a3dd"
+				"c83e6045-d63a-467b-a791-2213be22a0d3"
 			]
 		},
 		{
@@ -32,8 +31,10 @@
 			"title": "Done",
 			"tasks": [
 				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
+				"0aa4da94-5476-41f5-9f7c-914d8e54a3dd",
 				"c2fc792a-4d44-4b37-a688-3b36bfc8d6a0",
 				"781f080d-7cc7-425f-93c0-0bf4d4826996",
+				"99b024a0-9250-4cff-9a42-6d56c5031440",
 				"e65d93d6-ead4-4a82-a01a-e4a7d79e710c",
 				"1d081420-4c70-475a-93ea-73fe5935b8c5",
 				"df82b91c-bf12-402b-bc0f-c4bdac11ade5",
@@ -1773,6 +1774,13 @@
 		{
 			"uuid": "0aa4da94-5476-41f5-9f7c-914d8e54a3dd",
 			"title": "load confirmation in menu",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "3891b4b8-54ea-4e14-9ea6-a415a924710c",
+			"title": "crate sprite for distributor and launcher/receiver",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
