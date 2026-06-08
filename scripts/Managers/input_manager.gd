@@ -25,6 +25,7 @@ var hovered_building: Building = null
 var hovered_enemy: Node2D = null
 var bot_awaiting_home: Node2D = null
 var launcher_awaiting_link: Node2D = null
+var hovered_resource_tile: Vector2i = Vector2i(-99999, -99999)
 
 var last_hovered_upgrade_tile: Vector2i = Vector2i(-1, -1)
 var last_terrain_tile: Vector2i = Vector2i(-1, -1)
@@ -123,6 +124,7 @@ func _process(delta):
 			cam.apply_pan(move_dir, delta)
 			
 	# Resource Hover Tooltip Check
+	var res_hovered = false
 	if hover_popup:
 		var has_hovered_obj = is_instance_valid(hovered_bot) or is_instance_valid(hovered_building) or is_instance_valid(hovered_enemy)
 		if not has_hovered_obj:
@@ -130,6 +132,12 @@ func _process(delta):
 			var mouse_grid_pos = level_ref.object_layer.local_to_map(mouse_pos)
 			
 			if level_ref.active_grid_objects.has(mouse_grid_pos):
+				res_hovered = true
+				if hovered_resource_tile != mouse_grid_pos:
+					hovered_resource_tile = mouse_grid_pos
+					var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
+					if renderer: renderer.queue_redraw()
+				
 				var res_info = level_ref.active_grid_objects[mouse_grid_pos]
 				if ResourceManager.active_regrowth_tasks.has(mouse_grid_pos):
 					var task = ResourceManager.active_regrowth_tasks[mouse_grid_pos]
@@ -139,6 +147,14 @@ func _process(delta):
 			else:
 				if hover_popup.visible and hover_popup.current_building == null:
 					hover_popup.hide_popup()
+		else:
+			if hover_popup.visible and hover_popup.current_building == null:
+				hover_popup.hide_popup()
+				
+	if not res_hovered and hovered_resource_tile != Vector2i(-99999, -99999):
+		hovered_resource_tile = Vector2i(-99999, -99999)
+		var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
+		if renderer: renderer.queue_redraw()
 
 
 

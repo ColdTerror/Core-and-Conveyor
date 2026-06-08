@@ -18,6 +18,7 @@ var _prev_show_attack_grid: bool = false
 var _prev_show_path_grid: bool = false
 var _prev_placing_building: bool = false
 var _prev_hovered_building: Building = null
+var _prev_hovered_res_tile: Vector2i = Vector2i(-99999, -99999)
 var _prev_terraform_jobs_empty: bool = true
 var _prev_overlay_threshold: int = 1
 var _prev_show_overlay_numbers: bool = true
@@ -65,6 +66,12 @@ func _process(delta):
 		needs_redraw = true
 		_prev_hovered_building = current_hover
 		
+	# Check if hovered resource tile changed
+	var current_res_hover = InputManager.hovered_resource_tile
+	if current_res_hover != _prev_hovered_res_tile:
+		needs_redraw = true
+		_prev_hovered_res_tile = current_res_hover
+		
 	# Ghost placement update
 	if bm.placing_building or current_mode != 0: 
 		needs_redraw = true
@@ -100,6 +107,7 @@ func _draw():
 	_draw_zone_overlays()
 	_draw_ghost_previews()
 	_draw_hover_footprint()
+	_draw_resource_hover_footprint()
 	_draw_path_costs()
 
 
@@ -379,3 +387,18 @@ func _rebuild_path_cost_cache():
 					cached_path_draws.append({
 						"pos": draw_pos, "text": text, "color": Color(1.0, 0.0, 0.0, 1.0)
 					})
+
+
+
+## Outlines the currently hovered resource tile.
+func _draw_resource_hover_footprint():
+	var tile = InputManager.hovered_resource_tile
+	if tile != Vector2i(-99999, -99999):
+		var tile_size = 32.0
+		var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
+		var pos = level.object_layer.map_to_local(tile) - half_offset
+		var rect = Rect2(pos, Vector2(tile_size, tile_size))
+		
+		# Draw a light semi-transparent white highlight fill and solid white border
+		draw_rect(rect, Color(1.0, 1.0, 1.0, 0.1), true)
+		draw_rect(rect, Color(1.0, 1.0, 1.0, 0.8), false, 2.0)
