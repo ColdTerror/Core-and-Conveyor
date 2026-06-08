@@ -270,7 +270,7 @@ func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResour
 		ResourceManager.ResourceState.FULL:
 			object_layer.set_cell(tile, 0, data.atlas_coords_full)
 			if active_grid_objects.has(tile):
-				active_grid_objects[tile]["health"] = data.total_resources
+				active_grid_objects[tile]["health"] = active_grid_objects[tile].get("max_health", data.total_resources)
 		ResourceManager.ResourceState.HARVESTING:
 			if data.atlas_coords_harvesting != Vector2i(-1, -1):
 				object_layer.set_cell(tile, 0, data.atlas_coords_harvesting)
@@ -412,10 +412,10 @@ func generate_simple_map():
 				var biome_val = biome_noise.get_noise_2d(x, y)
 				if biome_val > 0.15:
 					var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if s_val > 0.55: place_resource_at(pos, RES_STONE)
+					if s_val > 0.55: place_resource_at(pos, RES_STONE, s_val)
 				elif biome_val < -0.15:
 					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if d_val > 0.60: place_resource_at(pos, RES_TREE)
+					if d_val > 0.60: place_resource_at(pos, RES_TREE, d_val)
 					
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
@@ -424,12 +424,25 @@ func generate_simple_map():
 
 
 ## Draws a resource node at the designated coordinate, tracking health buffers.
-func place_resource_at(grid_pos: Vector2i, resource_index: int):
+func place_resource_at(grid_pos: Vector2i, resource_index: int, noise_val: float = -1.0):
 	if resource_index >= tile_library.size(): return
 	var data = tile_library[resource_index]
 	object_layer.set_cell(grid_pos, 0, data.atlas_coords_full)
+	
+	var initial_health = data.total_resources
+	if noise_val >= 0.0:
+		if resource_index == RES_TREE:
+			# noise_val (d_val) is in [0.60, 1.0]
+			var t = clamp((noise_val - 0.60) / 0.40, 0.0, 1.0)
+			initial_health = lerp(5, 25, t)
+		elif resource_index == RES_STONE:
+			# noise_val (s_val) is in [0.55, 1.0]
+			var t = clamp((noise_val - 0.55) / 0.45, 0.0, 1.0)
+			initial_health = lerp(5, 25, t)
+			
 	active_grid_objects[grid_pos] = {
-		"health": data.total_resources,
+		"health": int(initial_health),
+		"max_health": int(initial_health),
 		"data": data
 	}
 
@@ -449,6 +462,7 @@ func place_tile(grid_pos: Vector2i, data: TileDataResource):
 			object_layer.set_cell(grid_pos, 0, final_coords)
 			active_grid_objects[grid_pos] = {
 				"health": data.total_resources,
+				"max_health": data.total_resources,
 				"data": data
 			}
 
@@ -490,6 +504,7 @@ func get_map_save_data() -> Dictionary:
 		var correct_index = tile_library.find(obj["data"])
 		object_data[var_to_str(pos)] = {
 			"health": obj["health"],
+			"max_health": obj.get("max_health", obj["health"]),
 			"lib_index": correct_index
 		}
 
@@ -535,12 +550,14 @@ func load_map_save_data(data: Dictionary):
 			var tile_data = tile_library[lib_idx]
 			
 			var final_coords = tile_data.atlas_coords_full
-			if obj_info["health"] < tile_data.total_resources and tile_data.atlas_coords_harvesting != Vector2i(-1, -1):
+			var max_hp = obj_info.get("max_health", tile_data.total_resources)
+			if obj_info["health"] < max_hp and tile_data.atlas_coords_harvesting != Vector2i(-1, -1):
 				final_coords = tile_data.atlas_coords_harvesting
 				
 			object_layer.set_cell(pos, 0, final_coords)
 			active_grid_objects[pos] = {
 				"health": obj_info["health"],
+				"max_health": max_hp,
 				"data": tile_data
 			}
 			

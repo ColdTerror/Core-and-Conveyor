@@ -13,6 +13,7 @@ extends PanelContainer
 @onready var work_bar = $VBoxContainer/WorkBar
 
 var current_building: Node2D = null
+var current_tile: Vector2i = Vector2i(-99999, -99999)
 
 
 
@@ -28,12 +29,12 @@ func _ready():
 
 ## Monitores progress bars, active selections, and live status energy updates for hover-cards.
 func _process(_delta):
-	# Close popup if building is destroyed
-	if visible and not is_instance_valid(current_building):
+	# Close popup if building is destroyed (only if we were tracking a building target)
+	if visible and current_building != null and not is_instance_valid(current_building):
 		hide_popup()
 		return
 
-	if visible:
+	if visible and current_building != null:
 		# Duck typing check to prevent crashes
 		if current_building is ConstructionSite:
 			work_bar.value = (float(current_building.health) / current_building.max_health) * 100.0
@@ -49,9 +50,10 @@ func _process(_delta):
 
 ## Renders a popup tooltip layout with relevant health, levels, inventory, and stats for the selected building or bot.
 func show_building_info(b: Node2D):
-	var is_new_target = (current_building != b)
+	var is_new_target = (current_building != b or current_tile != Vector2i(-99999, -99999))
 	_disconnect_signals()
 	current_building = b
+	current_tile = Vector2i(-99999, -99999)
 	
 	var b_name = b.building_name if "building_name" in b else "Unknown Object"
 	if b is CoreBuilding:
@@ -97,6 +99,7 @@ func show_building_info(b: Node2D):
 func hide_popup():
 	_disconnect_signals()
 	current_building = null
+	current_tile = Vector2i(-99999, -99999)
 	hide()
 
 
@@ -312,3 +315,69 @@ func _collect_harvester_stats(b: Node2D, stats: Array):
 	if "scan_radius" in b: stats.append("Harvest Radius: %d" % b.scan_radius)
 	if "harvest_damage" in b: stats.append("Harvest Amount: %d" % b.harvest_damage)
 	if "work_interval" in b: stats.append("Work Interval: %.2fs" % b.work_interval)
+
+
+
+## Renders a tooltip popup layout for a resource tile.
+func show_resource_info(tile_pos: Vector2i, info: Dictionary):
+	var is_new_target = (current_tile != tile_pos or current_building != null)
+	_disconnect_signals()
+	current_building = null
+	current_tile = tile_pos
+	
+	var data = info["data"] as TileDataResource
+	name_label.text = data.display_name
+	
+	health_label.visible = true
+	var current_hp = info["health"]
+	var max_hp = info.get("max_health", data.total_resources)
+	health_label.text = "Resources: %d / %d" % [current_hp, max_hp]
+	
+	work_bar.visible = false
+	hide_inventory()
+	
+	if is_new_target:
+		for child in stats_box.get_children():
+			child.queue_free()
+		
+	if is_new_target or not visible:
+		show()
+		pivot_offset = size / 2
+		scale = Vector2(0.9, 0.9)
+		modulate.a = 0.5 
+		
+		var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_property(self, "scale", Vector2.ONE, 0.1)
+		tween.parallel().tween_property(self, "modulate:a", 1.0, 0.1)
+
+
+
+## Renders a tooltip popup layout for a regrowing resource tile.
+func show_regrowth_info(tile_pos: Vector2i, task: Dictionary):
+	var is_new_target = (current_tile != tile_pos or current_building != null)
+	_disconnect_signals()
+	current_building = null
+	current_tile = tile_pos
+	
+	var data = task["data"] as TileDataResource
+	name_label.text = "%s (Regrowing)" % data.display_name
+	
+	health_label.visible = true
+	health_label.text = "Regrowth: %.1fs remaining" % task["timer"]
+	
+	work_bar.visible = false
+	hide_inventory()
+	
+	if is_new_target:
+		for child in stats_box.get_children():
+			child.queue_free()
+		
+	if is_new_target or not visible:
+		show()
+		pivot_offset = size / 2
+		scale = Vector2(0.9, 0.9)
+		modulate.a = 0.5 
+		
+		var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_property(self, "scale", Vector2.ONE, 0.1)
+		tween.parallel().tween_property(self, "modulate:a", 1.0, 0.1)

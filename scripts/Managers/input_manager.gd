@@ -121,6 +121,24 @@ func _process(delta):
 		var cam = get_tree().get_first_node_in_group("Camera")
 		if cam and cam.has_method("apply_pan"):
 			cam.apply_pan(move_dir, delta)
+			
+	# Resource Hover Tooltip Check
+	if hover_popup:
+		var has_hovered_obj = is_instance_valid(hovered_bot) or is_instance_valid(hovered_building) or is_instance_valid(hovered_enemy)
+		if not has_hovered_obj:
+			var mouse_pos = get_global_mouse_position()
+			var mouse_grid_pos = level_ref.object_layer.local_to_map(mouse_pos)
+			
+			if level_ref.active_grid_objects.has(mouse_grid_pos):
+				var res_info = level_ref.active_grid_objects[mouse_grid_pos]
+				if ResourceManager.active_regrowth_tasks.has(mouse_grid_pos):
+					var task = ResourceManager.active_regrowth_tasks[mouse_grid_pos]
+					hover_popup.show_regrowth_info(mouse_grid_pos, task)
+				else:
+					hover_popup.show_resource_info(mouse_grid_pos, res_info)
+			else:
+				if hover_popup.visible and hover_popup.current_building == null:
+					hover_popup.hide_popup()
 
 
 

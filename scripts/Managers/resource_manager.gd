@@ -103,7 +103,7 @@ func _finish_regrowth(tile: Vector2i):
 	
 	# THE MATH (Reset Health)
 	# Because we stored the reference, this updates the dictionary inside Level.gd!
-	target_dict["health"] = data.total_resources
+	target_dict["health"] = target_dict.get("max_health", data.total_resources)
 	
 	active_regrowth_tasks.erase(tile)
 	
