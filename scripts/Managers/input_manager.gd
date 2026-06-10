@@ -94,7 +94,7 @@ func _unhandled_key_input(event: InputEvent):
 				level_ref.get_node("TimeManager").debug_skip_to_night()
 			get_viewport().set_input_as_handled()
 			
-		KEY_F9:
+		KEY_F10:
 			if level_ref and level_ref.has_node("TimeManager"):
 				print("DEBUG: Force Skipping to Sunrise...")
 				level_ref.get_node("TimeManager").debug_skip_to_next_morning()

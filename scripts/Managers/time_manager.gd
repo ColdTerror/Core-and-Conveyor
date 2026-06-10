@@ -15,6 +15,7 @@ signal day_started(day_number: int)
 signal night_started(day_number: int)
 
 enum MoonPhase { NORMAL, FULL, BLOOD }
+enum Season { SPRING, SUMMER, AUTUMN, WINTER }
 
 @export var lighting_modulate: CanvasModulate
 @export var real_minutes_per_day: float = 2.0 
@@ -37,6 +38,12 @@ var current_time: float = 6.0 # Start at 6 AM
 var current_hour: int = 6
 var is_night: bool = false
 var current_moon_phase: MoonPhase = MoonPhase.NORMAL
+
+
+
+## Adds this node to the global group for easy lookup.
+func _ready():
+	add_to_group("TimeManager")
 
 
 
@@ -91,15 +98,18 @@ func _process_midnight():
 
 ## Handles sunrise and sunset thresholds, rolling moon phases and updating audio playlists.
 func _check_day_night_triggers():
+	var sunrise = get_sunrise_hour()
+	var sunset = get_sunset_hour()
+	
 	# --- SUNRISE ---
-	if current_hour == sunrise_hour and is_night:
+	if current_hour == sunrise and is_night:
 		is_night = false
 		current_moon_phase = MoonPhase.NORMAL # Reset for the day
 		day_started.emit(current_day)
 		AudioManager.play_playlist_track("Sunrise", 3.0)
 		
 	# --- SUNSET ---
-	elif current_hour == sunset_hour and not is_night:
+	elif current_hour == sunset and not is_night:
 		is_night = true
 		
 		# --- DEBUG OVERRIDES ---
@@ -139,19 +149,68 @@ func _update_lighting():
 	
 	var blend_factor = 0.0
 	var transition_duration = 2.0 
+	var sunrise = get_sunrise_hour()
+	var sunset = get_sunset_hour()
 	
-	if current_time >= sunrise_hour and current_time <= sunrise_hour + transition_duration:
-		blend_factor = (current_time - sunrise_hour) / transition_duration
+	if current_time >= sunrise and current_time <= sunrise + transition_duration:
+		blend_factor = (current_time - sunrise) / transition_duration
 		lighting_modulate.color = target_night_color.lerp(day_color, blend_factor)
 		
-	elif current_time >= sunset_hour and current_time <= sunset_hour + transition_duration:
-		blend_factor = (current_time - sunset_hour) / transition_duration
+	elif current_time >= sunset and current_time <= sunset + transition_duration:
+		blend_factor = (current_time - sunset) / transition_duration
 		lighting_modulate.color = day_color.lerp(target_night_color, blend_factor)
 		
-	elif current_time > sunrise_hour + transition_duration and current_time < sunset_hour:
+	elif current_time > sunrise + transition_duration and current_time < sunset:
 		lighting_modulate.color = day_color
 	else:
 		lighting_modulate.color = target_night_color
+
+
+
+## Returns the calculated current season based on calendar day.
+func get_current_season() -> Season:
+	var day_in_year = (current_day - 1) % 28
+	var season_idx = day_in_year / 7
+	return season_idx as Season
+
+
+
+## Returns the human-readable name of the current season.
+func get_season_name() -> String:
+	match get_current_season():
+		Season.SPRING: return "Spring"
+		Season.SUMMER: return "Summer"
+		Season.AUTUMN: return "Autumn"
+		Season.WINTER: return "Winter"
+	return "Unknown"
+
+
+
+## Returns the current year in the calendar.
+func get_current_year() -> int:
+	return int((current_day - 1) / 28) + 1
+
+
+
+## Returns the dynamic sunrise hour depending on the current season.
+func get_sunrise_hour() -> int:
+	match get_current_season():
+		Season.SPRING: return 6
+		Season.SUMMER: return 5
+		Season.AUTUMN: return 6
+		Season.WINTER: return 8
+	return 6
+
+
+
+## Returns the dynamic sunset hour depending on the current season.
+func get_sunset_hour() -> int:
+	match get_current_season():
+		Season.SPRING: return 18
+		Season.SUMMER: return 20
+		Season.AUTUMN: return 18
+		Season.WINTER: return 16
+	return 18
 
 
 
@@ -183,7 +242,7 @@ func load_save_data(data: Dictionary):
 			MoonPhase.BLOOD: AudioManager.play_playlist_track("Night_Blood", 0.5)
 			MoonPhase.FULL: AudioManager.play_playlist_track("Night_Full", 0.5)
 			_: AudioManager.play_playlist_track("Night_Normal", 0.5)
-	elif current_time >= 6.0 and current_time < 8.0:
+	elif current_time >= get_sunrise_hour() and current_time < get_sunrise_hour() + 2.0:
 		AudioManager.play_playlist_track("Sunrise", 0.5)
 	else:
 		AudioManager.play_playlist_track("Day", 0.5)
@@ -195,12 +254,13 @@ func debug_skip_to_night():
 	if is_night: return
 	
 	# Set the clock to EXACTLY sunset
-	current_time = float(sunset_hour)
+	current_time = float(get_sunset_hour())
 	
 	# Trick the brain into thinking it was just 5 PM. 
-	# On the next frame, it will see the hour changed to 18 and trigger the sunset logic!
-	current_hour = sunset_hour - 1
+	# On the next frame, it will see the hour changed and trigger the sunset logic!
+	current_hour = get_sunset_hour() - 1
 	is_night = false 
+
 
 
 ## Forcefully rolls calendar to midnight and transitions to the subsequent sunrise.
@@ -208,9 +268,9 @@ func debug_skip_to_next_morning():
 	_process_midnight()
 	
 	# Set the clock to EXACTLY sunrise
-	current_time = float(sunrise_hour)
+	current_time = float(get_sunrise_hour())
 	
 	# Trick the brain into thinking it was just 5 AM.
 	# On the next frame, it will see the hour changed to 6 and trigger the sunrise logic!
-	current_hour = sunrise_hour - 1
+	current_hour = get_sunrise_hour() - 1
 	is_night = true

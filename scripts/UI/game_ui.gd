@@ -61,7 +61,13 @@ func _process(_delta):
 		var minutes = int((time - hours) * 60.0)
 		var time_string = "%02d:%02d" % [hours, minutes]
 		
-		dateLabel.text = "Day %d | %s" % [time_manager.current_day, time_string]
+		var day_in_season = (time_manager.current_day - 1) % 7 + 1
+		dateLabel.text = "Year %d - %s | Day %d | %s" % [
+			time_manager.get_current_year(),
+			time_manager.get_season_name(),
+			day_in_season,
+			time_string
+		]
 
 	# Update combat stats
 	if wave_manager and waveLabel:

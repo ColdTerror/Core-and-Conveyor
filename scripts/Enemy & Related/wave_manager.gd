@@ -122,12 +122,15 @@ func _process(delta: float):
 	if not is_wave_active or enemies_to_spawn <= 0: 
 		return
 
+	var sunset = time_manager.get_sunset_hour()
+	var sunrise = time_manager.get_sunrise_hour()
+	
 	var time = time_manager.current_time
 	var x: float = 0.0
-	if time >= 18.0:
-		x = (time - 24.0) / 6.0
-	elif time < 6.0:
-		x = time / 6.0         
+	if time >= sunset:
+		x = (time - 24.0) / (24.0 - sunset)
+	elif time < sunrise:
+		x = time / sunrise
 	else:
 		return 
 
@@ -137,7 +140,8 @@ func _process(delta: float):
 	else:
 		curve = 1.0 - pow(abs(x), spawn_curve_exponent_dawn)
 
-	var night_duration_sec = (time_manager.real_minutes_per_day * 60.0) / 2.0
+	var night_duration_hours = (24.0 - sunset) + sunrise
+	var night_duration_sec = (time_manager.real_minutes_per_day * 60.0) * (night_duration_hours / 24.0)
 	var area = 2.0 - (1.0 / (spawn_curve_exponent_dusk + 1.0)) - (1.0 / (spawn_curve_exponent_dawn + 1.0))
 	var normalization = 2.0 / area
 	var peak_rate = (normalization * night_enemies_total) / night_duration_sec

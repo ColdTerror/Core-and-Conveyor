@@ -59,11 +59,28 @@ func _process(delta):
 func _process_regrowth(delta: float):
 	if active_regrowth_tasks.is_empty(): return
 
+	var regrowth_multiplier = 1.0
+	var time_mgr = get_tree().get_first_node_in_group("TimeManager")
+	if time_mgr:
+		match time_mgr.get_current_season():
+			time_mgr.Season.SPRING:
+				regrowth_multiplier = 1.0
+			time_mgr.Season.SUMMER:
+				regrowth_multiplier = 1.5
+			time_mgr.Season.AUTUMN:
+				regrowth_multiplier = 0.5
+			time_mgr.Season.WINTER:
+				regrowth_multiplier = 0.0
+
+	if regrowth_multiplier == 0.0:
+		return
+
+	var scaled_delta = delta * regrowth_multiplier
 	var finished_regrowth := []
 
 	for tile in active_regrowth_tasks:
 		var task = active_regrowth_tasks[tile]
-		task["timer"] -= delta
+		task["timer"] -= scaled_delta
 		if task["timer"] <= 0:
 			finished_regrowth.append(tile)
 
