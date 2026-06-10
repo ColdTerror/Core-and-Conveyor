@@ -823,6 +823,9 @@ func deconstruct_building_at(grid_pos: Vector2i):
 	if building is CoreBuilding:
 		print("Cannot deconstruct the Core!")
 		return
+	if building is BotHomeBuilding:
+		print("Cannot deconstruct a Bot Home!")
+		return
 	building.die()
 
 

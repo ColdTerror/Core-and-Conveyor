@@ -85,6 +85,7 @@ var current_path: Array[Vector2] = []
 
 var is_setting_home: bool = false
 var home_tile: Vector2i = Vector2i(-1, -1)
+var is_loaded: bool = false
 
 var unreachable_tiles: Array[Vector2i] = []
 var full_storages_ignored: Array[Node2D] = []
@@ -113,6 +114,20 @@ func _ready():
 	add_to_group("Bots")
 	_recalculate_stats()
 	_update_sprite()
+	
+	await get_tree().process_frame
+	
+	if is_loaded:
+		var home = get_home_building()
+		if is_instance_valid(home):
+			home.destroyed.connect(_on_home_building_destroyed)
+	else:
+		if home_tile != Vector2i(-1, -1):
+			var home = get_home_building()
+			if not is_instance_valid(home):
+				home = spawn_home_building(home_tile)
+			if is_instance_valid(home):
+				home.destroyed.connect(_on_home_building_destroyed)
 
 
 
@@ -983,8 +998,21 @@ func toggle_set_home_mode(enabled: bool):
 
 ## Sets a new home coordinates, imposing an energy penalty upon home relocation.
 func set_home(grid_pos: Vector2i):
+	# Delete the old home building if it exists
+	var old_home = get_home_building()
+	if is_instance_valid(old_home):
+		if old_home.destroyed.is_connected(_on_home_building_destroyed):
+			old_home.destroyed.disconnect(_on_home_building_destroyed)
+		old_home.die()
+		
 	home_tile = grid_pos
 	
+	# Spawn the new home building at grid_pos
+	if level_ref:
+		var new_home = spawn_home_building(grid_pos)
+		if is_instance_valid(new_home):
+			new_home.destroyed.connect(_on_home_building_destroyed)
+			
 	current_energy = max(0.0, current_energy - (max_energy / 2.0))
 	if current_energy <= 0.0 and not is_limping:
 		is_limping = true
@@ -1035,7 +1063,8 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 		
 	var active_astar = bm.pathfinder.flying_astar if is_flying else bm.pathfinder.bot_astar
 	if bm.pathfinder and active_astar.is_point_solid(grid_pos):
-		return false
+		if grid_pos != home_tile:
+			return false
 		
 	# Check if the tile is already reserved by another worker bot
 	if grid_pos in get_reserved_home_tiles():
@@ -1049,6 +1078,62 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 			return false
 			
 	return true
+
+
+
+## Returns the home building node associated with this bot if valid.
+func get_home_building() -> Node2D:
+	if not level_ref or not level_ref.building_manager:
+		return null
+	var bm = level_ref.building_manager
+	if bm.occupied_tiles.has(home_tile):
+		var building = bm.occupied_tiles[home_tile]
+		if building is BotHomeBuilding:
+			return building
+	return null
+
+
+
+## Spawns a physical charging stand at the specified coordinates.
+func spawn_home_building(grid_pos: Vector2i) -> Building:
+	if not level_ref or not level_ref.building_manager:
+		return null
+	var bm = level_ref.building_manager
+	var scene_path = "res://scenes/buildings & related/infrastructure/bot_home_building.tscn"
+	var scene = load(scene_path)
+	if not scene:
+		print("ERROR: Could not load bot_home_building.tscn")
+		return null
+	var new_home = scene.instantiate() as Building
+	bm.add_child(new_home)
+	new_home.place_at(grid_pos, bm.object_layer)
+	new_home.set_ghost(false)
+	
+	if new_home.has_method("setup"):
+		new_home.setup(level_ref)
+		
+	new_home.destroyed.connect(bm._on_building_destroyed)
+	
+	bm._register_building(new_home)
+	bm._add_safe_zone(new_home)
+	bm._add_build_zone(new_home)
+	bm._register_building_pathfinder(new_home, grid_pos)
+	
+	return new_home
+
+
+
+## Signal callback triggered when the bot's home building is destroyed.
+func _on_home_building_destroyed(building):
+	if is_queued_for_deletion():
+		return
+	die()
+
+
+
+## Public method forcing the bot to immediately go home and rest/recharge, setting priority to STOPPED.
+func force_go_home():
+	set_priority(TaskPriority.STOPPED)
 
 
 
@@ -1098,6 +1183,11 @@ func take_damage(damage: int, source: Node2D = null):
 func die():
 	_clear_reservation()
 	unhovered.emit(self)
+	
+	# Delete the associated home building if it exists
+	var home = get_home_building()
+	if is_instance_valid(home) and not home.is_queued_for_deletion():
+		home.die()
 	
 	if carried_amount > 0 and carried_item_name != "":
 		EconomyManager.log_item_consumed(carried_item_name, carried_amount)
@@ -1368,6 +1458,7 @@ func load_save_data(data: Dictionary):
 	global_position = Vector2(data.get("pos_x", 0.0), data.get("pos_y", 0.0))
 	
 	home_tile = Vector2i(data.get("home_x", -1), data.get("home_y", -1))
+	is_loaded = true
 	target_tile = Vector2i(data.get("target_x", -1), data.get("target_y", -1))
 	
 	bot_level = data.get("bot_level", 1)

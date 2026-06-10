@@ -122,6 +122,39 @@ func _process(_delta):
 				
 			info_label.text = "%sHealth: %d / %d\n%sTarget: %s\nCarrying: %s" % [level_str, selected_object.health, selected_object.max_health, energy_str, info["Target"], info["Carrying"]]
 
+		# Live update for Bot Home Building
+		elif selected_object is BotHomeBuilding:
+			var bot = selected_object.get_bot()
+			if is_instance_valid(bot):
+				var info = bot.get_inventory_info()
+				
+				# Live-update the Level & XP string
+				var level_str = ""
+				if "bot_level" in bot and "current_xp" in bot and "XP_THRESHOLDS" in bot:
+					var global_max = 2
+					if ResearchManager.has_method("get_bot_max_level"):
+						global_max = ResearchManager.get_bot_max_level()
+							
+					level_str = "Level: %d / %d | " % [bot.bot_level, global_max]
+					if bot.bot_level >= global_max:
+						level_str += "XP: MAX\n"
+					else:
+						var next_threshold = bot.XP_THRESHOLDS[bot.bot_level]
+						level_str += "XP: %d / %d\n" % [bot.current_xp, next_threshold]
+				
+				var energy_str = ""
+				if "current_energy" in bot and "max_energy" in bot:
+					var battery_pct = int((bot.current_energy / bot.max_energy) * 100.0)
+					energy_str = "Battery: %d%%" % battery_pct
+					var speed_pct = int(bot.get_solar_efficiency() * 100.0)
+					energy_str += " | Solar Charge Speed: %d%%" % speed_pct
+					energy_str += "\n"
+					
+				info_label.text = "%sHealth: %d / %d\n%sTarget: %s\nCarrying: %s" % [level_str, bot.health, bot.max_health, energy_str, info["Target"], info["Carrying"]]
+				info_label.modulate = Color(0.3, 0.8, 1.0)
+			else:
+				info_label.text = "No bot connected."
+
 
 
 ## Triggers a redraw of the building overlay footprint to match current selections.
@@ -250,7 +283,8 @@ func refresh_ui():
 		selected_object is WallBuilding or 
 		selected_object is ConveyorBuilding or
 		selected_object is Enemy or 
-		selected_object.has_method("set_priority")
+		selected_object.has_method("set_priority") or
+		selected_object is BotHomeBuilding
 	)
 	if can_relocate:
 		_create_button("Relocate (Can't Be Undone)", Color(0.8, 0.4, 1.0), func():
@@ -273,6 +307,8 @@ func refresh_ui():
 		_setup_ammo_distributor_ui(selected_object as AmmoDistributorBuilding)
 	elif selected_object.has_method("set_priority"):
 		_setup_bot_ui(selected_object)
+	elif selected_object is BotHomeBuilding:
+		_setup_bot_home_ui(selected_object)
 	elif selected_object is Enemy:
 		_setup_enemy_ui(selected_object)
 	elif selected_object is ConveyorBridge:
@@ -290,7 +326,7 @@ func refresh_ui():
 		
 	info_label.text = info_label.text.strip_edges()
 	
-	if not selected_object.has_method("set_priority"):
+	if not (selected_object.has_method("set_priority") or selected_object is BotHomeBuilding):
 		_build_priority_widget(selected_object)
 
 
@@ -586,6 +622,29 @@ func _setup_bot_ui(b: Node2D):
 		if b.has_method("toggle_set_home_mode"):
 			b.toggle_set_home_mode(true)
 	)
+
+
+
+## Prepares controls for Bot Home Building (Find Bot, Send Bot Home)
+func _setup_bot_home_ui(b: BotHomeBuilding):
+	var bot = b.get_bot()
+	if is_instance_valid(bot):
+		_create_button("Find Bot", Color(0.3, 0.8, 1.0), func():
+			var cam = get_tree().get_first_node_in_group("Camera")
+			if cam and cam.has_method("set_follow_target"):
+				cam.set_follow_target(bot)
+			var input = get_tree().get_first_node_in_group("InputManager")
+			if input:
+				input.select_object(bot)
+		)
+		
+		_create_button("Send Bot Home", Color(0.8, 0.4, 0.4), func():
+			if bot.has_method("force_go_home"):
+				bot.force_go_home()
+		)
+	else:
+		info_label.text = "No bot connected."
+
 
 
 ## Displays general attributes and status indicators for targeted enemies.

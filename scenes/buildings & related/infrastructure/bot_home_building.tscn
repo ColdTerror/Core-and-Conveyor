@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://cx6i12distr5b"]
+
+[ext_resource type="Script" uid="uid://dm5vvdqu648b" path="res://scripts/Building Classes/bot_home_building.gd" id="1_gxk2j"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_er36m"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nrabu"]
+atlas = ExtResource("2_er36m")
+region = Rect2(128, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wr2mu"]
+atlas = ExtResource("2_er36m")
+region = Rect2(128, 128, 32, 32)
+
+[node name="BotHomeBuilding" type="Node2D" unique_id=1237469308 groups=["Structure"]]
+script = ExtResource("1_gxk2j")
+is_solid_obstacle = true
+is_draggable = false
+building_name = "Bot Home"
+icon = SubResource("AtlasTexture_nrabu")
+build_range = 0.0
+corruption_range = 0.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2126413851]
+texture = SubResource("AtlasTexture_wr2mu")
