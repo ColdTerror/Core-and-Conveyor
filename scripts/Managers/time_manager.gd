@@ -13,6 +13,7 @@ class_name TimeManager
 signal hour_passed(hour: int)
 signal day_started(day_number: int)
 signal night_started(day_number: int)
+signal season_changed(new_season: Season)
 
 enum MoonPhase { NORMAL, FULL, BLOOD }
 enum Season { SPRING, SUMMER, AUTUMN, WINTER }
@@ -86,9 +87,15 @@ func _process_midnight():
 		if yesterday % 7 == 0:
 			quota_mgr.process_end_of_week()
 	
+	var old_season = get_current_season()
+	
 	# FLIP THE CALENDAR FIRST
 	current_day += 1
 	print("--- DAY %d ---" % current_day)
+	
+	var new_season = get_current_season()
+	if old_season != new_season:
+		season_changed.emit(new_season)
 	
 	# NOW TRIGGER THE UI REFRESH
 	if EconomyManager.has_method("archive_daily_stats"):
@@ -246,6 +253,8 @@ func load_save_data(data: Dictionary):
 		AudioManager.play_playlist_track("Sunrise", 0.5)
 	else:
 		AudioManager.play_playlist_track("Day", 0.5)
+		
+	season_changed.emit(get_current_season())
 
 
 

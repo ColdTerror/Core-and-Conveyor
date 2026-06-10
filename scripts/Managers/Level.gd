@@ -131,6 +131,12 @@ func _ready():
 	else:
 		generate_simple_map()
 
+	var tm = get_tree().get_first_node_in_group("TimeManager")
+	if tm:
+		tm.season_changed.connect(update_seasonal_resource_sprites)
+
+	update_seasonal_resource_sprites()
+
 
 
 ## Updates mouse location tracking, driving building upgrade visual preview overlays.
@@ -266,19 +272,55 @@ func _on_hotbar_item_selected(data, is_building):
 
 ## Redraws individual resource sprites on the object layer when harvesting hits occur or regrowth finishes.
 func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResource):
+	var season = TimeManager.Season.SPRING
+	var tm = get_tree().get_first_node_in_group("TimeManager")
+	if tm:
+		season = tm.get_current_season()
+
 	match state:
 		ResourceManager.ResourceState.FULL:
-			object_layer.set_cell(tile, 0, data.atlas_coords_full)
+			var coords = data.get_seasonal_coords(season, ResourceManager.ResourceState.FULL)
+			object_layer.set_cell(tile, 0, coords)
 			if active_grid_objects.has(tile):
 				active_grid_objects[tile]["health"] = active_grid_objects[tile].get("max_health", data.total_resources)
 		ResourceManager.ResourceState.HARVESTING:
-			if data.atlas_coords_harvesting != Vector2i(-1, -1):
-				object_layer.set_cell(tile, 0, data.atlas_coords_harvesting)
+			var coords = data.get_seasonal_coords(season, ResourceManager.ResourceState.HARVESTING)
+			if coords != Vector2i(-1, -1):
+				object_layer.set_cell(tile, 0, coords)
 		ResourceManager.ResourceState.DEPLETED:
-			if data.atlas_coords_depleted != Vector2i(-1, -1):
-				object_layer.set_cell(tile, 0, data.atlas_coords_depleted)
+			var coords = data.get_seasonal_coords(season, ResourceManager.ResourceState.DEPLETED)
+			if coords != Vector2i(-1, -1):
+				object_layer.set_cell(tile, 0, coords)
 			else:
 				object_layer.set_cell(tile, -1)
+
+
+
+## Iterates over all active resources and updates their visual sprites to match the new season.
+func update_seasonal_resource_sprites(new_season: int = -1):
+	var season = new_season
+	if season == -1:
+		season = TimeManager.Season.SPRING
+		var tm = get_tree().get_first_node_in_group("TimeManager")
+		if tm:
+			season = tm.get_current_season()
+			
+	for tile in active_grid_objects:
+		var obj = active_grid_objects[tile]
+		var data = obj["data"] as TileDataResource
+		
+		# If it's a stump (depleted), it's tracked in ResourceManager regrowth tasks
+		if ResourceManager.active_regrowth_tasks.has(tile):
+			continue
+			
+		# If it's damaged, it's in the harvesting state
+		var state = ResourceManager.ResourceState.FULL
+		if obj["health"] < obj.get("max_health", data.total_resources):
+			state = ResourceManager.ResourceState.HARVESTING
+			
+		var coords = data.get_seasonal_coords(season, state)
+		if coords != Vector2i(-1, -1):
+			object_layer.set_cell(tile, 0, coords)
 
 
 
