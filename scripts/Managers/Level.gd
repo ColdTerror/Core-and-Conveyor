@@ -16,11 +16,12 @@ const MAP_WIDTH := 200
 const MAP_HEIGHT := 200
 
 # Terrain indices based on your library
-const TERRAIN_GRASS := 0
+const TERRAIN_DIRT := 0
 const TERRAIN_WATER := 1
 const TERRAIN_SAND := 2
 const RES_TREE := 3
 const RES_STONE := 4
+const TERRAIN_GRASS := 5
 
 # EXPORTS & CONFIGURATION
 @export_group("Map Settings")
@@ -432,10 +433,15 @@ func generate_simple_map():
 			var type = TERRAIN_WATER
 			if elevation < water_level: type = TERRAIN_WATER
 			elif elevation < sand_level: type = TERRAIN_SAND
-			else: type = TERRAIN_GRASS 
+			else: type = TERRAIN_DIRT
+				
+			if type == TERRAIN_DIRT:
+				var biome_val = biome_noise.get_noise_2d(x, y)
+				if biome_val < -0.10:
+					type = TERRAIN_GRASS
 				
 			if current_map_type == MapGenType.RIVER_DIVIDE:
-				if type == TERRAIN_GRASS or type == TERRAIN_SAND:
+				if type == TERRAIN_DIRT or type == TERRAIN_GRASS or type == TERRAIN_SAND:
 					var r_val = abs(river_noise.get_noise_2d(x, y))
 					if r_val < 0.05: type = TERRAIN_WATER
 					elif r_val < 0.06: type = TERRAIN_SAND
@@ -444,20 +450,25 @@ func generate_simple_map():
 
 	for pos in terrain_map:
 		var type = terrain_map[pos]
-		var atlas_coords = Vector2i(type % ATLAS_COLUMNS, type / ATLAS_COLUMNS)
-		terrain_layer.set_cell(pos, 0, atlas_coords)
+		if type >= 0 and type < tile_library.size():
+			var data = tile_library[type]
+			var default_coords = Vector2i(type % ATLAS_COLUMNS, type / ATLAS_COLUMNS)
+			var final_coords = data.atlas_coords_full if data.atlas_coords_full != Vector2i(-1, -1) else default_coords
+			terrain_layer.set_cell(pos, 0, final_coords)
 
 	for x in range(MAP_WIDTH):
 		for y in range(MAP_HEIGHT):
 			var pos = Vector2i(x, y)
+			var biome_val = biome_noise.get_noise_2d(x, y)
+			
 			if terrain_map[pos] == TERRAIN_GRASS:
-				var biome_val = biome_noise.get_noise_2d(x, y)
+				if biome_val < -0.15:
+					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
+					if d_val > 0.60: place_resource_at(pos, RES_TREE, d_val)
+			elif terrain_map[pos] == TERRAIN_DIRT:
 				if biome_val > 0.15:
 					var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
 					if s_val > 0.55: place_resource_at(pos, RES_STONE, s_val)
-				elif biome_val < -0.15:
-					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if d_val > 0.60: place_resource_at(pos, RES_TREE, d_val)
 					
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
@@ -470,6 +481,14 @@ func place_resource_at(grid_pos: Vector2i, resource_index: int, noise_val: float
 	if resource_index >= tile_library.size(): return
 	var data = tile_library[resource_index]
 	object_layer.set_cell(grid_pos, 0, data.atlas_coords_full)
+	
+	if resource_index == RES_TREE:
+		var grass_index = TERRAIN_GRASS
+		if grass_index < tile_library.size():
+			var grass_data = tile_library[grass_index]
+			var default_coords = Vector2i(grass_index % ATLAS_COLUMNS, grass_index / ATLAS_COLUMNS)
+			var final_coords = grass_data.atlas_coords_full if grass_data.atlas_coords_full != Vector2i(-1, -1) else default_coords
+			terrain_layer.set_cell(grid_pos, 0, final_coords)
 	
 	var initial_health = data.total_resources
 	if noise_val >= 0.0:
@@ -497,7 +516,8 @@ func place_tile(grid_pos: Vector2i, data: TileDataResource):
 	
 	var atlas_coords = Vector2i(correct_index % ATLAS_COLUMNS, correct_index / ATLAS_COLUMNS)
 	if not data.is_object:
-		terrain_layer.set_cell(grid_pos, 0, atlas_coords)
+		var final_coords = data.atlas_coords_full if data.atlas_coords_full != Vector2i(-1, -1) else atlas_coords
+		terrain_layer.set_cell(grid_pos, 0, final_coords)
 	else:
 		if can_place_object(grid_pos):
 			var final_coords = data.atlas_coords_full if data.atlas_coords_full != Vector2i(-1, -1) else atlas_coords

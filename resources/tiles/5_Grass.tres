@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="TileDataResource" format=3 uid="uid://tcmc1jpf0sr1"]
+[gd_resource type="Resource" script_class="TileDataResource" format=3 uid="uid://bq77tcm1jpf0s"]
 
 [ext_resource type="Script" uid="uid://dnsharo0i5t5i" path="res://resources/tiles/tile_data_resource.gd" id="1_i54tk"]
 
 [resource]
 script = ExtResource("1_i54tk")
-display_name = "Dirt"
+display_name = "Grass"
+atlas_coords_full = Vector2i(0, 1)
 metadata/_custom_type_script = "uid://dnsharo0i5t5i"

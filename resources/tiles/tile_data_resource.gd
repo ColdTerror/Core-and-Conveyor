@@ -17,7 +17,7 @@ class_name TileDataResource
 
 @export_group("Visuals (Atlas Coords)")
 # Default/Full state coordinates (e.g. The full tree)
-@export var atlas_coords_full: Vector2i 
+@export var atlas_coords_full: Vector2i = Vector2i(-1, -1)
 # Depleted/Stump state coordinates (e.g. The stump)
 @export var atlas_coords_depleted: Vector2i = Vector2i(-1, -1)
 # Optional: Intermediate state (e.g. Leafless tree)
