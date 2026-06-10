@@ -249,8 +249,13 @@ func _collect_bot_stats(b: Node2D, stats: Array):
 	if "current_speed" in b: stats.append("Speed: %.0f" % b.current_speed)
 	if "carry_capacity" in b: stats.append("Carry Cap: %d" % b.carry_capacity)
 	if "current_energy" in b and "max_energy" in b:
-		stats.append("Energy: %.0f / %.0f" % [b.current_energy, b.max_energy])
-	if "energy_recharge_rate" in b: stats.append("Recharge: %.0f/s" % b.energy_recharge_rate)
+		var pct = int((b.current_energy / b.max_energy) * 100.0)
+		stats.append("Battery: %d%% (%.0f/%.0f)" % [pct, b.current_energy, b.max_energy])
+	if "energy_recharge_rate" in b:
+		var rate = b.energy_recharge_rate
+		if b.has_method("get_solar_efficiency"):
+			rate *= b.get_solar_efficiency()
+		stats.append("Recharge: %.1f/s" % rate)
 	if "energy_drain_rate" in b: stats.append("Drain: %.0f/s" % b.energy_drain_rate)
 	if "is_limping" in b and b.is_limping: stats.append("Status: Limping!")
 	if "is_flying" in b:

@@ -271,10 +271,34 @@ func _get_speed() -> float:
 
 
 
+func get_solar_efficiency() -> float:
+	var time_mgr = get_tree().get_first_node_in_group("TimeManager")
+	if not time_mgr:
+		return 1.0
+		
+	# Time-of-day factor: smooth cosine wave (1.5x at midday, 0.25x at midnight)
+	var current_time = time_mgr.current_time
+	var cos_val = cos((current_time - 12.0) * PI / 12.0)
+	var tod_factor = 0.875 + 0.625 * cos_val
+	
+	# Seasonal factor: Spring/Autumn = 1.0, Summer = 1.33, Winter = 0.4
+	var season_factor = 1.0
+	match time_mgr.get_current_season():
+		time_mgr.Season.SUMMER:
+			season_factor = 1.33
+		time_mgr.Season.WINTER:
+			season_factor = 0.4
+			
+	# Combined multiplier, clamped to a minimum of 10%
+	return clamp(tod_factor * season_factor, 0.10, 2.0)
+
+
+
 func _handle_energy(delta: float):
 	# RECHARGING: Bot is resting at home
 	if current_state == State.RECHARGING or current_state == State.PANIC_WAITING:
-		current_energy += energy_recharge_rate * delta
+		var efficiency = get_solar_efficiency()
+		current_energy += energy_recharge_rate * efficiency * delta
 		
 		if health < max_health:
 			_health_accumulator += health_recharge_rate * delta

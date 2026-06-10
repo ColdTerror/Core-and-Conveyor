@@ -111,7 +111,16 @@ func _process(_delta):
 					var next_threshold = selected_object.XP_THRESHOLDS[selected_object.bot_level]
 					level_str += "XP: %d / %d\n" % [selected_object.current_xp, next_threshold]
 			
-			info_label.text = "%sHealth: %d / %d\nTarget: %s\nCarrying: %s" % [level_str, selected_object.health, selected_object.max_health, info["Target"], info["Carrying"]]
+			var energy_str = ""
+			if "current_energy" in selected_object and "max_energy" in selected_object:
+				var battery_pct = int((selected_object.current_energy / selected_object.max_energy) * 100.0)
+				energy_str = "Battery: %d%%" % battery_pct
+				if "current_state" in selected_object and "State" in selected_object and selected_object.current_state == selected_object.State.RECHARGING:
+					var speed_pct = int(selected_object.get_solar_efficiency() * 100.0)
+					energy_str += " | Solar Charge Speed: %d%%" % speed_pct
+				energy_str += "\n"
+				
+			info_label.text = "%sHealth: %d / %d\n%sTarget: %s\nCarrying: %s" % [level_str, selected_object.health, selected_object.max_health, energy_str, info["Target"], info["Carrying"]]
 
 
 
