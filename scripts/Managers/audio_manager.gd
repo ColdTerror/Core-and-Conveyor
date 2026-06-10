@@ -244,16 +244,24 @@ func play_sfx(sfx_name: String, pos: Vector2 = Vector2.INF, randomize_pitch: boo
 
 ## Sets music volume based on a linear slider input.
 func set_music_volume(linear_volume: float):
-	default_music_volume_db = linear_to_db(max(linear_volume, 0.0001))
+	if linear_volume <= 0.0:
+		default_music_volume_db = -80.0
+	else:
+		default_music_volume_db = linear_to_db(linear_volume * linear_volume)
 	if not is_music_muted:
 		music_player.volume_db = default_music_volume_db
 
 
+
 ## Sets sound effects volume based on a linear slider input.
 func set_sfx_volume(linear_volume: float):
-	default_sfx_volume_db = linear_to_db(max(linear_volume, 0.0001))
+	if linear_volume <= 0.0:
+		default_sfx_volume_db = -80.0
+	else:
+		default_sfx_volume_db = linear_to_db(linear_volume * linear_volume)
 	if not is_sfx_muted:
 		AudioServer.set_bus_volume_db(sfx_bus_index, default_sfx_volume_db)
+
 
 
 ## Toggles music mute states without losing custom volume preferences.
@@ -265,10 +273,12 @@ func set_music_muted(muted: bool):
 		music_player.volume_db = default_music_volume_db
 
 
+
 ## Toggles sound effects bus mute states.
 func set_sfx_muted(muted: bool):
 	is_sfx_muted = muted
 	AudioServer.set_bus_mute(sfx_bus_index, is_sfx_muted)
+
 
 
 ## Activates or disables low-pass filter effect enables.
@@ -279,12 +289,17 @@ func set_music_muffled(is_muffled: bool):
 
 ## Queries current music volume, returning linear percentages.
 func get_music_volume_linear() -> float:
-	return db_to_linear(default_music_volume_db)
+	if default_music_volume_db <= -80.0:
+		return 0.0
+	return sqrt(db_to_linear(default_music_volume_db))
+
 
 
 ## Queries current sound effects volume, returning linear percentages.
 func get_sfx_volume_linear() -> float:
-	return db_to_linear(default_sfx_volume_db)
+	if default_sfx_volume_db <= -80.0:
+		return 0.0
+	return sqrt(db_to_linear(default_sfx_volume_db))
 
 
 
