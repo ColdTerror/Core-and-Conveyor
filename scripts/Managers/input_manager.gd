@@ -23,6 +23,7 @@ var current_mode: InteractionMode = InteractionMode.NONE
 var hovered_bot: WorkerBot = null
 var hovered_building: Building = null
 var hovered_enemy: Node2D = null
+var selected_object: Node2D = null
 var bot_awaiting_home: Node2D = null
 var launcher_awaiting_link: Node2D = null
 var hovered_resource_tile: Vector2i = Vector2i(-99999, -99999)
@@ -39,6 +40,7 @@ signal object_selected(target: Node2D)
 ## Adds this node to global input manager group during ready initialization.
 func _ready():
 	add_to_group("InputManager")
+	object_selected.connect(func(target): selected_object = target)
 
 
 
@@ -320,6 +322,10 @@ func _is_left_dragging(event: InputEvent) -> bool:
 func _handle_default_selection(grid_pos: Vector2i):
 	# Did we click a bot?
 	if is_instance_valid(hovered_bot):
+		if selected_object == hovered_bot and is_instance_valid(hovered_building) and hovered_building == hovered_bot.get_home_building():
+			object_selected.emit(hovered_building)
+			get_viewport().set_input_as_handled()
+			return
 		object_selected.emit(hovered_bot)
 		get_viewport().set_input_as_handled()
 		return

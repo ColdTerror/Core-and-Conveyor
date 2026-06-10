@@ -633,9 +633,7 @@ func _setup_bot_home_ui(b: BotHomeBuilding):
 			var cam = get_tree().get_first_node_in_group("Camera")
 			if cam and cam.has_method("set_follow_target"):
 				cam.set_follow_target(bot)
-			var input = get_tree().get_first_node_in_group("InputManager")
-			if input:
-				input.select_object(bot)
+			InputManager.object_selected.emit(bot)
 		)
 		
 		_create_button("Send Bot Home", Color(0.8, 0.4, 0.4), func():
