@@ -254,19 +254,41 @@ func get_save_data() -> Dictionary:
 
 ## Selects the appropriate enemy scene to spawn based on progressive wave weights.
 func _get_enemy_scene_for_wave(day: int) -> PackedScene:
-	# Define progressive weight table based on day.
 	# Weights format: [Regular, Fast, Ranged, SlimeLarge, Flyer]
-	var weights = [0.2, 0.2, 20, 0.2, 0.2]
+	var weights = [1.0, 0.0, 0.0, 0.0, 0.0]
 	
-	if day == 2:
-		weights = [0.7, 0.3, 0.0, 0.0, 0.0]
-	elif day == 3:
-		weights = [0.5, 0.3, 0.2, 0.0, 0.0]
-	elif day == 4:
-		weights = [0.4, 0.25, 0.2, 0.15, 0.0]
-	elif day >= 5:
-		weights = [0.3, 0.25, 0.2, 0.15, 0.1]
-		
+	if time_manager:
+		var year = time_manager.get_current_year()
+		if year > 1:
+			# Year 2+ Challenging Composition
+			weights = [0.2, 0.2, 0.20, 0.25, 0.15]
+		else:
+			# Year 1 Progressive Composition
+			if day == 1:
+				weights = [1.0, 0.0, 0.0, 0.0, 0.0]
+			else:
+				match time_manager.get_current_season():
+					TimeManager.Season.SPRING:
+						weights = [0.7, 0.3, 0.0, 0.0, 0.0]
+					TimeManager.Season.SUMMER:
+						weights = [0.5, 0.3, 0.2, 0.0, 0.0]
+					TimeManager.Season.AUTUMN:
+						weights = [0.4, 0.25, 0.2, 0.15, 0.0]
+					TimeManager.Season.WINTER:
+						weights = [0.3, 0.25, 0.2, 0.15, 0.1]
+	else:
+		# Fallback in case time_manager is not assigned/valid
+		if day == 1:
+			weights = [1.0, 0.0, 0.0, 0.0, 0.0]
+		elif day == 2:
+			weights = [0.7, 0.3, 0.0, 0.0, 0.0]
+		elif day == 3:
+			weights = [0.5, 0.3, 0.2, 0.0, 0.0]
+		elif day == 4:
+			weights = [0.4, 0.25, 0.2, 0.15, 0.0]
+		else:
+			weights = [0.3, 0.25, 0.2, 0.15, 0.1]
+			
 	var roll = randf()
 	var cumulative_weight = 0.0
 	var scenes = [enemy_scene, fast_scene, ranged_scene, slime_large_scene, flyer_scene]
