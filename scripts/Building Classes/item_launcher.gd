@@ -21,7 +21,7 @@ var level_ref: Node2D = null
 
 func _ready():
 	building_name = "Launcher"
-	size = Vector2i(2, 2)
+	size = Vector2i(4, 4)
 	max_health = 200
 	
 	var wood_cost = CostData.new()

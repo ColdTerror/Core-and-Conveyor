@@ -3,11 +3,10 @@
 [ext_resource type="Script" uid="uid://bggeswiirj78i" path="res://scripts/Building Classes/ammo_distributor_building.gd" id="1_dist_script"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_build_tex"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_cost_script"]
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="4_godot_icon"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
 atlas = ExtResource("2_build_tex")
-region = Rect2(96, 320, 64, 64)
+region = Rect2(480, 320, 64, 64)
 
 [sub_resource type="Resource" id="Resource_cost_plank"]
 script = ExtResource("3_cost_script")
@@ -29,11 +28,24 @@ icon = SubResource("AtlasTexture_icon")
 build_costs = Array[ExtResource("3_cost_script")]([SubResource("Resource_cost_plank"), SubResource("Resource_cost_stone_brick")])
 
 [node name="Base" type="Sprite2D" parent="." unique_id=1153641874]
-modulate = Color(0.6, 0.85, 1, 1)
 texture = ExtResource("2_build_tex")
 region_enabled = true
 region_rect = Rect2(96, 320, 64, 64)
 
+[node name="TowerPivot" type="Node2D" parent="." unique_id=1852413554]
+
+[node name="Unloaded" type="Sprite2D" parent="TowerPivot" unique_id=388999329]
+visible = false
+texture = ExtResource("2_build_tex")
+region_enabled = true
+region_rect = Rect2(480, 416, 64, 64)
+
+[node name="Loaded" type="Sprite2D" parent="TowerPivot" unique_id=694129427]
+texture = ExtResource("2_build_tex")
+region_enabled = true
+region_rect = Rect2(480, 480, 64, 64)
+
 [node name="CrateOverlay" type="Sprite2D" parent="." unique_id=94717593]
-scale = Vector2(0.22, 0.22)
-texture = ExtResource("4_godot_icon")
+texture = ExtResource("2_build_tex")
+region_enabled = true
+region_rect = Rect2(524, 396, 8, 8)

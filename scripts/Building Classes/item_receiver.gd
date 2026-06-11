@@ -17,7 +17,7 @@ var last_output_port_pos: Vector2i = Vector2i(-99999, -99999)
 
 func _ready():
 	building_name = "Receiver"
-	size = Vector2i(2, 2)
+	size = Vector2i(4, 4)
 	max_health = 200
 	
 	var wood_cost = CostData.new()
