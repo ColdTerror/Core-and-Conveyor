@@ -22,7 +22,9 @@
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"539b6449-6536-4fff-98b7-0715b1de46d4"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -1781,6 +1783,13 @@
 			"uuid": "3891b4b8-54ea-4e14-9ea6-a415a924710c",
 			"title": "crate sprite for distributor and launcher/receiver",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "539b6449-6536-4fff-98b7-0715b1de46d4",
+			"title": "ammo distributor hover/detail dont work",
+			"description": "but the range does",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

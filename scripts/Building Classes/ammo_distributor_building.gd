@@ -20,21 +20,74 @@ var show_range_overlay := false:
 		show_range_overlay = val
 		queue_redraw()
 
+@export var rotation_speed: float = 10.0
+@export var loaded_visual_delay: float = 0.5
+
+var turret_pivot: Node2D = null
+var loaded_sprite: Sprite2D = null
+var unloaded_sprite: Sprite2D = null
+var crate_overlay: Sprite2D = null
+
+var current_target_tower: TowerBuilding = null
+var is_loaded: bool = true
+var reload_timer: float = 0.0
+
+
+
+func _ready():
+	super()
+	if has_node("TowerPivot"):
+		turret_pivot = get_node("TowerPivot")
+		if turret_pivot.has_node("Loaded"):
+			loaded_sprite = turret_pivot.get_node("Loaded")
+		if turret_pivot.has_node("Unloaded"):
+			unloaded_sprite = turret_pivot.get_node("Unloaded")
+	if has_node("CrateOverlay"):
+		crate_overlay = get_node("CrateOverlay")
+		crate_overlay.visible = false
+
 
 
 ## Configures the level reference and enables range drawing hooks on selection.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
 
+
+
 ## Increments transfer timers and triggers range redraws.
 func _physics_process(delta):
 	if is_ghost:
 		return
 		
+	if turret_pivot and is_instance_valid(current_target_tower) and not current_target_tower.is_queued_for_deletion():
+		var target_angle = (current_target_tower.global_position - global_position).angle()
+		var angle_diff = wrapf(target_angle - turret_pivot.global_rotation, -PI, PI)
+		turret_pivot.global_rotation += clamp(angle_diff, -rotation_speed * delta, rotation_speed * delta)
+		
+	if not is_loaded:
+		reload_timer -= delta
+		
+	var target_loaded = (reload_timer <= 0.0) and has_ammo()
+	if is_loaded != target_loaded:
+		is_loaded = target_loaded
+		if loaded_sprite:
+			loaded_sprite.visible = is_loaded
+		if unloaded_sprite:
+			unloaded_sprite.visible = not is_loaded
+				
 	check_timer += delta
 	if check_timer >= transfer_interval:
 		check_timer = 0.0
 		_distribute_ammo()
+
+
+
+## Checks if the distributor currently contains any ammunition.
+func has_ammo() -> bool:
+	for key in inventory.keys():
+		if inventory[key] > 0:
+			return true
+	return false
 
 
 
@@ -177,6 +230,8 @@ func _distribute_ammo():
 			best_item_res = candidate_res
 			
 	if best_tower and best_item_res:
+		current_target_tower = best_tower
+		
 		# Deduct 1 ammo from distributor
 		inventory[best_item_res] -= 1
 		if inventory[best_item_res] <= 0:
@@ -184,6 +239,13 @@ func _distribute_ammo():
 			
 		inventory_changed.emit()
 		
+		is_loaded = false
+		reload_timer = loaded_visual_delay
+		if loaded_sprite:
+			loaded_sprite.visible = false
+		if unloaded_sprite:
+			unloaded_sprite.visible = true
+			
 		# Spawn visual flying supply package
 		_spawn_delivery_projectile(best_item_res, best_tower)
 
@@ -192,8 +254,15 @@ func _distribute_ammo():
 ## Animates a Godot logo package tweening smoothly to the target tower.
 func _spawn_delivery_projectile(item_res: ItemResource, target_tower: TowerBuilding):
 	var sprite = Sprite2D.new()
-	sprite.texture = load("res://icon.svg")
-	sprite.scale = Vector2(0.25, 0.25)
+	if crate_overlay:
+		sprite.texture = crate_overlay.texture
+		sprite.region_enabled = crate_overlay.region_enabled
+		sprite.region_rect = crate_overlay.region_rect
+		sprite.scale = crate_overlay.scale
+	else:
+		sprite.texture = load("res://icon.svg")
+		sprite.scale = Vector2(0.25, 0.25)
+		
 	sprite.global_position = global_position
 	
 	# Add to the level's object layer or parent so it draws correctly
