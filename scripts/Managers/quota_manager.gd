@@ -10,6 +10,8 @@ extends Node2D
 
 signal quota_progress_updated
 
+@export var quota_growth_per_week: int = 50
+
 var current_week: int = 1
 var daily_requirements: Dictionary = {}
 var daily_delivered: Dictionary = {}
@@ -40,32 +42,33 @@ func get_quota_for_week(week: int) -> Dictionary:
 	if week <= 1:
 		return {} 
 		
-	var offset_week = week - 2
-	var cycle = offset_week / 5 
-	var step = offset_week % 5 
-	
-	var base_refined_items = cycle * 100
-	var step_ratio = float(step) / 4.0 
-	var transitioning_refined = int(100.0 * step_ratio)
-	var transitioning_raw = 100 - transitioning_refined
-	
-	var total_refined = base_refined_items + transitioning_refined
-	var total_raw = transitioning_raw
-	
+	var total_volume = 100 + (week - 2) * quota_growth_per_week
 	var quota = {}
 	
-	if total_raw > 0:
-		quota["Wood"] = int(total_raw * 0.5)
-		quota["Stone"] = int(total_raw * 0.5)
+	if week == 2:
+		# Summer Year 1: Raw items
+		quota["Wood"] = int(total_volume * 0.5)
+		quota["Stone"] = total_volume - quota["Wood"]
+	elif week == 3:
+		# Autumn Year 1: Basic processing mix
+		quota["Wood"] = int(total_volume * 0.25)
+		quota["Stone"] = int(total_volume * 0.25)
+		quota["Planks"] = int(total_volume * 0.20)
+		quota["Stone Bricks"] = int(total_volume * 0.20)
+		quota["Stone Arrow"] = total_volume - quota["Wood"] - quota["Stone"] - quota["Planks"] - quota["Stone Bricks"]
+	elif week == 4:
+		# Winter Year 1: Processing
+		quota["Planks"] = int(total_volume * 0.40)
+		quota["Stone Bricks"] = int(total_volume * 0.40)
+		quota["Stone Arrow"] = total_volume - quota["Planks"] - quota["Stone Bricks"]
+	else:
+		# Year 2+ Challenging Composition (All seasons)
+		quota["Wood"] = int(total_volume * 0.15)
+		quota["Stone"] = int(total_volume * 0.15)
+		quota["Planks"] = int(total_volume * 0.28)
+		quota["Stone Bricks"] = int(total_volume * 0.28)
+		quota["Stone Arrow"] = total_volume - quota["Wood"] - quota["Stone"] - quota["Planks"] - quota["Stone Bricks"]
 		
-	if total_refined > 0:
-		quota["Planks"] = int(total_refined * 0.4)
-		quota["Stone Bricks"] = int(total_refined * 0.4)
-		
-		var arrows = total_refined - quota["Planks"] - quota["Stone Bricks"]
-		if arrows > 0:
-			quota["Stone Arrow"] = arrows
-			
 	return quota
 
 
