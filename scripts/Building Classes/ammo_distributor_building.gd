@@ -284,12 +284,14 @@ func _spawn_delivery_projectile(item_res: ItemResource, target_tower: TowerBuild
 
 ## Turns on the range indicator bounds overlay.
 func _on_mouse_entered():
+	super()
 	show_range_overlay = true
 
 
 
 ## Turns off the range indicator bounds overlay.
 func _on_mouse_exited():
+	super()
 	show_range_overlay = false
 
 
