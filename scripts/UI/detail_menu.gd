@@ -117,7 +117,7 @@ func _process(_delta):
 				energy_str = "Battery: %d%%" % battery_pct
 				if "current_state" in selected_object and "State" in selected_object and selected_object.current_state == selected_object.State.RECHARGING:
 					var speed_pct = int(selected_object.get_solar_efficiency() * 100.0)
-					energy_str += " | Solar Charge Speed: %d%%" % speed_pct
+					energy_str += "\nSolar Charge Speed: %d%%" % speed_pct
 				energy_str += "\n"
 				
 			info_label.text = "%sHealth: %d / %d\n%sTarget: %s\nCarrying: %s" % [level_str, selected_object.health, selected_object.max_health, energy_str, info["Target"], info["Carrying"]]
@@ -147,7 +147,7 @@ func _process(_delta):
 					var battery_pct = int((bot.current_energy / bot.max_energy) * 100.0)
 					energy_str = "Battery: %d%%" % battery_pct
 					var speed_pct = int(bot.get_solar_efficiency() * 100.0)
-					energy_str += " | Solar Charge Speed: %d%%" % speed_pct
+					energy_str += "\nSolar Charge Speed: %d%%" % speed_pct
 					energy_str += "\n"
 					
 				info_label.text = "%sHealth: %d / %d\n%sTarget: %s\nCarrying: %s" % [level_str, bot.health, bot.max_health, energy_str, info["Target"], info["Carrying"]]

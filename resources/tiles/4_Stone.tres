@@ -9,7 +9,6 @@ display_name = "Stone"
 is_object = true
 total_resources = 20
 atlas_coords_full = Vector2i(1, 1)
-atlas_coords_depleted = Vector2i(1, 4)
 atlas_coords_harvesting = Vector2i(2, 1)
 item_drop = ExtResource("1_p53t5")
 metadata/_custom_type_script = "uid://dnsharo0i5t5i"

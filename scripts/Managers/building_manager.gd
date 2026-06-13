@@ -1417,8 +1417,9 @@ func _get_empty_tiles_around(building: Building, count: int) -> Array[Vector2i]:
 				if check_tile in reserved_homes: continue
 				if pathfinder and pathfinder.bot_astar.is_in_boundsv(check_tile):
 					if not pathfinder.bot_astar.is_point_solid(check_tile):
-						valid_tiles.append(check_tile)
-						if valid_tiles.size() >= count: return valid_tiles
+						if pathfinder.bot_astar.get_point_weight_scale(check_tile) == 1.0:
+							valid_tiles.append(check_tile)
+							if valid_tiles.size() >= count: return valid_tiles
 		search_radius += 1
 		
 	return valid_tiles

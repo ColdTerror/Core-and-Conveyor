@@ -15,16 +15,14 @@
 				"b87c3853-295c-4ce8-8e40-a66e2c884e22",
 				"faa91590-4d07-4873-a40f-75d92acae4e6",
 				"2bb58485-20f1-408e-a109-4164d1fd7f21",
-				"210ddd1b-55b2-4b7d-ac2e-2456d69ae614",
-				"3891b4b8-54ea-4e14-9ea6-a415a924710c"
+				"acde8781-ff29-4a12-99dd-ab748c852411",
+				"fd2e9ffb-cbd0-4a9f-9dba-5c60928863ec"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": [
-				"539b6449-6536-4fff-98b7-0715b1de46d4"
-			]
+			"tasks": []
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -32,8 +30,12 @@
 			"tasks": [
 				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
 				"0aa4da94-5476-41f5-9f7c-914d8e54a3dd",
+				"539b6449-6536-4fff-98b7-0715b1de46d4",
 				"c83e6045-d63a-467b-a791-2213be22a0d3",
+				"e3d8e9b9-08df-4e74-a33c-4a23b469f5ad",
+				"e7410d80-b650-4d2e-a52a-608ef9c98908",
 				"c2fc792a-4d44-4b37-a688-3b36bfc8d6a0",
+				"3891b4b8-54ea-4e14-9ea6-a415a924710c",
 				"781f080d-7cc7-425f-93c0-0bf4d4826996",
 				"99b024a0-9250-4cff-9a42-6d56c5031440",
 				"e65d93d6-ead4-4a82-a01a-e4a7d79e710c",
@@ -1696,13 +1698,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "210ddd1b-55b2-4b7d-ac2e-2456d69ae614",
-			"title": "make all towers bigger, 2x2 seems to small?",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "0f0f06a1-3b34-45a9-b058-060424e103d2",
 			"title": "flying enemy should wobble like bots when flying and not be slowed in water",
 			"description": "",
@@ -1790,6 +1785,34 @@
 			"uuid": "539b6449-6536-4fff-98b7-0715b1de46d4",
 			"title": "ammo distributor hover/detail dont work",
 			"description": "but the range does",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "acde8781-ff29-4a12-99dd-ab748c852411",
+			"title": "custom world gen tools?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fd2e9ffb-cbd0-4a9f-9dba-5c60928863ec",
+			"title": "corruption tile (purple/red)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e3d8e9b9-08df-4e74-a33c-4a23b469f5ad",
+			"title": "bot home spawned over a conveyer belt",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e7410d80-b650-4d2e-a52a-608ef9c98908",
+			"title": "bot battery and solar charge rate should be on different lines in the detail menu",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

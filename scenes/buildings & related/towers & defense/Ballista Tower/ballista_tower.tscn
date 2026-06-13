@@ -24,6 +24,7 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 script = ExtResource("1_script")
 preferred_ammo_type = "BallistaBolt"
 compatible_ammo_types = Array[String](["BallistaBolt", "Arrow"])
+attack_range = 14
 fire_rate = 0.3
 damage_multiplier = 3.0
 building_name = "Ballista Tower"
