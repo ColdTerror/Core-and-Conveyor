@@ -7,6 +7,8 @@
 extends Building
 class_name ItemLauncher
 
+@export var payload_sprite_texture: Texture2D = null
+
 var items_loaded: Array[ItemResource] = []
 var target_receiver: Node2D = null
 var target_receiver_pos: Vector2i = Vector2i.ZERO
@@ -16,6 +18,10 @@ var launch_cooldown: float = 4.0
 var time_since_last_launch: float = 4.0
 
 var level_ref: Node2D = null
+
+var loaded_sprite: Sprite2D = null
+var unloaded_sprite: Sprite2D = null
+var _last_visual_state_printed: bool = false
 
 
 
@@ -37,6 +43,16 @@ func _ready():
 	add_to_group("Launcher")
 	add_to_group("PriorityTarget")
 	EconomyManager.register_source(self, false)
+	
+	if has_node("Loaded"):
+		loaded_sprite = get_node("Loaded")
+	if has_node("Unloaded"):
+		unloaded_sprite = get_node("Unloaded")
+		
+	# Ghost previews should display as Unloaded by default
+	if is_ghost:
+		if loaded_sprite: loaded_sprite.visible = false
+		if unloaded_sprite: unloaded_sprite.visible = true
 
 
 
@@ -49,6 +65,16 @@ func setup(level_instance: Node2D):
 
 func _exit_tree():
 	EconomyManager.unregister_source(self)
+
+
+
+func set_ghost(enabled: bool):
+	super(enabled)
+	if enabled:
+		if loaded_sprite:
+			loaded_sprite.visible = false
+		if unloaded_sprite:
+			unloaded_sprite.visible = true
 
 
 
@@ -69,6 +95,26 @@ func _process(delta: float):
 		if is_instance_valid(target_receiver) and target_receiver.has_method("is_receiver_ready_for_launch"):
 			if target_receiver.is_receiver_ready_for_launch():
 				_launch_bundle()
+				
+	_update_visual_state()
+
+
+
+func _update_visual_state():
+	var partner_ready = false
+	if is_instance_valid(target_receiver) and target_receiver.has_method("is_receiver_ready_for_launch"):
+		partner_ready = target_receiver.is_receiver_ready_for_launch()
+		
+	var is_loaded_state = items_loaded.size() > 0
+	
+	if is_loaded_state != _last_visual_state_printed:
+		_last_visual_state_printed = is_loaded_state
+		print("[Launcher Debug] ID: ", name, " | items: ", items_loaded.size(), " | partner_valid: ", is_instance_valid(target_receiver), " | partner_ready: ", partner_ready, " -> is_loaded: ", is_loaded_state)
+	
+	if loaded_sprite:
+		loaded_sprite.visible = is_loaded_state
+	if unloaded_sprite:
+		unloaded_sprite.visible = not is_loaded_state
 
 
 
@@ -179,7 +225,9 @@ func _launch_bundle():
 
 func _spawn_visual_payload(payload: Array[ItemResource]):
 	var flying_sprite = Sprite2D.new()
-	if not payload.is_empty() and payload[0].texture:
+	if payload_sprite_texture:
+		flying_sprite.texture = payload_sprite_texture
+	elif not payload.is_empty() and payload[0].texture:
 		flying_sprite.texture = payload[0].texture
 	else:
 		flying_sprite.texture = load("res://icon.svg")

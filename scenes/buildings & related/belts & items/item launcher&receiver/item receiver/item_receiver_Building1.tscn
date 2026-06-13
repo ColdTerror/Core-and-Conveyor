@@ -1,14 +1,26 @@
 [gd_scene format=3 uid="uid://caeee64b6tjas"]
 
 [ext_resource type="Script" uid="uid://bq4qpa2e8u8j2" path="res://scripts/Building Classes/item_receiver.gd" id="1_bh1mp"]
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_fgfs4"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_bh1mp"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xe1s5"]
+atlas = ExtResource("2_bh1mp")
+region = Rect2(800, 448, 128, 128)
 
 [node name="ItemReceiverBuilding1" type="Node2D" unique_id=1370655738]
 script = ExtResource("1_bh1mp")
 building_name = "Receiver"
 size = Vector2i(4, 4)
 max_health = 200
+icon = SubResource("AtlasTexture_xe1s5")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1546598604]
-scale = Vector2(1, 1)
-texture = ExtResource("1_fgfs4")
+[node name="Unloaded" type="Sprite2D" parent="." unique_id=290817675]
+visible = false
+texture = ExtResource("2_bh1mp")
+region_enabled = true
+region_rect = Rect2(800, 320, 128, 128)
+
+[node name="Loaded" type="Sprite2D" parent="." unique_id=863145393]
+texture = ExtResource("2_bh1mp")
+region_enabled = true
+region_rect = Rect2(800, 448, 128, 128)

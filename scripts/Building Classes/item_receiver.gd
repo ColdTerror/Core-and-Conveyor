@@ -13,6 +13,9 @@ var incoming_bundle_flying: bool = false
 var level_ref: Node2D = null
 var last_output_port_pos: Vector2i = Vector2i(-99999, -99999)
 
+var loaded_sprite: Sprite2D = null
+var unloaded_sprite: Sprite2D = null
+
 
 
 func _ready():
@@ -33,6 +36,16 @@ func _ready():
 	add_to_group("Receiver")
 	add_to_group("PriorityTarget")
 	EconomyManager.register_source(self, false)
+	
+	if has_node("Loaded"):
+		loaded_sprite = get_node("Loaded")
+	if has_node("Unloaded"):
+		unloaded_sprite = get_node("Unloaded")
+		
+	# Ghost previews should display as Unloaded by default
+	if is_ghost:
+		if loaded_sprite: loaded_sprite.visible = false
+		if unloaded_sprite: unloaded_sprite.visible = true
 
 
 
@@ -43,6 +56,16 @@ func setup(level_instance: Node2D):
 
 func _exit_tree():
 	EconomyManager.unregister_source(self)
+
+
+
+func set_ghost(enabled: bool):
+	super(enabled)
+	if enabled:
+		if loaded_sprite:
+			loaded_sprite.visible = false
+		if unloaded_sprite:
+			unloaded_sprite.visible = true
 
 
 
@@ -59,6 +82,18 @@ func _process(_delta: float):
 	
 	if not items_buffered.is_empty():
 		_unload_items_to_belts()
+		
+	_update_visual_state()
+
+
+
+func _update_visual_state():
+	var is_loaded_state = items_buffered.size() > 0
+	
+	if loaded_sprite:
+		loaded_sprite.visible = is_loaded_state
+	if unloaded_sprite:
+		unloaded_sprite.visible = not is_loaded_state
 
 
 

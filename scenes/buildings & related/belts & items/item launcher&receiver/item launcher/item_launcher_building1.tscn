@@ -1,14 +1,36 @@
 [gd_scene format=3 uid="uid://bdjxyx6guat5q"]
 
 [ext_resource type="Script" uid="uid://bx7wpipe0oesx" path="res://scripts/Building Classes/item_launcher.gd" id="1_1pqm7"]
-[ext_resource type="Texture2D" uid="uid://dyn5ycc3vykgb" path="res://icon.svg" id="1_l21cp"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_bxliv"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1pqm7"]
+atlas = ExtResource("2_bxliv")
+region = Rect2(928, 480, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_03vr4"]
+atlas = ExtResource("2_bxliv")
+region = Rect2(544, 448, 128, 128)
 
 [node name="ItemLauncherBuilding1" type="Node2D" unique_id=1332514418]
 script = ExtResource("1_1pqm7")
+payload_sprite_texture = SubResource("AtlasTexture_1pqm7")
 building_name = "Launcher"
 size = Vector2i(4, 4)
 max_health = 200
+icon = SubResource("AtlasTexture_03vr4")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=528455134]
-scale = Vector2(1, 1)
-texture = ExtResource("1_l21cp")
+[node name="Base" type="Sprite2D" parent="." unique_id=59568118]
+texture = ExtResource("2_bxliv")
+region_enabled = true
+region_rect = Rect2(544, 320, 128, 128)
+
+[node name="Unloaded" type="Sprite2D" parent="." unique_id=528455134]
+visible = false
+texture = ExtResource("2_bxliv")
+region_enabled = true
+region_rect = Rect2(672, 320, 128, 128)
+
+[node name="Loaded" type="Sprite2D" parent="." unique_id=688728999]
+texture = ExtResource("2_bxliv")
+region_enabled = true
+region_rect = Rect2(672, 448, 128, 128)
