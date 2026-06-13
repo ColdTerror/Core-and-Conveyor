@@ -54,6 +54,9 @@ var occupied_tiles: Array[Vector2i] = []
 ## Upgrade resources required
 @export var upgrade_cost: Array[CostData] = []
 
+@export_group("Placement Constraints")
+@export var required_terrain_coords: Vector2i = Vector2i(-9999, -9999)
+
 var grid_origin: Vector2i = Vector2i.ZERO
 
 var is_selected: bool = false

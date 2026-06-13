@@ -533,6 +533,18 @@ func _can_place_building(building: Building, origin: Vector2i, temp_network: Arr
 			if tile_data == null: return false
 			if tile_data.get_custom_data("buildable") == false: return false
 
+	# Check required terrain constraint
+	if building.required_terrain_coords != Vector2i(-9999, -9999):
+		var has_required_terrain = false
+		for tile in footprint:
+			if terrain_layer:
+				var coords = terrain_layer.get_cell_atlas_coords(tile)
+				if coords == building.required_terrain_coords:
+					has_required_terrain = true
+					break
+		if not has_required_terrain:
+			return false
+
 	# No objects on tile
 	for tile in footprint:
 		if object_layer and object_layer.get_cell_source_id(tile) != -1:

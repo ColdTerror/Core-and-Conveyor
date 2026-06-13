@@ -59,6 +59,8 @@
 [ext_resource type="PackedScene" uid="uid://cflyerenemy1" path="res://scenes/Enemy & Related/FlyerEnemy.tscn" id="52_flyer_scene"]
 [ext_resource type="PackedScene" uid="uid://cslimelarge1" path="res://scenes/Enemy & Related/SlimeEnemyLarge.tscn" id="53_slime_large_scene"]
 [ext_resource type="PackedScene" uid="uid://cx6i12distr4a" path="res://scenes/buildings & related/towers & defense/ammo_distributor_building.tscn" id="54_ammo_distributor"]
+[ext_resource type="Resource" uid="uid://bqc8i5reqi3a0" path="res://resources/tiles/6_IronOre.tres" id="55_iron_ore_tile"]
+[ext_resource type="PackedScene" path="res://scenes/buildings & related/harvesters/OreDrillBuilding1.tscn" id="56_ore_drill"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uhfbm"]
 texture = ExtResource("31_cr74b")
@@ -153,7 +155,7 @@ sources/0 = SubResource("TileSetAtlasSource_uhfbm")
 
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
-tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_t1rx8")])
+tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_t1rx8"), ExtResource("55_iron_ore_tile")])
 conveyor_scene = ExtResource("19_gur6y")
 router_scene = ExtResource("20_2e2fo")
 filter_scene = ExtResource("16_535f6")
@@ -163,6 +165,7 @@ receiver_scene = ExtResource("13_7iqcu")
 lumberjack_scene = ExtResource("15_8gofh")
 sawmill_scene = ExtResource("16_pqd0y")
 mine_scene = ExtResource("17_w3o6u")
+ore_drill_scene = ExtResource("56_ore_drill")
 stonemason_scene = ExtResource("18_gur6y")
 fletcher_scene = ExtResource("19_v3why")
 stone_crusher_scene = ExtResource("17_hv3ux")

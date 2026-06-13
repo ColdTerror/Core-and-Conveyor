@@ -22,6 +22,7 @@ const TERRAIN_SAND := 2
 const RES_TREE := 3
 const RES_STONE := 4
 const TERRAIN_GRASS := 5
+const TERRAIN_IRON_ORE := 6
 
 # EXPORTS & CONFIGURATION
 @export_group("Map Settings")
@@ -39,10 +40,11 @@ const TERRAIN_GRASS := 5
 @export var launcher_scene: PackedScene
 @export var receiver_scene: PackedScene
 
-@export_subgroup("Production")
+@export_group("Production")
 @export var lumberjack_scene: PackedScene
 @export var sawmill_scene: PackedScene
 @export var mine_scene: PackedScene
+@export var ore_drill_scene: PackedScene
 @export var stonemason_scene: PackedScene
 @export var fletcher_scene: PackedScene
 @export var stone_crusher_scene: PackedScene
@@ -177,6 +179,7 @@ func _setup_hotbar_items():
 			{"name": "Hut", "scene": lumberjack_scene},
 			{"name": "Sawmill", "scene": sawmill_scene},
 			{"name": "Stone Mine", "scene": mine_scene},
+			{"name": "Ore Drill", "scene": ore_drill_scene},
 			{"name": "Stonemason", "scene": stonemason_scene},
 			{"name": "Fletcher", "scene": fletcher_scene},
 			{"name": "Stone Crusher", "scene": stone_crusher_scene}
@@ -403,6 +406,10 @@ func generate_simple_map():
 	river_noise.seed = randi() + 3
 	river_noise.frequency = 0.006 
 	
+	var iron_noise = FastNoiseLite.new()
+	iron_noise.seed = randi() + 4
+	iron_noise.frequency = 0.08 
+	
 	var water_level = 0.16
 	var sand_level = 0.20
 	
@@ -439,6 +446,11 @@ func generate_simple_map():
 				var biome_val = biome_noise.get_noise_2d(x, y)
 				if biome_val < -0.10:
 					type = TERRAIN_GRASS
+					
+			if type == TERRAIN_DIRT or type == TERRAIN_GRASS:
+				var iron_val = (iron_noise.get_noise_2d(x, y) + 1.0) / 2.0
+				if iron_val > 0.82:
+					type = TERRAIN_IRON_ORE
 				
 			if current_map_type == MapGenType.RIVER_DIVIDE:
 				if type == TERRAIN_DIRT or type == TERRAIN_GRASS or type == TERRAIN_SAND:
