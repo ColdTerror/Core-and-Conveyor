@@ -334,9 +334,12 @@ func show_resource_info(tile_pos: Vector2i, info: Dictionary):
 	name_label.text = data.display_name
 	
 	health_label.visible = true
-	var current_hp = info["health"]
-	var max_hp = info.get("max_health", data.total_resources)
-	health_label.text = "Resources: %d / %d" % [current_hp, max_hp]
+	if info.get("is_infinite", false):
+		health_label.text = "Resources: Infinite"
+	else:
+		var current_hp = info["health"]
+		var max_hp = info.get("max_health", data.total_resources)
+		health_label.text = "Resources: %d / %d" % [current_hp, max_hp]
 	
 	work_bar.visible = false
 	hide_inventory()

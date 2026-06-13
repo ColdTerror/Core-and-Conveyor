@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("2_tile_script")
-display_name = "Iron Ore"
+display_name = "Iron Ore Deposit"
 atlas_coords_full = Vector2i(2, 1)
 item_drop = ExtResource("1_iron_ore")
 metadata/_custom_type_script = "uid://dnsharo0i5t5i"

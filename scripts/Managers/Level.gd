@@ -446,11 +446,6 @@ func generate_simple_map():
 				var biome_val = biome_noise.get_noise_2d(x, y)
 				if biome_val < -0.10:
 					type = TERRAIN_GRASS
-					
-			if type == TERRAIN_DIRT or type == TERRAIN_GRASS:
-				var iron_val = (iron_noise.get_noise_2d(x, y) + 1.0) / 2.0
-				if iron_val > 0.82:
-					type = TERRAIN_IRON_ORE
 				
 			if current_map_type == MapGenType.RIVER_DIVIDE:
 				if type == TERRAIN_DIRT or type == TERRAIN_GRASS or type == TERRAIN_SAND:
@@ -480,7 +475,9 @@ func generate_simple_map():
 			elif terrain_map[pos] == TERRAIN_DIRT:
 				if biome_val > 0.15:
 					var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if s_val > 0.55: place_resource_at(pos, RES_STONE, s_val)
+					if s_val > 0.55:
+						place_resource_at(pos, RES_STONE, s_val)
+						_spawn_iron_ore_vein_near(pos, iron_noise, terrain_map)
 					
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
@@ -507,17 +504,38 @@ func place_resource_at(grid_pos: Vector2i, resource_index: int, noise_val: float
 		if resource_index == RES_TREE:
 			# noise_val (d_val) is in [0.60, 1.0]
 			var t = clamp((noise_val - 0.60) / 0.40, 0.0, 1.0)
-			initial_health = lerp(5, 25, t)
+			initial_health = lerp(float(data.total_resources), float(data.total_resources * 2), t)
 		elif resource_index == RES_STONE:
 			# noise_val (s_val) is in [0.55, 1.0]
 			var t = clamp((noise_val - 0.55) / 0.45, 0.0, 1.0)
-			initial_health = lerp(5, 25, t)
+			initial_health = lerp(float(data.total_resources), float(data.total_resources * 2), t)
 			
 	active_grid_objects[grid_pos] = {
 		"health": int(initial_health),
 		"max_health": int(initial_health),
 		"data": data
 	}
+
+
+
+## Spawns iron ore terrain tiles procedurally near a stone outcrop if the terrain is land.
+func _spawn_iron_ore_vein_near(stone_pos: Vector2i, iron_noise: FastNoiseLite, terrain_map: Dictionary) -> void:
+	for dx in range(-2, 3):
+		for dy in range(-2, 3):
+			var dist = abs(dx) + abs(dy)
+			if dist == 0: continue
+			
+			var check_pos = stone_pos + Vector2i(dx, dy)
+			if check_pos.x < 0 or check_pos.x >= MAP_WIDTH or check_pos.y < 0 or check_pos.y >= MAP_HEIGHT:
+				continue
+				
+			var current_terrain = terrain_map.get(check_pos, -1)
+			if current_terrain == TERRAIN_DIRT or current_terrain == TERRAIN_GRASS:
+				var iron_val = (iron_noise.get_noise_2d(check_pos.x, check_pos.y) + 1.0) / 2.0
+				if iron_val > 0.65:
+					terrain_map[check_pos] = TERRAIN_IRON_ORE
+					var data = tile_library[TERRAIN_IRON_ORE]
+					terrain_layer.set_cell(check_pos, 0, data.atlas_coords_full)
 
 
 

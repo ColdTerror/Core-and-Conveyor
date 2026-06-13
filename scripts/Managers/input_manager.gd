@@ -147,8 +147,30 @@ func _process(delta):
 				else:
 					hover_popup.show_resource_info(mouse_grid_pos, res_info)
 			else:
-				if hover_popup.visible and hover_popup.current_building == null:
-					hover_popup.hide_popup()
+				var is_iron_tile = false
+				if level_ref.terrain_layer:
+					var coords = level_ref.terrain_layer.get_cell_atlas_coords(mouse_grid_pos)
+					if coords == Vector2i(2, 1):
+						is_iron_tile = true
+						
+				if is_iron_tile:
+					res_hovered = true
+					if hovered_resource_tile != mouse_grid_pos:
+						hovered_resource_tile = mouse_grid_pos
+						var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
+						if renderer: renderer.queue_redraw()
+						
+					var iron_tile_data = level_ref.tile_library[Level.TERRAIN_IRON_ORE]
+					var res_info = {
+						"data": iron_tile_data,
+						"health": 0,
+						"max_health": 0,
+						"is_infinite": true
+					}
+					hover_popup.show_resource_info(mouse_grid_pos, res_info)
+				else:
+					if hover_popup.visible and hover_popup.current_building == null:
+						hover_popup.hide_popup()
 		else:
 			if hover_popup.visible and hover_popup.current_building == null:
 				hover_popup.hide_popup()
