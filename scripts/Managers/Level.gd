@@ -22,7 +22,7 @@ const TERRAIN_SAND := 2
 const RES_TREE := 3
 const RES_STONE := 4
 const TERRAIN_GRASS := 5
-const TERRAIN_IRON_ORE := 6
+const RES_IRON_ORE := 6
 
 # EXPORTS & CONFIGURATION
 @export_group("Map Settings")
@@ -317,9 +317,11 @@ func update_seasonal_resource_sprites(new_season: int = -1):
 		if ResourceManager.active_regrowth_tasks.has(tile):
 			continue
 			
-		# If it's damaged, it's in the harvesting state
+		# If it's depleted, it's in the depleted state (unless it's already in regrowth tasks which is checked above)
 		var state = ResourceManager.ResourceState.FULL
-		if obj["health"] < obj.get("max_health", data.total_resources):
+		if obj["health"] <= 0 and data.atlas_coords_depleted != Vector2i(-1, -1):
+			state = ResourceManager.ResourceState.DEPLETED
+		elif obj["health"] < obj.get("max_health", data.total_resources):
 			state = ResourceManager.ResourceState.HARVESTING
 			
 		var coords = data.get_seasonal_coords(season, state)
@@ -518,7 +520,7 @@ func place_resource_at(grid_pos: Vector2i, resource_index: int, noise_val: float
 
 
 
-## Spawns iron ore terrain tiles procedurally near a stone outcrop if the terrain is land.
+## Spawns iron ore resource outcrops procedurally near a stone outcrop if the terrain is land.
 func _spawn_iron_ore_vein_near(stone_pos: Vector2i, iron_noise: FastNoiseLite, terrain_map: Dictionary) -> void:
 	for dx in range(-2, 3):
 		for dy in range(-2, 3):
@@ -533,9 +535,7 @@ func _spawn_iron_ore_vein_near(stone_pos: Vector2i, iron_noise: FastNoiseLite, t
 			if current_terrain == TERRAIN_DIRT or current_terrain == TERRAIN_GRASS:
 				var iron_val = (iron_noise.get_noise_2d(check_pos.x, check_pos.y) + 1.0) / 2.0
 				if iron_val > 0.65:
-					terrain_map[check_pos] = TERRAIN_IRON_ORE
-					var data = tile_library[TERRAIN_IRON_ORE]
-					terrain_layer.set_cell(check_pos, 0, data.atlas_coords_full)
+					place_resource_at(check_pos, RES_IRON_ORE, -1)
 
 
 
@@ -643,7 +643,9 @@ func load_map_save_data(data: Dictionary):
 			
 			var final_coords = tile_data.atlas_coords_full
 			var max_hp = obj_info.get("max_health", tile_data.total_resources)
-			if obj_info["health"] < max_hp and tile_data.atlas_coords_harvesting != Vector2i(-1, -1):
+			if obj_info["health"] <= 0 and tile_data.atlas_coords_depleted != Vector2i(-1, -1):
+				final_coords = tile_data.atlas_coords_depleted
+			elif obj_info["health"] < max_hp and tile_data.atlas_coords_harvesting != Vector2i(-1, -1):
 				final_coords = tile_data.atlas_coords_harvesting
 				
 			object_layer.set_cell(pos, 0, final_coords)

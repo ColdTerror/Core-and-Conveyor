@@ -106,6 +106,9 @@ func _handle_depletion(tile: Vector2i, data: TileDataResource, object_info: Dict
 			"data": data,
 			"target_dict": object_info 
 		}
+	elif data.atlas_coords_depleted != Vector2i(-1, -1):
+		# It does not regrow, but leaves depleted debris (like depleted iron ore)
+		resource_state_changed.emit(tile, ResourceState.DEPLETED, data)
 	else:
 		# It's gone forever.
 		resource_destroyed.emit(tile)

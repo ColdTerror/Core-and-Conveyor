@@ -25,9 +25,9 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 script = ExtResource("1_drill_script")
 target_resource = ExtResource("2_iron_ore_tile")
 generic_item_scene = ExtResource("4_item_scene")
-scan_radius = 0
-work_interval = 5.0
-generate_fallback_when_empty = true
+scan_radius = 4
+work_interval = 2.5
+generate_fallback_when_empty = false
 fallback_work_interval_multiplier = 1.0
 building_name = "Ore Drill"
 size = Vector2i(3, 3)
@@ -35,7 +35,7 @@ icon = SubResource("AtlasTexture_drill")
 build_costs = Array[ExtResource("5_cost_script")]([SubResource("Resource_wood_cost"), SubResource("Resource_stone_cost")])
 build_range = 8.0
 corruption_range = 10.0
-required_terrain_coords = Vector2i(2, 1)
+required_terrain_coords = Vector2i(-9999, -9999)
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
 texture = ExtResource("3_buildings_sheet")

@@ -59,8 +59,8 @@
 [ext_resource type="PackedScene" uid="uid://cflyerenemy1" path="res://scenes/Enemy & Related/FlyerEnemy.tscn" id="52_flyer_scene"]
 [ext_resource type="PackedScene" uid="uid://cslimelarge1" path="res://scenes/Enemy & Related/SlimeEnemyLarge.tscn" id="53_slime_large_scene"]
 [ext_resource type="PackedScene" uid="uid://cx6i12distr4a" path="res://scenes/buildings & related/towers & defense/ammo_distributor_building.tscn" id="54_ammo_distributor"]
-[ext_resource type="Resource" uid="uid://bqc8i5reqi3a0" path="res://resources/tiles/6_IronOre.tres" id="55_iron_ore_tile"]
-[ext_resource type="PackedScene" path="res://scenes/buildings & related/harvesters/OreDrillBuilding1.tscn" id="56_ore_drill"]
+[ext_resource type="Resource" uid="uid://dlgv3ekxbdq8i" path="res://resources/tiles/6_IronOre.tres" id="55_iron_ore_tile"]
+[ext_resource type="PackedScene" uid="uid://c0fyteqgy6txl" path="res://scenes/buildings & related/harvesters/OreDrillBuilding1.tscn" id="56_ore_drill"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uhfbm"]
 texture = ExtResource("31_cr74b")

@@ -393,9 +393,22 @@ func load_save_data(data: Dictionary):
 	stored_amount = data.get("stored_amount", 0)
 	work_timer = data.get("work_timer", 0.0)
 	
-	if data.has("current_target"):
-		current_target = str_to_var(data["current_target"])
-	else:
-		current_target = Vector2i.MAX
-		
 	inventory_changed.emit()
+
+
+
+## Computes harvesting percentage metrics based on the active work interval.
+func get_progress_ratio() -> float:
+	var has_target = (current_target != Vector2i.MAX)
+	if not has_target and not generate_fallback_when_empty:
+		return 0.0
+		
+	var next_yield = harvest_damage if has_target else fallback_yield_amount
+	if stored_amount + next_yield > buffer_capacity:
+		return 0.0
+		
+	var active_interval = work_interval if has_target else (work_interval * fallback_work_interval_multiplier)
+	if active_interval == 0.0:
+		return 0.0
+		
+	return clamp(1.0 - (work_timer / active_interval), 0.0, 1.0)

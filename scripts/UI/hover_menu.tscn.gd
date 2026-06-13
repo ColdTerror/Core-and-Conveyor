@@ -78,7 +78,7 @@ func show_building_info(b: Node2D):
 		b.inventory_changed.connect(_on_inventory_changed)
 	
 	# Only show work bar for specific types
-	work_bar.visible = (b is ProcessorBuilding) or (b is ConstructionSite)
+	work_bar.visible = (b is ProcessorBuilding) or (b is ConstructionSite) or (b is HarvesterBuilding)
 	
 	_refresh_inventory_ui()
 	_refresh_stats_ui(b)
