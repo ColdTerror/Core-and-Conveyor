@@ -176,7 +176,7 @@ func _setup_hotbar_items():
 		"Production": [
 			{"name": "Hut", "scene": lumberjack_scene},
 			{"name": "Sawmill", "scene": sawmill_scene},
-			{"name": "Mine", "scene": mine_scene},
+			{"name": "Stone Mine", "scene": mine_scene},
 			{"name": "Stonemason", "scene": stonemason_scene},
 			{"name": "Fletcher", "scene": fletcher_scene},
 			{"name": "Stone Crusher", "scene": stone_crusher_scene}

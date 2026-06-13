@@ -14,8 +14,14 @@ class_name HarvesterBuilding
 @export var harvest_damage: int = 2
 @export var work_interval: float = 1.0
 
+@export_group("Fallback Production")
+@export var generate_fallback_when_empty: bool = false
+@export var fallback_work_interval_multiplier: float = 5.0
+@export var fallback_yield_amount: int = 1
+
 @export_group("Inventory")
 @export var buffer_capacity: int = 10 
+
 var stored_amount: int = 0
 
 @onready var beam_line: Line2D = $Line2D
@@ -112,21 +118,44 @@ func building_tick(delta: float) -> void:
 	
 	if stored_amount > 0:
 		_try_output_item()
+		
+	var was_target = (current_target != Vector2i.MAX)
+	if not _is_valid_target(current_target):
+		_clear_target_reservation()
+		current_target = _find_nearest_target()
+		if current_target != Vector2i.MAX:
+			level_ref.active_grid_objects[current_target]["reserved_by"] = self
+			
+	var has_target = (current_target != Vector2i.MAX)
+	if was_target != has_target:
+		if has_target:
+			work_timer = work_interval
+		else:
+			work_timer = work_interval * fallback_work_interval_multiplier
+			
+	var next_yield = harvest_damage if has_target else fallback_yield_amount
+	var active_interval = work_interval if has_target else (work_interval * fallback_work_interval_multiplier)
 	
-	if stored_amount + harvest_damage > buffer_capacity:
+	if not has_target and not generate_fallback_when_empty:
 		if beam_line: beam_line.clear_points()
 		return
 		
-	work_timer -= delta
-	
-	if current_target != Vector2i.MAX:
+	if stored_amount + next_yield > buffer_capacity:
+		if beam_line: beam_line.clear_points()
+		return
+		
+	if has_target:
 		_draw_beam(current_target)
 	else:
 		if beam_line: beam_line.clear_points()
-
+		
+	work_timer -= delta
 	if work_timer <= 0:
-		work_timer = work_interval
-		_perform_harvest()
+		work_timer = active_interval
+		if has_target:
+			_perform_harvest()
+		else:
+			_perform_fallback_generation()
 
 
 
@@ -149,6 +178,18 @@ func _perform_harvest():
 			if target_resource and target_resource.item_drop:
 				var item_name = target_resource.item_drop.display_name
 				EconomyManager.log_item_produced(item_name, actual_harvested)
+
+
+
+## Generates fallback resource quantities slowly when there are no target resource tiles in range.
+func _perform_fallback_generation():
+	if not target_resource or not target_resource.item_drop: return
+	
+	stored_amount += fallback_yield_amount
+	inventory_changed.emit()
+	
+	var item_name = target_resource.item_drop.display_name
+	EconomyManager.log_item_produced(item_name, fallback_yield_amount)
 
 
 
