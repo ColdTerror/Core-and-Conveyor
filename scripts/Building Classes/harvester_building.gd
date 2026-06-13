@@ -412,3 +412,27 @@ func get_progress_ratio() -> float:
 		return 0.0
 		
 	return clamp(1.0 - (work_timer / active_interval), 0.0, 1.0)
+
+
+
+## Returns the current active work interval duration.
+func get_active_work_interval() -> float:
+	var has_target = (current_target != Vector2i.MAX)
+	return work_interval if has_target else (work_interval * fallback_work_interval_multiplier)
+
+
+
+## Returns the status suffix description (e.g. "(Bedrock Mode)", "(Depleted / Idle)", "(Full / Blocked)", or "")
+func get_status_suffix() -> String:
+	var has_target = (current_target != Vector2i.MAX)
+	var next_yield = harvest_damage if has_target else fallback_yield_amount
+	if stored_amount + next_yield > buffer_capacity:
+		return " (Full / Blocked)"
+		
+	if not has_target:
+		if generate_fallback_when_empty:
+			return " (Bedrock Mode)"
+		else:
+			return " (Depleted / Idle)"
+			
+	return ""

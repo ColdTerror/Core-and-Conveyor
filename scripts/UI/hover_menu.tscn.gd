@@ -319,7 +319,10 @@ func _collect_processor_stats(b: Node2D, stats: Array):
 func _collect_harvester_stats(b: Node2D, stats: Array):
 	if "scan_radius" in b: stats.append("Harvest Radius: %d" % b.scan_radius)
 	if "harvest_damage" in b: stats.append("Harvest Amount: %d" % b.harvest_damage)
-	if "work_interval" in b: stats.append("Work Interval: %.2fs" % b.work_interval)
+	if b.has_method("get_active_work_interval") and b.has_method("get_status_suffix"):
+		stats.append("Work Interval: %.2fs%s" % [b.get_active_work_interval(), b.get_status_suffix()])
+	elif "work_interval" in b:
+		stats.append("Work Interval: %.2fs" % b.work_interval)
 
 
 
