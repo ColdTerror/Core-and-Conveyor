@@ -18,6 +18,7 @@ var _prev_show_attack_grid: bool = false
 var _prev_show_path_grid: bool = false
 var _prev_placing_building: bool = false
 var _prev_hovered_building: Building = null
+var _prev_selected_building: Building = null
 var _prev_hovered_res_tile: Vector2i = Vector2i(-99999, -99999)
 var _prev_terraform_jobs_empty: bool = true
 var _prev_overlay_threshold: int = 1
@@ -72,6 +73,17 @@ func _process(delta):
 		needs_redraw = true
 		_prev_hovered_res_tile = current_res_hover
 		
+	# Check if selected building changed
+	var current_selected: Building = null
+	for b in bm.buildings:
+		if is_instance_valid(b) and b.get("is_selected"):
+			current_selected = b
+			break
+			
+	if current_selected != _prev_selected_building:
+		needs_redraw = true
+		_prev_selected_building = current_selected
+
 	# Ghost placement update
 	if bm.placing_building or current_mode != 0: 
 		needs_redraw = true
@@ -105,6 +117,7 @@ func _process(delta):
 func _draw():
 	_draw_tool_highlight()
 	_draw_zone_overlays()
+	_draw_tower_ranges()
 	_draw_ghost_previews()
 	_draw_hover_footprint()
 	_draw_resource_hover_footprint()
@@ -226,6 +239,73 @@ func _draw_heatmap_tiles(tiles: Dictionary, base_color: Color, tile_size: float,
 		if not filtered_tiles.has(tile + Vector2i.DOWN):  draw_line(bl, br, border, b_width)
 		if not filtered_tiles.has(tile + Vector2i.LEFT):  draw_line(tl, bl, border, b_width)
 		if not filtered_tiles.has(tile + Vector2i.RIGHT): draw_line(tr, br, border, b_width)
+
+
+
+## Draws the attack range overlay for towers when placing, hovered, or selected.
+func _draw_tower_ranges():
+	var bm = level.building_manager
+	if not bm: return
+	
+	var towers_to_draw = []
+	
+	# 1. Placing / Ghost towers
+	var ghosts_to_draw = []
+	if bm.placing_building:
+		if bm.is_dragging and bm.drag_ghosts.size() > 0:
+			ghosts_to_draw = bm.drag_ghosts
+		elif bm.ghost_building:
+			ghosts_to_draw = [bm.ghost_building]
+			
+	for g in ghosts_to_draw:
+		if is_instance_valid(g) and "attack_range" in g and not towers_to_draw.has(g):
+			towers_to_draw.append(g)
+			
+	# 2. Hovered tower
+	var hovered = InputManager.hovered_building
+	if is_instance_valid(hovered) and "attack_range" in hovered and not towers_to_draw.has(hovered):
+		towers_to_draw.append(hovered)
+		
+	# 3. Selected towers
+	for b in bm.buildings:
+		if is_instance_valid(b) and "attack_range" in b and b.get("is_selected") and not towers_to_draw.has(b):
+			towers_to_draw.append(b)
+			
+	# Now, draw the range for each tower
+	var tile_size = 32.0
+	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
+	var fill_color = Color(1.0, 0.2, 0.2, 0.15)
+	var border_color = Color(1.0, 0.2, 0.2, 0.8)
+	var b_width = 2.0
+	
+	for b in towers_to_draw:
+		var tiles = b.get("_cached_range_tiles")
+		if tiles == null or tiles.is_empty(): continue
+		
+		# Set transform to tower's local space relative to OverlayRenderer
+		draw_set_transform(to_local(b.global_position), b.rotation, b.scale)
+		
+		for t in tiles.keys():
+			var center_px = tiles[t]
+			var top_left_px = center_px - half_offset
+			draw_rect(Rect2(top_left_px, Vector2(tile_size, tile_size)), fill_color)
+			
+		for t in tiles.keys():
+			var center_px = tiles[t]
+			var pos = center_px - half_offset
+			
+			var tl = pos
+			var tr = pos + Vector2(tile_size, 0)
+			var bl = pos + Vector2(0, tile_size)
+			var br = pos + Vector2(tile_size, tile_size)
+			
+			if not tiles.has(t + Vector2i.UP): draw_line(tl, tr, border_color, b_width)
+			if not tiles.has(t + Vector2i.DOWN): draw_line(bl, br, border_color, b_width)
+			if not tiles.has(t + Vector2i.LEFT): draw_line(tl, bl, border_color, b_width)
+			if not tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, border_color, b_width)
+			
+		# Reset transform
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1,1))
 
 
 

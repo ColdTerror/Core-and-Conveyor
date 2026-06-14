@@ -108,35 +108,8 @@ func apply_research_buffs():
 
 ## Draws the grid-based attack range outline when show_range_overlay is enabled or selected.
 func _draw():
-	if not (show_range_overlay or is_selected):
-		return
-		
-	var tiles = _cached_range_tiles
-	var tile_size = 32.0
-	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
-	
-	var fill_color = Color(1.0, 0.2, 0.2, 0.15)
-	var border_color = Color(1.0, 0.2, 0.2, 0.8)
-	var b_width = 2.0
-	
-	for t in tiles.keys():
-		var center_px = tiles[t]
-		var top_left_px = center_px - half_offset
-		draw_rect(Rect2(top_left_px, Vector2(tile_size, tile_size)), fill_color)
-		
-	for t in tiles.keys():
-		var center_px = tiles[t]
-		var pos = center_px - half_offset
-		
-		var tl = pos
-		var tr = pos + Vector2(tile_size, 0)
-		var bl = pos + Vector2(0, tile_size)
-		var br = pos + Vector2(tile_size, tile_size)
-		
-		if not tiles.has(t + Vector2i.UP): draw_line(tl, tr, border_color, b_width)
-		if not tiles.has(t + Vector2i.DOWN): draw_line(bl, br, border_color, b_width)
-		if not tiles.has(t + Vector2i.LEFT): draw_line(tl, bl, border_color, b_width)
-		if not tiles.has(t + Vector2i.RIGHT): draw_line(tr, br, border_color, b_width)
+	# Range overlay drawing is now handled globally by OverlayRenderer to maintain consistent depth and opacity.
+	pass
 
 
 
