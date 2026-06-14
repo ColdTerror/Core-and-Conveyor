@@ -316,15 +316,22 @@ func confirm_placement(specific_pos: Vector2i = Vector2i(-1, -1)) -> bool:
 
 ## Cancels placement mode, restoring relocated buildings to their original positions if necessary.
 func cancel_placement():
-	# If canceling a relocate, place the building back where it was but with the tax
+	# If canceling a relocate, place the building back where it was fully finished, no tax
 	if is_relocating and relocate_saved_scene != null:
-		# Create a temporary dummy building just to feed to the blueprint generator
-		var temp_building = relocate_saved_scene.instantiate() as Building
-		var cost = temp_building.get_build_cost()
+		var restored_building = relocate_saved_scene.instantiate() as Building
+		add_child(restored_building)
 		
-		# _place_blueprint natively handles the 50% wear-and-tear tax, 
-		# spawns the site, and deletes the temp_building for us!
-		_place_blueprint(temp_building, relocate_saved_pos, cost)
+		if restored_building.has_method("apply_upgrade_data"):
+			restored_building.apply_upgrade_data(relocate_saved_data)
+			
+		_place_instant(restored_building, relocate_saved_pos, {})
+		
+		if restored_building.has_method("add_item"):
+			for item_name in relocate_saved_inventory.keys():
+				var amount = relocate_saved_inventory[item_name]
+				var item_res = ItemDatabase.get_item(item_name)
+				if item_res:
+					restored_building.add_item(item_res, amount)
 
 	if ghost_building:
 		ghost_building.queue_free()
@@ -335,6 +342,8 @@ func cancel_placement():
 	placing_building = false
 	is_relocating = false
 	relocate_saved_scene = null
+	relocate_saved_data.clear()
+	relocate_saved_inventory.clear()
 	
 	_reset_auto_grids()
 	queue_redraw()
@@ -391,7 +400,8 @@ func _place_instant(building: Building, grid_pos: Vector2i, cost: Dictionary):
 	
 	_register_building_pathfinder(building, grid_pos)
 	
-	ghost_building = null
+	if building == ghost_building:
+		ghost_building = null
 
 
 
@@ -460,7 +470,8 @@ func _place_blueprint(building: Building, grid_pos: Vector2i, cost: Dictionary):
 			pathfinder.bot_astar.set_point_weight_scale(tile, 50.0)
 			
 	building.queue_free()
-	ghost_building = null
+	if building == ghost_building:
+		ghost_building = null
 
 
 
