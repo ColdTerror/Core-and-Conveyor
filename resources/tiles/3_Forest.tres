@@ -8,6 +8,7 @@ script = ExtResource("1_dcr3u")
 display_name = "Forest"
 is_object = true
 can_regrow = true
+regrow_time = 30.0
 atlas_coords_full = Vector2i(1, 4)
 atlas_coords_depleted = Vector2i(0, 4)
 atlas_coords_harvesting = Vector2i(2, 3)

@@ -15,14 +15,27 @@
 				"b87c3853-295c-4ce8-8e40-a66e2c884e22",
 				"faa91590-4d07-4873-a40f-75d92acae4e6",
 				"2bb58485-20f1-408e-a109-4164d1fd7f21",
+				"fd2e9ffb-cbd0-4a9f-9dba-5c60928863ec",
 				"acde8781-ff29-4a12-99dd-ab748c852411",
-				"fd2e9ffb-cbd0-4a9f-9dba-5c60928863ec"
+				"60376fe3-d9a6-49da-9050-1e19faaecd55",
+				"1cd8b28d-b60a-4b9f-9cd4-d2546d14f603",
+				"c64a660e-917e-4a8b-861b-7facc557460a"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
-			"tasks": []
+			"tasks": [
+				"3cea7188-2cc7-43bf-b53d-19bd45ad2205",
+				"06f4606d-2b6a-434b-80ac-8d483b76a525",
+				"acf8ec69-8cd2-4d65-a452-375c80d15e94",
+				"2eaa9448-74a6-4f6a-82b8-ac23ce82cf9f",
+				"c7ec55c1-8cab-4ffd-b6b4-d4a836a0082e",
+				"8955bd7f-d487-4ae1-becf-f9929369e355",
+				"b2cd9fd3-99a1-488e-97ac-6e0c33979863",
+				"30493386-7cbf-4850-bbef-4c19ffbd98bf",
+				"f2fab8e1-d0d1-48d1-be04-5392370f8ff9"
+			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
@@ -37,6 +50,7 @@
 				"c2fc792a-4d44-4b37-a688-3b36bfc8d6a0",
 				"3891b4b8-54ea-4e14-9ea6-a415a924710c",
 				"781f080d-7cc7-425f-93c0-0bf4d4826996",
+				"62d72723-bb50-4a58-adb6-678b23109c67",
 				"99b024a0-9250-4cff-9a42-6d56c5031440",
 				"e65d93d6-ead4-4a82-a01a-e4a7d79e710c",
 				"1d081420-4c70-475a-93ea-73fe5935b8c5",
@@ -1812,6 +1826,97 @@
 		{
 			"uuid": "e7410d80-b650-4d2e-a52a-608ef9c98908",
 			"title": "bot battery and solar charge rate should be on different lines in the detail menu",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "60376fe3-d9a6-49da-9050-1e19faaecd55",
+			"title": "harvest building laser goes under objects",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "1cd8b28d-b60a-4b9f-9cd4-d2546d14f603",
+			"title": "bot cost should scale with how many bots you have",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "62d72723-bb50-4a58-adb6-678b23109c67",
+			"title": "slow down wood recharge rate",
+			"description": "5s to maybe 30s?\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c64a660e-917e-4a8b-861b-7facc557460a",
+			"title": "relocate broken when canceling, leaves ghost",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "3cea7188-2cc7-43bf-b53d-19bd45ad2205",
+			"title": "ui info on building when placing/hovering over it in the build menu",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "06f4606d-2b6a-434b-80ac-8d483b76a525",
+			"title": "see available recipes/without cycling (same with outputs)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "acf8ec69-8cd2-4d65-a452-375c80d15e94",
+			"title": "should enemies attack walls as they pass by",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "2eaa9448-74a6-4f6a-82b8-ac23ce82cf9f",
+			"title": "should bots only repair at day? so when a wall is attacked they dont rush into danager",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "c7ec55c1-8cab-4ffd-b6b4-d4a836a0082e",
+			"title": "bot battery not charging when at home",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8955bd7f-d487-4ae1-becf-f9929369e355",
+			"title": "shouuld towers be able to fire over resources (trees/rocks)",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b2cd9fd3-99a1-488e-97ac-6e0c33979863",
+			"title": "when a wall breaks it breaks autotiling",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "30493386-7cbf-4850-bbef-4c19ffbd98bf",
+			"title": "light modulate doesnt smoothly change from night to day at sunrise",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f2fab8e1-d0d1-48d1-be04-5392370f8ff9",
+			"title": "diagonal wall autotiling?",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

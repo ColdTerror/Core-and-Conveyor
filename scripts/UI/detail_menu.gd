@@ -449,7 +449,7 @@ func _setup_core_ui(b: CoreBuilding):
 			var max_required = b.research_bill_max[item_res]
 			var still_needed = b.research_bill.get(item_res, 0)
 			var currently_deposited = max_required - still_needed
-			info_label.text += "%s: %d / %d" % [item_res.display_name, currently_deposited, max_required]
+			info_label.text += "\n%s: %d / %d" % [item_res.display_name, currently_deposited, max_required]
 			
 		_create_button("Cancel Research", Color(1.0, 0.4, 0.4), func():
 			b.active_research_name = ""

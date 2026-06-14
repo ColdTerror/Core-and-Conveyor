@@ -10,7 +10,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_crusher"]
 atlas = ExtResource("6_8jyln")
-region = Rect2(1024, 0, 128, 128)
+region = Rect2(992, 0, 128, 128)
 
 [sub_resource type="Resource" id="Resource_cost_wood"]
 script = ExtResource("7_tsife")
@@ -37,4 +37,4 @@ corruption_range = 10.0
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015183]
 texture = ExtResource("6_8jyln")
 region_enabled = true
-region_rect = Rect2(1024, 0, 128, 128)
+region_rect = Rect2(992, 0, 128, 128)

@@ -39,7 +39,7 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="Resource" id="Resource_ieft0"]
 script = ExtResource("3_fp6y0")
-item_name = "Stone Mason"
+item_name = "Stone Brick"
 amount = 10
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
