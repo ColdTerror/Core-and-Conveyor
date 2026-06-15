@@ -35,8 +35,8 @@ enum Season { SPRING, SUMMER, AUTUMN, WINTER }
 
 var is_time_running: bool = false
 var current_day: int = 1
-var current_time: float = 6.0 # Start at 6 AM
-var current_hour: int = 6
+var current_time: float = 8.0 # Start at 8 AM (fully bright daylight)
+var current_hour: int = 8
 var is_night: bool = false
 var current_moon_phase: MoonPhase = MoonPhase.NORMAL
 var last_night_moon_phase: MoonPhase = MoonPhase.NORMAL
@@ -247,8 +247,8 @@ func get_save_data() -> Dictionary:
 func load_save_data(data: Dictionary):
 	is_time_running = data.get("is_time_running", false)
 	current_day = data.get("current_day", 1)
-	current_time = data.get("current_time", 6.0)
-	current_hour = data.get("current_hour", 6)
+	current_time = data.get("current_time", 8.0)
+	current_hour = data.get("current_hour", 8)
 	is_night = data.get("is_night", false)
 	current_moon_phase = data.get("current_moon_phase", MoonPhase.NORMAL)
 	last_night_moon_phase = data.get("last_night_moon_phase", MoonPhase.NORMAL)
