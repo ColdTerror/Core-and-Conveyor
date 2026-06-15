@@ -43,10 +43,13 @@ func setup(level_instance: Node2D):
 	level_ref = level_instance
 
 
+
 ## Registers the harvester structure as an active economic production source.
 func _ready():
 	add_to_group("PriorityTarget")
 	EconomyManager.register_source(self, false)
+	if beam_line:
+		beam_line.z_index = 10
 	super()
 	health = max_health - 10
 

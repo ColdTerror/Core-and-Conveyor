@@ -251,6 +251,7 @@ script = ExtResource("29_7agi7")
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
 real_minutes_per_day = 15.0
+force_full_moon = true
 
 [node name="QuotaManager" type="Node2D" parent="." unique_id=1743008909]
 script = ExtResource("36_uhfbm")

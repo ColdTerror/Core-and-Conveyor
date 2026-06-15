@@ -39,6 +39,8 @@ var current_time: float = 6.0 # Start at 6 AM
 var current_hour: int = 6
 var is_night: bool = false
 var current_moon_phase: MoonPhase = MoonPhase.NORMAL
+var last_night_moon_phase: MoonPhase = MoonPhase.NORMAL
+
 
 
 
@@ -111,6 +113,7 @@ func _check_day_night_triggers():
 	# --- SUNRISE ---
 	if current_hour == sunrise and is_night:
 		is_night = false
+		last_night_moon_phase = current_moon_phase
 		current_moon_phase = MoonPhase.NORMAL # Reset for the day
 		day_started.emit(current_day)
 		AudioManager.play_playlist_track("Sunrise", 3.0)
@@ -151,25 +154,30 @@ func _update_lighting():
 	if not lighting_modulate: return
 	
 	var target_night_color = night_color
-	if current_moon_phase == MoonPhase.BLOOD: target_night_color = blood_moon_color
-	elif current_moon_phase == MoonPhase.FULL: target_night_color = full_moon_color
-	
 	var blend_factor = 0.0
 	var transition_duration = 2.0 
 	var sunrise = get_sunrise_hour()
 	var sunset = get_sunset_hour()
 	
 	if current_time >= sunrise and current_time <= sunrise + transition_duration:
+		if last_night_moon_phase == MoonPhase.BLOOD: target_night_color = blood_moon_color
+		elif last_night_moon_phase == MoonPhase.FULL: target_night_color = full_moon_color
+		
 		blend_factor = (current_time - sunrise) / transition_duration
 		lighting_modulate.color = target_night_color.lerp(day_color, blend_factor)
 		
 	elif current_time >= sunset and current_time <= sunset + transition_duration:
+		if current_moon_phase == MoonPhase.BLOOD: target_night_color = blood_moon_color
+		elif current_moon_phase == MoonPhase.FULL: target_night_color = full_moon_color
+		
 		blend_factor = (current_time - sunset) / transition_duration
 		lighting_modulate.color = day_color.lerp(target_night_color, blend_factor)
 		
 	elif current_time > sunrise + transition_duration and current_time < sunset:
 		lighting_modulate.color = day_color
 	else:
+		if current_moon_phase == MoonPhase.BLOOD: target_night_color = blood_moon_color
+		elif current_moon_phase == MoonPhase.FULL: target_night_color = full_moon_color
 		lighting_modulate.color = target_night_color
 
 
@@ -229,8 +237,10 @@ func get_save_data() -> Dictionary:
 		"current_time": current_time,
 		"current_hour": current_hour,
 		"is_night": is_night,
-		"current_moon_phase": current_moon_phase
+		"current_moon_phase": current_moon_phase,
+		"last_night_moon_phase": last_night_moon_phase
 	}
+
 
 
 ## Unpacks saved time parameters and restores appropriate playlist tracks.
@@ -241,6 +251,7 @@ func load_save_data(data: Dictionary):
 	current_hour = data.get("current_hour", 6)
 	is_night = data.get("is_night", false)
 	current_moon_phase = data.get("current_moon_phase", MoonPhase.NORMAL)
+	last_night_moon_phase = data.get("last_night_moon_phase", MoonPhase.NORMAL)
 	
 	_update_lighting()
 	
