@@ -51,14 +51,19 @@ func _exit_tree():
 
 
 
-## Returns the required material resource costs to build a new worker bot.
 func get_bot_cost() -> Dictionary:
 	var cost = {}
 	var wood_res = ItemDatabase.get_item("Wood")
 	var stone_res = ItemDatabase.get_item("Stone")
 	
-	if wood_res: cost[wood_res] = 50
-	if stone_res: cost[stone_res] = 20
+	var N = 0
+	if is_inside_tree():
+		N = get_tree().get_nodes_in_group("Bots").size()
+		
+	var multiplier = pow(1.25, N-1)
+	
+	if wood_res: cost[wood_res] = int(round(50.0 * multiplier))
+	if stone_res: cost[stone_res] = int(round(20.0 * multiplier))
 	
 	return cost
 
@@ -86,7 +91,7 @@ func start_bot_construction():
 		print("Already building a bot!")
 		return
 		
-	var current_bots = get_tree().get_nodes_in_group("Workers").size()
+	var current_bots = get_tree().get_nodes_in_group("Bots").size()
 	var max_bots = ResearchManager.max_bots_allowed
 	if current_bots >= max_bots:
 		print("Max bots reached!")
