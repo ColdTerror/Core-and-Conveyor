@@ -486,7 +486,10 @@ func add_wall_visual(tiles: Array[Vector2i]):
 func remove_wall_visual(tiles: Array[Vector2i]):
 	if not wall_layer: return
 	
-	# Erase all the tiles completely
+	# Erase all the tiles completely using terrain connect so the terrain system's cache is correctly updated to empty (-1)
+	wall_layer.set_cells_terrain_connect(tiles, 0, -1, false)
+	
+	# Explicitly clear the cells using set_cell to ensure they are empty
 	for tile in tiles:
 		wall_layer.set_cell(tile, -1)
 	
@@ -503,9 +506,9 @@ func remove_wall_visual(tiles: Array[Vector2i]):
 			if wall_layer.get_cell_source_id(n) != -1 and not neighbors.has(n):
 				neighbors.append(n)
 	
-	# Force the neighbors to update so they don't connect to thin air
-	if not neighbors.is_empty():
-		wall_layer.set_cells_terrain_connect(neighbors, 0, 0, false)
+	# Force the neighbors to update individually so they don't connect to thin air
+	for n in neighbors:
+		wall_layer.set_cells_terrain_connect([n], 0, 0, false)
 
 
 
