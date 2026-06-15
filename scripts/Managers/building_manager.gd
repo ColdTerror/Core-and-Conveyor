@@ -490,16 +490,22 @@ func remove_wall_visual(tiles: Array[Vector2i]):
 	for tile in tiles:
 		wall_layer.set_cell(tile, -1)
 	
-	# Gather ALL neighbors of ALL destroyed tiles to update connections
+	# Gather only neighbors that actually have wall tiles in them
 	var neighbors: Array[Vector2i] = []
 	for tile in tiles:
-		neighbors.append(tile + Vector2i(0, -1))
-		neighbors.append(tile + Vector2i(0, 1))
-		neighbors.append(tile + Vector2i(-1, 0))
-		neighbors.append(tile + Vector2i(1, 0))
+		var check_tiles = [
+			tile + Vector2i(0, -1),
+			tile + Vector2i(0, 1),
+			tile + Vector2i(-1, 0),
+			tile + Vector2i(1, 0)
+		]
+		for n in check_tiles:
+			if wall_layer.get_cell_source_id(n) != -1 and not neighbors.has(n):
+				neighbors.append(n)
 	
 	# Force the neighbors to update so they don't connect to thin air
-	wall_layer.set_cells_terrain_connect(neighbors, 0, 0)
+	if not neighbors.is_empty():
+		wall_layer.set_cells_terrain_connect(neighbors, 0, 0, false)
 
 
 

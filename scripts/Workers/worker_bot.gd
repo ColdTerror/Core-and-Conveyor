@@ -310,8 +310,13 @@ func get_solar_efficiency() -> float:
 
 
 func _handle_energy(delta: float):
-	# RECHARGING: Bot is resting at home
-	if current_state == State.RECHARGING or current_state == State.PANIC_WAITING:
+	var at_home = false
+	if home_tile != Vector2i(-1, -1) and level_ref and level_ref.object_layer:
+		var my_grid = level_ref.object_layer.local_to_map(global_position)
+		at_home = (my_grid == home_tile)
+
+	# RECHARGING: Bot is resting at home OR physically at home tile
+	if current_state == State.RECHARGING or current_state == State.PANIC_WAITING or at_home:
 		var efficiency = get_solar_efficiency()
 		current_energy += energy_recharge_rate * efficiency * delta
 		
@@ -325,7 +330,8 @@ func _handle_energy(delta: float):
 		if current_energy >= max_energy:
 			current_energy = max_energy
 			is_limping = false
-			current_state = State.IDLE
+			if current_state == State.RECHARGING:
+				current_state = State.IDLE
 		return  
 
 	# DRAINING: Bot is actively working
