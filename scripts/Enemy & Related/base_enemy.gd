@@ -225,7 +225,28 @@ func _execute_movement(dir: Vector2):
 			
 			# If whatever we hit can take damage, chew through it!
 			if hit_node == current_target or hit_node.has_method("take_damage"):
-				_try_structure_attack(hit_node)
+				var should_attack = true
+				if (hit_node is WallBuilding) or (hit_node is GateBuilding):
+					should_attack = false
+					if hit_node == current_target:
+						should_attack = true
+					elif not current_path.is_empty():
+						var check_limit = min(current_path.size(), 3)
+						for j in range(check_limit):
+							if pathfinder and pathfinder.main_layer:
+								var p_local = pathfinder.main_layer.to_local(current_path[j])
+								var p_grid = pathfinder.main_layer.local_to_map(p_local)
+								if p_grid in hit_node.occupied_tiles:
+									should_attack = true
+									break
+					elif is_instance_valid(current_target):
+						var to_target = global_position.direction_to(current_target.global_position)
+						var to_wall = global_position.direction_to(hit_node.global_position)
+						if to_target.dot(to_wall) > 0.5:
+							should_attack = true
+				
+				if should_attack:
+					_try_structure_attack(hit_node)
 
 
 

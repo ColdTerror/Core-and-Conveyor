@@ -135,6 +135,16 @@ func _process(delta):
 	queue_redraw()
 	_handle_energy(delta)
 	
+	# Cancel wall/gate repairs at night
+	if current_state in [State.MOVING_TO_REPAIR, State.REPAIRING]:
+		var time_managers = get_tree().get_nodes_in_group("TimeManager")
+		if not time_managers.is_empty() and time_managers[0].is_night:
+			var target_building = level_ref.building_manager.occupied_tiles.get(target_tile, null)
+			if is_instance_valid(target_building) and ((target_building is WallBuilding) or (target_building is GateBuilding)):
+				_clear_reservation()
+				committed_job_tile = Vector2i(-1, -1)
+				current_state = State.IDLE
+	
 	if is_flying and sprite:
 		var is_on_unwalkable = false
 		if level_ref and level_ref.object_layer and level_ref.terrain_layer:
