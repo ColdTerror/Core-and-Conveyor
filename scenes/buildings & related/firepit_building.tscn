@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://0u5oiw0srd4h"]
 
-[ext_resource type="Script" uid="uid://bo3c62pg4cx7v" path="res://scripts/Building Classes/building.gd" id="1_56aoo"]
+[ext_resource type="Script" uid="uid://firepit_building_gd" path="res://scripts/Building Classes/firepit_building.gd" id="1_firepit"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="2_chqqx"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_oetil"]
 
@@ -18,7 +18,7 @@ atlas = ExtResource("2_oetil")
 region = Rect2(416, 192, 64, 64)
 
 [node name="FirepitBuilding" type="Node2D" unique_id=649498052]
-script = ExtResource("1_56aoo")
+script = ExtResource("1_firepit")
 building_name = "Firepit"
 size = Vector2i(2, 2)
 max_health = 10
@@ -29,3 +29,4 @@ corruption_range = 16.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=460788050]
 texture = SubResource("AtlasTexture_426dl")
+
