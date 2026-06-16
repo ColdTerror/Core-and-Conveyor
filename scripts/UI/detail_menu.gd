@@ -395,7 +395,7 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 		
 	if b.has_method("select_output_mode"):
 		var opt_btn = OptionButton.new()
-		opt_btn.add_item("🔴 OFF")
+		opt_btn.add_item("🔴 No Output")
 		
 		var items_list = ItemDatabase.items.keys()
 		var stockpile_inventory = b.inventory
@@ -407,9 +407,9 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 				is_inside = true
 				
 			if is_inside:
-				opt_btn.add_item("🟢 " + item_name)
+				opt_btn.add_item("🟢 Output " + item_name)
 			else:
-				opt_btn.add_item("⚪ " + item_name)
+				opt_btn.add_item("⚪ Output " + item_name)
 			
 		var current_sel = b.selected_output_name
 		if current_sel == "":

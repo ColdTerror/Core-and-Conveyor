@@ -24,7 +24,8 @@
 			"title": "Doing",
 			"tasks": [
 				"3cea7188-2cc7-43bf-b53d-19bd45ad2205",
-				"06f4606d-2b6a-434b-80ac-8d483b76a525"
+				"06f4606d-2b6a-434b-80ac-8d483b76a525",
+				"cf0ff6b7-b395-4570-89a8-824bd3314373"
 			]
 		},
 		{
@@ -1916,6 +1917,20 @@
 		{
 			"uuid": "f2fab8e1-d0d1-48d1-be04-5392370f8ff9",
 			"title": "diagonal wall autotiling?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "cf0ff6b7-b395-4570-89a8-824bd3314373",
+			"title": "lose focus on detail menu",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "9e44d5aa-3928-4ea6-a561-1feae0cc7073",
+			"title": "New task",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
