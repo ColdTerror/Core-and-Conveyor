@@ -361,7 +361,15 @@ func _setup_processor_ui(b: ProcessorBuilding):
 		info_label.text = details.strip_edges()
 		
 		if b.recipes.size() > 1:
-			_create_button("Switch Recipe", Color.WHITE, b.cycle_recipe)
+			var opt_btn = OptionButton.new()
+			for i in range(b.recipes.size()):
+				opt_btn.add_item(b.recipes[i].recipe_name)
+			opt_btn.selected = b.current_recipe_index
+			opt_btn.item_selected.connect(func(index: int):
+				b.select_recipe(index)
+				refresh_ui()
+			)
+			action_container.add_child(opt_btn)
 	else:
 		info_label.text = "No Recipes Configured"
 
@@ -385,10 +393,42 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 		var mode_color = Color(0.3, 0.8, 1.0) if b.is_dedicated_mode else Color(1.0, 0.8, 0.3)
 		_create_button(mode_text, mode_color, b.toggle_inventory_mode)
 		
-	if b.has_method("cycle_output_mode") and b.has_method("get_economy_assets"):
-		var unique_item_types_count = b.get_economy_assets().keys().size()
-		if unique_item_types_count > 0: 
-			_create_button("Cycle Output", Color.WHITE, b.cycle_output_mode)
+	if b.has_method("select_output_mode"):
+		var opt_btn = OptionButton.new()
+		opt_btn.add_item("🔴 OFF")
+		
+		var items_list = ItemDatabase.items.keys()
+		var stockpile_inventory = b.inventory
+		
+		for item_name in items_list:
+			var item_res = ItemDatabase.get_item(item_name)
+			var is_inside = false
+			if item_res != null and stockpile_inventory.has(item_res) and stockpile_inventory[item_res] > 0:
+				is_inside = true
+				
+			if is_inside:
+				opt_btn.add_item("🟢 " + item_name)
+			else:
+				opt_btn.add_item("⚪ " + item_name)
+			
+		var current_sel = b.selected_output_name
+		if current_sel == "":
+			opt_btn.selected = 0
+		else:
+			var idx = items_list.find(current_sel)
+			if idx != -1:
+				opt_btn.selected = idx + 1
+			else:
+				opt_btn.selected = 0
+			
+		opt_btn.item_selected.connect(func(index: int):
+			if index == 0:
+				b.select_output_mode("OFF")
+			else:
+				b.select_output_mode(items_list[index - 1])
+			refresh_ui()
+		)
+		action_container.add_child(opt_btn)
 			
 	if b.has_method("void_inventory"):
 		_create_button("Void All Items", Color(1.0, 0.3, 0.3), b.void_inventory)

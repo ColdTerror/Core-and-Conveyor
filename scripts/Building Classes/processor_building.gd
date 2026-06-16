@@ -307,6 +307,20 @@ func cycle_recipe():
 	inventory_changed.emit()
 
 
+func select_recipe(index: int):
+	if index < 0 or index >= recipes.size(): return
+	if index == current_recipe_index: return
+	
+	if is_working or not input_inventory.is_empty() or output_inventory > 0:
+		input_inventory.clear()
+		output_inventory = 0
+		is_working = false
+		
+	current_recipe_index = index
+	print("Switched to recipe: " + active_recipe.recipe_name)
+	inventory_changed.emit()
+
+
 
 ## Serializes ingredients lists, recipe indices, work tickers, and buffers for saves.
 func get_save_data() -> Dictionary:

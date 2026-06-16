@@ -91,6 +91,19 @@ func cycle_output_mode():
 	print("Stockpile Output set to: ", selected_output_name if selected_output_name != "" else "OFF")
 
 
+func select_output_mode(item_name: String):
+	if item_name == "OFF" or item_name == "":
+		selected_output_name = ""
+	else:
+		selected_output_name = item_name
+		
+	if is_dedicated_mode and selected_output_name != "":
+		dedicated_item_name = selected_output_name
+		
+	print("Stockpile Output set to: ", selected_output_name if selected_output_name != "" else "OFF")
+	inventory_changed.emit()
+
+
 
 func _try_output_item():
 	if not level_ref: return
