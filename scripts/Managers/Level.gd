@@ -387,6 +387,13 @@ func generate_simple_map():
 	object_layer.clear()
 	active_grid_objects.clear()
 	
+	var left_closed = randf() < 0.5
+	var right_closed = randf() < 0.5
+	var top_closed = randf() < 0.5
+	var bottom_closed = randf() < 0.5
+	
+	print("Generating map. Edges - Left Closed: ", left_closed, ", Right Closed: ", right_closed, ", Top Closed: ", top_closed, ", Bottom Closed: ", bottom_closed)
+	
 	var land_noise = FastNoiseLite.new()
 	land_noise.seed = randi()
 	land_noise.noise_type = FastNoiseLite.TYPE_PERLIN
@@ -394,11 +401,11 @@ func generate_simple_map():
 	
 	var forest_noise = FastNoiseLite.new()
 	forest_noise.seed = randi()
-	forest_noise.frequency = 0.12 
+	forest_noise.frequency = 0.025 
 	
 	var stone_noise = FastNoiseLite.new()
 	stone_noise.seed = randi() + 1 
-	stone_noise.frequency = 0.06 
+	stone_noise.frequency = 0.025 
 	
 	var biome_noise = FastNoiseLite.new()
 	biome_noise.seed = randi() + 2
@@ -410,31 +417,41 @@ func generate_simple_map():
 	
 	var iron_noise = FastNoiseLite.new()
 	iron_noise.seed = randi() + 4
-	iron_noise.frequency = 0.08 
+	iron_noise.frequency = 0.03 
 	
 	var water_level = 0.16
 	var sand_level = 0.20
 	
 	match current_map_type:
 		MapGenType.LAKES:
-			land_noise.frequency = 0.08 
-			water_level = 0.24 
-			sand_level = 0.28
+			land_noise.frequency = 0.010
+			water_level = 0.38
+			sand_level = 0.40
 		MapGenType.MAINLAND:
 			pass 
 		MapGenType.RIVER_DIVIDE:
 			pass 
 			
 	var terrain_map := {}
+	var margin := 0.22
 
 	for x in range(MAP_WIDTH):
 		for y in range(MAP_HEIGHT):
 			var grid_pos = Vector2i(x, y)
 			
-			var nx = 2.0 * x / MAP_WIDTH - 1.0
-			var ny = 2.0 * y / MAP_HEIGHT - 1.0
-			var dist = sqrt(nx*nx + ny*ny)
-			var falloff = clamp(1.1 - dist * 1.3, 0.0, 1.0)
+			var falloff := 1.0
+			if left_closed:
+				var dist_left = float(x) / MAP_WIDTH
+				falloff *= clamp(dist_left / margin, 0.0, 1.0)
+			if right_closed:
+				var dist_right = float(MAP_WIDTH - 1 - x) / MAP_WIDTH
+				falloff *= clamp(dist_right / margin, 0.0, 1.0)
+			if top_closed:
+				var dist_top = float(y) / MAP_HEIGHT
+				falloff *= clamp(dist_top / margin, 0.0, 1.0)
+			if bottom_closed:
+				var dist_bottom = float(MAP_HEIGHT - 1 - y) / MAP_HEIGHT
+				falloff *= clamp(dist_bottom / margin, 0.0, 1.0)
 			
 			var noise_val = (land_noise.get_noise_2d(x, y) + 1.0) / 2.0
 			var elevation = noise_val * falloff
@@ -468,17 +485,30 @@ func generate_simple_map():
 	for x in range(MAP_WIDTH):
 		for y in range(MAP_HEIGHT):
 			var pos = Vector2i(x, y)
-			var biome_val = biome_noise.get_noise_2d(x, y)
 			
 			if terrain_map[pos] == TERRAIN_GRASS:
-				if biome_val < -0.15:
-					var d_val = (forest_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if d_val > 0.60: place_resource_at(pos, RES_TREE, d_val)
+				var f_val = forest_noise.get_noise_2d(x, y)
+				if f_val > 0.15:
+					var spawn_chance = 0.85
+					if f_val > 0.4:
+						spawn_chance = 0.95
+					elif f_val < 0.25:
+						spawn_chance = 0.50
+						
+					if randf() < spawn_chance:
+						var normalized_f = (f_val + 1.0) / 2.0
+						place_resource_at(pos, RES_TREE, normalized_f)
+						
 			elif terrain_map[pos] == TERRAIN_DIRT:
-				if biome_val > 0.15:
-					var s_val = (stone_noise.get_noise_2d(x, y) + 1.0) / 2.0
-					if s_val > 0.55:
-						place_resource_at(pos, RES_STONE, s_val)
+				var s_val = stone_noise.get_noise_2d(x, y)
+				if s_val > 0.15:
+					var spawn_chance = 1.0
+					if s_val < 0.22:
+						spawn_chance = 0.80
+						
+					if randf() < spawn_chance:
+						var normalized_s = (s_val + 1.0) / 2.0
+						place_resource_at(pos, RES_STONE, normalized_s)
 						_spawn_iron_ore_vein_near(pos, iron_noise, terrain_map)
 					
 	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
