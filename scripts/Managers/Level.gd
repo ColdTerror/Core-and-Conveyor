@@ -12,8 +12,8 @@ enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
 
 const ATLAS_COLUMNS := 3
 const TILE_COUNT := 10
-const MAP_WIDTH := 200
-const MAP_HEIGHT := 200
+const MAP_WIDTH := 150
+const MAP_HEIGHT := 150
 
 # Terrain indices based on your library
 const TERRAIN_DIRT := 0
@@ -387,12 +387,17 @@ func generate_simple_map():
 	object_layer.clear()
 	active_grid_objects.clear()
 	
-	var left_closed = randf() < 0.5
-	var right_closed = randf() < 0.5
-	var top_closed = randf() < 0.5
-	var bottom_closed = randf() < 0.5
+	var left_points = []
+	var right_points = []
+	var top_points = []
+	var bottom_points = []
+	for i in range(5):
+		left_points.append(1.0 if randf() < 0.5 else 0.0)
+		right_points.append(1.0 if randf() < 0.5 else 0.0)
+		top_points.append(1.0 if randf() < 0.5 else 0.0)
+		bottom_points.append(1.0 if randf() < 0.5 else 0.0)
 	
-	print("Generating map. Edges - Left Closed: ", left_closed, ", Right Closed: ", right_closed, ", Top Closed: ", top_closed, ", Bottom Closed: ", bottom_closed)
+	print("Generating map. Edge Control Points - Left: ", left_points, ", Right: ", right_points, ", Top: ", top_points, ", Bottom: ", bottom_points)
 	
 	var land_noise = FastNoiseLite.new()
 	land_noise.seed = randi()
@@ -440,18 +445,54 @@ func generate_simple_map():
 			var grid_pos = Vector2i(x, y)
 			
 			var falloff := 1.0
-			if left_closed:
+			
+			# Smooth Left Edge
+			var ty_l = float(y) / MAP_HEIGHT
+			var scaled_ty_l = ty_l * 4.0
+			var idx_y_l = clamp(int(scaled_ty_l), 0, 3)
+			var frac_y_l = scaled_ty_l - idx_y_l
+			var smooth_y_l = frac_y_l * frac_y_l * (3.0 - 2.0 * frac_y_l)
+			var val_left = lerp(float(left_points[idx_y_l]), float(left_points[idx_y_l+1]), smooth_y_l)
+			if val_left > 0.0:
 				var dist_left = float(x) / MAP_WIDTH
-				falloff *= clamp(dist_left / margin, 0.0, 1.0)
-			if right_closed:
+				var edge_clamp = clamp(dist_left / margin, 0.0, 1.0)
+				falloff *= lerp(1.0, edge_clamp, val_left)
+
+			# Smooth Right Edge
+			var ty_r = float(y) / MAP_HEIGHT
+			var scaled_ty_r = ty_r * 4.0
+			var idx_y_r = clamp(int(scaled_ty_r), 0, 3)
+			var frac_y_r = scaled_ty_r - idx_y_r
+			var smooth_y_r = frac_y_r * frac_y_r * (3.0 - 2.0 * frac_y_r)
+			var val_right = lerp(float(right_points[idx_y_r]), float(right_points[idx_y_r+1]), smooth_y_r)
+			if val_right > 0.0:
 				var dist_right = float(MAP_WIDTH - 1 - x) / MAP_WIDTH
-				falloff *= clamp(dist_right / margin, 0.0, 1.0)
-			if top_closed:
+				var edge_clamp = clamp(dist_right / margin, 0.0, 1.0)
+				falloff *= lerp(1.0, edge_clamp, val_right)
+
+			# Smooth Top Edge
+			var tx_t = float(x) / MAP_WIDTH
+			var scaled_tx_t = tx_t * 4.0
+			var idx_x_t = clamp(int(scaled_tx_t), 0, 3)
+			var frac_x_t = scaled_tx_t - idx_x_t
+			var smooth_x_t = frac_x_t * frac_x_t * (3.0 - 2.0 * frac_x_t)
+			var val_top = lerp(float(top_points[idx_x_t]), float(top_points[idx_x_t+1]), smooth_x_t)
+			if val_top > 0.0:
 				var dist_top = float(y) / MAP_HEIGHT
-				falloff *= clamp(dist_top / margin, 0.0, 1.0)
-			if bottom_closed:
+				var edge_clamp = clamp(dist_top / margin, 0.0, 1.0)
+				falloff *= lerp(1.0, edge_clamp, val_top)
+
+			# Smooth Bottom Edge
+			var tx_b = float(x) / MAP_WIDTH
+			var scaled_tx_b = tx_b * 4.0
+			var idx_x_b = clamp(int(scaled_tx_b), 0, 3)
+			var frac_x_b = scaled_tx_b - idx_x_b
+			var smooth_x_b = frac_x_b * frac_x_b * (3.0 - 2.0 * frac_x_b)
+			var val_bottom = lerp(float(bottom_points[idx_x_b]), float(bottom_points[idx_x_b+1]), smooth_x_b)
+			if val_bottom > 0.0:
 				var dist_bottom = float(MAP_HEIGHT - 1 - y) / MAP_HEIGHT
-				falloff *= clamp(dist_bottom / margin, 0.0, 1.0)
+				var edge_clamp = clamp(dist_bottom / margin, 0.0, 1.0)
+				falloff *= lerp(1.0, edge_clamp, val_bottom)
 			
 			var noise_val = (land_noise.get_noise_2d(x, y) + 1.0) / 2.0
 			var elevation = noise_val * falloff
