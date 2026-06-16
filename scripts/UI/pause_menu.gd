@@ -31,6 +31,10 @@ var confirm_dialog: ConfirmationDialog
 var _pending_load_slot: int = -1
 var _pending_load_button: Button = null
 
+var confirm_save_dialog: ConfirmationDialog
+var _pending_save_slot: int = -1
+var _pending_save_button: Button = null
+
 
 
 ## Connects save/load buttons, slider volume signals, quicksave actions, and delete actions.
@@ -93,6 +97,19 @@ func _ready():
 		_pending_load_button = null
 	)
 	add_child(confirm_dialog)
+	
+	confirm_save_dialog = ConfirmationDialog.new()
+	confirm_save_dialog.title = "Confirm Overwrite"
+	confirm_save_dialog.dialog_text = "Are you sure you want to overwrite this save slot? The existing save data will be replaced."
+	confirm_save_dialog.ok_button_text = "Yes"
+	confirm_save_dialog.cancel_button_text = "No"
+	confirm_save_dialog.process_mode = PROCESS_MODE_ALWAYS
+	confirm_save_dialog.confirmed.connect(_on_save_confirmed)
+	confirm_save_dialog.canceled.connect(func():
+		_pending_save_slot = -1
+		_pending_save_button = null
+	)
+	add_child(confirm_save_dialog)
 
 
 
@@ -173,12 +190,29 @@ func _perform_delete(slot: int):
 
 ## Emits file write requests and displays flash green ticks upon completion.
 func _perform_manual_save(slot: int, button: Button):
+	if SaveManager.does_save_exist(slot):
+		_pending_save_slot = slot
+		_pending_save_button = button
+		confirm_save_dialog.dialog_text = "Are you sure you want to overwrite Save %d? The existing save data will be replaced." % slot
+		confirm_save_dialog.popup_centered()
+	else:
+		_execute_save(slot, button)
+
+
+func _execute_save(slot: int, button: Button):
 	# Trigger manual save
 	save_requested.emit(slot)
 	
 	# Trigger visual feedback
 	_flash_button_success(button)
 	_refresh_menu_state()
+
+
+func _on_save_confirmed():
+	if _pending_save_slot == -1: return
+	_execute_save(_pending_save_slot, _pending_save_button)
+	_pending_save_slot = -1
+	_pending_save_button = null
 
 
 
