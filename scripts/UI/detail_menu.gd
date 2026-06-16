@@ -214,7 +214,7 @@ func open_menu(target: Node2D):
 		if not selected_object.item_changed.is_connected(refresh_ui):
 			selected_object.item_changed.connect(refresh_ui)
 		
-	refresh_ui()
+	call_explicit_refresh()
 	show()
 	
 	# only play the flash when switching targets or opening menu
@@ -252,10 +252,30 @@ func close_menu():
 
 
 
+var _updating_from_click = false
+
+func call_explicit_refresh(action: Callable = Callable()):
+	_updating_from_click = true
+	if action.is_valid():
+		action.call()
+	refresh_ui()
+	_updating_from_click = false
+
+
 ## Rebuilds the action buttons and details display panel matching the currently inspected object.
 func refresh_ui():
 	if not is_instance_valid(selected_object): return
 	
+	# Skip background updates if the user is hovering the menu panel to avoid eating clicks
+	if not _updating_from_click and get_global_rect().has_point(get_global_mouse_position()):
+		return
+	
+	# Skip rebuilding if a dropdown is currently open so we don't close it or steal focus
+	for child in action_container.get_children():
+		if child is OptionButton:
+			if child.get_popup().visible:
+				return
+				
 	for child in action_container.get_children():
 		child.queue_free()
 
@@ -337,8 +357,7 @@ func _create_button(btn_text: String, btn_color: Color, action_callable: Callabl
 	btn.text = btn_text
 	btn.modulate = btn_color
 	btn.pressed.connect(func():
-		action_callable.call()
-		refresh_ui() 
+		call_explicit_refresh(action_callable)
 	)
 	action_container.add_child(btn)
 
@@ -366,8 +385,7 @@ func _setup_processor_ui(b: ProcessorBuilding):
 				opt_btn.add_item(b.recipes[i].recipe_name)
 			opt_btn.selected = b.current_recipe_index
 			opt_btn.item_selected.connect(func(index: int):
-				b.select_recipe(index)
-				refresh_ui()
+				call_explicit_refresh(func(): b.select_recipe(index))
 			)
 			action_container.add_child(opt_btn)
 	else:
@@ -422,11 +440,12 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 				opt_btn.selected = 0
 			
 		opt_btn.item_selected.connect(func(index: int):
-			if index == 0:
-				b.select_output_mode("OFF")
-			else:
-				b.select_output_mode(items_list[index - 1])
-			refresh_ui()
+			call_explicit_refresh(func():
+				if index == 0:
+					b.select_output_mode("OFF")
+				else:
+					b.select_output_mode(items_list[index - 1])
+			)
 		)
 		action_container.add_child(opt_btn)
 			

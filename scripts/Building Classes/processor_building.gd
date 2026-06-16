@@ -357,3 +357,14 @@ func load_save_data(data: Dictionary):
 				input_inventory[item_res] = int(saved_inv[item_name])
 				
 	inventory_changed.emit()
+
+
+func get_upgrade_data() -> Dictionary:
+	var data = super.get_upgrade_data()
+	data["current_recipe_index"] = current_recipe_index
+	return data
+
+
+func apply_upgrade_data(data: Dictionary):
+	super.apply_upgrade_data(data)
+	current_recipe_index = data.get("current_recipe_index", 0)

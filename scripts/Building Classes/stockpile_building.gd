@@ -484,3 +484,19 @@ func load_save_data(data: Dictionary):
 ## Finds database entries for restored item keys.
 func _load_item_resource_by_name(item_name: String) -> ItemResource:
 	return ItemDatabase.get_item(item_name)
+
+
+func get_upgrade_data() -> Dictionary:
+	var data = super.get_upgrade_data()
+	data["is_dedicated_mode"] = is_dedicated_mode
+	data["dedicated_item_name"] = dedicated_item_name
+	data["selected_output_name"] = selected_output_name
+	return data
+
+
+func apply_upgrade_data(data: Dictionary):
+	super.apply_upgrade_data(data)
+	is_dedicated_mode = data.get("is_dedicated_mode", false)
+	dedicated_item_name = data.get("dedicated_item_name", "")
+	selected_output_name = data.get("selected_output_name", "")
+	_prune_available_types()
