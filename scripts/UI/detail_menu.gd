@@ -18,6 +18,7 @@ extends PanelContainer
 @export var building_manager: BuildingManager
 
 var selected_object: Node2D = null
+var active_recipe_dropdown: OptionButton = null
 
 signal menu_closed
 signal research_button_clicked
@@ -154,6 +155,19 @@ func _process(_delta):
 				info_label.modulate = Color(0.3, 0.8, 1.0)
 			else:
 				info_label.text = "No bot connected."
+				
+		# Live update for Processor Recipe Hover Previews
+		elif selected_object is ProcessorBuilding and is_instance_valid(active_recipe_dropdown):
+			var popup = active_recipe_dropdown.get_popup()
+			if popup.visible:
+				var hovered_index = popup.get_focused_item()
+				if hovered_index != -1 and hovered_index < selected_object.recipes.size():
+					var is_different = (hovered_index != selected_object.current_recipe_index)
+					_show_recipe_details(selected_object.recipes[hovered_index], is_different)
+				else:
+					_show_recipe_details(selected_object.active_recipe, false)
+			else:
+				_show_recipe_details(selected_object.active_recipe, false)
 
 
 
@@ -246,6 +260,7 @@ func close_menu():
 		if selected_object.item_changed.is_connected(refresh_ui):
 			selected_object.item_changed.disconnect(refresh_ui)
 			
+	active_recipe_dropdown = null
 	selected_object = null
 	hide()
 	menu_closed.emit()
@@ -362,22 +377,34 @@ func _create_button(btn_text: String, btn_color: Color, action_callable: Callabl
 	action_container.add_child(btn)
 
 
+func _show_recipe_details(recipe: RecipeResource, is_preview: bool = false):
+	if not recipe: return
+	
+	var r_name = recipe.recipe_name
+	if is_preview:
+		info_label.modulate = Color(1.0, 0.85, 0.4) # Gold/yellow
+	else:
+		info_label.modulate = Color.WHITE
+		
+	var details = "Recipe: %s\n" % r_name
+	if recipe.inputs.size() > 0:
+		details += "[Requires]"
+		for item_res in recipe.inputs.keys():
+			var amount = recipe.inputs[item_res]
+			var item_name = item_res.display_name if item_res != null else "Unknown Item" 
+			details += "\n • %d %s" % [amount, item_name]
+	if recipe.output_item != null:
+		details += "\n[Produces]"
+		details += "\n • %d %s" % [recipe.output_count, recipe.output_item.display_name]
+		
+	info_label.text = details.strip_edges()
+
+
 ## Configures and formats recipes, requirements, and outputs details for processor buildings.
 func _setup_processor_ui(b: ProcessorBuilding):
+	active_recipe_dropdown = null
 	if b.recipes.size() > 0:
-		var recipe = b.active_recipe
-		var details = "Recipe: %s\n" % recipe.recipe_name
-		if recipe.inputs.size() > 0:
-			details += "[Requires]"
-			for item_res in recipe.inputs.keys():
-				var amount = recipe.inputs[item_res]
-				var item_name = item_res.display_name if item_res != null else "Unknown Item" 
-				details += "\n • %d %s" % [amount, item_name]
-		if recipe.output_item != null:
-			details += "\n[Produces]"
-			details += "\n • %d %s" % [recipe.output_count, recipe.output_item.display_name]
-		
-		info_label.text = details.strip_edges()
+		_show_recipe_details(b.active_recipe, false)
 		
 		if b.recipes.size() > 1:
 			var opt_btn = OptionButton.new()
@@ -388,6 +415,7 @@ func _setup_processor_ui(b: ProcessorBuilding):
 				call_explicit_refresh(func(): b.select_recipe(index))
 			)
 			action_container.add_child(opt_btn)
+			active_recipe_dropdown = opt_btn
 	else:
 		info_label.text = "No Recipes Configured"
 
