@@ -155,6 +155,7 @@ sources/0 = SubResource("TileSetAtlasSource_uhfbm")
 
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
+current_biome = 2
 tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_t1rx8"), ExtResource("55_iron_ore_tile")])
 conveyor_scene = ExtResource("19_gur6y")
 router_scene = ExtResource("20_2e2fo")

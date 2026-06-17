@@ -9,6 +9,7 @@ extends Node2D
 
 # ENUMS & CONSTANTS
 enum MapGenType { RIVER_DIVIDE, MAINLAND, LAKES }
+enum MapBiome { FOREST, DESERT, ALPINE }
 
 const ATLAS_COLUMNS := 3
 const TILE_COUNT := 10
@@ -27,6 +28,7 @@ const RES_IRON_ORE := 6
 # EXPORTS & CONFIGURATION
 @export_group("Map Settings")
 @export var current_map_type: MapGenType = MapGenType.RIVER_DIVIDE
+@export var current_biome: MapBiome = MapBiome.FOREST
 @export var tile_size_px: Vector2 = Vector2(32, 32)
 @export var tile_library: Array[TileDataResource] = []
 
@@ -280,6 +282,9 @@ func _on_resource_state_changed(tile: Vector2i, state: int, data: TileDataResour
 	var tm = get_tree().get_first_node_in_group("TimeManager")
 	if tm:
 		season = tm.get_current_season()
+		
+	if current_biome == MapBiome.ALPINE:
+		season = TimeManager.Season.WINTER
 
 	match state:
 		ResourceManager.ResourceState.FULL:
@@ -308,6 +313,9 @@ func update_seasonal_resource_sprites(new_season: int = -1):
 		var tm = get_tree().get_first_node_in_group("TimeManager")
 		if tm:
 			season = tm.get_current_season()
+			
+	if current_biome == MapBiome.ALPINE:
+		season = TimeManager.Season.WINTER
 			
 	for tile in active_grid_objects:
 		var obj = active_grid_objects[tile]
@@ -521,6 +529,17 @@ func generate_simple_map():
 			var data = tile_library[type]
 			var default_coords = Vector2i(type % ATLAS_COLUMNS, type / ATLAS_COLUMNS)
 			var final_coords = data.atlas_coords_full if data.atlas_coords_full != Vector2i(-1, -1) else default_coords
+			
+			# Biome-specific Palette Swaps
+			if current_biome == MapBiome.DESERT:
+				# Swap Grass (5) and Dirt (0) to Sand (2, 0)
+				if type == TERRAIN_GRASS or type == TERRAIN_DIRT:
+					final_coords = Vector2i(2, 0)
+			elif current_biome == MapBiome.ALPINE:
+				# Swap Grass (5) to Dirt (0, 0) for a cold rocky look
+				if type == TERRAIN_GRASS:
+					final_coords = Vector2i(0, 0)
+					
 			terrain_layer.set_cell(pos, 0, final_coords)
 
 	for x in range(MAP_WIDTH):
@@ -529,25 +548,45 @@ func generate_simple_map():
 			
 			if terrain_map[pos] == TERRAIN_GRASS:
 				var f_val = forest_noise.get_noise_2d(x, y)
-				if f_val > 0.15:
+				var min_threshold = 0.15
+				var spawn_mult = 1.0
+				
+				if current_biome == MapBiome.DESERT:
+					min_threshold = 0.40 # Very few tree spots
+					spawn_mult = 0.20 # 80% fewer trees
+				elif current_biome == MapBiome.ALPINE:
+					min_threshold = 0.25 # Less wood
+					spawn_mult = 0.50 # 50% fewer trees
+					
+				if f_val > min_threshold:
 					var spawn_chance = 0.85
 					if f_val > 0.4:
 						spawn_chance = 0.95
 					elif f_val < 0.25:
 						spawn_chance = 0.50
 						
-					if randf() < spawn_chance:
+					if randf() < (spawn_chance * spawn_mult):
 						var normalized_f = (f_val + 1.0) / 2.0
 						place_resource_at(pos, RES_TREE, normalized_f)
 						
 			elif terrain_map[pos] == TERRAIN_DIRT:
 				var s_val = stone_noise.get_noise_2d(x, y)
-				if s_val > 0.15:
+				var min_threshold = 0.15
+				var spawn_mult = 1.0
+				
+				if current_biome == MapBiome.DESERT:
+					min_threshold = 0.08 # More stone mountains
+					spawn_mult = 1.2
+				elif current_biome == MapBiome.ALPINE:
+					min_threshold = 0.08 # More stone mountains
+					spawn_mult = 1.2
+					
+				if s_val > min_threshold:
 					var spawn_chance = 1.0
 					if s_val < 0.22:
 						spawn_chance = 0.80
 						
-					if randf() < spawn_chance:
+					if randf() < (spawn_chance * spawn_mult):
 						var normalized_s = (s_val + 1.0) / 2.0
 						place_resource_at(pos, RES_STONE, normalized_s)
 						_spawn_iron_ore_vein_near(pos, iron_noise, terrain_map)
@@ -679,6 +718,7 @@ func get_map_save_data() -> Dictionary:
 		
 	return {
 		"map_type": current_map_type,
+		"biome": current_biome,
 		"terrain": terrain_data,
 		"objects": object_data,
 		"worker_bots": saved_bots,
@@ -696,6 +736,7 @@ func load_map_save_data(data: Dictionary):
 	active_grid_objects.clear()
 
 	current_map_type = data.get("map_type", 0)
+	current_biome = data.get("biome", 0)
 
 	var terrain_data = data.get("terrain", {})
 	for pos_str in terrain_data:
