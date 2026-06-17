@@ -76,7 +76,7 @@ func load_game(slot: int):
 	current_slot = slot
 	pending_load_data = parsed_data
 	get_tree().paused = false # Unpause in case they loaded from the pause menu!
-	get_tree().reload_current_scene()
+	get_tree().change_scene_to_file("res://scenes/level.tscn")
 	
 	print("Game successfully loaded from Slot ", slot)
 	return true

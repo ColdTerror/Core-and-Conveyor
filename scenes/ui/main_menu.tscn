@@ -1,0 +1,238 @@
+[gd_scene load_steps=5 format=3 uid="uid://cx4x2n012j5b4"]
+
+[ext_resource type="Script" path="res://scripts/UI/main_menu.gd" id="1_4tw0m"]
+[ext_resource type="Texture2D" path="res://assets/main_menu_background.png" id="2_background"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
+bg_color = Color(0.08235294, 0.07058824, 0.14901961, 0.74509804)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35294118, 0.25490196, 0.64705882, 0.4)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+expand_margin_left = 16
+expand_margin_top = 16
+expand_margin_right = 16
+expand_margin_bottom = 16
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 48
+font_color = Color(0.39215686, 0.82352941, 1, 1)
+outline_size = 8
+outline_color = Color(0.14901961, 0.09803922, 0.30196078, 0.8)
+shadow_size = 12
+shadow_color = Color(0.05098039, 0.01960784, 0.10196078, 0.5)
+shadow_offset = Vector2(2, 4)
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4tw0m")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="DimOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04705882, 0.03921569, 0.09803922, 0.49019608)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainContainer" type="VBoxContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="CenterContainer/MainContainer"]
+layout_mode = 2
+text = "Core & Conveyor"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterContainer/MainContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="NewGame" type="Button" parent="CenterContainer/MainContainer"]
+custom_minimum_size = Vector2(200, 45)
+layout_mode = 2
+text = "New Game"
+
+[node name="LoadGame" type="Button" parent="CenterContainer/MainContainer"]
+custom_minimum_size = Vector2(200, 45)
+layout_mode = 2
+text = "Load Game"
+
+[node name="Settings" type="Button" parent="CenterContainer/MainContainer"]
+custom_minimum_size = Vector2(200, 45)
+layout_mode = 2
+text = "Settings"
+
+[node name="Exit" type="Button" parent="CenterContainer/MainContainer"]
+custom_minimum_size = Vector2(200, 45)
+layout_mode = 2
+text = "Exit Game"
+
+[node name="LoadPanel" type="PanelContainer" parent="CenterContainer"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/LoadPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LoadTitle" type="Label" parent="CenterContainer/LoadPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Select Save Slot"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterContainer/LoadPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Load1Bar" type="HBoxContainer" parent="CenterContainer/LoadPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Load1" type="Button" parent="CenterContainer/LoadPanel/VBoxContainer/Load1Bar"]
+custom_minimum_size = Vector2(170, 40)
+layout_mode = 2
+text = "Load Save 1"
+
+[node name="Del1" type="Button" parent="CenterContainer/LoadPanel/VBoxContainer/Load1Bar"]
+self_modulate = Color(1, 0.3, 0.3, 1)
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+text = "X"
+
+[node name="Load2Bar" type="HBoxContainer" parent="CenterContainer/LoadPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Load2" type="Button" parent="CenterContainer/LoadPanel/VBoxContainer/Load2Bar"]
+custom_minimum_size = Vector2(170, 40)
+layout_mode = 2
+text = "Load Save 2"
+
+[node name="Del2" type="Button" parent="CenterContainer/LoadPanel/VBoxContainer/Load2Bar"]
+self_modulate = Color(1, 0.3, 0.3, 1)
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+text = "X"
+
+[node name="Load3Bar" type="HBoxContainer" parent="CenterContainer/LoadPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Load3" type="Button" parent="CenterContainer/LoadPanel/VBoxContainer/Load3Bar"]
+custom_minimum_size = Vector2(170, 40)
+layout_mode = 2
+text = "Load Save 3"
+
+[node name="Del3" type="Button" parent="CenterContainer/LoadPanel/VBoxContainer/Load3Bar"]
+self_modulate = Color(1, 0.3, 0.3, 1)
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+text = "X"
+
+[node name="Spacer2" type="Control" parent="CenterContainer/LoadPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Back" type="Button" parent="CenterContainer/LoadPanel/VBoxContainer"]
+custom_minimum_size = Vector2(218, 40)
+layout_mode = 2
+text = "Back"
+
+[node name="SettingsPanel" type="PanelContainer" parent="CenterContainer"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/SettingsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SettingsTitle" type="Label" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Audio Settings"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="MusicLabel" type="Label" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+layout_mode = 2
+text = "Music Volume"
+
+[node name="MusicSlider" type="HSlider" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(220, 20)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MusicMute" type="CheckBox" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+layout_mode = 2
+button_pressed = true
+text = "Music Enabled"
+
+[node name="Spacer2" type="Control" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+
+[node name="SfxLabel" type="Label" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+layout_mode = 2
+text = "SFX Volume"
+
+[node name="SfxSlider" type="HSlider" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(220, 20)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SfxMute" type="CheckBox" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+layout_mode = 2
+button_pressed = true
+text = "SFX Enabled"
+
+[node name="Spacer3" type="Control" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Back" type="Button" parent="CenterContainer/SettingsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(220, 40)
+layout_mode = 2
+text = "Back"
