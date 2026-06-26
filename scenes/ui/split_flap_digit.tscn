@@ -1,0 +1,93 @@
+[gd_scene format=3 uid="uid://dp1gflapdigit"]
+
+[ext_resource type="Script" uid="uid://jxcthnp2me5p" path="res://scripts/UI/split_flap_digit.gd" id="1_script"]
+
+[node name="SplitFlapDigit" type="Control" unique_id=400255526]
+custom_minimum_size = Vector2(50, 70)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 50.0
+offset_bottom = 70.0
+script = ExtResource("1_script")
+auto_count_up = false
+
+[node name="Background" type="ColorRect" parent="." unique_id=1337702174]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.08, 0.08, 1)
+
+[node name="TopHalf" type="Control" parent="." unique_id=1402270158]
+clip_contents = true
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+
+[node name="Label" type="Label" parent="TopHalf" unique_id=2046710489]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BottomHalf" type="Control" parent="." unique_id=163814899]
+clip_contents = true
+layout_mode = 1
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Label" type="Label" parent="BottomHalf" unique_id=1374833447]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Flap" type="Control" parent="." unique_id=1893271630]
+clip_contents = true
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+
+[node name="Label" type="Label" parent="Flap" unique_id=183086760]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Divider" type="ColorRect" parent="." unique_id=1711806881]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.784314)
