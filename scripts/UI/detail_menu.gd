@@ -850,8 +850,9 @@ func _build_priority_widget(b: Node):
 	up_btn.text = " ▲ "
 	up_btn.disabled = (current_rank == 1) 
 	up_btn.pressed.connect(func():
-		bm.move_priority_up(priority_item)
-		refresh_ui() 
+		call_explicit_refresh(func():
+			bm.move_priority_up(priority_item)
+		)
 	)
 	
 	var rank_label = Label.new()
@@ -862,8 +863,9 @@ func _build_priority_widget(b: Node):
 	down_btn.text = " ▼ "
 	down_btn.disabled = (current_rank == max_rank) 
 	down_btn.pressed.connect(func():
-		bm.move_priority_down(priority_item)
-		refresh_ui()
+		call_explicit_refresh(func():
+			bm.move_priority_down(priority_item)
+		)
 	)
 	
 	hbox.add_child(up_btn)
