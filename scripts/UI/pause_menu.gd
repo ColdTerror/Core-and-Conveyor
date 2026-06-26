@@ -40,6 +40,7 @@ var _pending_save_slot: int = -1
 var _pending_save_button: Button = null
 
 var quit_dialog: ConfirmationDialog
+var _is_quitting_to_desktop: bool = false
 
 
 
@@ -55,8 +56,8 @@ func _ready():
 	sfx_mute.button_pressed = not AudioManager.is_sfx_muted
 	
 	resume_button.pressed.connect(resume_game)
-	menu_button.pressed.connect(back_to_menu)
-	exit_button.pressed.connect(exit_game)
+	menu_button.pressed.connect(_on_menu_pressed)
+	exit_button.pressed.connect(_on_exit_pressed)
 	
 	music_slider.value_changed.connect(func(val):
 		AudioManager.set_music_volume(val)
@@ -122,12 +123,12 @@ func _ready():
 	
 	#Add quit without saving dialog to scene tree
 	quit_dialog = ConfirmationDialog.new()
-	quit_dialog.title = "Confirm Quit"
-	quit_dialog.dialog_text = "Are you sure you want to Quit"
+	quit_dialog.title = "Confirm Action"
+	quit_dialog.dialog_text = "Are you sure?"
 	quit_dialog.ok_button_text = "Yes"
 	quit_dialog.cancel_button_text = "No"
 	quit_dialog.process_mode = PROCESS_MODE_ALWAYS
-	quit_dialog.confirmed.connect(back_to_menu)
+	quit_dialog.confirmed.connect(_on_quit_confirmed)
 	add_child(quit_dialog)
 
 
@@ -170,6 +171,29 @@ func back_to_menu():
 ## Exits the game.
 func exit_game():
 	get_tree().quit()
+
+
+func _on_menu_pressed():
+	_is_quitting_to_desktop = false
+	quit_dialog.title = "Confirm Return to Menu"
+	quit_dialog.dialog_text = "Are you sure you want to return to the Main Menu? Any unsaved progress will be lost."
+	quit_dialog.reset_size()
+	quit_dialog.popup_centered()
+
+
+func _on_exit_pressed():
+	_is_quitting_to_desktop = true
+	quit_dialog.title = "Confirm Exit Game"
+	quit_dialog.dialog_text = "Are you sure you want to Exit Game? Any unsaved progress will be lost."
+	quit_dialog.reset_size()
+	quit_dialog.popup_centered()
+
+
+func _on_quit_confirmed():
+	if _is_quitting_to_desktop:
+		exit_game()
+	else:
+		back_to_menu()
 
 
 
