@@ -11,10 +11,16 @@ extends Camera2D
 @export var edge_pan_margin := 20  
 @export var edge_pan_speed := 300.0
 
+# Pan Zone Settings
+@export var pan_limits_left := 0
+@export var pan_limits_right := 4800
+@export var pan_limits_up := 0
+@export var pan_limits_down := 4800
+
 # Zoom settings
-@export var zoom_speed := 0.1
-@export var min_zoom := 0.5
-@export var max_zoom := 3.0
+@export var zoom_speed := 0.25
+@export var min_zoom := 0.35
+@export var max_zoom := 5.0
 
 # Smooth movement
 @export var pan_smoothing := 10.0
@@ -48,6 +54,8 @@ func _process(delta):
 		global_position = global_position.lerp(follow_target.global_position, follow_smoothing * delta)
 	
 	zoom = Vector2(target_zoom, target_zoom)
+	
+	clamp_camera_to_bounds()
 
 
 
@@ -59,7 +67,9 @@ func apply_pan(move_direction: Vector2, delta: float):
 			follow_target = null
 		
 		move_direction = move_direction.normalized()
+		
 		position += move_direction * pan_speed * delta / target_zoom
+		
 
 
 
@@ -88,4 +98,27 @@ func set_drag_state(dragging: bool):
 func apply_drag_pan(relative: Vector2):
 	if follow_target != null:
 		follow_target = null
-	position -= relative / target_zoom
+	
+	position -= relative / target_zoom 
+	
+func clamp_camera_to_bounds():
+	# 1. Get viewport dimensions in world space
+	var viewport_size = get_viewport_rect().size / target_zoom
+	var half_width = viewport_size.x / 2.0
+	var half_height = viewport_size.y / 2.0
+	
+	# 2. Define the target bounds (4800 map size + 800px padding = -800 to 5600)
+	var min_x = half_width - 800
+	var max_x = (pan_limits_right + 800) - half_width
+	
+	var min_y = half_height - 800
+	var max_y = (pan_limits_down + 800) - half_height
+	# 3. Clamp camera center coordinates (with a fallback if zoomed out too far)
+	if min_x > max_x:
+		position.x = (pan_limits_left + pan_limits_right) / 2.0 # Center on map if zoomed way out
+	else:
+		position.x = clamp(position.x, min_x, max_x)
+	if min_y > max_y:
+		position.y = (pan_limits_up + pan_limits_down) / 2.0 # Center on map if zoomed way out
+	else:
+		position.y = clamp(position.y, min_y, max_y)

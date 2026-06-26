@@ -155,7 +155,6 @@ sources/0 = SubResource("TileSetAtlasSource_uhfbm")
 
 [node name="Level" type="Node2D" unique_id=368109732]
 script = ExtResource("1_olg7q")
-current_biome = 2
 tile_library = Array[ExtResource("2_olg7q")]([ExtResource("3_t1rx8"), ExtResource("4_8iemx"), ExtResource("5_64w2a"), ExtResource("6_fpun6"), ExtResource("7_wc255"), ExtResource("8_t1rx8"), ExtResource("55_iron_ore_tile")])
 conveyor_scene = ExtResource("19_gur6y")
 router_scene = ExtResource("20_2e2fo")
@@ -197,12 +196,14 @@ corruption_manager = NodePath("../CorruptionManager")
 fallback_spawn_radius = 100.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
-position = Vector2(640, 360)
+position = Vector2(2400, 2400)
+limit_enabled = false
+limit_left = 0
+limit_top = 0
+limit_right = 4800
+limit_bottom = 4800
 script = ExtResource("9_8iemx")
 edge_pan_margin = 5
-zoom_speed = 0.25
-min_zoom = 0.1
-max_zoom = 5.0
 pan_smoothing = 0.0
 
 [node name="TerrainLayer" type="TileMapLayer" parent="." unique_id=20833604]
@@ -251,11 +252,10 @@ script = ExtResource("29_7agi7")
 [node name="TimeManager" type="Node2D" parent="." unique_id=1909731771 node_paths=PackedStringArray("lighting_modulate")]
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
-real_minutes_per_day = 15.0
+real_minutes_per_day = 18.0
 night_color = Color(0.2564863, 0.2564863, 0.42394415, 1)
 blood_moon_color = Color(0.66191053, 0.4738877, 0.4738877, 1)
 full_moon_color = Color(0.43569562, 0.51207983, 0.735357, 1)
-force_full_moon = true
 
 [node name="QuotaManager" type="Node2D" parent="." unique_id=1743008909]
 script = ExtResource("36_uhfbm")
