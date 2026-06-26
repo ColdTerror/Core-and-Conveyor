@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cenemyproj1"]
 
-[ext_resource type="Script" uid="uid://dce1y3722a8s" path="res://scripts/Enemy & Related/enemy_projectile.gd" id="1_enemyproj"]
+[ext_resource type="Script" uid="uid://bh2pb1sym4myp" path="res://scripts/Enemy & Related/enemy_projectile.gd" id="1_enemyproj"]
 [ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_enemyproj"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_enemyproj"]
@@ -10,15 +10,15 @@ region = Rect2(96, 0, 32, 32)
 [sub_resource type="CircleShape2D" id="CircleShape2D_enemyproj"]
 radius = 16.0
 
-[node name="EnemyProjectile" type="Area2D"]
+[node name="EnemyProjectile" type="Area2D" unique_id=443517421]
 collision_mask = 15
 script = ExtResource("1_enemyproj")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1209341942]
 self_modulate = Color(1, 0.2, 0.2, 1)
 texture = SubResource("AtlasTexture_enemyproj")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=773720954]
 shape = SubResource("CircleShape2D_enemyproj")
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]

@@ -27,6 +27,10 @@ signal save_requested(slot: int)
 @onready var sfx_mute = $CenterContainer/VBoxContainer/SfxMute
 @onready var sfx_slider = $CenterContainer/VBoxContainer/SfxSlider
 
+@onready var resume_button = $CenterContainer/VBoxContainer/Resume
+@onready var menu_button = $CenterContainer/VBoxContainer/Menu
+@onready var exit_button = $CenterContainer/VBoxContainer/Exit
+
 var confirm_dialog: ConfirmationDialog
 var _pending_load_slot: int = -1
 var _pending_load_button: Button = null
@@ -34,6 +38,8 @@ var _pending_load_button: Button = null
 var confirm_save_dialog: ConfirmationDialog
 var _pending_save_slot: int = -1
 var _pending_save_button: Button = null
+
+var quit_dialog: ConfirmationDialog
 
 
 
@@ -48,8 +54,9 @@ func _ready():
 	music_mute.button_pressed = not AudioManager.is_music_muted
 	sfx_mute.button_pressed = not AudioManager.is_sfx_muted
 	
-	$CenterContainer/VBoxContainer/Resume.pressed.connect(resume_game)
-	$CenterContainer/VBoxContainer/Exit.pressed.connect(exit_game)
+	resume_button.pressed.connect(resume_game)
+	menu_button.pressed.connect(back_to_menu)
+	exit_button.pressed.connect(exit_game)
 	
 	music_slider.value_changed.connect(func(val):
 		AudioManager.set_music_volume(val)
@@ -85,6 +92,7 @@ func _ready():
 	del_2_btn.pressed.connect(func(): _perform_delete(2))
 	del_3_btn.pressed.connect(func(): _perform_delete(3))
 	
+	#Add confirm load dialog to scene tree
 	confirm_dialog = ConfirmationDialog.new()
 	confirm_dialog.title = "Confirm Load"
 	confirm_dialog.dialog_text = "Are you sure you want to load? Any unsaved progress will be lost."
@@ -98,6 +106,7 @@ func _ready():
 	)
 	add_child(confirm_dialog)
 	
+	#Add confirm save dialog to scene tree
 	confirm_save_dialog = ConfirmationDialog.new()
 	confirm_save_dialog.title = "Confirm Overwrite"
 	confirm_save_dialog.dialog_text = "Are you sure you want to overwrite this save slot? The existing save data will be replaced."
@@ -110,7 +119,16 @@ func _ready():
 		_pending_save_button = null
 	)
 	add_child(confirm_save_dialog)
-
+	
+	#Add quit without saving dialog to scene tree
+	quit_dialog = ConfirmationDialog.new()
+	quit_dialog.title = "Confirm Quit"
+	quit_dialog.dialog_text = "Are you sure you want to Quit"
+	quit_dialog.ok_button_text = "Yes"
+	quit_dialog.cancel_button_text = "No"
+	quit_dialog.process_mode = PROCESS_MODE_ALWAYS
+	quit_dialog.confirmed.connect(back_to_menu)
+	add_child(quit_dialog)
 
 
 ## Listens for the pause action to pause/resume the game.
@@ -128,7 +146,7 @@ func pause_game():
 	show()
 	get_tree().paused = true
 	# Sync quick save text
-	$CenterContainer/VBoxContainer/QuickSave.text = "Quick Save (Slot %d)" % SaveManager.current_slot
+	quick_save_btn.text = "Quick Save (Slot %d)" % SaveManager.current_slot
 	_refresh_menu_state()
 	AudioManager.set_music_muffled(true)
 
@@ -141,6 +159,13 @@ func resume_game():
 	AudioManager.set_music_muffled(false)
 
 
+## Back to Main Menu 
+func back_to_menu():
+	hide()
+	get_tree().paused = false
+	#AudioManager.set_music_muffled(false)
+	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	
 
 ## Exits the game.
 func exit_game():

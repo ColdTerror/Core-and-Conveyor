@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c0fyteqgy6txl"]
 
 [ext_resource type="Script" uid="uid://f7k820tvfbd6" path="res://scripts/Building Classes/harvester_building.gd" id="1_drill_script"]
-[ext_resource type="Resource" uid="uid://bqc8i5reqi3a0" path="res://resources/tiles/6_IronOre.tres" id="2_iron_ore_tile"]
+[ext_resource type="Resource" uid="uid://dlgv3ekxbdq8i" path="res://resources/tiles/6_IronOre.tres" id="2_iron_ore_tile"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="3_buildings_sheet"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="4_item_scene"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="5_cost_script"]
@@ -25,9 +25,7 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 script = ExtResource("1_drill_script")
 target_resource = ExtResource("2_iron_ore_tile")
 generic_item_scene = ExtResource("4_item_scene")
-scan_radius = 4
 work_interval = 2.5
-generate_fallback_when_empty = false
 fallback_work_interval_multiplier = 1.0
 building_name = "Ore Drill"
 size = Vector2i(3, 3)
@@ -35,7 +33,6 @@ icon = SubResource("AtlasTexture_drill")
 build_costs = Array[ExtResource("5_cost_script")]([SubResource("Resource_wood_cost"), SubResource("Resource_stone_cost")])
 build_range = 8.0
 corruption_range = 10.0
-required_terrain_coords = Vector2i(-9999, -9999)
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
 texture = ExtResource("3_buildings_sheet")

@@ -109,6 +109,10 @@ max_value = 1.0
 step = 0.01
 value = 1.0
 
+[node name="Menu" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1730689388]
+layout_mode = 2
+text = "Back To Menu"
+
 [node name="Exit" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1974263859]
 layout_mode = 2
 text = "Exit Game"
