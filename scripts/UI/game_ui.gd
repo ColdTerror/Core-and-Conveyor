@@ -177,23 +177,19 @@ func update_labels():
 		var secured = EconomyManager.global_inventory.get(resource_name, 0)
 		var in_transit = unsecured_map.get(resource_name, 0)
 
-		# Create the label if it doesn't exist yet
+		# Create the resource HUD item if it doesn't exist yet
 		if not resource_labels.has(resource_name):
-			var new_label = Label.new()
-			inventoryContainer.add_child(new_label)
-			resource_labels[resource_name] = new_label
+			var item_scene = load("res://scenes/ui/resource_hud_item.tscn")
+			var new_item = item_scene.instantiate()
+			inventoryContainer.add_child(new_item)
+			new_item.setup(resource_name)
+			resource_labels[resource_name] = new_item
 
-		# Update the text with the "(+X)" format if in_transit > 0
-		var lbl = resource_labels[resource_name]
-		
-		var display_text = "  %s: %d" % [resource_name, secured]
-		if in_transit > 0:
-			display_text += " (+%d)" % in_transit
-		display_text += "  " # Trailing space for padding
-		
-		lbl.text = display_text
-		lbl.show()
-		inventoryContainer.move_child(lbl, i)
+		# Update values on the custom split-flap widget
+		var item = resource_labels[resource_name]
+		item.update_values(secured, in_transit)
+		item.show()
+		inventoryContainer.move_child(item, i)
 
 
 

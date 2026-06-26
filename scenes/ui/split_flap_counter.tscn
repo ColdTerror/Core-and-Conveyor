@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://chbjfujwemo1b"]
+
+[ext_resource type="Script" uid="uid://b1gflapcounterscript" path="res://scripts/UI/split_flap_counter.gd" id="1_counter_script"]
+[ext_resource type="PackedScene" uid="uid://dp1gflapdigit" path="res://scenes/ui/split_flap_digit.tscn" id="2_digit_scene"]
+
+[node name="SplitFlapCounter" type="HBoxContainer"]
+theme_override_constants/separation = 2
+script = ExtResource("1_counter_script")
+
+[node name="Digit1" parent="." instance=ExtResource("2_digit_scene")]
+layout_mode = 2
+
+[node name="Digit2" parent="." instance=ExtResource("2_digit_scene")]
+layout_mode = 2
+
+[node name="Digit3" parent="." instance=ExtResource("2_digit_scene")]
+layout_mode = 2
+
+[node name="Digit4" parent="." instance=ExtResource("2_digit_scene")]
+layout_mode = 2

@@ -13,7 +13,7 @@ extends Control
 @export var font_size: int = 48
 
 @export_group("Standalone Testing")
-@export var auto_count_up: bool = true
+@export var auto_count_up: bool = false
 ## Time between counter increments
 @export var count_interval: float = 1.0 
 
@@ -68,16 +68,20 @@ func set_target_character(c: String):
 		return
 	target_char = c
 	
-	# If we are jumping multiple digits (e.g. 0 to 5), queue them up to animate sequentially
 	if current_char != target_char:
 		queue.clear()
 		var start = current_char.to_int() if current_char.is_valid_int() else 0
 		var end = target_char.to_int() if target_char.is_valid_int() else 0
 		
-		# Assume cycling 0-9 for simplicity in the demo
+		# Calculate shortest path (forward vs backward)
+		var dist_forward = (end - start + 10) % 10
+		var dist_backward = (start - end + 10) % 10
+		
+		var step = 1 if dist_forward <= dist_backward else -1
+		
 		var current = start
 		while current != end:
-			current = (current + 1) % 10
+			current = (current + step + 10) % 10
 			queue.append(str(current))
 			
 		_trigger_next_flip()
