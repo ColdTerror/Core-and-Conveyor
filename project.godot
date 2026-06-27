@@ -19,10 +19,6 @@ run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="uid://bsvsbk5ls3s0g"
 
-[audio]
-
-buses/default_bus_layout="uid://cxo1bbowfqqvi"
-
 [autoload]
 
 EconomyManager="*res://scripts/Managers/economy_manager.gd"
