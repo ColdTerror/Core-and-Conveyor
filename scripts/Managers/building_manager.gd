@@ -334,6 +334,8 @@ func cancel_placement():
 					restored_building.add_item(item_res, amount)
 
 	if ghost_building:
+		if InputManager.hovered_building == ghost_building:
+			InputManager.hovered_building = null
 		ghost_building.queue_free()
 		ghost_building = null
 		

@@ -16,20 +16,17 @@
 				"faa91590-4d07-4873-a40f-75d92acae4e6",
 				"2bb58485-20f1-408e-a109-4164d1fd7f21",
 				"fd2e9ffb-cbd0-4a9f-9dba-5c60928863ec",
-				"acde8781-ff29-4a12-99dd-ab748c852411"
+				"acde8781-ff29-4a12-99dd-ab748c852411",
+				"5cddb597-1d54-408f-b02d-89944c71b046",
+				"b38bcdb8-37f5-4266-973b-18edac1c3efd",
+				"07777806-299d-4761-ad85-56e33abc5a1f",
+				"22304f95-31b4-4be0-ae2e-87e22107a8fd"
 			]
 		},
 		{
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"f3bc766e-dc51-41b1-b7e9-08eeea7ded4c",
-				"b38bcdb8-37f5-4266-973b-18edac1c3efd",
-				"5cddb597-1d54-408f-b02d-89944c71b046",
-				"07777806-299d-4761-ad85-56e33abc5a1f",
-				"22304f95-31b4-4be0-ae2e-87e22107a8fd",
-				"5359b141-19b5-4ec0-ae93-2619445bcc6e",
-				"92708740-1838-4252-8b5d-6d4d75fc84ee",
 				"7f885e56-5aac-42c3-8ed6-a955f701e66a",
 				"e10669fb-7b75-4bde-b08a-394f15a0cf36",
 				"22dd4bd9-946d-4a3c-926d-6ff918b57a43",
@@ -46,6 +43,8 @@
 			"title": "Done",
 			"tasks": [
 				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
+				"92708740-1838-4252-8b5d-6d4d75fc84ee",
+				"f3bc766e-dc51-41b1-b7e9-08eeea7ded4c",
 				"0aa4da94-5476-41f5-9f7c-914d8e54a3dd",
 				"3cea7188-2cc7-43bf-b53d-19bd45ad2205",
 				"ec2c31c0-4269-4684-9db8-4a784f4f4b0a",
@@ -53,6 +52,7 @@
 				"360356df-f276-447f-b116-1f56854764c3",
 				"539b6449-6536-4fff-98b7-0715b1de46d4",
 				"cf0ff6b7-b395-4570-89a8-824bd3314373",
+				"9e4815b3-a982-4a7d-8dff-8f383c9d53ba",
 				"30493386-7cbf-4850-bbef-4c19ffbd98bf",
 				"a2c26db4-3c81-4b25-956d-fe82a24490c0",
 				"c83e6045-d63a-467b-a791-2213be22a0d3",
@@ -2004,13 +2004,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "5359b141-19b5-4ec0-ae93-2619445bcc6e",
-			"title": "longer regrow (maybe even a minute?)",
-			"description": "look into how much to fully saturate a hut (like how many trees nearby)\n",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "92708740-1838-4252-8b5d-6d4d75fc84ee",
 			"title": "attack range stays behind when cancelling a defense building",
 			"description": "",
@@ -2076,6 +2069,13 @@
 		{
 			"uuid": "1627b834-ec13-4695-a3fb-18c39a7a6f2a",
 			"title": "back to menu button",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "9e4815b3-a982-4a7d-8dff-8f383c9d53ba",
+			"title": "firepit glow doesnt survive save/load",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

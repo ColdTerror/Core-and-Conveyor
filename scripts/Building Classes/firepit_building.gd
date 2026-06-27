@@ -92,6 +92,13 @@ func _connect_time_manager():
 
 ## Gently pulses the light radius and energy each frame to simulate a live flame.
 func _process(delta: float):
+	if _time_manager:
+		if _time_manager.is_night != _is_lit:
+			if _time_manager.is_night:
+				_light_on(_time_manager.current_moon_phase)
+			else:
+				_light_off()
+
 	if not _is_lit or not _point_light:
 		return
 
