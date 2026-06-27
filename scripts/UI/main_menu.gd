@@ -32,7 +32,20 @@ extends Control
 @onready var sfx_mute = $CenterContainer/SettingsPanel/VBoxContainer/SfxMute
 @onready var settings_back_btn = $CenterContainer/SettingsPanel/VBoxContainer/Back
 
+var delete_confirm_dialog: ConfirmationDialog
+var _pending_delete_slot: int = -1
+
 func _ready():
+	# Initialize confirm delete dialog
+	delete_confirm_dialog = ConfirmationDialog.new()
+	delete_confirm_dialog.title = "Confirm Delete"
+	delete_confirm_dialog.dialog_text = "Are you sure you want to delete this save slot? This cannot be undone."
+	delete_confirm_dialog.ok_button_text = "Delete"
+	delete_confirm_dialog.cancel_button_text = "Cancel"
+	delete_confirm_dialog.process_mode = PROCESS_MODE_ALWAYS
+	delete_confirm_dialog.confirmed.connect(_on_delete_confirmed)
+	delete_confirm_dialog.canceled.connect(func(): _pending_delete_slot = -1)
+	add_child(delete_confirm_dialog)
 	# Hide overlays by default
 	load_panel.hide()
 	settings_panel.hide()
@@ -78,6 +91,7 @@ func _ready():
 			_setup_button_effects(btn)
 
 func _setup_button_effects(btn: Button):
+	var original_color = btn.self_modulate
 	# Save original pivot and scaling settings so scale anchors from the center
 	btn.pivot_offset = btn.size / 2.0
 	btn.item_rect_changed.connect(func():
@@ -87,12 +101,14 @@ func _setup_button_effects(btn: Button):
 	btn.mouse_entered.connect(func():
 		var tween = create_tween().set_parallel(true)
 		tween.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(btn, "self_modulate", Color(1.2, 1.2, 1.2), 0.15)
+		var hover_color = original_color * 1.2
+		hover_color.a = original_color.a
+		tween.tween_property(btn, "self_modulate", hover_color, 0.15)
 	)
 	btn.mouse_exited.connect(func():
 		var tween = create_tween().set_parallel(true)
 		tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(btn, "self_modulate", Color.WHITE, 0.15)
+		tween.tween_property(btn, "self_modulate", original_color, 0.15)
 	)
 
 func _on_new_game():
@@ -139,8 +155,14 @@ func _on_load_slot(slot: int):
 			_flash_button_error(target_btn)
 
 func _on_delete_slot(slot: int):
-	SaveManager.delete_save(slot)
-	_refresh_load_menu()
+	_pending_delete_slot = slot
+	delete_confirm_dialog.popup_centered()
+
+func _on_delete_confirmed():
+	if _pending_delete_slot != -1:
+		SaveManager.delete_save(_pending_delete_slot)
+		_pending_delete_slot = -1
+		_refresh_load_menu()
 
 func _refresh_load_menu():
 	_update_slot_ui(1, load_1_btn, del_1_btn)
