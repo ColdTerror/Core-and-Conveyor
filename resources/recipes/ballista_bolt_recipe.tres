@@ -8,7 +8,7 @@
 [resource]
 script = ExtResource("4_script")
 recipe_name = "Ballista Bolt"
-craft_time = 2.5
+craft_time = 5.0
 inputs = {
 ExtResource("1_plank"): 2,
 ExtResource("2_stone"): 1

@@ -27,15 +27,7 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"7f885e56-5aac-42c3-8ed6-a955f701e66a",
-				"e10669fb-7b75-4bde-b08a-394f15a0cf36",
-				"22dd4bd9-946d-4a3c-926d-6ff918b57a43",
-				"decd8a19-19d7-45ef-8e7f-7f5e88a35d98",
-				"3b2902db-9e55-4611-a8b8-662966f40d76",
-				"4cba6af2-6ee3-4f97-b14c-d3e4dacbfac9",
-				"65aca758-6c1a-49ce-a18d-5aa289ff6e24",
-				"a894b853-ba50-4d75-b477-0b12ee260337",
-				"1627b834-ec13-4695-a3fb-18c39a7a6f2a"
+				"22dd4bd9-946d-4a3c-926d-6ff918b57a43"
 			]
 		},
 		{
@@ -56,6 +48,7 @@
 				"30493386-7cbf-4850-bbef-4c19ffbd98bf",
 				"a2c26db4-3c81-4b25-956d-fe82a24490c0",
 				"c83e6045-d63a-467b-a791-2213be22a0d3",
+				"1627b834-ec13-4695-a3fb-18c39a7a6f2a",
 				"1cd8b28d-b60a-4b9f-9cd4-d2546d14f603",
 				"c7ec55c1-8cab-4ffd-b6b4-d4a836a0082e",
 				"8955bd7f-d487-4ae1-becf-f9929369e355",
@@ -64,6 +57,7 @@
 				"e3d8e9b9-08df-4e74-a33c-4a23b469f5ad",
 				"2eaa9448-74a6-4f6a-82b8-ac23ce82cf9f",
 				"e7410d80-b650-4d2e-a52a-608ef9c98908",
+				"a894b853-ba50-4d75-b477-0b12ee260337",
 				"b2cd9fd3-99a1-488e-97ac-6e0c33979863",
 				"c2fc792a-4d44-4b37-a688-3b36bfc8d6a0",
 				"3891b4b8-54ea-4e14-9ea6-a415a924710c",
@@ -71,6 +65,7 @@
 				"781f080d-7cc7-425f-93c0-0bf4d4826996",
 				"62d72723-bb50-4a58-adb6-678b23109c67",
 				"99b024a0-9250-4cff-9a42-6d56c5031440",
+				"7f885e56-5aac-42c3-8ed6-a955f701e66a",
 				"e65d93d6-ead4-4a82-a01a-e4a7d79e710c",
 				"1d081420-4c70-475a-93ea-73fe5935b8c5",
 				"df82b91c-bf12-402b-bc0f-c4bdac11ade5",
@@ -79,6 +74,7 @@
 				"599f2d37-cf48-4a46-9085-3a084df1e6ca",
 				"cd5e64c7-2064-4368-a16d-a5c4a47c7282",
 				"8b749aff-166c-424f-93d3-f9df479d8a73",
+				"e10669fb-7b75-4bde-b08a-394f15a0cf36",
 				"0f0f06a1-3b34-45a9-b058-060424e103d2",
 				"c3698bff-0223-4c9e-b3bb-a05810a41485",
 				"e027da0c-58bc-41a8-a13c-60a03ad97188",
@@ -92,6 +88,7 @@
 				"924055fc-e265-41b0-8c05-298a77d7af4a",
 				"668cc6ab-7b8f-4364-8863-c979696fb5a8",
 				"e643f502-bd6c-437c-843e-0ab8fa1f4d1e",
+				"3b2902db-9e55-4611-a8b8-662966f40d76",
 				"b8054745-f709-48b3-a60c-1d0f66c06097",
 				"8340d90d-f07b-4ed9-9608-296c9390ce8f",
 				"8bf905f6-f048-41be-a1c5-8594f2b2da7c",
@@ -118,6 +115,7 @@
 				"8f825bdc-0652-4811-bb65-88a41be5e9c0",
 				"b14d5553-5e6b-436d-8d28-40f599656aa5",
 				"9b9dbae0-896f-472e-873b-345eeb2e8c43",
+				"4cba6af2-6ee3-4f97-b14c-d3e4dacbfac9",
 				"05c13da7-5cee-4d62-81bb-1688ba2f2444",
 				"4a77e9a5-ca5e-4678-9dcd-fa146955a813",
 				"c1c3c2be-8b67-45d3-8120-ecfafef36084",
@@ -2048,13 +2046,6 @@
 		{
 			"uuid": "4cba6af2-6ee3-4f97-b14c-d3e4dacbfac9",
 			"title": "firepit light should be way bigger, also maybe have torches for smaller range plus smaller light but they are 1x1",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "65aca758-6c1a-49ce-a18d-5aa289ff6e24",
-			"title": "core should also have a light",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

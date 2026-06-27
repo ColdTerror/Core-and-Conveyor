@@ -142,7 +142,7 @@ selectable = false
 title = "Core Expansion 1"
 slot/0/left_enabled = false
 research_name = "Core Expansion 1"
-desc = "Unlock Tier 0 Research"
+desc = "Unlock Tier 1 Research"
 research_cost = {
 ExtResource("3_xgb3y"): 1
 }
@@ -260,7 +260,7 @@ draggable = false
 selectable = false
 title = "Core Expansion 2"
 research_name = "Core Expansion 2"
-desc = "Unlock Tier 1 Research"
+desc = "Unlock Tier 2 Research"
 research_cost = {
 ExtResource("3_xgb3y"): 1
 }
@@ -379,7 +379,7 @@ selectable = false
 title = "Core Expansion 3"
 slot/0/right_enabled = false
 research_name = "Core Expansion 3"
-desc = "Unlock Tier 2 Research"
+desc = "Unlock Tier 3 Research"
 research_cost = {
 ExtResource("3_xgb3y"): 1
 }

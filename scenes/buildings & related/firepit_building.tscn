@@ -13,6 +13,7 @@ region = Rect2(416, 192, 64, 64)
 
 [node name="FirepitBuilding" type="Node2D" unique_id=649498052]
 script = ExtResource("1_firepit")
+light_range = 480.0
 building_name = "Firepit"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_56aoo")

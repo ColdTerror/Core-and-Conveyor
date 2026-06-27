@@ -15,7 +15,6 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [node name="BowTower2" type="Node2D" unique_id=454978287 groups=["PriorityTarget", "Structure"]]
 script = ExtResource("1_h21cw")
-compatible_ammo_types = Array[String](["Arrow", "Pebble"])
 attack_range = 10
 fire_rate = 2.0
 damage_multiplier = 1.5

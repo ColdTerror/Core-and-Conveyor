@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_script")
 recipe_name = "Boulder"
-craft_time = 3.0
+craft_time = 5.0
 inputs = {
 ExtResource("1_stone"): 2
 }
