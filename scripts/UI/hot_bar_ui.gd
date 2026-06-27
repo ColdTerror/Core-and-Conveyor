@@ -45,7 +45,10 @@ const BUILDING_DESCRIPTIONS: Dictionary = {
 	"Ammo Distributor": "Distributes ammo from conveyors to adjacent defense towers.",
 	"Stockpile": "A local warehouse that stores items and can output selected items onto belts.",
 	"Firepit": "Illuminates the night, repels the corruption, and keeps nearby units safe.",
-	"QuotaBuilding": "Tracks milestone delivery quotas for resource processing."
+	"QuotaBuilding": "Tracks milestone delivery quotas for resource processing.",
+	"Deconstruct": "Click and drag over structures to dismantle them.",
+	"Upgrade": "Activate global upgrade brush mode. Click buildings to level them up.",
+	"Terraform": "Click and drag over terrain tiles to assign terraforming construction sites."
 }
 
 
@@ -178,8 +181,8 @@ func _on_button_hovered(label_text: String, data, is_building: bool):
 	
 	if label_text == "Back":
 		desc = "Return to the previous category menu."
-	elif label_text in ["Logistics", "Production", "Defense", "Infrastructure"]:
-		title = label_text + " Blueprints"
+	elif label_text in ["Logistics", "Production", "Defense", "Infrastructure",  "Tools"]:
+		title = label_text
 		if label_text == "Logistics":
 			desc = "Conveyors, splitters, filters, and launchers to transport items around."
 		elif label_text == "Production":
@@ -188,6 +191,8 @@ func _on_button_hovered(label_text: String, data, is_building: bool):
 			desc = "Towers, walls, and ammo distribution systems to defend the core."
 		elif label_text == "Infrastructure":
 			desc = "Storage stockpiles, lighting, and milestone goal objectives."
+		elif label_text == "Tools":
+			desc = "Dismantle, upgrade, and terraform tools to manage and reshape your factory."
 	else:
 		desc = BUILDING_DESCRIPTIONS.get(label_text, "A structure for your base.")
 		

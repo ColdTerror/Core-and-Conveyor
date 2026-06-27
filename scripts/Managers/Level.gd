@@ -212,7 +212,6 @@ func _on_core_placed():
 	_show_main_categories()
 
 
-
 ## Renders primary building type folders in the hotbar HUD.
 func _show_main_categories():
 	if hotbar.has_method("clear_buttons"):
@@ -222,6 +221,7 @@ func _show_main_categories():
 	_add_category_button("Production")
 	_add_category_button("Defense")
 	_add_category_button("Infrastructure")
+	_add_category_button("Tools")
 
 
 
@@ -232,11 +232,16 @@ func _show_category(category_name: String):
 		
 	hotbar.add_button("Back", null, "ACTION_BACK", false)
 	
-	var items = categorized_buildings[category_name]
-	for item in items:
-		if item["name"] in ["Launcher", "Receiver"] and not ("Pneumatic Logistics" in ResearchManager.unlocked_techs):
-			continue
-		_add_building_to_bar(item["name"], item["scene"])
+	if category_name == "Tools":
+		hotbar.add_button("Deconstruct", null, "ACTION_DECONSTRUCT", false)
+		hotbar.add_button("Upgrade", null, "ACTION_UPGRADE", false)
+		hotbar.add_button("Terraform", null, "ACTION_TERRAFORM", false)
+	else:
+		var items = categorized_buildings[category_name]
+		for item in items:
+			if item["name"] in ["Launcher", "Receiver"] and not ("Pneumatic Logistics" in ResearchManager.unlocked_techs):
+				continue
+			_add_building_to_bar(item["name"], item["scene"])
 
 
 
@@ -270,6 +275,12 @@ func _on_hotbar_item_selected(data, is_building):
 				_show_category(cat_name)
 			elif data == "ACTION_BACK":
 				_show_main_categories()
+			elif data == "ACTION_DECONSTRUCT":
+				InputManager.current_mode = InputManager.InteractionMode.DECONSTRUCT
+			elif data == "ACTION_UPGRADE":
+				InputManager.current_mode = InputManager.InteractionMode.UPGRADE
+			elif data == "ACTION_TERRAFORM":
+				InputManager.current_mode = InputManager.InteractionMode.TERRAFORM
 
 
 
