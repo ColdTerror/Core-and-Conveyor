@@ -19,6 +19,7 @@ extends PanelContainer
 
 var selected_object: Node2D = null
 var active_recipe_dropdown: OptionButton = null
+var _showing_upgrade_screen: bool = false
 
 signal menu_closed
 signal research_button_clicked
@@ -186,6 +187,7 @@ func open_menu(target: Node2D):
 		close_menu()
 		return
 	
+	_showing_upgrade_screen = false
 	var is_new_target = (selected_object != target)
 	var was_closed = not visible
 		
@@ -294,6 +296,10 @@ func refresh_ui():
 	for child in action_container.get_children():
 		child.queue_free()
 
+	if _showing_upgrade_screen:
+		_setup_upgrade_ui()
+		return
+
 	info_label.modulate = Color.WHITE
 	info_label.visible = true
 
@@ -326,6 +332,13 @@ func refresh_ui():
 			if building_manager.has_method("start_relocating"):
 				building_manager.start_relocating(selected_object)
 				close_menu()
+		)
+	
+	# Check if this building has an upgrade path
+	if selected_object is Building and "upgrades_to" in selected_object and selected_object.upgrades_to != null:
+		_create_button("Upgrade", Color(1.0, 0.8, 0.2), func():
+			_showing_upgrade_screen = true
+			refresh_ui()
 		)
 	
 	if selected_object is ProcessorBuilding:
@@ -938,3 +951,110 @@ func _setup_receiver_ui(b: ItemReceiver):
 			counts[item.display_name] = counts.get(item.display_name, 0) + 1
 		for name in counts.keys():
 			info_label.text += "\n • %s: %d" % [name, counts[name]]
+
+
+func _setup_upgrade_ui():
+	var old_b = selected_object as Building
+	if not old_b or not old_b.upgrades_to:
+		_showing_upgrade_screen = false
+		refresh_ui()
+		return
+		
+	# Instantiate upgraded template to compare stats
+	var new_b = old_b.upgrades_to.instantiate() as Building
+	var stat_diff = _get_upgrade_stat_diff(old_b, new_b)
+	new_b.queue_free() # Clean up template
+	
+	# Get costs & affordability
+	var upgrade_cost_dict = {}
+	var cost_lines: Array[String] = []
+	var can_afford_instant = true
+	
+	for cost in old_b.upgrade_cost:
+		upgrade_cost_dict[cost.item_name] = cost.amount
+		var owned = EconomyManager.global_inventory.get(cost.item_name, 0)
+		var display_cost = " • %s: %d (Owned: %d)" % [cost.item_name, cost.amount, owned]
+		if owned < cost.amount:
+			display_cost += " [LACKING]"
+			can_afford_instant = false
+		cost_lines.append(display_cost)
+		
+	var is_instant = old_b is ConveyorBuilding or old_b is WallBuilding
+	var cost_text = ""
+	if cost_lines.is_empty():
+		cost_text = " • Free"
+	else:
+		cost_text = "\n".join(cost_lines)
+		
+	var target_tier_name = new_b.building_name
+	title_label.text = "Upgrade: %s" % target_tier_name
+	
+	var mode_text = "Instant upgrade." if is_instant else "Blueprint: worker bots will deliver materials over time."
+	
+	info_label.modulate = Color.WHITE
+	info_label.text = "Cost:\n%s\n\nStat Changes:\n%s\n\n(%s)" % [cost_text, stat_diff, mode_text]
+	
+	# Buttons
+	var confirm_color = Color(0.2, 0.9, 0.2)
+	var confirm_label = "Confirm Upgrade"
+	
+	if is_instant and not can_afford_instant:
+		confirm_color = Color(0.5, 0.5, 0.5)
+		confirm_label = "Cannot Afford"
+		
+	# Create Confirm Button
+	var confirm_btn = Button.new()
+	confirm_btn.text = confirm_label
+	confirm_btn.modulate = confirm_color
+	if not (is_instant and not can_afford_instant):
+		confirm_btn.pressed.connect(func():
+			var success = building_manager.upgrade_building_at(old_b.grid_origin)
+			if success:
+				close_menu()
+			else:
+				confirm_btn.text = "Upgrade Failed"
+				confirm_btn.modulate = Color(1.0, 0.2, 0.2)
+		)
+	action_container.add_child(confirm_btn)
+	
+	# Create Back Button
+	_create_button("Back", Color(0.9, 0.9, 0.9), func():
+		_showing_upgrade_screen = false
+		refresh_ui()
+	)
+
+
+func _get_upgrade_stat_diff(old_b: Building, new_b: Building) -> String:
+	var diff_lines: Array[String] = []
+	
+	_add_stat_diff(diff_lines, "Max HP", old_b.max_health, new_b.max_health)
+	
+	if "scan_radius" in old_b and "scan_radius" in new_b:
+		_add_stat_diff(diff_lines, "Scan Radius", old_b.get("scan_radius"), new_b.get("scan_radius"), " tiles")
+	if "harvest_damage" in old_b and "harvest_damage" in new_b:
+		_add_stat_diff(diff_lines, "Harvest Speed", old_b.get("harvest_damage"), new_b.get("harvest_damage"), " dmg/tick")
+	if "work_interval" in old_b and "work_interval" in new_b:
+		_add_stat_diff(diff_lines, "Work Interval", old_b.get("work_interval"), new_b.get("work_interval"), "s")
+		
+	if "attack_range" in old_b and "attack_range" in new_b:
+		_add_stat_diff(diff_lines, "Range", old_b.get("attack_range") / 32.0, new_b.get("attack_range") / 32.0, " tiles")
+	if "damage_multiplier" in old_b and "damage_multiplier" in new_b:
+		_add_stat_diff(diff_lines, "Damage Mult", old_b.get("damage_multiplier"), new_b.get("damage_multiplier"), "x")
+	if "fire_rate" in old_b and "fire_rate" in new_b:
+		_add_stat_diff(diff_lines, "Fire Rate", old_b.get("fire_rate"), new_b.get("fire_rate"), "/s")
+	if "ammo_capacity" in old_b and "ammo_capacity" in new_b:
+		_add_stat_diff(diff_lines, "Ammo Capacity", old_b.get("ammo_capacity"), new_b.get("ammo_capacity"))
+
+	if "buffer_capacity" in old_b and "buffer_capacity" in new_b:
+		_add_stat_diff(diff_lines, "Buffer Size", old_b.get("buffer_capacity"), new_b.get("buffer_capacity"))
+	if "inventory_capacity" in old_b and "inventory_capacity" in new_b:
+		_add_stat_diff(diff_lines, "Inv Capacity", old_b.get("inventory_capacity"), new_b.get("inventory_capacity"))
+		
+	if diff_lines.is_empty():
+		return " • No stat changes"
+	return "\n".join(diff_lines)
+
+
+func _add_stat_diff(diff_lines: Array, label: String, old_val, new_val, suffix: String = ""):
+	if old_val != new_val:
+		diff_lines.append(" • %s: %s -> %s%s" % [label, str(old_val), str(new_val), suffix])
