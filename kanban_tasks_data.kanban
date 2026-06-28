@@ -27,7 +27,13 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"22dd4bd9-946d-4a3c-926d-6ff918b57a43"
+				"22dd4bd9-946d-4a3c-926d-6ff918b57a43",
+				"5679a288-363e-44b2-804b-4069f914fa9c",
+				"9521ceb5-47fe-4485-8714-a6765330edf5",
+				"65690e99-df52-489e-9be1-4101f4572863",
+				"f4b5e0f6-4e5a-405a-a767-a7194bb77dc0",
+				"da1a4637-42fa-4182-a3b8-cf67ec889f2c",
+				"109faa41-3763-49bd-850a-9cfb7a1b5a20"
 			]
 		},
 		{
@@ -42,6 +48,7 @@
 				"ec2c31c0-4269-4684-9db8-4a784f4f4b0a",
 				"06f4606d-2b6a-434b-80ac-8d483b76a525",
 				"360356df-f276-447f-b116-1f56854764c3",
+				"576e2c9b-11f4-4d65-ab02-b78480c9efee",
 				"539b6449-6536-4fff-98b7-0715b1de46d4",
 				"cf0ff6b7-b395-4570-89a8-824bd3314373",
 				"9e4815b3-a982-4a7d-8dff-8f383c9d53ba",
@@ -2067,6 +2074,55 @@
 		{
 			"uuid": "9e4815b3-a982-4a7d-8dff-8f383c9d53ba",
 			"title": "firepit glow doesnt survive save/load",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "5679a288-363e-44b2-804b-4069f914fa9c",
+			"title": "bot sees wood hut as good deposit spot",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "9521ceb5-47fe-4485-8714-a6765330edf5",
+			"title": "bit faster harvesting time",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "65690e99-df52-489e-9be1-4101f4572863",
+			"title": "bot pathfinding for finding resources is still weird",
+			"description": "it can find the closest resource as one across the lake instead of one on the bottom and walks past it",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f4b5e0f6-4e5a-405a-a767-a7194bb77dc0",
+			"title": "sort options for resources in manage menu",
+			"description": "a-z\nz-a\namount increasing \namount decreasing\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "da1a4637-42fa-4182-a3b8-cf67ec889f2c",
+			"title": "unsecured resource ui should always be present for the hotbar scaling",
+			"description": "maybe just reduce the alpha to 0 when there are none or do +0",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "576e2c9b-11f4-4d65-ab02-b78480c9efee",
+			"title": "topbar pinned resources max should be 5 with smaller font",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "109faa41-3763-49bd-850a-9cfb7a1b5a20",
+			"title": "pinned resources arent saved",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

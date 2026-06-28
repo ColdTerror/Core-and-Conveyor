@@ -1,22 +1,22 @@
 [gd_scene format=3 uid="uid://cx3optxkkh1ge"]
 
-[ext_resource type="Script" uid="uid://b1gresourcehuditemscript" path="res://scripts/UI/resource_hud_item.gd" id="1_item_script"]
-[ext_resource type="PackedScene" uid="uid://b1gflapcounter" path="res://scenes/ui/split_flap_counter.tscn" id="2_counter_scene"]
+[ext_resource type="Script" uid="uid://54ldprhjh7ft" path="res://scripts/UI/resource_hud_item.gd" id="1_item_script"]
+[ext_resource type="PackedScene" uid="uid://chbjfujwemo1b" path="res://scenes/ui/split_flap_counter.tscn" id="2_counter_scene"]
 
-[node name="ResourceHUDItem" type="HBoxContainer"]
+[node name="ResourceHUDItem" type="HBoxContainer" unique_id=834261218]
 theme_override_constants/separation = 4
 alignment = 1
 script = ExtResource("1_item_script")
 
-[node name="NameLabel" type="Label" parent="."]
+[node name="NameLabel" type="Label" parent="." unique_id=1459061027]
 layout_mode = 2
 text = "  Wood: "
 vertical_alignment = 1
 
-[node name="SplitFlapCounter" parent="." instance=ExtResource("2_counter_scene")]
+[node name="SplitFlapCounter" parent="." unique_id=1617729289 instance=ExtResource("2_counter_scene")]
 layout_mode = 2
 
-[node name="UnsecuredLabel" type="Label" parent="."]
+[node name="UnsecuredLabel" type="Label" parent="." unique_id=1537876883]
 layout_mode = 2
 text = "(+0)  "
 vertical_alignment = 1

@@ -159,22 +159,27 @@ func archive_daily_stats(day_number: int):
 
 
 
-## Packs production metrics and statistics history archives into a dictionary for saves.
+## Packs production metrics, statistics history archives, and pinned resources into a dictionary for saves.
 func get_save_data() -> Dictionary:
 	return {
 		"daily_production": daily_production,
 		"daily_consumption": daily_consumption,
-		"history_archive": history_archive
+		"history_archive": history_archive,
+		"pinned_resources": pinned_resources
 	}
 
 
-## Unpacks saved statistics data and daily history logs.
+## Unpacks saved statistics data, daily history logs, and pinned resources.
 func load_save_data(data: Dictionary):
 	daily_production = data.get("daily_production", {})
 	daily_consumption = data.get("daily_consumption", {})
 	history_archive.clear()
 	if data.has("history_archive"):
 		history_archive.assign(data["history_archive"])
+	if data.has("pinned_resources"):
+		pinned_resources.clear()
+		for item in data["pinned_resources"]:
+			pinned_resources.append(str(item))
 	stats_updated.emit()
 
 

@@ -320,8 +320,8 @@ func update_labels():
 	# Get the full unsecured map once to avoid calling it in the loop
 	var unsecured_map = EconomyManager.get_unsecured_inventory()
 
-	# Loop through ONLY the pinned list (capped at 10 items)
-	var max_slots = min(EconomyManager.pinned_resources.size(), 10)
+	# Loop through ONLY the pinned list (capped at 5 items to prevent HUD overlaps)
+	var max_slots = min(EconomyManager.pinned_resources.size(), 5)
 	for i in range(max_slots):
 		var resource_name = EconomyManager.pinned_resources[i]
 		

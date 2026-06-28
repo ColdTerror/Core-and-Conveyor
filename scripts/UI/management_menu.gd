@@ -295,7 +295,7 @@ func _refresh_resource_tab():
 		child.queue_free()
 		
 	var header = Label.new()
-	header.text = "Top Bar Pinned Resources (Max 10)"
+	header.text = "Top Bar Pinned Resources (Max 5)"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	header.modulate = Color(0.8, 0.8, 0.8)
 	resource_list_container.add_child(header)
