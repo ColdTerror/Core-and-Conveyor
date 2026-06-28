@@ -10,13 +10,11 @@
 extends Control
 
 @onready var inventoryContainer = $InventoryPanel/HBoxContainer
-@onready var dateLabel = $VBoxContainer/DateLabel
-@onready var waveLabel = $VBoxContainer/WaveLabel
 
 @onready var overlayLabel = $VBoxContainer/OverlayLabel
 
-@onready var corruptionLabel = $VBoxContainer/CorruptionLabel
-@onready var corruptionBar = $VBoxContainer/CorruptionBar
+
+
 
 @onready var costPanel = $CostPanel
 @onready var costLabel = $CostPanel/CostLabel
@@ -54,6 +52,10 @@ var corruption_hud: HBoxContainer
 var corruption_digits: Array = []
 var percent_digits: Array = []
 
+var threshold_hud: HBoxContainer
+var threshold_digits: Array = []
+var threshold_lbl_right: Label
+
 
 
 ## Connects signals from EconomyManager, TimeManager, and BuildingManager, and hides the game over panel.
@@ -71,14 +73,11 @@ func _ready():
 		building_manager.placement_cost_updated.connect(_on_placement_cost_updated)
 		building_manager.placement_ended.connect(_on_placement_ended)
 
-	# Hide original static labels
-	if dateLabel: dateLabel.hide()
-	if waveLabel: waveLabel.hide()
-	if corruptionLabel: corruptionLabel.hide()
+
 	
 	# Instantiate dynamic Date HUD
 	date_hud = HBoxContainer.new()
-	date_hud.alignment = HBoxContainer.ALIGNMENT_END
+	date_hud.alignment = HBoxContainer.ALIGNMENT_CENTER
 	date_hud.add_theme_constant_override("separation", 4)
 	$VBoxContainer.add_child(date_hud)
 	# Move to top of VBoxContainer
@@ -86,33 +85,33 @@ func _ready():
 	
 	var yr_pref = Label.new()
 	yr_pref.text = "Yr "
-	yr_pref.add_theme_font_size_override("font_size", 16)
+	yr_pref.add_theme_font_size_override("font_size", 20)
 	date_hud.add_child(yr_pref)
 	yr_digits = _create_digit_list(date_hud, 2)
 	
 	season_label = Label.new()
-	season_label.text = " - Spring  Day "
-	season_label.add_theme_font_size_override("font_size", 16)
+	season_label.text = " Spring "
+	season_label.add_theme_font_size_override("font_size", 20)
 	date_hud.add_child(season_label)
 	day_digits = _create_digit_list(date_hud, 1)
 	
 	time_separator = Label.new()
-	time_separator.text = "   "
-	time_separator.add_theme_font_size_override("font_size", 16)
+	time_separator.text = " "
+	time_separator.add_theme_font_size_override("font_size", 20)
 	date_hud.add_child(time_separator)
 	
 	hour_digits = _create_digit_list(date_hud, 2)
 	
 	clock_divider = Label.new()
 	clock_divider.text = ":"
-	clock_divider.add_theme_font_size_override("font_size", 16)
+	clock_divider.add_theme_font_size_override("font_size", 20)
 	date_hud.add_child(clock_divider)
 	
 	minute_digits = _create_digit_list(date_hud, 2)
 	
 	# Instantiate dynamic Wave HUD
 	wave_hud = HBoxContainer.new()
-	wave_hud.alignment = HBoxContainer.ALIGNMENT_END
+	wave_hud.alignment = HBoxContainer.ALIGNMENT_CENTER
 	wave_hud.add_theme_constant_override("separation", 4)
 	$VBoxContainer.add_child(wave_hud)
 	# Move after date_hud
@@ -120,19 +119,19 @@ func _ready():
 	
 	var wave_pref = Label.new()
 	wave_pref.text = "Night "
-	wave_pref.add_theme_font_size_override("font_size", 16)
+	wave_pref.add_theme_font_size_override("font_size", 20)
 	wave_hud.add_child(wave_pref)
 	wave_digits = _create_digit_list(wave_hud, 2)
 	
 	var queue_lbl = Label.new()
 	queue_lbl.text = "  Queue "
-	queue_lbl.add_theme_font_size_override("font_size", 16)
+	queue_lbl.add_theme_font_size_override("font_size", 20)
 	wave_hud.add_child(queue_lbl)
 	queue_digits = _create_digit_list(wave_hud, 3)
 	
 	var active_lbl = Label.new()
 	active_lbl.text = "  Active "
-	active_lbl.add_theme_font_size_override("font_size", 16)
+	active_lbl.add_theme_font_size_override("font_size", 20)
 	wave_hud.add_child(active_lbl)
 	active_digits = _create_digit_list(wave_hud, 3)
 	
@@ -140,14 +139,14 @@ func _ready():
 	
 	# Status label for non-wave times
 	wave_status_label = Label.new()
-	wave_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	wave_status_label.add_theme_font_size_override("font_size", 16)
+	wave_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	wave_status_label.add_theme_font_size_override("font_size", 20)
 	$VBoxContainer.add_child(wave_status_label)
 	$VBoxContainer.move_child(wave_status_label, 2)
 
 	# Instantiate dynamic Corruption HUD
 	corruption_hud = HBoxContainer.new()
-	corruption_hud.alignment = HBoxContainer.ALIGNMENT_END
+	corruption_hud.alignment = HBoxContainer.ALIGNMENT_CENTER
 	corruption_hud.add_theme_constant_override("separation", 4)
 	$VBoxContainer.add_child(corruption_hud)
 	# Place at original label index
@@ -155,28 +154,53 @@ func _ready():
 	
 	var corr_lbl = Label.new()
 	corr_lbl.text = "Corruption Tier "
-	corr_lbl.add_theme_font_size_override("font_size", 16)
+	corr_lbl.add_theme_font_size_override("font_size", 20)
 	corr_lbl.modulate = Color(0.8, 0.2, 1.0)
 	corruption_hud.add_child(corr_lbl)
 	corruption_digits = _create_digit_list(corruption_hud, 2)
 	
 	var pct_space = Label.new()
 	pct_space.text = "   "
-	pct_space.add_theme_font_size_override("font_size", 16)
+	pct_space.add_theme_font_size_override("font_size", 20)
 	corruption_hud.add_child(pct_space)
 	
 	percent_digits = _create_digit_list(corruption_hud, 2)
 	
 	var pct_lbl = Label.new()
 	pct_lbl.text = "%"
-	pct_lbl.add_theme_font_size_override("font_size", 16)
+	pct_lbl.add_theme_font_size_override("font_size", 20)
 	pct_lbl.modulate = Color(0.8, 0.2, 1.0)
 	corruption_hud.add_child(pct_lbl)
 	
-	# Hide visual progress bar completely
-	if corruptionBar: corruptionBar.hide()
+	# Instantiate dynamic Threshold HUD
+	threshold_hud = HBoxContainer.new()
+	threshold_hud.alignment = HBoxContainer.ALIGNMENT_CENTER
+	threshold_hud.add_theme_constant_override("separation", 4)
+	$VBoxContainer.add_child(threshold_hud)
+	$VBoxContainer.move_child(threshold_hud, 4)
+	
+	var thresh_lbl_left = Label.new()
+	thresh_lbl_left.text = "Threshold "
+	thresh_lbl_left.add_theme_font_size_override("font_size", 20)
+	thresh_lbl_left.modulate = Color(1.0, 0.8, 0.2)
+	threshold_hud.add_child(thresh_lbl_left)
+	
+	threshold_digits = _create_digit_list(threshold_hud, 2)
+	
+	threshold_lbl_right = Label.new()
+	threshold_lbl_right.text = "  [+ / -]   |   Numbers: OFF  [N]"
+	threshold_lbl_right.add_theme_font_size_override("font_size", 20)
+	threshold_lbl_right.modulate = Color(1.0, 0.8, 0.2)
+	threshold_hud.add_child(threshold_lbl_right)
+	
+	threshold_hud.hide()
 
-
+	# Guarantee vertical VBoxContainer sorting order (index 0 is top, 5 is bottom)
+	$VBoxContainer.move_child(date_hud, 0)
+	$VBoxContainer.move_child(wave_hud, 1)
+	$VBoxContainer.move_child(wave_status_label, 2)
+	$VBoxContainer.move_child(corruption_hud, 3)
+	$VBoxContainer.move_child(threshold_hud, 4)
 
 ## Updates gameplay labels including the clock, wave forecast, corruption state, and safe grid metrics.
 func _process(_delta):
@@ -189,7 +213,7 @@ func _process(_delta):
 		var day_in_season = (time_manager.current_day - 1) % 7 + 1
 		
 		_set_digits_value(yr_digits, time_manager.get_current_year())
-		season_label.text = " - %s  Day " % time_manager.get_season_name()
+		season_label.text = " %s " % time_manager.get_season_name()
 		_set_digits_value(day_digits, day_in_season)
 		
 		_set_digits_value(hour_digits, hours)
@@ -271,15 +295,14 @@ func _process(_delta):
 		_set_digits_value(percent_digits, pct)
 	
 	# Update overlay threshold UI
-	if building_manager and overlayLabel:
+	if building_manager and threshold_hud:
 		if building_manager.show_safe_grid or building_manager.show_attack_grid:
+			threshold_hud.show()
+			_set_digits_value(threshold_digits, building_manager.overlay_threshold)
 			var num_status = "ON" if building_manager.show_overlay_numbers else "OFF"
-			overlayLabel.text = "Threshold: %d  [+ / -]   |   Numbers: %s  [N]" % [building_manager.overlay_threshold, num_status]
-			
-			overlayLabel.modulate = Color(1.0, 0.8, 0.2)
-			overlayLabel.show()
+			threshold_lbl_right.text = "  [+ / -]   |   Numbers: %s  [N]" % num_status
 		else:
-			overlayLabel.hide()
+			threshold_hud.hide()
 	
 	# Move the costPanel to follow mouse
 	if costPanel.visible: 
