@@ -45,6 +45,16 @@ func _ready():
 	_reset_flap_state()
 	
 
+func set_size_custom(new_width: float, new_height: float, new_font_size: int):
+	custom_minimum_size = Vector2(new_width, new_height)
+	size = Vector2(new_width, new_height)
+	font_size = new_font_size
+	for label in [top_label, bottom_label, flap_label]:
+		if label:
+			label.add_theme_font_size_override("font_size", new_font_size)
+	_reset_flap_state()
+	
+
 func _process(delta):
 	if auto_count_up:
 		test_timer += delta

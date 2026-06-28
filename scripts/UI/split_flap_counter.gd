@@ -18,3 +18,9 @@ func set_value(val: int):
 	var val_str = "%04d" % val
 	for i in range(4):
 		digits[i].set_target_character(val_str[i])
+
+
+func set_size_custom(new_width: float, new_height: float, new_font_size: int):
+	for d in digits:
+		if d:
+			d.set_size_custom(new_width, new_height, new_font_size)

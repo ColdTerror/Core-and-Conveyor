@@ -33,6 +33,27 @@ extends Control
 
 var resource_labels: Dictionary = {}
 
+const DIGIT_SCENE = preload("res://scenes/ui/split_flap_digit.tscn")
+
+var date_hud: HBoxContainer
+var yr_digits: Array = []
+var season_label: Label
+var day_digits: Array = []
+var time_separator: Label
+var hour_digits: Array = []
+var clock_divider: Label
+var minute_digits: Array = []
+
+var wave_hud: HBoxContainer
+var wave_digits: Array = []
+var queue_digits: Array = []
+var active_digits: Array = []
+var wave_status_label: Label
+
+var corruption_hud: HBoxContainer
+var corruption_digits: Array = []
+var percent_digits: Array = []
+
 
 
 ## Connects signals from EconomyManager, TimeManager, and BuildingManager, and hides the game over panel.
@@ -50,41 +71,152 @@ func _ready():
 		building_manager.placement_cost_updated.connect(_on_placement_cost_updated)
 		building_manager.placement_ended.connect(_on_placement_ended)
 
+	# Hide original static labels
+	if dateLabel: dateLabel.hide()
+	if waveLabel: waveLabel.hide()
+	if corruptionLabel: corruptionLabel.hide()
+	
+	# Instantiate dynamic Date HUD
+	date_hud = HBoxContainer.new()
+	date_hud.alignment = HBoxContainer.ALIGNMENT_END
+	date_hud.add_theme_constant_override("separation", 4)
+	$VBoxContainer.add_child(date_hud)
+	# Move to top of VBoxContainer
+	$VBoxContainer.move_child(date_hud, 0)
+	
+	var yr_pref = Label.new()
+	yr_pref.text = "Yr "
+	yr_pref.add_theme_font_size_override("font_size", 16)
+	date_hud.add_child(yr_pref)
+	yr_digits = _create_digit_list(date_hud, 2)
+	
+	season_label = Label.new()
+	season_label.text = " - Spring  Day "
+	season_label.add_theme_font_size_override("font_size", 16)
+	date_hud.add_child(season_label)
+	day_digits = _create_digit_list(date_hud, 1)
+	
+	time_separator = Label.new()
+	time_separator.text = "   "
+	time_separator.add_theme_font_size_override("font_size", 16)
+	date_hud.add_child(time_separator)
+	
+	hour_digits = _create_digit_list(date_hud, 2)
+	
+	clock_divider = Label.new()
+	clock_divider.text = ":"
+	clock_divider.add_theme_font_size_override("font_size", 16)
+	date_hud.add_child(clock_divider)
+	
+	minute_digits = _create_digit_list(date_hud, 2)
+	
+	# Instantiate dynamic Wave HUD
+	wave_hud = HBoxContainer.new()
+	wave_hud.alignment = HBoxContainer.ALIGNMENT_END
+	wave_hud.add_theme_constant_override("separation", 4)
+	$VBoxContainer.add_child(wave_hud)
+	# Move after date_hud
+	$VBoxContainer.move_child(wave_hud, 1)
+	
+	var wave_pref = Label.new()
+	wave_pref.text = "Night "
+	wave_pref.add_theme_font_size_override("font_size", 16)
+	wave_hud.add_child(wave_pref)
+	wave_digits = _create_digit_list(wave_hud, 2)
+	
+	var queue_lbl = Label.new()
+	queue_lbl.text = "  Queue "
+	queue_lbl.add_theme_font_size_override("font_size", 16)
+	wave_hud.add_child(queue_lbl)
+	queue_digits = _create_digit_list(wave_hud, 3)
+	
+	var active_lbl = Label.new()
+	active_lbl.text = "  Active "
+	active_lbl.add_theme_font_size_override("font_size", 16)
+	wave_hud.add_child(active_lbl)
+	active_digits = _create_digit_list(wave_hud, 3)
+	
+	wave_hud.hide() # Hidden by default until wave active
+	
+	# Status label for non-wave times
+	wave_status_label = Label.new()
+	wave_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	wave_status_label.add_theme_font_size_override("font_size", 16)
+	$VBoxContainer.add_child(wave_status_label)
+	$VBoxContainer.move_child(wave_status_label, 2)
+
+	# Instantiate dynamic Corruption HUD
+	corruption_hud = HBoxContainer.new()
+	corruption_hud.alignment = HBoxContainer.ALIGNMENT_END
+	corruption_hud.add_theme_constant_override("separation", 4)
+	$VBoxContainer.add_child(corruption_hud)
+	# Place at original label index
+	$VBoxContainer.move_child(corruption_hud, 4)
+	
+	var corr_lbl = Label.new()
+	corr_lbl.text = "Corruption Tier "
+	corr_lbl.add_theme_font_size_override("font_size", 16)
+	corr_lbl.modulate = Color(0.8, 0.2, 1.0)
+	corruption_hud.add_child(corr_lbl)
+	corruption_digits = _create_digit_list(corruption_hud, 2)
+	
+	var pct_space = Label.new()
+	pct_space.text = "   "
+	pct_space.add_theme_font_size_override("font_size", 16)
+	corruption_hud.add_child(pct_space)
+	
+	percent_digits = _create_digit_list(corruption_hud, 2)
+	
+	var pct_lbl = Label.new()
+	pct_lbl.text = "%"
+	pct_lbl.add_theme_font_size_override("font_size", 16)
+	pct_lbl.modulate = Color(0.8, 0.2, 1.0)
+	corruption_hud.add_child(pct_lbl)
+	
+	# Hide visual progress bar completely
+	if corruptionBar: corruptionBar.hide()
+
 
 
 ## Updates gameplay labels including the clock, wave forecast, corruption state, and safe grid metrics.
 func _process(_delta):
 	# Update the clock
-	if time_manager and dateLabel:
+	if time_manager:
 		var time = time_manager.current_time
 		var hours = int(time)
 		var minutes = int((time - hours) * 60.0)
-		var time_string = "%02d:%02d" % [hours, minutes]
 		
 		var day_in_season = (time_manager.current_day - 1) % 7 + 1
-		dateLabel.text = "Year %d - %s | Day %d | %s" % [
-			time_manager.get_current_year(),
-			time_manager.get_season_name(),
-			day_in_season,
-			time_string
-		]
+		
+		_set_digits_value(yr_digits, time_manager.get_current_year())
+		season_label.text = " - %s  Day " % time_manager.get_season_name()
+		_set_digits_value(day_digits, day_in_season)
+		
+		_set_digits_value(hour_digits, hours)
+		_set_digits_value(minute_digits, minutes)
 
 	# Update combat stats
-	if wave_manager and waveLabel:
+	if wave_manager:
 		var enemies_alive = get_tree().get_nodes_in_group("Enemies").size()
 		
 		if wave_manager.is_wave_active or enemies_alive > 0:
-			waveLabel.text = "Night %d | Queue: %d | Active: %d" % [
-				wave_manager.current_wave, 
-				wave_manager.enemies_to_spawn, 
-				enemies_alive
-			]
-			waveLabel.modulate = Color(1.0, 0.4, 0.4) 
+			wave_hud.show()
+			wave_status_label.hide()
+			
+			_set_digits_value(wave_digits, wave_manager.current_wave)
+			_set_digits_value(queue_digits, wave_manager.enemies_to_spawn)
+			_set_digits_value(active_digits, enemies_alive)
+			
+			wave_hud.modulate = Color(1.0, 0.4, 0.4) 
 		else:
+			wave_hud.hide()
+			wave_status_label.show()
+			wave_hud.modulate = Color.WHITE
+			
 			# NO RESEARCH: Completely blind!
 			if not ResearchManager.wave_measure:
-				waveLabel.text = "Night approaching..."
-				waveLabel.modulate = Color.WHITE
+				wave_status_label.text = "Night approaching..."
+				wave_status_label.modulate = Color.WHITE
 				
 			# HAS RESEARCH: Show the forecast!
 			else:
@@ -96,8 +228,6 @@ func _process(_delta):
 				# Does the player have Moon Measurement tech?
 				if ResearchManager.moon_measure_level > 0 and time_manager:
 					var current_time = time_manager.current_time
-					
-					# Level 1 reveals at 16:00 (4 PM). Level 2 reveals instantly at 6:00 (Dawn).
 					var reveal_time = 16.0 if ResearchManager.moon_measure_level == 1 else 6.0
 					
 					if current_time >= reveal_time:
@@ -115,31 +245,30 @@ func _process(_delta):
 				
 				# Apply the text and colors!
 				if forecast <= 0 or is_full_moon:
-					waveLabel.text = "Full Moon Tonight... The forest is quiet."
-					waveLabel.modulate = Color(0.6, 0.8, 1.0) # Soft moonlight blue
+					wave_status_label.text = "Full Moon Tonight... The forest is quiet."
+					wave_status_label.modulate = Color(0.6, 0.8, 1.0) # Soft moonlight blue
 				else:
-					waveLabel.text = "Enemies Spawning Tonight: ~%d%s" % [forecast, moon_status]
+					wave_status_label.text = "Enemies Spawning Tonight: ~%d%s" % [forecast, moon_status]
 					
 					if is_blood_moon:
-						waveLabel.modulate = Color(1.0, 0.2, 0.2) # Deep Red for Blood Moon warning
+						wave_status_label.modulate = Color(1.0, 0.2, 0.2) # Deep Red for Blood Moon warning
 					else:
-						waveLabel.modulate = Color.WHITE
+						wave_status_label.modulate = Color.WHITE
 						
 	# Update corruption UI with safety checks
-	if corruption_manager and corruptionLabel and corruptionBar:
+	if corruption_manager:
 		var tier = corruption_manager.corruption_tier
 		var pressure = corruption_manager.current_pressure
 		
 		# Do the exact same math the CorruptionManager does to find the ceiling!
 		var threshold = corruption_manager.base_evolution_threshold * pow(corruption_manager.evolution_multiplier, tier - 1)
 		
-		corruptionLabel.text = "Corruption Tier: %d" % tier
-		corruptionBar.max_value = threshold
-		corruptionBar.value = pressure
+		_set_digits_value(corruption_digits, tier)
 		
-		# Tint the text so it looks dangerous
-		corruptionLabel.modulate = Color(0.8, 0.2, 1.0) # Purple!
-		corruptionBar.modulate = Color(0.8, 0.2, 1.0)
+		var pct = 0
+		if threshold > 0:
+			pct = clamp(int((pressure / threshold) * 100.0), 0, 99)
+		_set_digits_value(percent_digits, pct)
 	
 	# Update overlay threshold UI
 	if building_manager and overlayLabel:
@@ -258,3 +387,25 @@ func _on_exit_pressed():
 ## Signal receiver that triggers standard UI HUD updates when player stock levels shift.
 func _on_inventory_changed():
 	update_labels()
+
+
+func _create_digit_list(parent: HBoxContainer, num_digits: int) -> Array:
+	var list = []
+	for i in range(num_digits):
+		var d = DIGIT_SCENE.instantiate()
+		parent.add_child(d)
+		d.set_size_custom(20, 30, 20)
+		list.append(d)
+	return list
+
+
+func _set_digits_value(digits_arr: Array, val: int):
+	var num_digits = digits_arr.size()
+	var val_str = str(val)
+	if val_str.length() > num_digits:
+		val_str = val_str.substr(val_str.length() - num_digits)
+	else:
+		while val_str.length() < num_digits:
+			val_str = "0" + val_str
+	for i in range(num_digits):
+		digits_arr[i].set_target_character(val_str[i])
