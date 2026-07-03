@@ -193,12 +193,14 @@ func _update_slot_ui(slot: int, load_btn: Button, del_btn: Button):
 		load_btn.disabled = false
 		load_btn.text = "Load Save %d" % slot
 		load_btn.modulate = Color.WHITE
-		del_btn.show()
+		del_btn.disabled = false
+		del_btn.modulate = Color.WHITE
 	else:
 		load_btn.disabled = true
 		load_btn.text = "[ Empty Slot %d ]" % slot
 		load_btn.modulate = Color(0.5, 0.5, 0.5)
-		del_btn.hide()
+		del_btn.disabled = true
+		del_btn.modulate = Color(0.5, 0.5, 0.5, 0.5)
 
 func _animate_panel_entry(panel: Control):
 	panel.modulate.a = 0.0

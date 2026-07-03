@@ -48,25 +48,73 @@ var _is_quitting_to_desktop: bool = false
 func _ready():
 	hide()
 	
-	music_slider.value = AudioManager.get_music_volume_linear()
-	sfx_slider.value = AudioManager.get_sfx_volume_linear()
+	# Muted darker backdrop
+	$ColorRect.color = Color(0, 0, 0, 0.7)
 	
-	# Checkbox toggle setups
-	music_mute.button_pressed = not AudioManager.is_music_muted
-	sfx_mute.button_pressed = not AudioManager.is_sfx_muted
+	# 1. Main Panel Container
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(800, 500)
+	$CenterContainer.add_child(panel)
 	
-	resume_button.pressed.connect(resume_game)
-	menu_button.pressed.connect(_on_menu_pressed)
-	exit_button.pressed.connect(_on_exit_pressed)
+	# 2. Padding Margin
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	panel.add_child(margin)
 	
-	# Programmatically inject keybind settings button
+	# 3. HBox columns split
+	var main_hbox = HBoxContainer.new()
+	main_hbox.add_theme_constant_override("separation", 40)
+	margin.add_child(main_hbox)
+	
+	# 4. Left Column: Options & Settings
+	var left_col = VBoxContainer.new()
+	left_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_col.add_theme_constant_override("separation", 14)
+	main_hbox.add_child(left_col)
+	
+	var left_title = Label.new()
+	left_title.text = "SETTINGS & SYSTEM"
+	left_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left_title.add_theme_font_size_override("font_size", 18)
+	left_col.add_child(left_title)
+	
+	# 5. Right Column: Save & Load
+	var right_col = VBoxContainer.new()
+	right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_col.add_theme_constant_override("separation", 14)
+	main_hbox.add_child(right_col)
+	
+	var right_title = Label.new()
+	right_title.text = "SAVE & LOAD SLOTS"
+	right_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	right_title.add_theme_font_size_override("font_size", 18)
+	right_col.add_child(right_title)
+	
+	# 6. Reparent settings to Left Column
+	music_mute.reparent(left_col)
+	music_slider.reparent(left_col)
+	music_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	sfx_mute.reparent(left_col)
+	sfx_slider.reparent(left_col)
+	sfx_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var left_spacer = Control.new()
+	left_spacer.custom_minimum_size = Vector2(0, 20)
+	left_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_col.add_child(left_spacer)
+	
+	resume_button.reparent(left_col)
+	resume_button.custom_minimum_size = Vector2(0, 42)
+	
+	# Instantiate keybinds button
 	var keybind_btn = Button.new()
 	keybind_btn.text = "Customize Keybinds"
-	keybind_btn.custom_minimum_size = Vector2(0, 40)
-	var pause_vbox = $CenterContainer/VBoxContainer
-	pause_vbox.add_child(keybind_btn)
-	pause_vbox.move_child(keybind_btn, menu_button.get_index())
-	
+	keybind_btn.custom_minimum_size = Vector2(0, 42)
+	left_col.add_child(keybind_btn)
 	keybind_btn.pressed.connect(func():
 		if get_node_or_null("KeybindSettingsMenu"): return
 		var keybind_menu_script = load("res://scripts/UI/keybind_settings_menu.gd")
@@ -77,27 +125,86 @@ func _ready():
 		menu.closed.connect(func(): menu.queue_free())
 	)
 	
-	music_slider.value_changed.connect(func(val):
-		AudioManager.set_music_volume(val)
-	)
-	sfx_slider.value_changed.connect(func(val):
-		AudioManager.set_sfx_volume(val)
-	)
+	menu_button.reparent(left_col)
+	menu_button.text = "Back to Main Menu"
+	menu_button.custom_minimum_size = Vector2(0, 42)
 	
-	music_mute.toggled.connect(func(is_enabled: bool):
-		AudioManager.set_music_muted(not is_enabled)
-	)
-	sfx_mute.toggled.connect(func(is_enabled: bool):
-		AudioManager.set_sfx_muted(not is_enabled)
-	)
+	exit_button.reparent(left_col)
+	exit_button.custom_minimum_size = Vector2(0, 42)
 	
-	# Quick save action
+	# 7. Reparent Save & Load items to Right Column
+	quick_save_btn.reparent(right_col)
+	quick_save_btn.custom_minimum_size = Vector2(0, 42)
+	
+	var right_spacer = Control.new()
+	right_spacer.custom_minimum_size = Vector2(0, 10)
+	right_col.add_child(right_spacer)
+	
+	# Slot 1 Row
+	var slot1_row = HBoxContainer.new()
+	slot1_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot1_row.add_theme_constant_override("separation", 8)
+	right_col.add_child(slot1_row)
+	save_1_btn.reparent(slot1_row)
+	save_1_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	save_1_btn.custom_minimum_size = Vector2(0, 36)
+	load_1_btn.reparent(slot1_row)
+	load_1_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	load_1_btn.custom_minimum_size = Vector2(0, 36)
+	del_1_btn.reparent(slot1_row)
+	del_1_btn.custom_minimum_size = Vector2(36, 36)
+	
+	# Slot 2 Row
+	var slot2_row = HBoxContainer.new()
+	slot2_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot2_row.add_theme_constant_override("separation", 8)
+	right_col.add_child(slot2_row)
+	save_2_btn.reparent(slot2_row)
+	save_2_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	save_2_btn.custom_minimum_size = Vector2(0, 36)
+	load_2_btn.reparent(slot2_row)
+	load_2_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	load_2_btn.custom_minimum_size = Vector2(0, 36)
+	del_2_btn.reparent(slot2_row)
+	del_2_btn.custom_minimum_size = Vector2(36, 36)
+	
+	# Slot 3 Row
+	var slot3_row = HBoxContainer.new()
+	slot3_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot3_row.add_theme_constant_override("separation", 8)
+	right_col.add_child(slot3_row)
+	save_3_btn.reparent(slot3_row)
+	save_3_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	save_3_btn.custom_minimum_size = Vector2(0, 36)
+	load_3_btn.reparent(slot3_row)
+	load_3_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	load_3_btn.custom_minimum_size = Vector2(0, 36)
+	del_3_btn.reparent(slot3_row)
+	del_3_btn.custom_minimum_size = Vector2(36, 36)
+	
+	# Clean up original VBoxContainer
+	$CenterContainer/VBoxContainer.queue_free()
+	
+	# Connect active control bindings
+	music_slider.value = AudioManager.get_music_volume_linear()
+	sfx_slider.value = AudioManager.get_sfx_volume_linear()
+	music_mute.button_pressed = not AudioManager.is_music_muted
+	sfx_mute.button_pressed = not AudioManager.is_sfx_muted
+	
+	resume_button.pressed.connect(resume_game)
+	menu_button.pressed.connect(_on_menu_pressed)
+	exit_button.pressed.connect(_on_exit_pressed)
+	
+	music_slider.value_changed.connect(func(val): AudioManager.set_music_volume(val))
+	sfx_slider.value_changed.connect(func(val): AudioManager.set_sfx_volume(val))
+	music_mute.toggled.connect(func(is_enabled: bool): AudioManager.set_music_muted(not is_enabled))
+	sfx_mute.toggled.connect(func(is_enabled: bool): AudioManager.set_sfx_muted(not is_enabled))
+	
 	quick_save_btn.pressed.connect(func(): 
 		save_requested.emit(SaveManager.current_slot)
 		resume_game()
 	)
 	
-	# Manual save callbacks
 	save_1_btn.pressed.connect(func(): _perform_manual_save(1, save_1_btn))
 	save_2_btn.pressed.connect(func(): _perform_manual_save(2, save_2_btn))
 	save_3_btn.pressed.connect(func(): _perform_manual_save(3, save_3_btn))
@@ -106,7 +213,6 @@ func _ready():
 	load_2_btn.pressed.connect(func(): _perform_manual_load(2, load_2_btn))
 	load_3_btn.pressed.connect(func(): _perform_manual_load(3, load_3_btn))
 	
-	# Delete button connections
 	del_1_btn.pressed.connect(func(): _perform_delete(1))
 	del_2_btn.pressed.connect(func(): _perform_delete(2))
 	del_3_btn.pressed.connect(func(): _perform_delete(3))
@@ -238,12 +344,14 @@ func _update_load_slot_ui(slot: int, load_btn: Button, del_btn: Button):
 		load_btn.disabled = false
 		load_btn.text = "Load Game %d" % slot
 		load_btn.modulate = Color.WHITE
-		del_btn.show()
+		del_btn.disabled = false
+		del_btn.modulate = Color.WHITE
 	else:
 		load_btn.disabled = true
 		load_btn.text = "[ Empty Slot %d ]" % slot
 		load_btn.modulate = Color(0.5, 0.5, 0.5)
-		del_btn.hide()
+		del_btn.disabled = true
+		del_btn.modulate = Color(0.5, 0.5, 0.5, 0.5)
 
 
 
