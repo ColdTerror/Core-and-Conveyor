@@ -1,0 +1,82 @@
+[gd_scene load_steps=2 format=3 uid="uid://cypy2uxt8p8q"]
+
+[ext_resource type="Script" path="res://scripts/UI/keybind_settings_menu.gd" id="1_419m0"]
+
+[node name="KeybindSettingsMenu" type="CanvasLayer"]
+process_mode = 3
+script = ExtResource("1_419m0")
+
+[node name="RootControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="RootControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.705882)
+
+[node name="CenterContainer" type="CenterContainer" parent="RootControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="RootControl/CenterContainer"]
+custom_minimum_size = Vector2(550, 650)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="RootControl/CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="VBoxContainer" type="VBoxContainer" parent="RootControl/CenterContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="RootControl/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Keyboard Controls"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="RootControl/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollList" type="VBoxContainer" parent="RootControl/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Separator" type="ColorRect" parent="RootControl/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0.25098, 0.25098, 0.25098, 1)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="RootControl/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Reset" type="Button" parent="RootControl/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+text = "Reset to Defaults"
+
+[node name="Close" type="Button" parent="RootControl/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+text = "Back / Save"

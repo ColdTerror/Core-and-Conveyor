@@ -9,27 +9,28 @@ extends CanvasLayer
 
 signal save_requested(slot: int)
 
-@onready var quick_save_btn = $CenterContainer/VBoxContainer/QuickSave
-@onready var save_1_btn = $CenterContainer/VBoxContainer/Save1
-@onready var save_2_btn = $CenterContainer/VBoxContainer/Save2
-@onready var save_3_btn = $CenterContainer/VBoxContainer/Save3
+@onready var quick_save_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/QuickSave
+@onready var save_1_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot1Row/Save1
+@onready var save_2_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot2Row/Save2
+@onready var save_3_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot3Row/Save3
 
-@onready var load_1_btn = $CenterContainer/VBoxContainer/Load1Bar/Load1
-@onready var load_2_btn = $CenterContainer/VBoxContainer/Load2Bar/Load2
-@onready var load_3_btn = $CenterContainer/VBoxContainer/Load3Bar/Load3
+@onready var load_1_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot1Row/Load1
+@onready var load_2_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot2Row/Load2
+@onready var load_3_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot3Row/Load3
 
-@onready var del_1_btn = $CenterContainer/VBoxContainer/Load1Bar/Del1
-@onready var del_2_btn = $CenterContainer/VBoxContainer/Load2Bar/Del2
-@onready var del_3_btn = $CenterContainer/VBoxContainer/Load3Bar/Del3
+@onready var del_1_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot1Row/Del1
+@onready var del_2_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot2Row/Del2
+@onready var del_3_btn = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot3Row/Del3
 
-@onready var music_mute = $CenterContainer/VBoxContainer/MusicMute
-@onready var music_slider = $CenterContainer/VBoxContainer/MusicSlider
-@onready var sfx_mute = $CenterContainer/VBoxContainer/SfxMute
-@onready var sfx_slider = $CenterContainer/VBoxContainer/SfxSlider
+@onready var music_mute = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/MusicMute
+@onready var music_slider = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/MusicSlider
+@onready var sfx_mute = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/SfxMute
+@onready var sfx_slider = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/SfxSlider
 
-@onready var resume_button = $CenterContainer/VBoxContainer/Resume
-@onready var menu_button = $CenterContainer/VBoxContainer/Menu
-@onready var exit_button = $CenterContainer/VBoxContainer/Exit
+@onready var resume_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/Resume
+@onready var keybinds_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/Keybinds
+@onready var menu_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/Menu
+@onready var exit_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/Exit
 
 var confirm_dialog: ConfirmationDialog
 var _pending_load_slot: int = -1
@@ -48,143 +49,6 @@ var _is_quitting_to_desktop: bool = false
 func _ready():
 	hide()
 	
-	# Muted darker backdrop
-	$ColorRect.color = Color(0, 0, 0, 0.7)
-	
-	# 1. Main Panel Container
-	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(800, 500)
-	$CenterContainer.add_child(panel)
-	
-	# 2. Padding Margin
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 24)
-	margin.add_theme_constant_override("margin_top", 24)
-	margin.add_theme_constant_override("margin_right", 24)
-	margin.add_theme_constant_override("margin_bottom", 24)
-	panel.add_child(margin)
-	
-	# 3. HBox columns split
-	var main_hbox = HBoxContainer.new()
-	main_hbox.add_theme_constant_override("separation", 40)
-	margin.add_child(main_hbox)
-	
-	# 4. Left Column: Options & Settings
-	var left_col = VBoxContainer.new()
-	left_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_col.add_theme_constant_override("separation", 14)
-	main_hbox.add_child(left_col)
-	
-	var left_title = Label.new()
-	left_title.text = "SETTINGS & SYSTEM"
-	left_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	left_title.add_theme_font_size_override("font_size", 18)
-	left_col.add_child(left_title)
-	
-	# 5. Right Column: Save & Load
-	var right_col = VBoxContainer.new()
-	right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right_col.add_theme_constant_override("separation", 14)
-	main_hbox.add_child(right_col)
-	
-	var right_title = Label.new()
-	right_title.text = "SAVE & LOAD SLOTS"
-	right_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	right_title.add_theme_font_size_override("font_size", 18)
-	right_col.add_child(right_title)
-	
-	# 6. Reparent settings to Left Column
-	music_mute.reparent(left_col)
-	music_slider.reparent(left_col)
-	music_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
-	sfx_mute.reparent(left_col)
-	sfx_slider.reparent(left_col)
-	sfx_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
-	var left_spacer = Control.new()
-	left_spacer.custom_minimum_size = Vector2(0, 20)
-	left_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_col.add_child(left_spacer)
-	
-	resume_button.reparent(left_col)
-	resume_button.custom_minimum_size = Vector2(0, 42)
-	
-	# Instantiate keybinds button
-	var keybind_btn = Button.new()
-	keybind_btn.text = "Customize Keybinds"
-	keybind_btn.custom_minimum_size = Vector2(0, 42)
-	left_col.add_child(keybind_btn)
-	keybind_btn.pressed.connect(func():
-		if get_node_or_null("KeybindSettingsMenu"): return
-		var keybind_menu_script = load("res://scripts/UI/keybind_settings_menu.gd")
-		var menu = CanvasLayer.new()
-		menu.name = "KeybindSettingsMenu"
-		menu.set_script(keybind_menu_script)
-		add_child(menu)
-		menu.closed.connect(func(): menu.queue_free())
-	)
-	
-	menu_button.reparent(left_col)
-	menu_button.text = "Back to Main Menu"
-	menu_button.custom_minimum_size = Vector2(0, 42)
-	
-	exit_button.reparent(left_col)
-	exit_button.custom_minimum_size = Vector2(0, 42)
-	
-	# 7. Reparent Save & Load items to Right Column
-	quick_save_btn.reparent(right_col)
-	quick_save_btn.custom_minimum_size = Vector2(0, 42)
-	
-	var right_spacer = Control.new()
-	right_spacer.custom_minimum_size = Vector2(0, 10)
-	right_col.add_child(right_spacer)
-	
-	# Slot 1 Row
-	var slot1_row = HBoxContainer.new()
-	slot1_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slot1_row.add_theme_constant_override("separation", 8)
-	right_col.add_child(slot1_row)
-	save_1_btn.reparent(slot1_row)
-	save_1_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	save_1_btn.custom_minimum_size = Vector2(0, 36)
-	load_1_btn.reparent(slot1_row)
-	load_1_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	load_1_btn.custom_minimum_size = Vector2(0, 36)
-	del_1_btn.reparent(slot1_row)
-	del_1_btn.custom_minimum_size = Vector2(36, 36)
-	
-	# Slot 2 Row
-	var slot2_row = HBoxContainer.new()
-	slot2_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slot2_row.add_theme_constant_override("separation", 8)
-	right_col.add_child(slot2_row)
-	save_2_btn.reparent(slot2_row)
-	save_2_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	save_2_btn.custom_minimum_size = Vector2(0, 36)
-	load_2_btn.reparent(slot2_row)
-	load_2_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	load_2_btn.custom_minimum_size = Vector2(0, 36)
-	del_2_btn.reparent(slot2_row)
-	del_2_btn.custom_minimum_size = Vector2(36, 36)
-	
-	# Slot 3 Row
-	var slot3_row = HBoxContainer.new()
-	slot3_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slot3_row.add_theme_constant_override("separation", 8)
-	right_col.add_child(slot3_row)
-	save_3_btn.reparent(slot3_row)
-	save_3_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	save_3_btn.custom_minimum_size = Vector2(0, 36)
-	load_3_btn.reparent(slot3_row)
-	load_3_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	load_3_btn.custom_minimum_size = Vector2(0, 36)
-	del_3_btn.reparent(slot3_row)
-	del_3_btn.custom_minimum_size = Vector2(36, 36)
-	
-	# Clean up original VBoxContainer
-	$CenterContainer/VBoxContainer.queue_free()
-	
 	# Connect active control bindings
 	music_slider.value = AudioManager.get_music_volume_linear()
 	sfx_slider.value = AudioManager.get_sfx_volume_linear()
@@ -194,6 +58,15 @@ func _ready():
 	resume_button.pressed.connect(resume_game)
 	menu_button.pressed.connect(_on_menu_pressed)
 	exit_button.pressed.connect(_on_exit_pressed)
+	
+	keybinds_button.pressed.connect(func():
+		if get_node_or_null("KeybindSettingsMenu"): return
+		var keybind_scene = load("res://scenes/ui/keybind_settings_menu.tscn")
+		var menu = keybind_scene.instantiate()
+		menu.name = "KeybindSettingsMenu"
+		add_child(menu)
+		menu.closed.connect(func(): menu.queue_free())
+	)
 	
 	music_slider.value_changed.connect(func(val): AudioManager.set_music_volume(val))
 	sfx_slider.value_changed.connect(func(val): AudioManager.set_sfx_volume(val))

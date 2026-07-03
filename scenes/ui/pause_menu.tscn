@@ -1,118 +1,185 @@
-[gd_scene format=3 uid="uid://bks37kepe8vmk"]
+[gd_scene load_steps=2 format=3 uid="uid://bks37kepe8vmk"]
 
-[ext_resource type="Script" uid="uid://sgk3wxjo4ths" path="res://scripts/UI/pause_menu.gd" id="1_6tw0m"]
+[ext_resource type="Script" path="res://scripts/UI/pause_menu.gd" id="1_6tw0m"]
 
-[node name="PauseMenu" type="CanvasLayer" unique_id=713948548]
+[node name="PauseMenu" type="CanvasLayer"]
 process_mode = 3
 script = ExtResource("1_6tw0m")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1854196599]
+[node name="ColorRect" type="ColorRect" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.39215687)
+color = Color(0, 0, 0, 0.705882)
 
-[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1795082585]
+[node name="CenterContainer" type="CenterContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=488715758]
-custom_minimum_size = Vector2(150, 0)
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(800, 500)
 layout_mode = 2
 
-[node name="Resume" type="Button" parent="CenterContainer/VBoxContainer" unique_id=203638891]
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
 layout_mode = 2
-text = "Resume"
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
 
-[node name="QuickSave" type="Button" parent="CenterContainer/VBoxContainer" unique_id=2073860597]
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
-text = "Quick Save"
+theme_override_constants/separation = 40
 
-[node name="Save1" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1369746609]
+[node name="LeftColumn" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
-text = "Save Slot 1"
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
 
-[node name="Save2" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1576784282]
+[node name="LeftTitle" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
 layout_mode = 2
-text = "Save Slot 2"
+theme_override_font_sizes/font_size = 18
+text = "SETTINGS & SYSTEM"
+horizontal_alignment = 1
 
-[node name="Save3" type="Button" parent="CenterContainer/VBoxContainer" unique_id=529875874]
-layout_mode = 2
-text = "Save Slot 3"
-
-[node name="Load1Bar" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=1302769520]
-layout_mode = 2
-
-[node name="Load1" type="Button" parent="CenterContainer/VBoxContainer/Load1Bar" unique_id=1283957731]
-custom_minimum_size = Vector2(125, 0)
-layout_mode = 2
-text = "Load Slot 1"
-
-[node name="Del1" type="Button" parent="CenterContainer/VBoxContainer/Load1Bar" unique_id=197990222]
-self_modulate = Color(1, 0, 0, 1)
-custom_minimum_size = Vector2(25, 0)
-layout_mode = 2
-text = "X"
-
-[node name="Load2Bar" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=448345495]
-layout_mode = 2
-
-[node name="Load2" type="Button" parent="CenterContainer/VBoxContainer/Load2Bar" unique_id=969341166]
-custom_minimum_size = Vector2(125, 0)
-layout_mode = 2
-text = "Load Slot 2"
-
-[node name="Del2" type="Button" parent="CenterContainer/VBoxContainer/Load2Bar" unique_id=119043271]
-self_modulate = Color(1, 0, 0, 1)
-custom_minimum_size = Vector2(25, 0)
-layout_mode = 2
-text = "X"
-
-[node name="Load3Bar" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=864772601]
-layout_mode = 2
-
-[node name="Load3" type="Button" parent="CenterContainer/VBoxContainer/Load3Bar" unique_id=1555002431]
-custom_minimum_size = Vector2(125, 0)
-layout_mode = 2
-text = "Load Slot 3"
-
-[node name="Del3" type="Button" parent="CenterContainer/VBoxContainer/Load3Bar" unique_id=1450328116]
-self_modulate = Color(1, 0, 0, 1)
-custom_minimum_size = Vector2(25, 0)
-layout_mode = 2
-text = "X"
-
-[node name="MusicMute" type="CheckBox" parent="CenterContainer/VBoxContainer" unique_id=367376740]
+[node name="MusicMute" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
 layout_mode = 2
 button_pressed = true
 text = "Music Enabled"
 
-[node name="MusicSlider" type="HSlider" parent="CenterContainer/VBoxContainer" unique_id=897837172]
+[node name="MusicSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
 layout_mode = 2
+size_flags_horizontal = 3
 max_value = 1.0
 step = 0.01
 value = 1.0
 
-[node name="SfxMute" type="CheckBox" parent="CenterContainer/VBoxContainer" unique_id=40156594]
+[node name="SfxMute" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
 layout_mode = 2
 button_pressed = true
 text = "Sfx Enabled"
 
-[node name="SfxSlider" type="HSlider" parent="CenterContainer/VBoxContainer" unique_id=116268527]
+[node name="SfxSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
 layout_mode = 2
+size_flags_horizontal = 3
 max_value = 1.0
 step = 0.01
 value = 1.0
 
-[node name="Menu" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1730689388]
+[node name="LeftSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
 layout_mode = 2
-text = "Back To Menu"
+size_flags_vertical = 3
 
-[node name="Exit" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1974263859]
+[node name="Resume" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Resume"
+
+[node name="Keybinds" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Customize Keybinds"
+
+[node name="Menu" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Back to Main Menu"
+
+[node name="Exit" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 text = "Exit Game"
+
+[node name="RightColumn" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="RightTitle" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "SAVE & LOAD SLOTS"
+horizontal_alignment = 1
+
+[node name="QuickSave" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Quick Save"
+
+[node name="RightSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Slot1Row" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Save1" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot1Row"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Save Slot 1"
+
+[node name="Load1" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot1Row"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Load Slot 1"
+
+[node name="Del1" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot1Row"]
+self_modulate = Color(1, 0, 0, 1)
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+text = "X"
+
+[node name="Slot2Row" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Save2" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot2Row"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Save Slot 2"
+
+[node name="Load2" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot2Row"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Load Slot 2"
+
+[node name="Del2" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot2Row"]
+self_modulate = Color(1, 0, 0, 1)
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+text = "X"
+
+[node name="Slot3Row" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Save3" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot3Row"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Save Slot 3"
+
+[node name="Load3" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot3Row"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Load Slot 3"
+
+[node name="Del3" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/RightColumn/Slot3Row"]
+self_modulate = Color(1, 0, 0, 1)
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+text = "X"
