@@ -41,6 +41,7 @@ signal object_selected(target: Node2D)
 func _ready():
 	add_to_group("InputManager")
 	object_selected.connect(func(target): selected_object = target)
+	load_keybinds()
 
 
 
@@ -49,15 +50,14 @@ func _unhandled_key_input(event: InputEvent):
 	if not event.is_pressed() or event.is_echo(): return
 
 	# GLOBAL UI HOTKEYS (Allowed even if a menu is open!)
-	match event.keycode:
-		KEY_P:
-			if management_menu: management_menu.toggle_menu()
-			get_viewport().set_input_as_handled()
-			return
-		KEY_L:
-			if stat_menu: stat_menu.toggle_menu()
-			get_viewport().set_input_as_handled()
-			return
+	if event.is_action_pressed("toggle_management"):
+		if management_menu: management_menu.toggle_menu()
+		get_viewport().set_input_as_handled()
+		return
+	elif event.is_action_pressed("toggle_stats"):
+		if stat_menu: stat_menu.toggle_menu()
+		get_viewport().set_input_as_handled()
+		return
 
 	# THE GATEKEEPER: Menu Routing
 	if GameState.is_menu_open:
@@ -77,12 +77,13 @@ func _unhandled_key_input(event: InputEvent):
 		return
 
 	# WORLD ACTIONS (Only run if NO menus are open)
+	if event.is_action_pressed("terraform_hotkey"):
+		_cancel_current_action()
+		current_mode = InteractionMode.NONE if current_mode == InteractionMode.TERRAFORM else InteractionMode.TERRAFORM
+		get_viewport().set_input_as_handled()
+		return
+		
 	match event.keycode:
-		KEY_T:
-			_cancel_current_action()
-			current_mode = InteractionMode.NONE if current_mode == InteractionMode.TERRAFORM else InteractionMode.TERRAFORM
-			get_viewport().set_input_as_handled()
-			
 		KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_EQUAL, KEY_MINUS, KEY_N:
 			if building_manager:
 				building_manager.handle_overlay_hotkeys(event.keycode)
@@ -111,13 +112,13 @@ func _process(delta):
 	
 	var move_dir := Vector2.ZERO
 	
-	if Input.is_key_pressed(KEY_D):
+	if Input.is_action_pressed("move_right"):
 		move_dir.x += 1
-	if Input.is_key_pressed(KEY_A):
+	if Input.is_action_pressed("move_left"):
 		move_dir.x -= 1
-	if Input.is_key_pressed(KEY_S):
+	if Input.is_action_pressed("move_down"):
 		move_dir.y += 1
-	if  Input.is_key_pressed(KEY_W):
+	if Input.is_action_pressed("move_up"):
 		move_dir.y -= 1
 		
 	if move_dir != Vector2.ZERO:
@@ -401,3 +402,68 @@ func _on_object_unhovered(object: Node2D):
 	if hover_popup and "current_building" in hover_popup:
 		if hover_popup.current_building == object:
 			hover_popup.hide()
+
+
+# --- KEYBINDING CORE SERVICES ---
+const KEYBIND_ACTIONS = {
+	"move_up": "Camera Move Up",
+	"move_left": "Camera Move Left",
+	"move_down": "Camera Move Down",
+	"move_right": "Camera Move Right",
+	"rotate_tile": "Rotate Blueprint",
+	"deconstruct_hotkey": "Deconstruct Tool",
+	"upgrade_hotkey": "Upgrade Tool",
+	"terraform_hotkey": "Terraform Tool",
+	"toggle_management": "Management Menu",
+	"toggle_stats": "Stats Menu",
+	"pause_button": "Pause Game"
+}
+
+const KEYBINDS_FILE = "user://keybinds.cfg"
+
+func save_keybinds():
+	var config = ConfigFile.new()
+	for action in KEYBIND_ACTIONS:
+		var events = InputMap.action_get_events(action)
+		if not events.is_empty():
+			for ev in events:
+				if ev is InputEventKey:
+					config.set_value("keybinds", action, ev.physical_keycode)
+					break
+	config.save(KEYBINDS_FILE)
+
+func load_keybinds():
+	initialize_default_actions()
+	
+	var config = ConfigFile.new()
+	if config.load(KEYBINDS_FILE) == OK:
+		for action in KEYBIND_ACTIONS:
+			if config.has_section_key("keybinds", action):
+				var keycode = config.get_value("keybinds", action)
+				InputMap.action_erase_events(action)
+				var ev = InputEventKey.new()
+				ev.physical_keycode = keycode
+				InputMap.action_add_event(action, ev)
+
+func initialize_default_actions(force_overwrite: bool = false):
+	var defaults = {
+		"move_up": KEY_W,
+		"move_left": KEY_A,
+		"move_down": KEY_S,
+		"move_right": KEY_D,
+		"toggle_management": KEY_P,
+		"toggle_stats": KEY_L,
+		"terraform_hotkey": KEY_T,
+		"rotate_tile": KEY_R,
+		"deconstruct_hotkey": KEY_X,
+		"upgrade_hotkey": KEY_U,
+		"pause_button": KEY_ESCAPE
+	}
+	for action in defaults:
+		if not InputMap.has_action(action):
+			InputMap.add_action(action)
+		if force_overwrite or InputMap.action_get_events(action).is_empty():
+			InputMap.action_erase_events(action)
+			var ev = InputEventKey.new()
+			ev.physical_keycode = defaults[action]
+			InputMap.action_add_event(action, ev)

@@ -80,11 +80,29 @@ func _ready():
 	music_mute.toggled.connect(func(is_enabled): AudioManager.set_music_muted(not is_enabled))
 	sfx_mute.toggled.connect(func(is_enabled): AudioManager.set_sfx_muted(not is_enabled))
 	
+	# Programmatically inject keybind settings button
+	var keybind_btn = Button.new()
+	keybind_btn.text = "Customize Keybinds"
+	keybind_btn.custom_minimum_size = Vector2(0, 40)
+	var settings_vbox = $CenterContainer/SettingsPanel/VBoxContainer
+	settings_vbox.add_child(keybind_btn)
+	settings_vbox.move_child(keybind_btn, settings_vbox.get_child_count() - 2)
+	
+	keybind_btn.pressed.connect(func():
+		if get_node_or_null("KeybindSettingsMenu"): return
+		var keybind_menu_script = load("res://scripts/UI/keybind_settings_menu.gd")
+		var menu = CanvasLayer.new()
+		menu.name = "KeybindSettingsMenu"
+		menu.set_script(keybind_menu_script)
+		add_child(menu)
+		menu.closed.connect(func(): menu.queue_free())
+	)
+	
 	# Connect hover effects to all buttons
 	var all_buttons = [
 		new_game_btn, load_game_btn, settings_btn, exit_btn,
 		load_1_btn, load_2_btn, load_3_btn, del_1_btn, del_2_btn, del_3_btn, load_back_btn,
-		settings_back_btn
+		settings_back_btn, keybind_btn
 	]
 	for btn in all_buttons:
 		if is_instance_valid(btn):

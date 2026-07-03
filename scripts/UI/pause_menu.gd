@@ -59,6 +59,24 @@ func _ready():
 	menu_button.pressed.connect(_on_menu_pressed)
 	exit_button.pressed.connect(_on_exit_pressed)
 	
+	# Programmatically inject keybind settings button
+	var keybind_btn = Button.new()
+	keybind_btn.text = "Customize Keybinds"
+	keybind_btn.custom_minimum_size = Vector2(0, 40)
+	var pause_vbox = $CenterContainer/VBoxContainer
+	pause_vbox.add_child(keybind_btn)
+	pause_vbox.move_child(keybind_btn, menu_button.get_index())
+	
+	keybind_btn.pressed.connect(func():
+		if get_node_or_null("KeybindSettingsMenu"): return
+		var keybind_menu_script = load("res://scripts/UI/keybind_settings_menu.gd")
+		var menu = CanvasLayer.new()
+		menu.name = "KeybindSettingsMenu"
+		menu.set_script(keybind_menu_script)
+		add_child(menu)
+		menu.closed.connect(func(): menu.queue_free())
+	)
+	
 	music_slider.value_changed.connect(func(val):
 		AudioManager.set_music_volume(val)
 	)
