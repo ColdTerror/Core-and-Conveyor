@@ -436,19 +436,28 @@ func _find_nearest_resource():
 	var valid_paths_found = 0
 	
 	# Compute pathfinding cost for the closest sorted candidates.
-	# Evaluating only the closest candidates until we find up to 5 valid walkable paths
+	# Evaluating only the closest candidates until we find up to 15 valid walkable paths
 	# gives us the absolute best pathing option while fully preventing performance drops.
 	for cand in candidates:
-		if valid_paths_found >= 5:
+		var tile = cand["tile"]
+		var dx = abs(my_grid_pos.x - tile.x)
+		var dy = abs(my_grid_pos.y - tile.y)
+		var min_steps = max(dx, dy)
+		
+		# Pruning: if this tile is theoretically further than our best path, skip A*
+		if min_steps >= min_path_cost:
+			continue
+			
+		if valid_paths_found >= 15:
 			break
 			
-		var result = _get_standable_adjacent_tile([cand["tile"]])
+		var result = _get_standable_adjacent_tile([tile])
 		if result["stand"] != Vector2i(-1, -1):
 			valid_paths_found += 1
 			var path_cost = result.get("path_length", INF)
 			if path_cost < min_path_cost:
 				min_path_cost = path_cost
-				best_tile = cand["tile"]
+				best_tile = tile
 				
 	if best_tile != Vector2i(-1, -1):
 		_request_path([best_tile], false)
@@ -573,7 +582,7 @@ func _find_nearest_storage():
 		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
 		if b is ConstructionSite: continue
 		if b is TowerBuilding: continue
-		if not b.has_method("add_item"): continue
+		if not (b is CoreBuilding or b is StockpileBuilding): continue
 		if b in full_storages_ignored: continue
 		if b in unreachable_storages: continue
 
@@ -597,10 +606,24 @@ func _find_nearest_storage():
 	# Evaluate the actual pathfinding length for candidate storage options,
 	# selecting the best choice among the closest reachable storages.
 	for cand in candidates:
-		if valid_paths_found >= 5:
+		var b_node = cand["building"]
+		
+		# Find the minimum Chebyshev distance to any of the building's occupied tiles
+		var min_steps = INF
+		for tile in b_node.occupied_tiles:
+			var dx = abs(my_pos.x - tile.x)
+			var dy = abs(my_pos.y - tile.y)
+			var steps = max(dx, dy)
+			if steps < min_steps:
+				min_steps = steps
+				
+		# Pruning: if the building is theoretically further than our best path, skip A*
+		if min_steps >= min_path_cost:
+			continue
+			
+		if valid_paths_found >= 15:
 			break
 			
-		var b_node = cand["building"]
 		var result = _get_standable_adjacent_tile(b_node.occupied_tiles)
 		if result["stand"] != Vector2i(-1, -1):
 			valid_paths_found += 1
@@ -693,7 +716,7 @@ func _any_storage_has_space() -> bool:
 		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
 		if b is ConstructionSite: continue
 		if b is TowerBuilding: continue
-		if not b.has_method("add_item"): continue
+		if not (b is CoreBuilding or b is StockpileBuilding): continue
 		
 		if "is_dedicated_mode" in b and "selected_output_name" in b:
 			if b.is_dedicated_mode and b.selected_output_name != "" and b.selected_output_name != carried_item_name:

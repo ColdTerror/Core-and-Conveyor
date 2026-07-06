@@ -109,12 +109,20 @@ metadata/_tab_index = 2
 layout_mode = 2
 
 [node name="Header" type="HBoxContainer" parent="PanelContainer/TabContainer/Resources/VBoxContainer" unique_id=1966337576]
-visible = false
 layout_mode = 2
 
 [node name="Label" type="Label" parent="PanelContainer/TabContainer/Resources/VBoxContainer/Header" unique_id=1085420814]
 layout_mode = 2
-text = "Resources"
+text = "Resource Ledger (Max 5 Pinned)"
+
+[node name="Spacer" type="Control" parent="PanelContainer/TabContainer/Resources/VBoxContainer/Header" unique_id=1085420815]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SortButton" type="Button" parent="PanelContainer/TabContainer/Resources/VBoxContainer/Header" unique_id=1085420816]
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+text = "Sort: A-Z ▲"
 
 [node name="HSeparator" type="HSeparator" parent="PanelContainer/TabContainer/Resources/VBoxContainer" unique_id=2126129182]
 layout_mode = 2

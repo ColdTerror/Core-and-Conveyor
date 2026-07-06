@@ -15,6 +15,7 @@ extends Control
 @onready var bot_list_container = $PanelContainer/TabContainer/Workers/VBoxContainer/ScrollContainer/ListContainer
 
 @onready var resource_list_container = $PanelContainer/TabContainer/Resources/VBoxContainer/ScrollContainer/ListContainer
+@onready var resource_sort_button = $PanelContainer/TabContainer/Resources/VBoxContainer/Header/SortButton
 
 @onready var music_now_playing_label = $PanelContainer/TabContainer/Jukebox/VBoxContainer/NowPlaying
 @onready var music_jukebox_toggle = $PanelContainer/TabContainer/Jukebox/VBoxContainer/EnableJukebox
@@ -28,6 +29,15 @@ extends Control
 var update_timer: float = 0.0
 var update_interval: float = 0.5 
 var bot_status_labels: Dictionary = {}
+
+enum SortMode {
+	A_Z,
+	Z_A,
+	MOST_LEAST,
+	LEAST_MOST
+}
+
+var current_sort_mode: SortMode = SortMode.A_Z
 
 
 
@@ -52,6 +62,10 @@ func _ready():
 		
 	if music_jukebox_toggle:
 		music_jukebox_toggle.toggled.connect(_on_jukebox_toggled)
+		
+	if resource_sort_button:
+		resource_sort_button.pressed.connect(_on_sort_button_pressed)
+		_update_sort_button_text()
 
 
 
@@ -311,7 +325,28 @@ func _refresh_resource_tab():
 	for key in unsecured_items.keys(): all_items_dict[key] = true
 	
 	var all_items = all_items_dict.keys()
-	all_items.sort()
+	match current_sort_mode:
+		SortMode.A_Z:
+			all_items.sort()
+		SortMode.Z_A:
+			all_items.sort()
+			all_items.reverse()
+		SortMode.MOST_LEAST:
+			all_items.sort_custom(func(a, b):
+				var amount_a = secured_items.get(a, 0) + unsecured_items.get(a, 0)
+				var amount_b = secured_items.get(b, 0) + unsecured_items.get(b, 0)
+				if amount_a != amount_b:
+					return amount_a > amount_b
+				return a < b
+			)
+		SortMode.LEAST_MOST:
+			all_items.sort_custom(func(a, b):
+				var amount_a = secured_items.get(a, 0) + unsecured_items.get(a, 0)
+				var amount_b = secured_items.get(b, 0) + unsecured_items.get(b, 0)
+				if amount_a != amount_b:
+					return amount_a < amount_b
+				return a < b
+			)
 	
 	if all_items.is_empty():
 		var empty_label = Label.new()
@@ -654,3 +689,22 @@ func _refresh_quota_tab():
 			
 		quota_list_container.add_child(row)
 		quota_list_container.add_child(HSeparator.new())
+
+
+func _on_sort_button_pressed():
+	current_sort_mode = ((current_sort_mode + 1) % 4) as SortMode
+	_update_sort_button_text()
+	_refresh_resource_tab()
+
+
+func _update_sort_button_text():
+	if not resource_sort_button: return
+	match current_sort_mode:
+		SortMode.A_Z:
+			resource_sort_button.text = "Sort: A-Z ▲"
+		SortMode.Z_A:
+			resource_sort_button.text = "Sort: Z-A ▼"
+		SortMode.MOST_LEAST:
+			resource_sort_button.text = "Sort: Most ▼"
+		SortMode.LEAST_MOST:
+			resource_sort_button.text = "Sort: Least ▲"
