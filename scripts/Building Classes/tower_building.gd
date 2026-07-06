@@ -102,7 +102,7 @@ func setup(level_instance: Node2D):
 
 ## Calculates and applies upgraded damage multipliers based on technology research levels.
 func apply_research_buffs():
-	damage_multiplier = base_damage_multiplier + (ResearchManager.tower_damage_mult - 1.0)
+	damage_multiplier = base_damage_multiplier * ResearchManager.tower_damage_mult
 
 
 
