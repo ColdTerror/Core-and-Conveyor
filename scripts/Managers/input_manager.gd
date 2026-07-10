@@ -467,3 +467,12 @@ func initialize_default_actions(force_overwrite: bool = false):
 			var ev = InputEventKey.new()
 			ev.physical_keycode = defaults[action]
 			InputMap.action_add_event(action, ev)
+			
+			if action == "pause_button":
+				var ev_f10 = InputEventKey.new()
+				ev_f10.physical_keycode = KEY_F10
+				InputMap.action_add_event(action, ev_f10)
+				
+				var ev_back = InputEventKey.new()
+				ev_back.physical_keycode = KEY_BACKSPACE
+				InputMap.action_add_event(action, ev_back)

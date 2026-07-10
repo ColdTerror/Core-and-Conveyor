@@ -58,6 +58,9 @@ func _ready():
 	settings_btn.pressed.connect(_on_open_settings)
 	exit_btn.pressed.connect(_on_exit)
 	
+	if OS.has_feature("web"):
+		exit_btn.hide()
+	
 	# Connect sub-panels
 	load_back_btn.pressed.connect(_on_close_subpanels)
 	settings_back_btn.pressed.connect(_on_close_subpanels)

@@ -122,7 +122,7 @@ size_flags_horizontal = 3
 [node name="SortButton" type="Button" parent="PanelContainer/TabContainer/Resources/VBoxContainer/Header" unique_id=1085420816]
 custom_minimum_size = Vector2(160, 32)
 layout_mode = 2
-text = "Sort: A-Z ▲"
+text = "Sort: A-Z ^"
 
 [node name="HSeparator" type="HSeparator" parent="PanelContainer/TabContainer/Resources/VBoxContainer" unique_id=2126129182]
 layout_mode = 2

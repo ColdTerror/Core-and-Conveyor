@@ -48,6 +48,7 @@ var _is_quitting_to_desktop: bool = false
 ## Connects save/load buttons, slider volume signals, quicksave actions, and delete actions.
 func _ready():
 	hide()
+	add_to_group("PauseMenu")
 	
 	# Connect active control bindings
 	music_slider.value = AudioManager.get_music_volume_linear()
@@ -58,6 +59,9 @@ func _ready():
 	resume_button.pressed.connect(resume_game)
 	menu_button.pressed.connect(_on_menu_pressed)
 	exit_button.pressed.connect(_on_exit_pressed)
+	
+	if OS.has_feature("web"):
+		exit_button.hide()
 	
 	keybinds_button.pressed.connect(func():
 		if get_node_or_null("KeybindSettingsMenu"): return
@@ -274,7 +278,7 @@ func _flash_button_success(button: Button):
 	var original_color = button.modulate
 	
 	# Change to success visuals
-	button.text = original_text + "  [ SAVED \u2713 ]"
+	button.text = original_text + "  [ SAVED! ]"
 	button.modulate = Color(0.4, 1.0, 0.4)
 	
 	# Wait 1.5 seconds

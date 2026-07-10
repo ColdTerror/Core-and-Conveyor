@@ -144,7 +144,7 @@ slot/0/left_enabled = false
 research_name = "Core Expansion 1"
 desc = "Unlock Tier 1 Research"
 research_cost = {
-ExtResource("3_xgb3y"): 1
+ExtResource("3_xgb3y"): 25
 }
 
 [node name="Bot1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=490625547 instance=ExtResource("2_l6ox2")]
@@ -163,8 +163,8 @@ slot/0/left_enabled = false
 research_name = "Fleet Expansion"
 desc = "Increase Max Bots to 5"
 research_cost = {
-ExtResource("3_xgb3y"): 1,
-ExtResource("4_3s71f"): 1
+ExtResource("3_xgb3y"): 25,
+ExtResource("4_3s71f"): 25
 }
 
 [node name="Building1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1045831839 instance=ExtResource("2_l6ox2")]
@@ -224,7 +224,7 @@ slot/0/left_enabled = false
 research_name = "Wave Measurement"
 desc = "Estimate Enemy Count at Night"
 research_cost = {
-ExtResource("3_xgb3y"): 1
+ExtResource("3_xgb3y"): 25
 }
 
 [node name="Belt1" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=780544748 instance=ExtResource("2_l6ox2")]
@@ -243,8 +243,8 @@ slot/0/left_enabled = false
 research_name = "Belt Speed 1"
 desc = "Sets Belt Speed to 1.25x"
 research_cost = {
-ExtResource("3_xgb3y"): 1,
-ExtResource("4_3s71f"): 1
+ExtResource("3_xgb3y"): 25,
+ExtResource("4_3s71f"): 25
 }
 
 [node name="Core2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=134985909 instance=ExtResource("2_l6ox2")]
@@ -262,7 +262,7 @@ title = "Core Expansion 2"
 research_name = "Core Expansion 2"
 desc = "Unlock Tier 2 Research"
 research_cost = {
-ExtResource("3_xgb3y"): 1
+ExtResource("3_xgb3y"): 50
 }
 
 [node name="Bot2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=659654113 instance=ExtResource("2_l6ox2")]
@@ -281,8 +281,8 @@ title = "Advanced Tooling"
 research_name = "Advanced Tooling"
 desc = "Increase Max Bot Level to 4"
 research_cost = {
-ExtResource("3_xgb3y"): 1,
-ExtResource("4_3s71f"): 1
+ExtResource("3_xgb3y"): 25,
+ExtResource("4_3s71f"): 25
 }
 
 [node name="Building2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=568078980 instance=ExtResource("2_l6ox2")]
@@ -342,7 +342,7 @@ title = "Moon Measurement 1"
 research_name = "Moon Measurement 1"
 desc = "Can see moon phase at 4pm"
 research_cost = {
-ExtResource("3_xgb3y"): 1
+ExtResource("3_xgb3y"): 25
 }
 
 [node name="Belt2" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1969009587 instance=ExtResource("2_l6ox2")]
@@ -361,8 +361,8 @@ title = "Belt Speed 2"
 research_name = "Belt Speed 2"
 desc = "Sets Belt Speed to 1.5x"
 research_cost = {
-ExtResource("3_xgb3y"): 1,
-ExtResource("4_3s71f"): 1
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
 }
 
 [node name="Core3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1126082275 instance=ExtResource("2_l6ox2")]
@@ -381,7 +381,7 @@ slot/0/right_enabled = false
 research_name = "Core Expansion 3"
 desc = "Unlock Tier 3 Research"
 research_cost = {
-ExtResource("3_xgb3y"): 1
+ExtResource("3_xgb3y"): 75
 }
 
 [node name="Bot3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1823735036 instance=ExtResource("2_l6ox2")]
@@ -401,8 +401,8 @@ slot/0/right_enabled = false
 research_name = "Thruster Upgrade"
 desc = "Allow Bots to Navigate Difficult Terrain"
 research_cost = {
-ExtResource("3_xgb3y"): 1,
-ExtResource("4_3s71f"): 1
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
 }
 
 [node name="Building3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=538164323 instance=ExtResource("2_l6ox2")]
@@ -465,7 +465,7 @@ slot/0/right_enabled = false
 research_name = "Moon Measurement 2"
 desc = "Can see Moon Phase at Dawn"
 research_cost = {
-ExtResource("3_xgb3y"): 1
+ExtResource("3_xgb3y"): 50
 }
 
 [node name="Belt3" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1739864172 instance=ExtResource("2_l6ox2")]
@@ -486,6 +486,6 @@ research_name = "Pneumatic Logistics"
 desc = "Unlocks the Item Launcher and 
 Item Receiver structures"
 research_cost = {
-ExtResource("3_xgb3y"): 1,
-ExtResource("4_3s71f"): 1
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
 }

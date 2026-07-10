@@ -370,12 +370,12 @@ func _create_resource_row(item_name: String, available: int, in_transit: int, is
 	main_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	
 	var pin_btn = Button.new()
-	pin_btn.text = " [\u2605] " if is_pinned else " [  ] " 
+	pin_btn.text = " [*] " if is_pinned else " [ ] " 
 	pin_btn.modulate = Color(1.0, 0.8, 0.2) if is_pinned else Color(0.5, 0.5, 0.5)
 	pin_btn.pressed.connect(func(): _toggle_pin(item_name))
 	
 	var name_btn = Button.new()
-	name_btn.text = item_name + " \u25BC"
+	name_btn.text = item_name + " v"
 	name_btn.custom_minimum_size = Vector2(150, 0)
 	name_btn.flat = true
 	name_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -701,10 +701,10 @@ func _update_sort_button_text():
 	if not resource_sort_button: return
 	match current_sort_mode:
 		SortMode.A_Z:
-			resource_sort_button.text = "Sort: A-Z ▲"
+			resource_sort_button.text = "Sort: A-Z ^"
 		SortMode.Z_A:
-			resource_sort_button.text = "Sort: Z-A ▼"
+			resource_sort_button.text = "Sort: Z-A v"
 		SortMode.MOST_LEAST:
-			resource_sort_button.text = "Sort: Most ▼"
+			resource_sort_button.text = "Sort: Most v"
 		SortMode.LEAST_MOST:
-			resource_sort_button.text = "Sort: Least ▲"
+			resource_sort_button.text = "Sort: Least ^"

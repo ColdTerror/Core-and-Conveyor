@@ -73,6 +73,34 @@ func _ready():
 		building_manager.placement_cost_updated.connect(_on_placement_cost_updated)
 		building_manager.placement_ended.connect(_on_placement_ended)
 
+	# Dynamic Pause Button for Web build compatibility (where Escape cancels browser fullscreen)
+	var pause_container = MarginContainer.new()
+	pause_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	pause_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	pause_container.offset_left = -18
+	pause_container.offset_right = 18
+	pause_container.offset_top = 0
+	pause_container.offset_bottom = 36
+	
+	var pause_btn = Button.new()
+	pause_btn.text = " II "
+	pause_btn.tooltip_text = "Pause Game (Escape / F10 / Backspace)"
+	pause_btn.focus_mode = Control.FOCUS_NONE
+	pause_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pause_btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	pause_container.add_child(pause_btn)
+	add_child(pause_container)
+	
+	pause_btn.pressed.connect(func():
+		var pm = get_tree().get_first_node_in_group("PauseMenu")
+		if pm:
+			if pm.visible:
+				pm.resume_game()
+			else:
+				pm.pause_game()
+	)
+
 
 	
 	# Instantiate dynamic Date HUD
