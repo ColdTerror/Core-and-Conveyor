@@ -11,6 +11,51 @@ class_name SlimeEnemy
 @export var slime_tier: int = 3 # 3 = Large, 2 = Medium, 1 = Small
 @export var child_slime_scene: PackedScene
 
+var _frame_timer: float = 0.0
+@export var animation_fps: float = 2.0
+
+
+func _physics_process(delta):
+	super(delta)
+	if health <= 0: return
+	
+	if has_node("Sprite2D"):
+		var sprite = $Sprite2D as Sprite2D
+		if sprite.hframes > 1 or sprite.vframes > 1:
+			_animate_sprite(delta, sprite)
+
+
+func _animate_sprite(delta: float, sprite: Sprite2D):
+	# Determine facing row based on current velocity or last velocity
+	var walk_up_row = false
+	if velocity.length() > 0.1:
+		walk_up_row = (abs(velocity.y) > abs(velocity.x))
+		if walk_up_row:
+			sprite.flip_h = false
+			sprite.flip_v = (velocity.y > 0)
+		else:
+			sprite.flip_h = (velocity.x < 0) # Flip when walking left (since sheet is drawn facing right)
+			sprite.flip_v = false
+	else:
+		# If stopped, we can check based on current flips
+		walk_up_row = (sprite.frame >= 4)
+		
+	if velocity.length() < 0.1:
+		# Idle frame
+		sprite.frame = 4 if walk_up_row else 0
+		return
+		
+	_frame_timer += delta
+	var frame_duration = 1.0 / animation_fps
+	if _frame_timer >= frame_duration:
+		_frame_timer = fmod(_frame_timer, frame_duration)
+		
+		var start_frame = 4 if walk_up_row else 0
+		if sprite.frame < start_frame or sprite.frame >= start_frame + 4:
+			sprite.frame = start_frame
+		else:
+			sprite.frame = start_frame + ((sprite.frame - start_frame + 1) % 4)
+
 
 
 ## Overrides base die() to spawn two smaller slime instances if tier > 1.

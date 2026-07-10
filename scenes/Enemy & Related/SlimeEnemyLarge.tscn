@@ -5,12 +5,13 @@
 [ext_resource type="PackedScene" uid="uid://cslimemedium1" path="res://scenes/Enemy & Related/SlimeEnemyMedium.tscn" id="3_medium"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_rx8wg"]
-radius = 32.0
+radius = 24.0
 
 [node name="SlimeEnemyLarge" unique_id=282938388 instance=ExtResource("1_base")]
 script = ExtResource("2_script")
 slime_tier = 3
 child_slime_scene = ExtResource("3_medium")
+animation_fps = 2.0
 enemy_name = "Large Slime"
 max_health = 120
 movement_speed = 40.0
@@ -21,8 +22,7 @@ damage_multipliers = {
 }
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
-self_modulate = Color(0.1, 0.8, 0.1, 1)
-scale = Vector2(0.4, 0.4)
+scale = Vector2(1.5, 1.5)
 
 [node name="CollisionShape2D" parent="." index="1" unique_id=850654236]
 shape = SubResource("CircleShape2D_rx8wg")
