@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://c0ombieenemy1"]
+
+[ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/base_enemy.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://dtyupdj3bnl1y" path="res://scripts/Enemy & Related/zombie_enemy.gd" id="2_script"]
+[ext_resource type="Texture2D" uid="uid://crtsua257e8ye" path="res://assets/Enemies/Zombie_Enemy.png" id="3_p68jh"]
+
+[node name="ZombieEnemy" unique_id=1964535776 instance=ExtResource("1_base")]
+script = ExtResource("2_script")
+animation_fps = 4.0
+enemy_name = "Zombie Miner"
+
+[node name="Sprite2D" parent="." index="0" unique_id=1688166691]
+scale = Vector2(1, 1)
+texture = ExtResource("3_p68jh")
+hframes = 8
+vframes = 3
