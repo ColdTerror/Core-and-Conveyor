@@ -13,7 +13,6 @@ script = ExtResource("1_gpgpm")
 enemy_name = "Base Enemy"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1688166691]
-self_modulate = Color(0, 0.5573105, 1.92523e-07, 1)
 scale = Vector2(0.25, 0.25)
 texture = ExtResource("2_u4235")
 

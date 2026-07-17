@@ -1,8 +1,9 @@
-[gd_scene format=3 uid="uid://cslimemedium1"]
+[gd_scene load_steps=6 format=3 uid="uid://cslimemedium1"]
 
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/base_enemy.tscn" id="1_base"]
 [ext_resource type="Script" uid="uid://dw2tnhgl1g6n" path="res://scripts/Enemy & Related/slime_enemy.gd" id="2_script"]
 [ext_resource type="PackedScene" uid="uid://cslimesmall1" path="res://scenes/Enemy & Related/SlimeEnemySmall.tscn" id="3_small"]
+[ext_resource type="Texture2D" uid="uid://bokswolwivmmj" path="res://assets/Enemies/Slime_Enemy.png" id="4_slime"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_sv2sa"]
 radius = 16.0
@@ -19,6 +20,11 @@ damage_multipliers = {
 "Crushing": 1.2,
 "Piercing": 1.0
 }
+
+[node name="Sprite2D" parent="." index="0" unique_id=1688166691]
+texture = ExtResource("4_slime")
+hframes = 4
+vframes = 2
 
 [node name="CollisionShape2D" parent="." index="1" unique_id=850654236]
 shape = SubResource("CircleShape2D_sv2sa")
