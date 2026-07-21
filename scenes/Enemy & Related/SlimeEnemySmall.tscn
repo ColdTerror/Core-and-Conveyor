@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://cslimesmall1"]
+[gd_scene format=3 uid="uid://cslimesmall1"]
 
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/base_enemy.tscn" id="1_base"]
 [ext_resource type="Script" uid="uid://dw2tnhgl1g6n" path="res://scripts/Enemy & Related/slime_enemy.gd" id="2_script"]
@@ -14,7 +14,7 @@ child_slime_scene = null
 animation_fps = 8.0
 enemy_name = "Small Slime"
 max_health = 30
-movement_speed = 65.0
+movement_speed = 40.0
 damage = 5
 damage_multipliers = {
 "Crushing": 1.2,

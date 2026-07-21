@@ -9,7 +9,7 @@ radius = 18.0
 [node name="RangedEnemy" unique_id=128241474 instance=ExtResource("1_base")]
 enemy_name = "Ranged Enemy"
 max_health = 40
-movement_speed = 50.0
+movement_speed = 40.0
 damage = 8
 combat_type = 1
 attack_range = 180.0

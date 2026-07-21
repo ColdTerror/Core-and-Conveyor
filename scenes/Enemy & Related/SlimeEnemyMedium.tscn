@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://cslimemedium1"]
+[gd_scene format=3 uid="uid://cslimemedium1"]
 
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/base_enemy.tscn" id="1_base"]
 [ext_resource type="Script" uid="uid://dw2tnhgl1g6n" path="res://scripts/Enemy & Related/slime_enemy.gd" id="2_script"]
@@ -15,7 +15,7 @@ child_slime_scene = ExtResource("3_small")
 animation_fps = 8.0
 enemy_name = "Medium Slime"
 max_health = 60
-movement_speed = 50.0
+movement_speed = 35.0
 damage_multipliers = {
 "Crushing": 1.2,
 "Piercing": 1.0

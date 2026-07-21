@@ -8,6 +8,7 @@
 script = ExtResource("2_script")
 animation_fps = 4.0
 enemy_name = "Zombie Miner"
+movement_speed = 40.0
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
 scale = Vector2(1, 1)

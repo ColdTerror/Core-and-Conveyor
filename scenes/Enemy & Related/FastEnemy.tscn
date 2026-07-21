@@ -1,14 +1,18 @@
 [gd_scene format=3 uid="uid://cfastenemy1"]
 
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/base_enemy.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://bh23qoon5aejf" path="res://scripts/Enemy & Related/fast_enemy.gd" id="2_script"]
+[ext_resource type="Texture2D" uid="uid://bd2ucfks6dqxr" path="res://assets/Enemies/Spider_Enemy.png" id="3_spider"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_o8er6"]
-radius = 14.0
+radius = 16.0
 
 [node name="FastEnemy" unique_id=815340172 instance=ExtResource("1_base")]
+script = ExtResource("2_script")
+animation_fps = 8.0
 enemy_name = "Fast Enemy"
 max_health = 25
-movement_speed = 100.0
+movement_speed = 75.0
 damage = 5
 damage_multipliers = {
 "Crushing": 1.0,
@@ -16,8 +20,11 @@ damage_multipliers = {
 }
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
-self_modulate = Color(1, 0.25, 0.25, 1)
-scale = Vector2(0.2, 0.2)
+position = Vector2(0, -10)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("3_spider")
+hframes = 4
+vframes = 3
 
 [node name="CollisionShape2D" parent="." index="1" unique_id=850654236]
 shape = SubResource("CircleShape2D_o8er6")
