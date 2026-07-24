@@ -107,15 +107,20 @@ func _physics_process(delta):
 	var required_dist = attack_range + _get_target_radius(current_target)
 
 	if dist <= required_dist:
-		# Instead of completely stopping, let them keep pushing each other!
-		var separation = _calculate_separation()
-		velocity = separation * _get_current_speed()
-		move_and_slide()
-		
-		# Ranged LOS Check
-		if combat_type == 1 and not _has_line_of_sight(current_target):
-			_process_movement(delta) 
-		else:
+		if combat_type == 1: # Ranged
+			if _has_line_of_sight(current_target):
+				# Hold position / stand at distance and fire
+				var separation = _calculate_separation()
+				velocity = separation * _get_current_speed()
+				move_and_slide()
+				_try_attack(current_target)
+			else:
+				# Move to gain LOS
+				_process_movement(delta)
+		else: # Melee
+			var separation = _calculate_separation()
+			velocity = separation * _get_current_speed()
+			move_and_slide()
 			_try_attack(current_target)
 	else:
 		_process_movement(delta)
@@ -210,8 +215,8 @@ func _execute_movement(dir: Vector2):
 	velocity = dir * _get_current_speed()
 	move_and_slide()
 	
-	# Unified bump logic
-	if get_slide_collision_count() > 0:
+	# Unified bump logic (melee units only)
+	if combat_type == 0 and get_slide_collision_count() > 0:
 		for i in get_slide_collision_count():
 			var collider = get_slide_collision(i).get_collider()
 			
@@ -418,7 +423,10 @@ func _find_target():
 func _scan_for_nearby_bots():
 	var bots = get_tree().get_nodes_in_group("Bots")
 	var nearest_bot: Node2D = null
-	var min_bot_dist = bot_aggro_radius * bot_aggro_radius 
+	var max_scan_dist = bot_aggro_radius
+	if combat_type == 1: # Ranged
+		max_scan_dist = min(bot_aggro_radius, attack_range)
+	var min_bot_dist = max_scan_dist * max_scan_dist 
 	
 	for b in bots:
 		if not is_instance_valid(b) or b.health <= 0: continue
