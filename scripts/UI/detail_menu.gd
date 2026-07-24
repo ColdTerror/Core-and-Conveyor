@@ -152,10 +152,10 @@ func _process(_delta):
 					energy_str += "\nSolar Charge Speed: %d%%" % speed_pct
 					energy_str += "\n"
 					
-				info_label.text = "%sHealth: %d / %d\n%sTarget: %s\nCarrying: %s" % [level_str, bot.health, bot.max_health, energy_str, info["Target"], info["Carrying"]]
+				info_label.text = "Station HP: %d / %d\nBot HP: %d / %d | %s%sTarget: %s\nCarrying: %s" % [selected_object.health, selected_object.max_health, bot.health, bot.max_health, level_str, energy_str, info["Target"], info["Carrying"]]
 				info_label.modulate = Color(0.3, 0.8, 1.0)
 			else:
-				info_label.text = "No bot connected."
+				info_label.text = "Station HP: %d / %d\nNo bot connected." % [selected_object.health, selected_object.max_health]
 				
 		# Live update for Processor Recipe Hover Previews
 		elif selected_object is ProcessorBuilding and is_instance_valid(active_recipe_dropdown):

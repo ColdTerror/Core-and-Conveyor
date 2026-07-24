@@ -78,6 +78,7 @@ var is_limping: bool = false
 var is_flying: bool = false
 var _flight_time: float = 0.0
 var _health_accumulator: float = 0.0
+var heal_cooldown_timer: float = 0.0
 
 var target_tile: Vector2i = Vector2i(-1, -1)
 var committed_job_tile: Vector2i = Vector2i(-1, -1)
@@ -330,8 +331,10 @@ func _handle_energy(delta: float):
 		var efficiency = get_solar_efficiency()
 		current_energy += energy_recharge_rate * efficiency * delta
 		
-		if health < max_health:
-			_health_accumulator += health_recharge_rate * delta
+		if heal_cooldown_timer > 0.0:
+			heal_cooldown_timer -= delta
+		elif health < max_health:
+			_health_accumulator += health_recharge_rate * efficiency * delta
 			if _health_accumulator >= 1.0:
 				var heal_amount = int(_health_accumulator)
 				health = min(health + heal_amount, max_health)
@@ -1194,6 +1197,7 @@ func take_damage(damage: int, source: Node2D = null):
 	action_audio.pitch_scale = randf_range(0.85, 1.15)
 	action_audio.play()
 	health -= damage
+	heal_cooldown_timer = 3.0
 	
 	if health <= 0:
 		die()
