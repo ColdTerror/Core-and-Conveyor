@@ -15,6 +15,7 @@ enemy_name = "Ranged Tank"
 max_health = 40
 movement_speed = 40.0
 damage = 8
+attack_speed = 0.5
 combat_type = 1
 attack_range = 180.0
 projectile_scene = ExtResource("2_proj")

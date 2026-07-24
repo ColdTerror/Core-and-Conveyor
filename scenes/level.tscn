@@ -253,9 +253,9 @@ script = ExtResource("29_7agi7")
 script = ExtResource("23_asl66")
 lighting_modulate = NodePath("../DayNightLighting")
 real_minutes_per_day = 18.0
-night_color = Color(0.33333334, 0.33333334, 0.49019608, 1)
-blood_moon_color = Color(0.66191053, 0.4738877, 0.4738877, 1)
-full_moon_color = Color(0.43569562, 0.51207983, 0.735357, 1)
+night_color = Color(0.49019608, 0.49019608, 0.64705884, 1)
+blood_moon_color = Color(0.7058824, 0.50980395, 0.50980395, 1)
+full_moon_color = Color(0.47058824, 0.54901963, 0.78431374, 1)
 
 [node name="QuotaManager" type="Node2D" parent="." unique_id=1743008909]
 script = ExtResource("36_uhfbm")

@@ -5,7 +5,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_enemyproj"]
 atlas = ExtResource("2_enemyproj")
-region = Rect2(96, 0, 32, 32)
+region = Rect2(96, 96, 32, 32)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_enemyproj"]
 radius = 16.0
@@ -15,7 +15,6 @@ collision_mask = 15
 script = ExtResource("1_enemyproj")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1209341942]
-self_modulate = Color(1, 0.2, 0.2, 1)
 texture = SubResource("AtlasTexture_enemyproj")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=773720954]

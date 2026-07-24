@@ -317,7 +317,7 @@ func _spawn_projectile(target):
 	proj.global_position = global_position
 	if proj.has_method("setup"):
 		var dir = global_position.direction_to(target.global_position)
-		proj.setup(global_position, dir, 300.0, damage, null)
+		proj.setup(global_position, dir, 300.0, damage, null, null, 10.0, target.global_position)
 
 
 
