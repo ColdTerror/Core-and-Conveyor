@@ -393,7 +393,12 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 		var p_dmg_type = "None"
 		if "damage_type" in item_data:
 			p_dmg_type = item_data.damage_type
-		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower, p_lifetime, p_dmg_type)
+		var dest_pos = Vector2.ZERO
+		if is_instance_valid(target_node):
+			dest_pos = target_node.global_position
+		elif is_instance_valid(source_tower) and "attack_range" in source_tower:
+			dest_pos = start_pos + dir * source_tower.attack_range
+		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower, p_lifetime, p_dmg_type, dest_pos)
 
 
 

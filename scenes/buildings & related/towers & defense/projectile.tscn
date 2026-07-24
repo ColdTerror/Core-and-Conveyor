@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://cg13cd0e8r5ne"]
+[gd_scene load_steps=7 format=3 uid="uid://cg13cd0e8r5ne"]
 
 [ext_resource type="Script" uid="uid://c60uxc0byyjgu" path="res://scripts/projectile.gd" id="1_g55b2"]
 [ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_g55b2"]
@@ -10,9 +10,22 @@ region = Rect2(96, 0, 32, 32)
 [sub_resource type="CircleShape2D" id="CircleShape2D_g55b2"]
 radius = 16.0
 
+[sub_resource type="Curve" id="Curve_trail"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_trail"]
+colors = PackedColorArray(1, 1, 1, 0.7, 1, 1, 1, 0)
+
 [node name="Projectile" type="Area2D" unique_id=681699648]
 collision_mask = 3
 script = ExtResource("1_g55b2")
+
+[node name="TrailLine" type="Line2D" parent="." unique_id=981273912]
+top_level = true
+width = 4.0
+width_curve = SubResource("Curve_trail")
+gradient = SubResource("Gradient_trail")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=533441957]
 texture = SubResource("AtlasTexture_nl2a8")
