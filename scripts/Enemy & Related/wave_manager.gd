@@ -265,7 +265,7 @@ func _get_enemy_scene_for_wave(day: int) -> PackedScene:
 		else:
 			# Year 1 Progressive Composition
 			if day == 1:
-				weights = [0.0, 0.0, 0.0, 0.0, 1.0]
+				weights = [0.0, 0.0, 1.0, 0.0, 0.0]
 				#weights = [0.0, 0.0, 0.0, 1.0, 0.0]
 			else:
 				match time_manager.get_current_season():

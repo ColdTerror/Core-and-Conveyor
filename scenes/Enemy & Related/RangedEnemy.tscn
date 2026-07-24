@@ -2,12 +2,16 @@
 
 [ext_resource type="PackedScene" uid="uid://ow6l5iua5vty" path="res://scenes/Enemy & Related/base_enemy.tscn" id="1_base"]
 [ext_resource type="PackedScene" uid="uid://cenemyproj1" path="res://scenes/Enemy & Related/enemy_projectile.tscn" id="2_proj"]
+[ext_resource type="Script" uid="uid://d367o8wuwh8u" path="res://scripts/Enemy & Related/ranged_enemy.gd" id="3_script"]
+[ext_resource type="Texture2D" uid="uid://dhlv2py2i0jvx" path="res://assets/Enemies/Tank_Enemy.png" id="4_tank"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ly8by"]
 radius = 18.0
 
 [node name="RangedEnemy" unique_id=128241474 instance=ExtResource("1_base")]
-enemy_name = "Ranged Enemy"
+script = ExtResource("3_script")
+animation_fps = 12.0
+enemy_name = "Ranged Tank"
 max_health = 40
 movement_speed = 40.0
 damage = 8
@@ -20,7 +24,10 @@ damage_multipliers = {
 }
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
-self_modulate = Color(1, 0.6, 0.2, 1)
+scale = Vector2(1, 1)
+texture = ExtResource("4_tank")
+hframes = 2
+vframes = 3
 
 [node name="CollisionShape2D" parent="." index="1" unique_id=850654236]
 shape = SubResource("CircleShape2D_ly8by")
