@@ -486,17 +486,31 @@ func _recalculate_path():
 				best_cost = total_cost
 				best_path = path
  
-		current_path = best_path
- 
+		current_path = _prune_start_point(best_path)
 		return
  
 	var new_path = pathfinder.get_path_route(global_position, target_pos, false, is_flying)
-	
-	# Prune start node logic (keeps movement smooth)
-	if not new_path.is_empty() and global_position.distance_to(new_path[0]) < 32.0:
-		new_path.remove_at(0)
- 
-	current_path = new_path
+	current_path = _prune_start_point(new_path)
+
+
+
+## Helper to prune the starting waypoint if it is in the current tile or behind the enemy
+func _prune_start_point(path: PackedVector2Array) -> PackedVector2Array:
+	if path.size() <= 1:
+		return path
+		
+	if pathfinder and pathfinder.main_layer:
+		var my_grid = pathfinder.main_layer.local_to_map(pathfinder.main_layer.to_local(global_position))
+		var start_grid = pathfinder.main_layer.local_to_map(pathfinder.main_layer.to_local(path[0]))
+		
+		# If the first waypoint is in our current grid tile or close by, skip it to prevent backtracking!
+		if my_grid == start_grid or global_position.distance_to(path[0]) < 16.0:
+			var pruned = PackedVector2Array()
+			for i in range(1, path.size()):
+				pruned.append(path[i])
+			return pruned
+			
+	return path
 
 
 
