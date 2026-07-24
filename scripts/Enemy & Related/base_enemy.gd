@@ -215,8 +215,8 @@ func _execute_movement(dir: Vector2):
 	velocity = dir * _get_current_speed()
 	move_and_slide()
 	
-	# Unified bump logic (melee units only)
-	if combat_type == 0 and get_slide_collision_count() > 0:
+	# Unified bump and obstruction attack logic for all ground enemies
+	if get_slide_collision_count() > 0:
 		for i in get_slide_collision_count():
 			var collider = get_slide_collision(i).get_collider()
 			
@@ -228,10 +228,10 @@ func _execute_movement(dir: Vector2):
 				if hit_node.get_parent().has_method("take_damage"):
 					hit_node = hit_node.get_parent()
 			
-			# If whatever we hit can take damage, chew through it!
+			# If whatever we hit can take damage, check if we should attack or path around!
 			if hit_node == current_target or hit_node.has_method("take_damage"):
 				var should_attack = true
-				if (hit_node is WallBuilding) or (hit_node is GateBuilding):
+				if (hit_node is WallBuilding) or (hit_node is GateBuilding) or (hit_node is Building):
 					should_attack = false
 					if hit_node == current_target:
 						should_attack = true
@@ -241,7 +241,7 @@ func _execute_movement(dir: Vector2):
 							if pathfinder and pathfinder.main_layer:
 								var p_local = pathfinder.main_layer.to_local(current_path[j])
 								var p_grid = pathfinder.main_layer.local_to_map(p_local)
-								if p_grid in hit_node.occupied_tiles:
+								if "occupied_tiles" in hit_node and p_grid in hit_node.occupied_tiles:
 									should_attack = true
 									break
 					elif is_instance_valid(current_target):
@@ -251,7 +251,13 @@ func _execute_movement(dir: Vector2):
 							should_attack = true
 				
 				if should_attack:
-					_try_structure_attack(hit_node)
+					if combat_type == 0:
+						_try_structure_attack(hit_node)
+					else:
+						_try_attack(hit_node)
+				else:
+					# Path around if a cheaper open route exists!
+					_recalculate_path()
 
 
 
