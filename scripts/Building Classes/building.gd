@@ -315,12 +315,20 @@ func take_damage(amount: int):
 	
 	health_changed.emit(health, max_health)
 	
-	modulate = Color.RED
-	await get_tree().create_timer(0.1).timeout
-	modulate = Color.WHITE
+	_flash_hit()
+	
+	if is_instance_valid(level_ref) and level_ref.has_method("spawn_damage_number"):
+		level_ref.spawn_damage_number(global_position, amount, Color(1.0, 0.3, 0.3))
 	
 	if health <= 0:
 		die()
+
+
+func _flash_hit():
+	var orig = modulate
+	modulate = Color(1.0, 0.3, 0.3)
+	var tween = create_tween()
+	tween.tween_property(self, "modulate", orig, 0.15)
 
 
 

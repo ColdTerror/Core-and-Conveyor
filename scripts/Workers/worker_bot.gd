@@ -1199,9 +1199,23 @@ func take_damage(damage: int, source: Node2D = null):
 	health -= damage
 	heal_cooldown_timer = 3.0
 	
+	_flash_hit()
+	
+	if is_instance_valid(level_ref) and level_ref.has_method("spawn_damage_number"):
+		level_ref.spawn_damage_number(global_position, damage, Color(0.3, 0.9, 1.0))
+	
 	if health <= 0:
 		die()
 		return
+
+
+func _flash_hit():
+	if has_node("Sprite2D"):
+		var sprite = $Sprite2D
+		var orig = sprite.self_modulate
+		sprite.self_modulate = Color(1.0, 0.25, 0.25)
+		var tween = create_tween()
+		tween.tween_property(sprite, "self_modulate", orig, 0.15)
 		
 	if current_state != State.PANIC_MOVING_HOME and current_state != State.PANIC_WAITING:
 		_drop_inventory_and_work()

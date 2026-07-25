@@ -401,6 +401,29 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower, p_lifetime, p_dmg_type, dest_pos)
 
 
+## Spawns a floating damage number label at world_pos that drifts upward and fades out.
+func spawn_damage_number(world_pos: Vector2, amount: int, color: Color):
+	if not object_layer: return
+	var node = Node2D.new()
+	node.global_position = world_pos + Vector2(randf_range(-8.0, 8.0), -12.0)
+	
+	var label = Label.new()
+	label.text = "-%d" % amount
+	label.modulate = color
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 12)
+	node.add_child(label)
+	
+	object_layer.add_child(node)
+	
+	var tween = node.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(node, "position", node.position + Vector2(randf_range(-6.0, 6.0), -25.0), 0.5)
+	tween.tween_property(label, "modulate:a", 0.0, 0.5)
+	tween.chain().tween_callback(node.queue_free)
+
+
 
 # MAP GENERATION
 

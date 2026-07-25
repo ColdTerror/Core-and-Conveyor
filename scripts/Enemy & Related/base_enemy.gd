@@ -574,6 +574,18 @@ func take_damage(damage: int, source: Node2D = null, damage_type: String = "None
 	var final_damage := roundi(damage * multiplier)
 	health -= final_damage
 	
+	_flash_hit()
+	
+	# Spawn Floating Damage Number (White for normal, Gold for weakness)
+	var num_color = Color.WHITE if multiplier <= 1.0 else Color(1.0, 0.85, 0.2)
+	if is_instance_valid(level_ref) and level_ref.has_method("spawn_damage_number"):
+		level_ref.spawn_damage_number(global_position, final_damage, num_color)
+		
+	# Apply Directional Knockback
+	if is_instance_valid(source):
+		var push_dir = (global_position - source.global_position).normalized()
+		global_position += push_dir * 12.0
+	
 	if health <= 0:
 		die()
 		return # Stop processing if dead
@@ -585,6 +597,15 @@ func take_damage(damage: int, source: Node2D = null, damage_type: String = "None
 		
 		# Force the enemy to instantly turn around and attack the tower!
 		_recalculate_path() 
+
+
+func _flash_hit():
+	if has_node("Sprite2D"):
+		var sprite = $Sprite2D
+		var orig = sprite.self_modulate
+		sprite.self_modulate = Color(1.0, 0.25, 0.25)
+		var tween = create_tween()
+		tween.tween_property(sprite, "self_modulate", orig, 0.15)
 
 
 
