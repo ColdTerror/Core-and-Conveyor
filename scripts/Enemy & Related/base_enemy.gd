@@ -579,13 +579,15 @@ func take_damage(damage: int, source: Node2D = null, damage_type: String = "None
 	# Spawn Floating Damage Number (White for normal, Gold for weakness)
 	var num_color = Color.WHITE if multiplier <= 1.0 else Color(1.0, 0.85, 0.2)
 	var lvl = get_tree().get_first_node_in_group("Level")
+	if not lvl and is_instance_valid(InputManager.level_ref):
+		lvl = InputManager.level_ref
 	if lvl and lvl.has_method("spawn_damage_number"):
 		lvl.spawn_damage_number(global_position, final_damage, num_color)
 		
 	# Apply Directional Knockback
 	if is_instance_valid(source):
 		var push_dir = (global_position - source.global_position).normalized()
-		global_position += push_dir * 12.0
+		global_position += push_dir * 6.0
 	
 	if health <= 0:
 		die()

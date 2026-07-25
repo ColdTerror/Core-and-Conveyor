@@ -1202,6 +1202,8 @@ func take_damage(damage: int, source: Node2D = null):
 	_flash_hit()
 	
 	var lvl = get_tree().get_first_node_in_group("Level")
+	if not lvl and is_instance_valid(InputManager.level_ref):
+		lvl = InputManager.level_ref
 	if lvl and lvl.has_method("spawn_damage_number"):
 		lvl.spawn_damage_number(global_position, damage, Color(0.3, 0.9, 1.0))
 	

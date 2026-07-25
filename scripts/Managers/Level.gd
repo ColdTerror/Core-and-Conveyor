@@ -99,6 +99,7 @@ var last_terrain_tile := Vector2i(-1, -1)
 ## Binds level references to autoloads, initializes sub-managers, hooks up HUD signals,
 ## and triggers procedural map generation or unpacks saved slots on boot.
 func _ready():
+	add_to_group("Level")
 	# Push all the necessary references up to the Autoload!
 	InputManager.level_ref = self
 	InputManager.building_manager = building_manager
@@ -403,24 +404,29 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 
 ## Spawns a floating damage number label at world_pos that drifts upward and fades out.
 func spawn_damage_number(world_pos: Vector2, amount: int, color: Color):
-	if not object_layer: return
 	var node = Node2D.new()
-	node.global_position = world_pos + Vector2(randf_range(-8.0, 8.0), -12.0)
+	node.global_position = world_pos + Vector2(randf_range(-8.0, 8.0), -16.0)
+	node.z_index = 100
+	node.z_as_relative = false
 	
 	var label = Label.new()
 	label.text = "-%d" % amount
 	label.modulate = color
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	label.add_theme_constant_override("outline_size", 4)
+	label.position = Vector2(-25, -12)
+	label.size = Vector2(50, 24)
 	node.add_child(label)
 	
-	object_layer.add_child(node)
+	add_child(node)
 	
 	var tween = node.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(node, "position", node.position + Vector2(randf_range(-6.0, 6.0), -25.0), 0.5)
-	tween.tween_property(label, "modulate:a", 0.0, 0.5)
+	tween.tween_property(node, "position", node.position + Vector2(randf_range(-6.0, 6.0), -30.0), 0.6)
+	tween.tween_property(label, "modulate:a", 0.0, 0.6)
 	tween.chain().tween_callback(node.queue_free)
 
 
