@@ -27,7 +27,25 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"9521ceb5-47fe-4485-8714-a6765330edf5"
+				"cd810960-c756-4368-bcd1-348ed6a334a8",
+				"e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
+				"def306dc-1b25-4816-ab97-d9e5edba7996",
+				"f8de0140-146b-497a-819d-8d485531c7bc",
+				"fb9cdbd1-4cac-4335-b33e-71b983d03f27",
+				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
+				"a04e4d56-c6e7-4b16-98ea-e85bea7a8b25",
+				"8cbafcea-e82e-4089-bf30-0aabe6d59712",
+				"4cfdeeb5-e472-4caf-8a06-156d729147e4",
+				"b83b0664-2b9c-4da2-83a0-19dc079b9fad",
+				"a3283276-3b70-4a9d-8a6e-27ef751b36fa",
+				"ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
+				"9a2c2636-b5be-4afa-a6ba-770f4e30ba9a",
+				"8afb9863-9cc5-4416-8392-9e4edcc7da7a",
+				"15753405-8ff7-40e4-a460-802605a57b32",
+				"22d40eb3-206b-4bb6-82e3-354ca61edef1",
+				"7a87df7c-a4d0-47bb-b193-5afe0ef590bc",
+				"1f19f767-ca5c-4019-9851-cbb3836d5ba7",
+				"3c6008e8-7e40-4ca3-ac05-95a08bb9d1ca"
 			]
 		},
 		{
@@ -35,7 +53,9 @@
 			"title": "Done",
 			"tasks": [
 				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
+				"6c1f2735-ae43-44ec-8cad-5bb984a74a8f",
 				"92708740-1838-4252-8b5d-6d4d75fc84ee",
+				"9521ceb5-47fe-4485-8714-a6765330edf5",
 				"22dd4bd9-946d-4a3c-926d-6ff918b57a43",
 				"f3bc766e-dc51-41b1-b7e9-08eeea7ded4c",
 				"5679a288-363e-44b2-804b-4069f914fa9c",
@@ -2123,6 +2143,146 @@
 		{
 			"uuid": "109faa41-3763-49bd-850a-9cfb7a1b5a20",
 			"title": "pinned resources arent saved",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "6c1f2735-ae43-44ec-8cad-5bb984a74a8f",
+			"title": "firepit is weird? is build instantly and its ranges are weird",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "cd810960-c756-4368-bcd1-348ed6a334a8",
+			"title": "dedicated stockpiles wont accept any items if empty",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
+			"title": "hard to see conveyer directions/etc when an item is on it? (maybe downsize the item sprite?) or something",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "def306dc-1b25-4816-ab97-d9e5edba7996",
+			"title": "corruption size spawning extra monsters need to balance",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f8de0140-146b-497a-819d-8d485531c7bc",
+			"title": "enemy resistances as well as weakness",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fb9cdbd1-4cac-4335-b33e-71b983d03f27",
+			"title": "spawn enemies in groups more",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b5824cf2-1d7b-4ee4-99c6-82f63119b856",
+			"title": "free quota only days 1,2,3?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a04e4d56-c6e7-4b16-98ea-e85bea7a8b25",
+			"title": "display bot level in workers tab",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8cbafcea-e82e-4089-bf30-0aabe6d59712",
+			"title": "upgrade bot capacity",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "4cfdeeb5-e472-4caf-8a06-156d729147e4",
+			"title": "make building and corruption range the same",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b83b0664-2b9c-4da2-83a0-19dc079b9fad",
+			"title": "bot throws errors when changing home loocations?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a3283276-3b70-4a9d-8a6e-27ef751b36fa",
+			"title": "pause construction button ",
+			"description": "you can pause all taks for a certain priority item, so you could manually stop all work on walls to stop bots from going to frontlines or to have them focus on something else\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
+			"title": "item dictionary? to see item stats for ammo etc",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "9a2c2636-b5be-4afa-a6ba-770f4e30ba9a",
+			"title": "tower range is wrong in upgrade preview",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "8afb9863-9cc5-4416-8392-9e4edcc7da7a",
+			"title": "owned tracker for upgrades is bugged?",
+			"description": "only tracks items in core im assuming it says 0 owned planks but i have a full stockpile of 100",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "15753405-8ff7-40e4-a460-802605a57b32",
+			"title": "hovering bots should have no water slow penalty",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "22d40eb3-206b-4bb6-82e3-354ca61edef1",
+			"title": "bots can go over walls?",
+			"description": "maybe its just the hover and the animation not playing\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "7a87df7c-a4d0-47bb-b193-5afe0ef590bc",
+			"title": "should bots stop work once they dont have enough energy to make it home",
+			"description": "should it track how far home is and stop before it would run out of energy going home?\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "1f19f767-ca5c-4019-9851-cbb3836d5ba7",
+			"title": "to top or to bottom priority buttons",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "3c6008e8-7e40-4ca3-ac05-95a08bb9d1ca",
+			"title": "bots cant pick up stone bricks or planks?",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

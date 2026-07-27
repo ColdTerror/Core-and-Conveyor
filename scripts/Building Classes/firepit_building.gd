@@ -12,12 +12,12 @@ extends Building
 class_name FirepitBuilding
 
 
-@export_group("Firepit Light")
+@export_group("Firepit Light & Territory")
 @export var light_color: Color = Color(1.0, 0.55, 0.15, 1.0)        ## Warm orange flame
 @export var blood_moon_light_color: Color = Color(1.0, 0.2, 0.05, 1.0) ## Intense red for Blood Moon
 @export var light_energy_night: float = 0.9                           ## Brightness at night
 @export var light_energy_day: float = 0.0                            ## Off during the day
-@export var light_range: float = 160.0                               ## Radius in pixels
+@export var light_range: float = 256.0                               ## Radius in pixels (8 tiles * 32px)
 @export var pulse_speed: float = 1.8                                 ## How fast the flame flickers
 @export var pulse_strength: float = 0.08                             ## How much the radius fluctuates
 
@@ -29,8 +29,11 @@ var _is_lit: bool = false
 
 
 
-## Sets up the firepit light and connects to TimeManager signals.
+## Sets up the firepit light, build costs, and connects to TimeManager signals.
 func _ready():
+	building_name = "Firepit"
+	size = Vector2i(2, 2)
+	
 	super()
 	_create_point_light()
 	_connect_time_manager()
