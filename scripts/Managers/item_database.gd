@@ -20,10 +20,31 @@ var items: Dictionary = {
 }
 
 
+## Normalizes item names to handle singular/plural variations cleanly.
+static func normalize_name(item_name: String) -> String:
+	var n = item_name.strip_edges()
+	if n == "Planks": return "Plank"
+	if n == "Stone Bricks": return "Stone Brick"
+	if n == "Wooden Arrows": return "Wooden Arrow"
+	if n == "Stone Arrows": return "Stone Arrow"
+	if n == "Ballista Bolts": return "Ballista Bolt"
+	if n == "Boulders": return "Boulder"
+	if n == "Pebbles": return "Pebble"
+	return n
+
+
+## Compares two item names after normalizing singular/plural variations.
+static func are_names_equal(name1: String, name2: String) -> bool:
+	if name1 == name2: return true
+	return normalize_name(name1) == normalize_name(name2)
+
 
 ## Searches and returns the preloaded ItemResource instance matching the text name.
 func get_item(name: String) -> ItemResource:
-	if items.has(name):
+	var norm = normalize_name(name)
+	if items.has(norm):
+		return items[norm]
+	elif items.has(name):
 		return items[name]
 	else:
 		print("ERROR: ItemDatabase doesn't know about: ", name)

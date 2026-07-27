@@ -49,37 +49,46 @@ func setup_blueprint(level_instance: Node2D, target_scene: PackedScene, costs: D
 
 
 
+func _get_matching_req_key(item_name: String) -> String:
+	if required_items.has(item_name):
+		return item_name
+	for req_key in required_items.keys():
+		if ItemDatabase.are_names_equal(req_key, item_name):
+			return req_key
+	return ""
+
+
 ## Determines if the blueprint currently accepts a specific item type for its construction.
 func can_accept_item(item_res: ItemResource) -> bool:
 	if is_ready_to_build: 
 		return false
 		
-	var item_name = item_res.display_name 
-	if not required_items.has(item_name): 
+	var req_key = _get_matching_req_key(item_res.display_name)
+	if req_key == "": 
 		return false
 		
-	var amount_needed = required_items[item_name]
-	var amount_we_have = delivered_items.get(item_name, 0)
+	var amount_needed = required_items[req_key]
+	var amount_we_have = delivered_items.get(req_key, 0)
 	
 	return amount_we_have < amount_needed
 
 
 ## Deposits construction resources into the blueprint, updating the remaining bills.
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
-	var item_name = item_res.display_name
-	
 	if is_ready_to_build: return 0
-	if not required_items.has(item_name): return 0
 	
-	var amount_needed = required_items[item_name]
-	var amount_we_have = delivered_items.get(item_name, 0)
+	var req_key = _get_matching_req_key(item_res.display_name)
+	if req_key == "": return 0
+	
+	var amount_needed = required_items[req_key]
+	var amount_we_have = delivered_items.get(req_key, 0)
 	var space_left = amount_needed - amount_we_have
 	
 	if space_left <= 0: return 0
 	
 	var amount_to_take = min(amount, space_left)
-	delivered_items[item_name] = amount_we_have + amount_to_take
-	EconomyManager.log_item_consumed(item_name, amount_to_take)
+	delivered_items[req_key] = amount_we_have + amount_to_take
+	EconomyManager.log_item_consumed(req_key, amount_to_take)
 	inventory_changed.emit()
 	
 	queue_redraw()

@@ -45,7 +45,27 @@
 				"22d40eb3-206b-4bb6-82e3-354ca61edef1",
 				"7a87df7c-a4d0-47bb-b193-5afe0ef590bc",
 				"1f19f767-ca5c-4019-9851-cbb3836d5ba7",
-				"3c6008e8-7e40-4ca3-ac05-95a08bb9d1ca"
+				"02b43ce0-017e-4d72-b447-3f4e4d2865af",
+				"220e5866-f3ea-4147-ae56-2f25b432a63a",
+				"bd7f988d-b229-4278-af06-06b630ffdd49",
+				"fd42bb7c-f854-4247-be22-e6be0e0ad701",
+				"7c09d4ec-6a91-47fa-8224-4a9bc796960a",
+				"a068fc69-4ad2-4de1-9fe6-ee467101236a",
+				"5eff4662-4d5b-4561-81e5-ff40b7e97ba9",
+				"4d35837e-0d17-42b9-8eb5-fda1cee20ca8",
+				"7921dbcb-24e7-4801-9f67-d85c5f03e073",
+				"5668f851-a7fa-4af3-b618-75231503f344",
+				"4597ad50-3855-4702-9e42-4f1d1bac13a7",
+				"f9248cc1-e609-4a3c-aa48-1e72eb8f9405",
+				"82435f02-bf9a-4131-b4e7-e124e5aef292",
+				"32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
+				"22a25d16-05fd-4a68-86e6-25dbf8cc4fc6",
+				"b75116fa-6bdd-41ae-886b-827a62957178",
+				"b09ca5c3-b56f-4405-8782-d4f309f06d81",
+				"81666a40-4240-4fa0-87d1-ea974b6bde91",
+				"77757c6a-bb16-4e39-82c1-82878a5ebfa4",
+				"da96d35e-5a32-4d57-9212-3e789996ec74",
+				"286c2b2e-81ed-4b73-baa6-99eca8a1fd5e"
 			]
 		},
 		{
@@ -2281,9 +2301,149 @@
 			"steps": []
 		},
 		{
-			"uuid": "3c6008e8-7e40-4ca3-ac05-95a08bb9d1ca",
-			"title": "bots cant pick up stone bricks or planks?",
+			"uuid": "02b43ce0-017e-4d72-b447-3f4e4d2865af",
+			"title": "f4 to switch between enemy and bot grids",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "220e5866-f3ea-4147-ae56-2f25b432a63a",
+			"title": "colored floating numbers maybe not working?",
+			"description": "is working just not a big enough difference\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "bd7f988d-b229-4278-af06-06b630ffdd49",
+			"title": "show bot/enemy path only when selecting them",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fd42bb7c-f854-4247-be22-e6be0e0ad701",
+			"title": "hover bots should see water as more costly but still be able to cross",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "7c09d4ec-6a91-47fa-8224-4a9bc796960a",
+			"title": "eclipse, where day becaomes a second night",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "a068fc69-4ad2-4de1-9fe6-ee467101236a",
+			"title": "ammo distributor range should be in tiles",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "5eff4662-4d5b-4561-81e5-ff40b7e97ba9",
+			"title": "upgrade ammo launcher",
+			"description": "have more capaacity per shot, instead of 1 level 2 goes 2",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "4d35837e-0d17-42b9-8eb5-fda1cee20ca8",
+			"title": "stockpile upgrade no stat changes?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "7921dbcb-24e7-4801-9f67-d85c5f03e073",
+			"title": "give walls some corruption resistance",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "5668f851-a7fa-4af3-b618-75231503f344",
+			"title": "if you research tower damage out of order it can go down",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "4597ad50-3855-4702-9e42-4f1d1bac13a7",
+			"title": "fletcher upgrade doesnt show stat",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f9248cc1-e609-4a3c-aa48-1e72eb8f9405",
+			"title": "some moon randomness checks, no 2 full moons in a row or 2 within 5 days etc",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "82435f02-bf9a-4131-b4e7-e124e5aef292",
+			"title": "more building slots research",
+			"description": "or maybe a infinite building slow research that increases in cost like bots\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
+			"title": "max bot energy research",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "22a25d16-05fd-4a68-86e6-25dbf8cc4fc6",
+			"title": "remove cant be undone text",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b75116fa-6bdd-41ae-886b-827a62957178",
+			"title": "enforce max pinned resources in the screen",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "b09ca5c3-b56f-4405-8782-d4f309f06d81",
+			"title": "damagae stats per tower like btd6",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "81666a40-4240-4fa0-87d1-ea974b6bde91",
+			"title": "you kinda run outta things to do/build after a wekk",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "77757c6a-bb16-4e39-82c1-82878a5ebfa4",
+			"title": "spawn enemies on the edge of corruption more than the center?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "da96d35e-5a32-4d57-9212-3e789996ec74",
+			"title": "enemy health should scale with day",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "286c2b2e-81ed-4b73-baa6-99eca8a1fd5e",
+			"title": "water doesnt disappear under corruption but you cant see it",
+			"description": "looks weird that enemies slow down out of nowhere when walking across corrupted water, either destroy water underneath corruption or add a new corrupted water tile?\n",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

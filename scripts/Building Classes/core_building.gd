@@ -283,7 +283,7 @@ func _spawn_new_bot():
 ## Dispenses a specified quantity of resources from the core inventory.
 func take_item(item_name: String, requested_amount: int) -> Dictionary:
 	for item_res in inventory.keys():
-		if item_res.display_name == item_name:
+		if ItemDatabase.are_names_equal(item_res.display_name, item_name):
 			var available = inventory[item_res]
 			
 			if available <= 0: continue

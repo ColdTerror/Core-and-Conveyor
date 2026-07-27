@@ -665,7 +665,13 @@ func _find_stockpile_with_item(item_name: String):
 		
 		if "inventory" in b and typeof(b.inventory) == TYPE_DICTIONARY:
 			for key in b.inventory.keys():
-				if key is ItemResource and key.display_name == item_name:
+				var is_match = false
+				if key is ItemResource:
+					is_match = ItemDatabase.are_names_equal(key.display_name, item_name)
+				elif key is String:
+					is_match = ItemDatabase.are_names_equal(key, item_name)
+					
+				if is_match:
 					var amount = b.inventory[key]
 					if typeof(amount) in [TYPE_INT, TYPE_FLOAT] and amount > 0:
 						has_item = true
