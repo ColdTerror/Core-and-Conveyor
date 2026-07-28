@@ -223,24 +223,16 @@ func _perform_fallback_generation():
 ## Scans surrounding territory coordinates to identify the closest valid target.
 func _find_nearest_target() -> Vector2i:
 	var center_tile = level_ref.object_layer.local_to_map(global_position)
-	var top_left_tile = center_tile - (size / 2)
-	
-	var start_x = top_left_tile.x - scan_radius
-	var end_x = top_left_tile.x + size.x + scan_radius - 1
-	var start_y = top_left_tile.y - scan_radius
-	var end_y = top_left_tile.y + size.y + scan_radius - 1
-	
 	var best_pos = Vector2i.MAX
 	var min_dist = 99999.0
 	
-	for x in range(start_x, end_x + 1):
-		for y in range(start_y, end_y + 1):
-			var check_pos = Vector2i(x, y)
-			if _is_valid_target(check_pos):
-				var dist = center_tile.distance_squared_to(check_pos)
-				if dist < min_dist:
-					min_dist = dist
-					best_pos = check_pos
+	for offset in _cached_range_tiles.keys():
+		var check_pos = center_tile + offset
+		if _is_valid_target(check_pos):
+			var dist = center_tile.distance_squared_to(check_pos)
+			if dist < min_dist:
+				min_dist = dist
+				best_pos = check_pos
 					
 	return best_pos
 
