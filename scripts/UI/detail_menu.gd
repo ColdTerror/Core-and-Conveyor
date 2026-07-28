@@ -87,6 +87,7 @@ func _process(_delta):
 		# Live update for Ammo Distributor
 		elif selected_object is AmmoDistributorBuilding:
 			var info_lines: Array[String] = []
+			info_lines.append("Supply Range: %.1f tiles" % selected_object.distribution_range)
 			if selected_object.inventory.is_empty():
 				info_lines.append("Stored Ammo: Empty")
 			else:

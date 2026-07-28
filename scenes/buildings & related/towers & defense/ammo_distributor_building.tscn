@@ -26,6 +26,8 @@ building_name = "Ammo Distributor"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_icon")
 build_costs = Array[ExtResource("3_cost_script")]([SubResource("Resource_cost_plank"), SubResource("Resource_cost_stone_brick")])
+build_range = 4
+corruption_range = 4
 
 [node name="Base" type="Sprite2D" parent="." unique_id=1153641874]
 texture = ExtResource("2_build_tex")

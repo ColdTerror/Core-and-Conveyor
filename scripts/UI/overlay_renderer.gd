@@ -258,29 +258,34 @@ func _draw_tower_ranges():
 			ghosts_to_draw = [bm.ghost_building]
 			
 	for g in ghosts_to_draw:
-		if is_instance_valid(g) and "attack_range" in g and not towers_to_draw.has(g):
+		if is_instance_valid(g) and ("attack_range" in g or "distribution_range" in g) and not towers_to_draw.has(g):
 			towers_to_draw.append(g)
 			
 	# 2. Hovered tower
 	var hovered = InputManager.hovered_building
-	if is_instance_valid(hovered) and "attack_range" in hovered and not towers_to_draw.has(hovered):
+	if is_instance_valid(hovered) and ("attack_range" in hovered or "distribution_range" in hovered) and not towers_to_draw.has(hovered):
 		towers_to_draw.append(hovered)
 		
 	# 3. Selected towers
 	for b in bm.buildings:
-		if is_instance_valid(b) and "attack_range" in b and b.get("is_selected") and not towers_to_draw.has(b):
+		if is_instance_valid(b) and ("attack_range" in b or "distribution_range" in b) and b.get("is_selected") and not towers_to_draw.has(b):
 			towers_to_draw.append(b)
 			
-	# Now, draw the range for each tower
+	# Now, draw the range for each tower / distributor
 	var tile_size = 32.0
 	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
-	var fill_color = Color(1.0, 0.2, 0.2, 0.15)
-	var border_color = Color(1.0, 0.2, 0.2, 0.8)
 	var b_width = 2.0
 	
 	for b in towers_to_draw:
 		var tiles = b.get("_cached_range_tiles")
 		if tiles == null or tiles.is_empty(): continue
+		
+		# Distinct color scheme for Ammo Distributors vs Attack Towers
+		var fill_color = Color(1.0, 0.2, 0.2, 0.15)
+		var border_color = Color(1.0, 0.2, 0.2, 0.8)
+		if "distribution_range" in b or b is AmmoDistributorBuilding:
+			fill_color = Color(1.0, 0.85, 0.2, 0.18)  # Bright Yellow fill
+			border_color = Color(1.0, 0.75, 0.0, 0.85) # Amber Gold border
 		
 		# Set transform to tower's local space relative to OverlayRenderer
 		draw_set_transform(to_local(b.global_position), b.rotation, b.scale)

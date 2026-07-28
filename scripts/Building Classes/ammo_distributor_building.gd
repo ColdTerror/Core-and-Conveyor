@@ -11,7 +11,7 @@ extends Building
 var level_ref: Node2D
 var inventory: Dictionary = {} # ItemResource -> int
 
-@export var distribution_range: float = 160.0 # 5 tiles
+@export var distribution_range: float = 6.0 ## Supply range in tiles (default 6 tiles)
 @export var transfer_interval: float = 1.0 # 1.0 second
 var check_timer: float = 0.0
 
@@ -34,8 +34,11 @@ var reload_timer: float = 0.0
 
 
 
+var _cached_range_tiles: Dictionary = {}
+
 func _ready():
 	super()
+	_cached_range_tiles = _get_local_range_tiles()
 	if has_node("TowerPivot"):
 		turret_pivot = get_node("TowerPivot")
 		if turret_pivot.has_node("Loaded"):
@@ -45,6 +48,42 @@ func _ready():
 	if has_node("CrateOverlay"):
 		crate_overlay = get_node("CrateOverlay")
 		crate_overlay.visible = false
+
+
+## Computes a local grid map of tiles falling within the distributor's supply range.
+func _get_local_range_tiles() -> Dictionary:
+	var tiles = {}
+	var tile_size = 32.0 
+	var b_size = size if "size" in self else Vector2i(2, 2) 
+	
+	var half_w = (b_size.x * tile_size) / 2.0
+	var half_h = (b_size.y * tile_size) / 2.0
+	
+	var rect_x_min = -half_w
+	var rect_x_max = half_w
+	var rect_y_min = -half_h
+	var rect_y_max = half_h
+	
+	var max_dist_px = distribution_range * tile_size
+	var search_radius = int(distribution_range) + max(b_size.x, b_size.y)
+	
+	for x in range(-search_radius, search_radius + 1):
+		for y in range(-search_radius, search_radius + 1):
+			var tile_center_x = x * tile_size
+			var tile_center_y = y * tile_size
+			
+			if int(b_size.x) % 2 == 0: tile_center_x += tile_size / 2.0
+			if int(b_size.y) % 2 == 0: tile_center_y += tile_size / 2.0
+			
+			var dx = max(0.0, max(rect_x_min - tile_center_x, tile_center_x - rect_x_max))
+			var dy = max(0.0, max(rect_y_min - tile_center_y, tile_center_y - rect_y_max))
+			
+			var dist_px = Vector2(dx, dy).length()
+			
+			if dist_px <= max_dist_px:
+				tiles[Vector2i(x, y)] = Vector2(tile_center_x, tile_center_y)
+				
+	return tiles
 
 
 
@@ -153,17 +192,9 @@ func void_inventory():
 
 
 
-## Draws a light blue range indicator on the map when highlighted or selected.
+## Range indicator rendering is handled by OverlayRenderer via _cached_range_tiles.
 func _draw():
-	if not (show_range_overlay or is_selected):
-		return
-		
-	var circle_color = Color(0.2, 0.8, 1.0, 0.15) # Light blue fill
-	var border_color = Color(0.2, 0.8, 1.0, 0.8)  # Light blue border
-	var border_width = 1.5
-	
-	draw_circle(Vector2.ZERO, distribution_range, circle_color)
-	draw_arc(Vector2.ZERO, distribution_range, 0.0, TAU, 64, border_color, border_width, true)
+	pass
 
 
 
@@ -175,6 +206,7 @@ func _distribute_ammo():
 	var best_tower: TowerBuilding = null
 	var best_item_res: ItemResource = null
 	var lowest_percentage := INF
+	var range_px = distribution_range * 32.0
 	
 	# Find all towers within range
 	for b in level_ref.building_manager.buildings:
@@ -185,7 +217,7 @@ func _distribute_ammo():
 			continue
 			
 		var dist = global_position.distance_to(b.global_position)
-		if dist > distribution_range:
+		if dist > range_px:
 			continue
 			
 		# Check if the tower needs ammo
