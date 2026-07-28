@@ -31,7 +31,7 @@ building_name = "Stone Crusher"
 size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_crusher")
 build_costs = Array[ExtResource("7_tsife")]([SubResource("Resource_cost_wood"), SubResource("Resource_cost_stone")])
-build_range = 8.0
+build_range = 10.0
 corruption_range = 10.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015183]

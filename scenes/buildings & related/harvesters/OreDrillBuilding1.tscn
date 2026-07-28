@@ -31,7 +31,7 @@ building_name = "Ore Drill"
 size = Vector2i(3, 3)
 icon = SubResource("AtlasTexture_drill")
 build_costs = Array[ExtResource("5_cost_script")]([SubResource("Resource_wood_cost"), SubResource("Resource_stone_cost")])
-build_range = 8.0
+build_range = 10.0
 corruption_range = 10.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]

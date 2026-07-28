@@ -44,7 +44,7 @@ var occupied_tiles: Array[Vector2i] = []
 
 @export_group("Ranges")
 # How far this building allows other buildings to be placed from it
-@export var build_range: int = 5
+@export var build_range: int = 6
 @export var corruption_range: int = 6
 
 @export_group("Upgrade Settings")

@@ -31,7 +31,7 @@ size = Vector2i(4, 4)
 max_health = 150
 icon = SubResource("AtlasTexture_5rwt6")
 build_costs = Array[ExtResource("7_odyi1")]([SubResource("Resource_axv5i")])
-build_range = 8.0
+build_range = 10.0
 corruption_range = 10.0
 building_level = 2
 

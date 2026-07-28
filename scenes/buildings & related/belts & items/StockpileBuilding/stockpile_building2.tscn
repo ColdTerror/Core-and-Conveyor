@@ -26,7 +26,7 @@ building_name = "Stockpile"
 size = Vector2i(4, 4)
 icon = SubResource("AtlasTexture_shrhu")
 build_costs = Array[ExtResource("4_dejhi")]([SubResource("Resource_e6hxc")])
-build_range = 8.0
+build_range = 10.0
 corruption_range = 10.0
 building_level = 2
 
