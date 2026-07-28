@@ -186,8 +186,11 @@ func _try_infect_neighbors(center_tile: Vector2i) -> Dictionary:
 				is_water = tile_data.get_custom_data("is_water")
 				
 			# If it's water, only spread 20% of the time (80% failure rate per tick)
-			if is_water and randf() > 0.20:
-				return {"has_empty": true, "blocked_count": blocked_count}
+			if is_water:
+				if randf() > 0.20:
+					return {"has_empty": true, "blocked_count": blocked_count}
+				if level_ref and level_ref.has_method("convert_water_to_dirt"):
+					level_ref.convert_water_to_dirt(neighbor)
 			
 			var has_obstacle = object_layer and object_layer.get_cell_source_id(neighbor) != -1
 			if has_obstacle:

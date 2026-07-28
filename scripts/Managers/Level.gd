@@ -729,7 +729,30 @@ func can_place_object(grid_pos: Vector2i) -> bool:
 
 
 
-# MAP SAVE / LOAD
+## Converts a water tile to dirt terrain upon corruption spread, resetting pathfinder weights and solid state.
+func convert_water_to_dirt(grid_pos: Vector2i):
+	var tile_data = terrain_layer.get_cell_tile_data(grid_pos)
+	if tile_data and tile_data.get_custom_data("is_water"):
+		var type = TERRAIN_DIRT
+		var default_coords = Vector2i(type % ATLAS_COLUMNS, type / ATLAS_COLUMNS)
+		var final_coords = default_coords
+		if type < tile_library.size():
+			var data = tile_library[type]
+			final_coords = data.atlas_coords_full if data.atlas_coords_full != Vector2i(-1, -1) else default_coords
+		
+		# Biome-specific Palette Swaps
+		if current_biome == MapBiome.DESERT:
+			final_coords = Vector2i(2, 0)
+		elif current_biome == MapBiome.ALPINE:
+			final_coords = Vector2i(0, 0)
+			
+		terrain_layer.set_cell(grid_pos, 0, final_coords)
+		
+		# Update pathfinding brains
+		if pathfinder:
+			pathfinder.set_weighted_obstacle(grid_pos, 1.0, false)
+
+
 
 
 ## Connects pause menus to save serializers.
