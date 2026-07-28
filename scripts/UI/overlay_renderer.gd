@@ -287,8 +287,8 @@ func _draw_tower_ranges():
 			fill_color = Color(1.0, 0.85, 0.2, 0.18)  # Bright Yellow fill
 			border_color = Color(1.0, 0.75, 0.0, 0.85) # Amber Gold border
 		elif "scan_radius" in b or b is HarvesterBuilding:
-			fill_color = Color(0.2, 0.9, 0.4, 0.15)   # Emerald Green fill
-			border_color = Color(0.2, 0.9, 0.4, 0.85)  # Emerald Green border
+			fill_color = Color(0.25, 0.25, 0.3, 0.22)   # Dark Slate Grey fill
+			border_color = Color(0.4, 0.45, 0.5, 0.9)   # Charcoal Slate border
 		
 		# Set transform to tower's local space relative to OverlayRenderer
 		draw_set_transform(to_local(b.global_position), b.rotation, b.scale)
