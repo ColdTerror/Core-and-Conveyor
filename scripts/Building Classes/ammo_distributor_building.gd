@@ -216,9 +216,19 @@ func _distribute_ammo():
 		if not (b is TowerBuilding):
 			continue
 			
-		var dist = global_position.distance_to(b.global_position)
-		if dist > range_px:
-			continue
+		var is_in_range = false
+		if not b.occupied_tiles.is_empty() and level_ref and level_ref.object_layer:
+			var distributor_origin = level_ref.object_layer.local_to_map(global_position)
+			for tile in b.occupied_tiles:
+				var local_offset = tile - distributor_origin
+				if _cached_range_tiles.has(local_offset):
+					is_in_range = true
+					break
+		
+		if not is_in_range:
+			var dist = global_position.distance_to(b.global_position)
+			if dist > range_px + 16.0:
+				continue
 			
 		# Check if the tower needs ammo
 		if b.ammo_inventory.size() >= b.ammo_capacity:
