@@ -19,6 +19,10 @@ run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="uid://bsvsbk5ls3s0g"
 
+[audio]
+
+buses/default_bus_layout="uid://cxo1bbowfqqvi"
+
 [autoload]
 
 EconomyManager="*res://scripts/Managers/economy_manager.gd"
@@ -34,6 +38,8 @@ AudioManager="*uid://b62cdiulu7kma"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=3
+window/size/borderless=true
 window/stretch/mode="canvas_items"
 window/stretch/scale_mode="integer"
 

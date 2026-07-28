@@ -76,11 +76,12 @@ func complete_research(tech_name: String):
 		print("Cannot research: ", tech_name, " (tier ", TECH_TIERS.get(tech_name), " locked)")
 		return
 
-	unlocked_techs.append(tech_name)
+	if not tech_name in unlocked_techs:
+		unlocked_techs.append(tech_name)
 	print("RESEARCH UNLOCKED: ", tech_name)
 	
-	# Apply the hard math
-	_apply_tech(tech_name)
+	# Recalculate stats deterministically from all unlocked techs
+	recalculate_all_stats()
 	
 	# Only notify living units and UI when researching during active gameplay
 	_update_living_bots()
@@ -90,48 +91,57 @@ func complete_research(tech_name: String):
 
 
 
-## Applies technology multipliers to player capabilities and unlocks tier gates.
-func _apply_tech(tech_name: String):
-	match tech_name:
-		"Core Expansion 1":
-			tier_unlocked = 1
-		"Core Expansion 2":
-			tier_unlocked = 2
-		"Core Expansion 3":
-			tier_unlocked = 3
-		"Fleet Expansion":      
-			max_bots_allowed = 5
-		"Advanced Tooling":      
-			bot_max_level = 4
-		"Belt Speed 1":          
-			belt_speed_mult = 1.25
-		"Belt Speed 2":          
-			belt_speed_mult = 1.50
-		"Building Limit 1":
-			max_buildings_allowed = 20
-		"Building Limit 2":
-			max_buildings_allowed = 40
-		"Building Limit 3":
-			max_buildings_allowed = 70
-		"Tower Damage 1":
-			tower_damage_mult = 1.10
-		"Tower Damage 2":
-			tower_damage_mult = 1.25
-		"Tower Damage 3":
-			tower_damage_mult = 1.50
-		"Wave Measurement":
-			wave_measure = true
-		"Moon Measurement 1": 
-			moon_measure_level = 1
-		"Moon Measurement 2":
-			moon_measure_level = 2
-		"Thruster Upgrade":
-			pass
-		"Pneumatic Logistics":
-			pass
-		_:
-			print("WARNING: Unknown tech -> ", tech_name)
-	print(tech_name)
+## Recalculates all technology multipliers and thresholds deterministically from unlocked_techs.
+func recalculate_all_stats():
+	# Reset defaults
+	tier_unlocked = 0
+	max_bots_allowed = 2 
+	bot_start_level = 1 
+	bot_max_level = 2    
+	belt_speed_mult = 1.0
+	max_buildings_allowed = 10
+	tower_damage_mult = 1.0
+	wave_measure = false
+	moon_measure_level = 0
+	
+	for tech in unlocked_techs:
+		match tech:
+			"Core Expansion 1":
+				tier_unlocked = max(tier_unlocked, 1)
+			"Core Expansion 2":
+				tier_unlocked = max(tier_unlocked, 2)
+			"Core Expansion 3":
+				tier_unlocked = max(tier_unlocked, 3)
+			"Fleet Expansion":      
+				max_bots_allowed = max(max_bots_allowed, 5)
+			"Advanced Tooling":      
+				bot_max_level = max(bot_max_level, 4)
+			"Belt Speed 1":          
+				belt_speed_mult += 0.25
+			"Belt Speed 2":          
+				belt_speed_mult += 0.25
+			"Building Limit 1":
+				max_buildings_allowed += 10
+			"Building Limit 2":
+				max_buildings_allowed += 20
+			"Building Limit 3":
+				max_buildings_allowed += 30
+			"Tower Damage 1":
+				tower_damage_mult += 0.10
+			"Tower Damage 2":
+				tower_damage_mult += 0.25
+			"Tower Damage 3":
+				tower_damage_mult += 0.50
+			"Wave Measurement":
+				wave_measure = true
+			"Moon Measurement 1": 
+				moon_measure_level = max(moon_measure_level, 1)
+			"Moon Measurement 2":
+				moon_measure_level = max(moon_measure_level, 2)
+			"Thruster Upgrade", "Pneumatic Logistics":
+				pass
+			_:
+				print("WARNING: Unknown tech -> ", tech)
 
 
 
@@ -161,23 +171,12 @@ func get_save_data() -> Dictionary:
 
 ## Resets research stats to defaults and restores unlocked technologies from saved data.
 func load_save_data(data: Dictionary):
-	# Reset all Autoload variables back to Day 1 defaults
-	tier_unlocked = 0
-	max_bots_allowed = 2 
-	bot_start_level = 1 
-	bot_max_level = 2    
-	belt_speed_mult = 1.0
-	max_buildings_allowed = 10
-	tower_damage_mult = 1.0
-	wave_measure = false
-	moon_measure_level = 0
 	unlocked_techs.clear()
 	
-	# Quietly "re-research" everything from the save file
 	if data.has("unlocked_techs"):
-		
 		var saved_techs: Array[String] = []
 		saved_techs.assign(data["unlocked_techs"])
 		for tech in saved_techs:
 			unlocked_techs.append(tech)
-			_apply_tech(tech)
+			
+	recalculate_all_stats()
