@@ -44,8 +44,49 @@ func setup(level_instance: Node2D):
 
 
 
+var _cached_range_tiles: Dictionary = {}
+
+
+## Computes a local grid map of tiles falling within the harvester's scan radius.
+func _get_local_range_tiles() -> Dictionary:
+	var tiles = {}
+	var tile_size = 32.0 
+	var b_size = size if "size" in self else Vector2i(1, 1) 
+	
+	var half_w = (b_size.x * tile_size) / 2.0
+	var half_h = (b_size.y * tile_size) / 2.0
+	
+	var rect_x_min = -half_w
+	var rect_x_max = half_w
+	var rect_y_min = -half_h
+	var rect_y_max = half_h
+	
+	var max_dist_px = scan_radius * tile_size
+	var search_radius = scan_radius + max(b_size.x, b_size.y)
+	
+	for x in range(-search_radius, search_radius + 1):
+		for y in range(-search_radius, search_radius + 1):
+			var tile_center_x = x * tile_size
+			var tile_center_y = y * tile_size
+			
+			if int(b_size.x) % 2 == 0: tile_center_x += tile_size / 2.0
+			if int(b_size.y) % 2 == 0: tile_center_y += tile_size / 2.0
+			
+			var dx = max(0.0, max(rect_x_min - tile_center_x, tile_center_x - rect_x_max))
+			var dy = max(0.0, max(rect_y_min - tile_center_y, tile_center_y - rect_y_max))
+			
+			var dist_px = Vector2(dx, dy).length()
+			
+			if dist_px <= max_dist_px:
+				tiles[Vector2i(x, y)] = Vector2(tile_center_x, tile_center_y)
+				
+	return tiles
+
+
+
 ## Registers the harvester structure as an active economic production source.
 func _ready():
+	_cached_range_tiles = _get_local_range_tiles()
 	add_to_group("PriorityTarget")
 	EconomyManager.register_source(self, false)
 	if beam_line:
@@ -71,26 +112,9 @@ func _exit_tree():
 
 
 
-## Draws the circular scan range visual overlay bounds when previewed, highlighted, or selected.
+## Range indicator rendering is handled by OverlayRenderer via _cached_range_tiles.
 func _draw():
-	if (show_range_overlay or is_selected) and level_ref:
-		var center_tile = level_ref.object_layer.local_to_map(global_position)
-		var top_left_tile = center_tile - (size / 2)
-		var range_top_left = top_left_tile - Vector2i(scan_radius, scan_radius)
-		var total_width = size.x + (scan_radius * 2)
-		var total_height = size.y + (scan_radius * 2)
-		
-		var world_pos = level_ref.object_layer.map_to_local(range_top_left)
-		world_pos -= Vector2(TILE_SIZE, TILE_SIZE) / 2.0
-		
-		var local_pos = to_local(world_pos)
-		var size_px = Vector2(total_width, total_height) * TILE_SIZE
-		
-		var rect = Rect2(local_pos, size_px)
-		var fill_alpha = 0.3 if is_ghost else 0.15
-		var border_alpha = 1.0 if is_ghost else 0.6
-		draw_rect(rect, Color(0.163, 0.162, 0.175, fill_alpha), true)
-		draw_rect(rect, Color(0.0, 0.0, 0.0, border_alpha), false, 2.0)
+	pass
 
 
 

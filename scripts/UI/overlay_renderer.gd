@@ -258,20 +258,20 @@ func _draw_tower_ranges():
 			ghosts_to_draw = [bm.ghost_building]
 			
 	for g in ghosts_to_draw:
-		if is_instance_valid(g) and ("attack_range" in g or "distribution_range" in g) and not towers_to_draw.has(g):
+		if is_instance_valid(g) and ("attack_range" in g or "distribution_range" in g or "scan_radius" in g) and not towers_to_draw.has(g):
 			towers_to_draw.append(g)
 			
 	# 2. Hovered tower
 	var hovered = InputManager.hovered_building
-	if is_instance_valid(hovered) and ("attack_range" in hovered or "distribution_range" in hovered) and not towers_to_draw.has(hovered):
+	if is_instance_valid(hovered) and ("attack_range" in hovered or "distribution_range" in hovered or "scan_radius" in hovered) and not towers_to_draw.has(hovered):
 		towers_to_draw.append(hovered)
 		
 	# 3. Selected towers
 	for b in bm.buildings:
-		if is_instance_valid(b) and ("attack_range" in b or "distribution_range" in b) and b.get("is_selected") and not towers_to_draw.has(b):
+		if is_instance_valid(b) and ("attack_range" in b or "distribution_range" in b or "scan_radius" in b) and b.get("is_selected") and not towers_to_draw.has(b):
 			towers_to_draw.append(b)
 			
-	# Now, draw the range for each tower / distributor
+	# Now, draw the range for each tower / distributor / harvester
 	var tile_size = 32.0
 	var half_offset = Vector2(tile_size / 2.0, tile_size / 2.0)
 	var b_width = 2.0
@@ -280,12 +280,15 @@ func _draw_tower_ranges():
 		var tiles = b.get("_cached_range_tiles")
 		if tiles == null or tiles.is_empty(): continue
 		
-		# Distinct color scheme for Ammo Distributors vs Attack Towers
+		# Distinct color scheme for functional range types
 		var fill_color = Color(1.0, 0.2, 0.2, 0.15)
 		var border_color = Color(1.0, 0.2, 0.2, 0.8)
 		if "distribution_range" in b or b is AmmoDistributorBuilding:
 			fill_color = Color(1.0, 0.85, 0.2, 0.18)  # Bright Yellow fill
 			border_color = Color(1.0, 0.75, 0.0, 0.85) # Amber Gold border
+		elif "scan_radius" in b or b is HarvesterBuilding:
+			fill_color = Color(0.2, 0.9, 0.4, 0.15)   # Emerald Green fill
+			border_color = Color(0.2, 0.9, 0.4, 0.85)  # Emerald Green border
 		
 		# Set transform to tower's local space relative to OverlayRenderer
 		draw_set_transform(to_local(b.global_position), b.rotation, b.scale)
@@ -344,18 +347,38 @@ func _draw_ghost_previews():
 			for t in bm._get_tiles_in_radius(origin, g, g.build_range):
 				unique_build_tiles[t] = true
 
-	# Draw fills
+	# Categorize tiles to eliminate double-drawing when safe and build ranges overlap
+	var both_tiles = {}
+	var safe_only_tiles = {}
+	var build_only_tiles = {}
+
 	for t in unique_safe_tiles.keys():
+		if unique_build_tiles.has(t):
+			both_tiles[t] = true
+		else:
+			safe_only_tiles[t] = true
+
+	for t in unique_build_tiles.keys():
+		if not unique_safe_tiles.has(t):
+			build_only_tiles[t] = true
+
+	# Draw fills
+	for t in both_tiles.keys():
+		var pos = level.object_layer.map_to_local(t) - half_offset
+		draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), Color(0.2, 0.8, 0.8, 0.15))
+
+	for t in safe_only_tiles.keys():
 		var pos = level.object_layer.map_to_local(t) - half_offset
 		draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), Color(0.5, 0.8, 1.0, 0.15))
-		
-	for t in unique_build_tiles.keys():
+
+	for t in build_only_tiles.keys():
 		var pos = level.object_layer.map_to_local(t) - half_offset
 		draw_rect(Rect2(pos, Vector2(tile_size, tile_size)), Color(0.5, 1.0, 0.5, 0.15))
 
 	# Draw borders
-	_draw_tile_set(unique_build_tiles, Color(0,0,0,0), Color(0.2, 1.0, 0.2, 0.8), tile_size, half_offset, b_width)
-	_draw_tile_set(unique_safe_tiles,  Color(0,0,0,0), Color(0.2, 0.5, 1.0, 0.8), tile_size, half_offset, b_width)
+	_draw_tile_set(both_tiles,       Color(0,0,0,0), Color(0.2, 0.85, 0.85, 0.85), tile_size, half_offset, b_width)
+	_draw_tile_set(build_only_tiles, Color(0,0,0,0), Color(0.2, 1.0, 0.2, 0.8),    tile_size, half_offset, b_width)
+	_draw_tile_set(safe_only_tiles,  Color(0,0,0,0), Color(0.2, 0.5, 1.0, 0.8),    tile_size, half_offset, b_width)
 	
 	# Draw building footprints
 	for g in ghosts_to_draw:
