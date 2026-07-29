@@ -27,7 +27,6 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
-				"cd810960-c756-4368-bcd1-348ed6a334a8",
 				"e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
 				"def306dc-1b25-4816-ab97-d9e5edba7996",
 				"f8de0140-146b-497a-819d-8d485531c7bc",
@@ -69,57 +68,6 @@
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
-				"aad188c0-33fa-4d2f-8450-352cb9a3c612",
-				"6c1f2735-ae43-44ec-8cad-5bb984a74a8f",
-				"92708740-1838-4252-8b5d-6d4d75fc84ee",
-				"9521ceb5-47fe-4485-8714-a6765330edf5",
-				"22dd4bd9-946d-4a3c-926d-6ff918b57a43",
-				"f3bc766e-dc51-41b1-b7e9-08eeea7ded4c",
-				"5679a288-363e-44b2-804b-4069f914fa9c",
-				"286c2b2e-81ed-4b73-baa6-99eca8a1fd5e",
-				"a068fc69-4ad2-4de1-9fe6-ee467101236a",
-				"5668f851-a7fa-4af3-b618-75231503f344",
-				"109faa41-3763-49bd-850a-9cfb7a1b5a20",
-				"da1a4637-42fa-4182-a3b8-cf67ec889f2c",
-				"f4b5e0f6-4e5a-405a-a767-a7194bb77dc0",
-				"0aa4da94-5476-41f5-9f7c-914d8e54a3dd",
-				"65690e99-df52-489e-9be1-4101f4572863",
-				"3cea7188-2cc7-43bf-b53d-19bd45ad2205",
-				"ec2c31c0-4269-4684-9db8-4a784f4f4b0a",
-				"06f4606d-2b6a-434b-80ac-8d483b76a525",
-				"360356df-f276-447f-b116-1f56854764c3",
-				"576e2c9b-11f4-4d65-ab02-b78480c9efee",
-				"539b6449-6536-4fff-98b7-0715b1de46d4",
-				"cf0ff6b7-b395-4570-89a8-824bd3314373",
-				"9e4815b3-a982-4a7d-8dff-8f383c9d53ba",
-				"30493386-7cbf-4850-bbef-4c19ffbd98bf",
-				"a2c26db4-3c81-4b25-956d-fe82a24490c0",
-				"c83e6045-d63a-467b-a791-2213be22a0d3",
-				"1627b834-ec13-4695-a3fb-18c39a7a6f2a",
-				"1cd8b28d-b60a-4b9f-9cd4-d2546d14f603",
-				"c7ec55c1-8cab-4ffd-b6b4-d4a836a0082e",
-				"8955bd7f-d487-4ae1-becf-f9929369e355",
-				"acf8ec69-8cd2-4d65-a452-375c80d15e94",
-				"60376fe3-d9a6-49da-9050-1e19faaecd55",
-				"e3d8e9b9-08df-4e74-a33c-4a23b469f5ad",
-				"2eaa9448-74a6-4f6a-82b8-ac23ce82cf9f",
-				"e7410d80-b650-4d2e-a52a-608ef9c98908",
-				"a894b853-ba50-4d75-b477-0b12ee260337",
-				"b2cd9fd3-99a1-488e-97ac-6e0c33979863",
-				"c2fc792a-4d44-4b37-a688-3b36bfc8d6a0",
-				"3891b4b8-54ea-4e14-9ea6-a415a924710c",
-				"c64a660e-917e-4a8b-861b-7facc557460a",
-				"781f080d-7cc7-425f-93c0-0bf4d4826996",
-				"62d72723-bb50-4a58-adb6-678b23109c67",
-				"99b024a0-9250-4cff-9a42-6d56c5031440",
-				"7f885e56-5aac-42c3-8ed6-a955f701e66a",
-				"e65d93d6-ead4-4a82-a01a-e4a7d79e710c",
-				"1d081420-4c70-475a-93ea-73fe5935b8c5",
-				"df82b91c-bf12-402b-bc0f-c4bdac11ade5",
-				"45840111-c542-43f3-a4dd-d9fa617a53af",
-				"efe7a730-b5a2-4caa-af39-07b9c0863bdc",
-				"599f2d37-cf48-4a46-9085-3a084df1e6ca",
-				"cd5e64c7-2064-4368-a16d-a5c4a47c7282",
 				"8b749aff-166c-424f-93d3-f9df479d8a73",
 				"e10669fb-7b75-4bde-b08a-394f15a0cf36",
 				"0f0f06a1-3b34-45a9-b058-060424e103d2",
@@ -317,7 +265,8 @@
 				"eb64d933-d5d9-4062-ac65-6ade36f217d7",
 				"bbfd5575-4c86-42ed-bdda-a731b5169e77",
 				"4a7ab019-a7f3-4261-a19a-5dcfe7922008",
-				"989c7dc8-10d5-4853-bb84-85b6502bc2c1"
+				"989c7dc8-10d5-4853-bb84-85b6502bc2c1",
+				"3e8e20f4-d95b-4466-a3f5-41193c33885a"
 			]
 		}
 	],
@@ -1643,23 +1592,9 @@
 			"steps": []
 		},
 		{
-			"uuid": "aad188c0-33fa-4d2f-8450-352cb9a3c612",
-			"title": "bot is flight isnt toggled? (maybe not in hover)",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "b8054745-f709-48b3-a60c-1d0f66c06097",
 			"title": "update other buildings to push out all ways all the time?",
 			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "efe7a730-b5a2-4caa-af39-07b9c0863bdc",
-			"title": "Ammo Distributor",
-			"description": " A 1x1 structure that pulls ammo from a belt and distributes it to all adjacent towers in a small radius, reducing conveyor belt clutter around frontlines.\n",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
@@ -1755,13 +1690,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "c2fc792a-4d44-4b37-a688-3b36bfc8d6a0",
-			"title": "bot repairs should be slower",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "cd5e64c7-2064-4368-a16d-a5c4a47c7282",
 			"title": "tower visual overhaul",
 			"description": "update code",
@@ -1783,86 +1711,9 @@
 			"steps": []
 		},
 		{
-			"uuid": "599f2d37-cf48-4a46-9085-3a084df1e6ca",
-			"title": "display ranged enemy range when their detail menu is open?",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "8b749aff-166c-424f-93d3-f9df479d8a73",
 			"title": "enemy weaknesses",
 			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "1d081420-4c70-475a-93ea-73fe5935b8c5",
-			"title": "ammo distributor should priority sending preferred ammo",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "e65d93d6-ead4-4a82-a01a-e4a7d79e710c",
-			"title": "more time",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "c83e6045-d63a-467b-a791-2213be22a0d3",
-			"title": "more rock per tile in resourc",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "99b024a0-9250-4cff-9a42-6d56c5031440",
-			"title": "full moon lighting",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "781f080d-7cc7-425f-93c0-0bf4d4826996",
-			"title": "building wall doesnt have priority",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "45840111-c542-43f3-a4dd-d9fa617a53af",
-			"title": "gate is broken",
-			"description": "being placed right and up\nalso wrong orientation\nhorizontal works but not vertical\n\n",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "df82b91c-bf12-402b-bc0f-c4bdac11ade5",
-			"title": "bots should prioritize seperate jobs?",
-			"description": "so if another bot is working on a construction site it will try and find the next one",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "0aa4da94-5476-41f5-9f7c-914d8e54a3dd",
-			"title": "load confirmation in menu",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "3891b4b8-54ea-4e14-9ea6-a415a924710c",
-			"title": "crate sprite for distributor and launcher/receiver",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "539b6449-6536-4fff-98b7-0715b1de46d4",
-			"title": "ammo distributor hover/detail dont work",
-			"description": "but the range does",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
@@ -1881,141 +1732,8 @@
 			"steps": []
 		},
 		{
-			"uuid": "e3d8e9b9-08df-4e74-a33c-4a23b469f5ad",
-			"title": "bot home spawned over a conveyer belt",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "e7410d80-b650-4d2e-a52a-608ef9c98908",
-			"title": "bot battery and solar charge rate should be on different lines in the detail menu",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "60376fe3-d9a6-49da-9050-1e19faaecd55",
-			"title": "harvest building laser goes under objects",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "1cd8b28d-b60a-4b9f-9cd4-d2546d14f603",
-			"title": "bot cost should scale with how many bots you have",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "62d72723-bb50-4a58-adb6-678b23109c67",
-			"title": "slow down wood recharge rate",
-			"description": "5s to maybe 30s?\n",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "c64a660e-917e-4a8b-861b-7facc557460a",
-			"title": "relocate broken when canceling, leaves ghost",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "3cea7188-2cc7-43bf-b53d-19bd45ad2205",
-			"title": "ui info on building when placing/hovering over it in the build menu",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "06f4606d-2b6a-434b-80ac-8d483b76a525",
-			"title": "see available recipes/without cycling (same with outputs)",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "acf8ec69-8cd2-4d65-a452-375c80d15e94",
-			"title": "should enemies attack walls as they pass by",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "2eaa9448-74a6-4f6a-82b8-ac23ce82cf9f",
-			"title": "should bots only repair at day? so when a wall is attacked they dont rush into danager",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "c7ec55c1-8cab-4ffd-b6b4-d4a836a0082e",
-			"title": "bot battery not charging when at home",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "8955bd7f-d487-4ae1-becf-f9929369e355",
-			"title": "shouuld towers be able to fire over resources (trees/rocks)",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "b2cd9fd3-99a1-488e-97ac-6e0c33979863",
-			"title": "when a wall breaks it breaks autotiling",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "30493386-7cbf-4850-bbef-4c19ffbd98bf",
-			"title": "light modulate doesnt smoothly change from night to day at sunrise",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "f2fab8e1-d0d1-48d1-be04-5392370f8ff9",
 			"title": "diagonal wall autotiling?",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "cf0ff6b7-b395-4570-89a8-824bd3314373",
-			"title": "lose focus on detail menu",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "a2c26db4-3c81-4b25-956d-fe82a24490c0",
-			"title": "dedicated isnt saved when relocating",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "ec2c31c0-4269-4684-9db8-4a784f4f4b0a",
-			"title": "save overwrite confirmation",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "360356df-f276-447f-b116-1f56854764c3",
-			"title": "when hovering over recipe in dropdown show the recipe in the detail menu",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "f3bc766e-dc51-41b1-b7e9-08eeea7ded4c",
-			"title": "priorities seem bugged? , dont update immediately?",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
@@ -2049,30 +1767,9 @@
 			"steps": []
 		},
 		{
-			"uuid": "92708740-1838-4252-8b5d-6d4d75fc84ee",
-			"title": "attack range stays behind when cancelling a defense building",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "7f885e56-5aac-42c3-8ed6-a955f701e66a",
-			"title": "remove tier 0 from research tree, rename it to tier 1, tier 1 becomes tier 2 etc",
-			"description": "to match the core hover menu",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "e10669fb-7b75-4bde-b08a-394f15a0cf36",
 			"title": "harvest speed should be WAY slower",
 			"description": "same with process speed\n",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "22dd4bd9-946d-4a3c-926d-6ff918b57a43",
-			"title": "move upgrade to detail menu?",
-			"description": "also leave the tool for walls? or have a upgrade wall segment for upgrading all connected walls? from the detail menu\nwhen clicking the button it prompts a confirmation with the cost and highlights the walls that will be upgraded",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
@@ -2093,90 +1790,6 @@
 		{
 			"uuid": "4cba6af2-6ee3-4f97-b14c-d3e4dacbfac9",
 			"title": "firepit light should be way bigger, also maybe have torches for smaller range plus smaller light but they are 1x1",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "a894b853-ba50-4d75-b477-0b12ee260337",
-			"title": "maybe not quite as dark at night",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "1627b834-ec13-4695-a3fb-18c39a7a6f2a",
-			"title": "back to menu button",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "9e4815b3-a982-4a7d-8dff-8f383c9d53ba",
-			"title": "firepit glow doesnt survive save/load",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "5679a288-363e-44b2-804b-4069f914fa9c",
-			"title": "bot sees wood hut as good deposit spot",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "9521ceb5-47fe-4485-8714-a6765330edf5",
-			"title": "bit faster harvesting time",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "65690e99-df52-489e-9be1-4101f4572863",
-			"title": "bot pathfinding for finding resources is still weird",
-			"description": "it can find the closest resource as one across the lake instead of one on the bottom and walks past it",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "f4b5e0f6-4e5a-405a-a767-a7194bb77dc0",
-			"title": "sort options for resources in manage menu",
-			"description": "a-z\nz-a\namount increasing \namount decreasing\n",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "da1a4637-42fa-4182-a3b8-cf67ec889f2c",
-			"title": "unsecured resource ui should always be present for the hotbar scaling",
-			"description": "maybe just reduce the alpha to 0 when there are none or do +0",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "576e2c9b-11f4-4d65-ab02-b78480c9efee",
-			"title": "topbar pinned resources max should be 5 with smaller font",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "109faa41-3763-49bd-850a-9cfb7a1b5a20",
-			"title": "pinned resources arent saved",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "6c1f2735-ae43-44ec-8cad-5bb984a74a8f",
-			"title": "firepit is weird? is build instantly and its ranges are weird",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "cd810960-c756-4368-bcd1-348ed6a334a8",
-			"title": "dedicated stockpiles wont accept any items if empty",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
@@ -2336,13 +1949,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "a068fc69-4ad2-4de1-9fe6-ee467101236a",
-			"title": "ammo distributor range should be in tiles",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "5eff4662-4d5b-4561-81e5-ff40b7e97ba9",
 			"title": "upgrade ammo launcher",
 			"description": "have more capaacity per shot, instead of 1 level 2 goes 2",
@@ -2359,13 +1965,6 @@
 		{
 			"uuid": "7921dbcb-24e7-4801-9f67-d85c5f03e073",
 			"title": "give walls some corruption resistance",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "5668f851-a7fa-4af3-b618-75231503f344",
-			"title": "if you research tower damage out of order it can go down",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
@@ -2441,9 +2040,9 @@
 			"steps": []
 		},
 		{
-			"uuid": "286c2b2e-81ed-4b73-baa6-99eca8a1fd5e",
-			"title": "water doesnt disappear under corruption but you cant see it",
-			"description": "looks weird that enemies slow down out of nowhere when walking across corrupted water, either destroy water underneath corruption or add a new corrupted water tile?\n",
+			"uuid": "3e8e20f4-d95b-4466-a3f5-41193c33885a",
+			"title": "New task",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}

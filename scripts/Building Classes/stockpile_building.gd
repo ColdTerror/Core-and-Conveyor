@@ -97,9 +97,6 @@ func select_output_mode(item_name: String):
 	else:
 		selected_output_name = item_name
 		
-	if is_dedicated_mode and selected_output_name != "":
-		dedicated_item_name = selected_output_name
-		
 	print("Stockpile Output set to: ", selected_output_name if selected_output_name != "" else "OFF")
 	inventory_changed.emit()
 
@@ -200,6 +197,7 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 
 ## Accepts items from belts, updating inventories and syncing with dedicated capacity states.
 func add_item(item_res: ItemResource, amount: int = 1) -> int:
+	if item_res == null: return 0
 	var current_total = get_total_items()
 	var space_left = 0
 
@@ -207,12 +205,13 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 		if current_total == 0 and dedicated_item_name == "":
 			dedicated_item_name = item_res.display_name
 			
-		if dedicated_item_name != "" and item_res.display_name != dedicated_item_name:
+		if dedicated_item_name != "" and not ItemDatabase.are_names_equal(dedicated_item_name, item_res.display_name):
 			return 0 
 			
 		space_left = max_dedicated_capacity - current_total
 	else:
-		var current_amount = inventory.get(item_res, 0)
+		var item_ref = _find_item_by_name(item_res.display_name)
+		var current_amount = inventory.get(item_ref, 0) if item_ref else 0
 		space_left = max_mixed_capacity - current_amount
 
 	if space_left <= 0:
@@ -220,11 +219,15 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 
 	var amount_to_take = min(amount, space_left)
 
-	if not item_res.display_name in available_types:
-		available_types.append(item_res.display_name)
+	# Use ItemDatabase reference for consistent key matching across scenes/loads
+	var db_item = ItemDatabase.get_item(item_res.display_name)
+	var key_item = db_item if db_item else item_res
 
-	inventory[item_res] = inventory.get(item_res, 0) + amount_to_take
-	EconomyManager.add_resources(item_res.display_name, amount_to_take)
+	if not key_item.display_name in available_types:
+		available_types.append(key_item.display_name)
+
+	inventory[key_item] = inventory.get(key_item, 0) + amount_to_take
+	EconomyManager.add_resources(key_item.display_name, amount_to_take)
 	
 	inventory_changed.emit()
 	return amount_to_take
@@ -233,12 +236,14 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 
 ## Verifies if stockpile capacities allow incoming cargo items.
 func can_accept_item(item_res: ItemResource) -> bool:
+	if item_res == null: return false
 	if is_dedicated_mode:
-		if dedicated_item_name != "" and dedicated_item_name != item_res.display_name:
+		if dedicated_item_name != "" and not ItemDatabase.are_names_equal(dedicated_item_name, item_res.display_name):
 			return false
 		return get_total_items() < max_dedicated_capacity
 	else:
-		var current_amount = inventory.get(item_res, 0)
+		var item_ref = _find_item_by_name(item_res.display_name)
+		var current_amount = inventory.get(item_ref, 0) if item_ref else 0
 		return current_amount < max_mixed_capacity
 
 
@@ -272,12 +277,12 @@ func take_item(item_name: String, requested_amount: int) -> Dictionary:
 ## Verifies space availability for specific item types.
 func has_space_for(item_name: String) -> bool:
 	if is_dedicated_mode:
-		if dedicated_item_name != "" and dedicated_item_name != item_name:
+		if dedicated_item_name != "" and item_name != "" and not ItemDatabase.are_names_equal(dedicated_item_name, item_name):
 			return false
 		return get_total_items() < max_dedicated_capacity
 	else:
-		var item_res = _find_item_by_name(item_name)
-		var current = inventory.get(item_res, 0) if item_res else 0
+		var item_ref = _find_item_by_name(item_name)
+		var current = inventory.get(item_ref, 0) if item_ref else 0
 		return current < max_mixed_capacity
 
 
@@ -292,7 +297,9 @@ func get_total_items() -> int:
 
 ## Returns specific stock quantities of an item resource.
 func get_item_amount(item: ItemResource) -> int:
-	return inventory.get(item, 0)
+	if item == null: return 0
+	var item_ref = _find_item_by_name(item.display_name)
+	return inventory.get(item_ref, 0) if item_ref else 0
 
 
 
@@ -338,8 +345,8 @@ func consume_resources(remaining_bill: Dictionary):
 
 ## Returns cached ItemResource matches based on display names.
 func _find_item_by_name(name: String) -> ItemResource:
-	for item in inventory:
-		if item is ItemResource and item.display_name == name:
+	for item in inventory.keys():
+		if item is ItemResource and ItemDatabase.are_names_equal(item.display_name, name):
 			return item
 	return null
 
@@ -363,14 +370,20 @@ func toggle_inventory_mode():
 						max_count = inventory[item]
 						target_item_ref = item
 
-			dedicated_item_name = target_item_ref.display_name
-			print("Switched to Dedicated. Locked to: ", dedicated_item_name)
+			if target_item_ref != null:
+				dedicated_item_name = target_item_ref.display_name
+			elif selected_output_name != "":
+				dedicated_item_name = selected_output_name
+			else:
+				dedicated_item_name = ""
+				
+			print("Switched to Dedicated. Locked to: ", dedicated_item_name if dedicated_item_name != "" else "waiting for first item...")
 			
 			var assets_to_remove = {}
 			var items_to_erase = []
 			
 			for item in inventory.keys():
-				if item != target_item_ref:
+				if target_item_ref != null and item != target_item_ref:
 					assets_to_remove[item.display_name] = inventory[item]
 					items_to_erase.append(item)
 					
@@ -381,7 +394,8 @@ func toggle_inventory_mode():
 					inventory.erase(item)
 					
 				available_types.clear()
-				available_types.append(dedicated_item_name)
+				if dedicated_item_name != "":
+					available_types.append(dedicated_item_name)
 				
 				if selected_output_name != "" and selected_output_name != dedicated_item_name:
 					selected_output_name = ""

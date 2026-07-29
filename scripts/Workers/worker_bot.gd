@@ -589,8 +589,8 @@ func _find_nearest_storage():
 		if b in full_storages_ignored: continue
 		if b in unreachable_storages: continue
 
-		if "is_dedicated_mode" in b and "selected_output_name" in b:
-			if b.is_dedicated_mode and b.selected_output_name != "" and b.selected_output_name != carried_item_name:
+		if "is_dedicated_mode" in b and "dedicated_item_name" in b:
+			if b.is_dedicated_mode and b.dedicated_item_name != "" and not ItemDatabase.are_names_equal(b.dedicated_item_name, carried_item_name):
 				continue
 
 		if b.occupied_tiles.size() > 0:
@@ -727,8 +727,8 @@ func _any_storage_has_space() -> bool:
 		if b is TowerBuilding: continue
 		if not (b is CoreBuilding or b is StockpileBuilding): continue
 		
-		if "is_dedicated_mode" in b and "selected_output_name" in b:
-			if b.is_dedicated_mode and b.selected_output_name != "" and b.selected_output_name != carried_item_name:
+		if "is_dedicated_mode" in b and "dedicated_item_name" in b:
+			if b.is_dedicated_mode and b.dedicated_item_name != "" and not ItemDatabase.are_names_equal(b.dedicated_item_name, carried_item_name):
 				continue
 		
 		if b.has_method("has_space_for") and b.has_space_for(carried_item_name):

@@ -436,12 +436,17 @@ func _setup_processor_ui(b: ProcessorBuilding):
 
 ## Prepares storage status labels, dedicated/mixed modes toggles, and void-all buttons.
 func _setup_stockpile_ui(b: StockpileBuilding):
-	if b.selected_output_name == "":
-		info_label.text = "Output: OFF"
-		info_label.modulate = Color(1, 0.5, 0.5) 
+	var output_str = "OFF" if b.selected_output_name == "" else b.selected_output_name
+	var info_text = ""
+	
+	if b.is_dedicated_mode:
+		var lock_str = b.dedicated_item_name if b.dedicated_item_name != "" else "Waiting for item..."
+		info_text = "Dedicated to: %s\nOutput Filter: %s" % [lock_str, output_str]
 	else:
-		info_label.text = "Output: %s" % b.selected_output_name
-		info_label.modulate = Color(0.5, 1, 0.5) 
+		info_text = "Mode: Mixed\nOutput Filter: %s" % output_str
+		
+	info_label.text = info_text
+	info_label.modulate = Color(0.5, 1, 0.5) if b.selected_output_name != "" else Color(1, 0.85, 0.4) 
 
 	if b.has_method("toggle_inventory_mode"):
 		var mode_text = ""
