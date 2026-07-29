@@ -1035,32 +1035,64 @@ func _get_upgrade_stat_diff(old_b: Building, new_b: Building) -> String:
 	
 	_add_stat_diff(diff_lines, "Max HP", old_b.max_health, new_b.max_health)
 	
+	if "crafting_time_multiplier" in old_b and "crafting_time_multiplier" in new_b:
+		var old_val = old_b.get("crafting_time_multiplier")
+		var new_val = new_b.get("crafting_time_multiplier")
+		if old_val != new_val:
+			_add_stat_diff(diff_lines, "Crafting Time Mult", "%.2fx" % old_val, "%.2fx" % new_val)
+			
+	if "buffer_capacity" in old_b and "buffer_capacity" in new_b:
+		_add_stat_diff(diff_lines, "Buffer Capacity", old_b.get("buffer_capacity"), new_b.get("buffer_capacity"))
+
+	if "max_mixed_capacity" in old_b and "max_mixed_capacity" in new_b:
+		_add_stat_diff(diff_lines, "Mixed Capacity", old_b.get("max_mixed_capacity"), new_b.get("max_mixed_capacity"))
+
+	if "max_dedicated_capacity" in old_b and "max_dedicated_capacity" in new_b:
+		_add_stat_diff(diff_lines, "Dedicated Capacity", old_b.get("max_dedicated_capacity"), new_b.get("max_dedicated_capacity"))
+		
+	if "inventory_capacity" in old_b and "inventory_capacity" in new_b:
+		_add_stat_diff(diff_lines, "Inventory Capacity", old_b.get("inventory_capacity"), new_b.get("inventory_capacity"))
+
 	if "scan_radius" in old_b and "scan_radius" in new_b:
 		_add_stat_diff(diff_lines, "Scan Radius", old_b.get("scan_radius"), new_b.get("scan_radius"), " tiles")
+
 	if "harvest_damage" in old_b and "harvest_damage" in new_b:
 		_add_stat_diff(diff_lines, "Harvest Speed", old_b.get("harvest_damage"), new_b.get("harvest_damage"), " dmg/tick")
+
 	if "work_interval" in old_b and "work_interval" in new_b:
-		_add_stat_diff(diff_lines, "Work Interval", old_b.get("work_interval"), new_b.get("work_interval"), "s")
-		
+		_add_stat_diff(diff_lines, "Work Interval", "%.2fs" % old_b.get("work_interval"), "%.2fs" % new_b.get("work_interval"))
+
 	if "attack_range" in old_b and "attack_range" in new_b:
-		_add_stat_diff(diff_lines, "Range", old_b.get("attack_range") / 32.0, new_b.get("attack_range") / 32.0, " tiles")
+		var old_r = old_b.get("attack_range") / 32.0
+		var new_r = new_b.get("attack_range") / 32.0
+		_add_stat_diff(diff_lines, "Attack Range", "%.1f" % old_r, "%.1f" % new_r, " tiles")
+
 	if "damage_multiplier" in old_b and "damage_multiplier" in new_b:
-		_add_stat_diff(diff_lines, "Damage Mult", old_b.get("damage_multiplier"), new_b.get("damage_multiplier"), "x")
+		_add_stat_diff(diff_lines, "Damage Mult", "%.2fx" % old_b.get("damage_multiplier"), "%.2fx" % new_b.get("damage_multiplier"))
+
 	if "fire_rate" in old_b and "fire_rate" in new_b:
-		_add_stat_diff(diff_lines, "Fire Rate", old_b.get("fire_rate"), new_b.get("fire_rate"), "/s")
+		_add_stat_diff(diff_lines, "Fire Rate", "%.2f" % old_b.get("fire_rate"), "%.2f" % new_b.get("fire_rate"), "/s")
+
+	if "projectiles_per_shot" in old_b and "projectiles_per_shot" in new_b:
+		_add_stat_diff(diff_lines, "Projectiles/Shot", old_b.get("projectiles_per_shot"), new_b.get("projectiles_per_shot"))
+
 	if "ammo_capacity" in old_b and "ammo_capacity" in new_b:
 		_add_stat_diff(diff_lines, "Ammo Capacity", old_b.get("ammo_capacity"), new_b.get("ammo_capacity"))
 
-	if "buffer_capacity" in old_b and "buffer_capacity" in new_b:
-		_add_stat_diff(diff_lines, "Buffer Size", old_b.get("buffer_capacity"), new_b.get("buffer_capacity"))
-	if "inventory_capacity" in old_b and "inventory_capacity" in new_b:
-		_add_stat_diff(diff_lines, "Inv Capacity", old_b.get("inventory_capacity"), new_b.get("inventory_capacity"))
+	if "distribution_range" in old_b and "distribution_range" in new_b:
+		_add_stat_diff(diff_lines, "Supply Range", "%.1f" % old_b.get("distribution_range"), "%.1f" % new_b.get("distribution_range"), " tiles")
+
+	if "build_range" in old_b and "build_range" in new_b:
+		_add_stat_diff(diff_lines, "Build Range", "%.1f" % old_b.get("build_range"), "%.1f" % new_b.get("build_range"), " tiles")
+
+	if "corruption_range" in old_b and "corruption_range" in new_b:
+		_add_stat_diff(diff_lines, "Cleanse Range", "%.1f" % old_b.get("corruption_range"), "%.1f" % new_b.get("corruption_range"), " tiles")
 		
 	if diff_lines.is_empty():
-		return " • No stat changes"
+		return " • Tier Upgrade (Improved Performance)"
 	return "\n".join(diff_lines)
 
 
 func _add_stat_diff(diff_lines: Array, label: String, old_val, new_val, suffix: String = ""):
-	if old_val != new_val:
+	if str(old_val) != str(new_val):
 		diff_lines.append(" • %s: %s -> %s%s" % [label, str(old_val), str(new_val), suffix])
