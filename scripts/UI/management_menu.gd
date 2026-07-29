@@ -309,9 +309,10 @@ func _refresh_resource_tab():
 		child.queue_free()
 		
 	var header = Label.new()
-	header.text = "Top Bar Pinned Resources (Max 5)"
+	var current_pins = EconomyManager.pinned_resources.size()
+	header.text = "Top Bar Pinned Resources (%d / %d Max)" % [current_pins, EconomyManager.MAX_PINNED_RESOURCES]
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	header.modulate = Color(0.8, 0.8, 0.8)
+	header.modulate = Color(1.0, 0.8, 0.2) if current_pins >= EconomyManager.MAX_PINNED_RESOURCES else Color(0.8, 0.8, 0.8)
 	resource_list_container.add_child(header)
 	resource_list_container.add_child(HSeparator.new())
 	
@@ -319,10 +320,12 @@ func _refresh_resource_tab():
 	var secured_items = EconomyManager.global_inventory
 	var unsecured_items = EconomyManager.get_unsecured_inventory()
 	
-	# Combine inventory keys
+	# Combine discovered resources, active inventory keys, and pinned resources
 	var all_items_dict = {}
+	for key in EconomyManager.discovered_resources: all_items_dict[key] = true
 	for key in secured_items.keys(): all_items_dict[key] = true
 	for key in unsecured_items.keys(): all_items_dict[key] = true
+	for item_name in EconomyManager.pinned_resources: all_items_dict[item_name] = true
 	
 	var all_items = all_items_dict.keys()
 	match current_sort_mode:
@@ -372,6 +375,8 @@ func _create_resource_row(item_name: String, available: int, in_transit: int, is
 	var pin_btn = Button.new()
 	pin_btn.text = " [*] " if is_pinned else " [ ] " 
 	pin_btn.modulate = Color(1.0, 0.8, 0.2) if is_pinned else Color(0.5, 0.5, 0.5)
+	if not is_pinned and EconomyManager.pinned_resources.size() >= EconomyManager.MAX_PINNED_RESOURCES:
+		pin_btn.tooltip_text = "Maximum %d pinned resources reached! Deselect one first." % EconomyManager.MAX_PINNED_RESOURCES
 	pin_btn.pressed.connect(func(): _toggle_pin(item_name))
 	
 	var name_btn = Button.new()
@@ -475,10 +480,10 @@ func _toggle_pin(item_name: String):
 	if EconomyManager.pinned_resources.has(item_name):
 		EconomyManager.pinned_resources.erase(item_name)
 	else:
-		if EconomyManager.pinned_resources.size() < 10:
+		if EconomyManager.pinned_resources.size() < EconomyManager.MAX_PINNED_RESOURCES:
 			EconomyManager.pinned_resources.append(item_name)
 		else:
-			print("Pin limit reached! Unpin something else first.")
+			print("Pin limit reached (%d max)! Unpin another resource first." % EconomyManager.MAX_PINNED_RESOURCES)
 			return
 			
 	EconomyManager.inventory_changed.emit()

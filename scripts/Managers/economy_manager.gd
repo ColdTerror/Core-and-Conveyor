@@ -14,8 +14,10 @@ signal stats_updated
 
 # RUNTIME STATE (THE VAULT)
 var global_inventory: Dictionary = {"Wood": 0, "Stone": 0}
+var discovered_resources: Array[String] = ["Wood", "Stone"]
 
-# The max 10 slots the player wants to see on the top bar
+# The max 5 slots the player wants to see on the top bar
+const MAX_PINNED_RESOURCES: int = 5
 var pinned_resources: Array[String] = ["Wood", "Stone"]
 
 # --- TRACKING SOURCES ---
@@ -58,8 +60,16 @@ func _on_source_inventory_changed():
 
 
 
+## Registers a resource as permanently discovered by the player.
+func discover_resource(resource_name: String):
+	if not resource_name in discovered_resources:
+		discovered_resources.append(resource_name)
+
+
+
 ## Logs item production metrics, triggered when items are harvested or processed.
 func log_item_produced(resource_name: String, amount: int = 1):
+	discover_resource(resource_name)
 	daily_production[resource_name] = daily_production.get(resource_name, 0) + amount
 	stats_updated.emit()
 
@@ -73,6 +83,7 @@ func log_item_consumed(resource_name: String, amount: int = 1):
 
 ## Adds physical items to the global secure vault inventory.
 func add_resources(resource_name: String, amount: int):
+	discover_resource(resource_name)
 	global_inventory[resource_name] = global_inventory.get(resource_name, 0) + amount
 	inventory_changed.emit()
 
@@ -135,6 +146,7 @@ func get_unsecured_inventory() -> Dictionary:
 		if source.has_method("get_economy_assets"):
 			var assets = source.get_economy_assets()
 			for item_name in assets.keys():
+				discover_resource(item_name)
 				in_transit[item_name] = in_transit.get(item_name, 0) + assets[item_name]
 	return in_transit
 
@@ -159,17 +171,18 @@ func archive_daily_stats(day_number: int):
 
 
 
-## Packs production metrics, statistics history archives, and pinned resources into a dictionary for saves.
+## Packs production metrics, statistics history archives, discovered resources, and pinned resources into a dictionary for saves.
 func get_save_data() -> Dictionary:
 	return {
 		"daily_production": daily_production,
 		"daily_consumption": daily_consumption,
 		"history_archive": history_archive,
-		"pinned_resources": pinned_resources
+		"pinned_resources": pinned_resources,
+		"discovered_resources": discovered_resources
 	}
 
 
-## Unpacks saved statistics data, daily history logs, and pinned resources.
+## Unpacks saved statistics data, daily history logs, discovered resources, and pinned resources.
 func load_save_data(data: Dictionary):
 	daily_production = data.get("daily_production", {})
 	daily_consumption = data.get("daily_consumption", {})
@@ -179,7 +192,11 @@ func load_save_data(data: Dictionary):
 	if data.has("pinned_resources"):
 		pinned_resources.clear()
 		for item in data["pinned_resources"]:
-			pinned_resources.append(str(item))
+			if pinned_resources.size() < MAX_PINNED_RESOURCES:
+				pinned_resources.append(str(item))
+	if data.has("discovered_resources"):
+		for item in data["discovered_resources"]:
+			discover_resource(str(item))
 	stats_updated.emit()
 
 
@@ -192,6 +209,7 @@ func recalculate_global_inventory():
 		if source.has_method("get_economy_assets"):
 			var assets = source.get_economy_assets()
 			for item_name in assets:
+				discover_resource(item_name)
 				global_inventory[item_name] = global_inventory.get(item_name, 0) + assets[item_name]
 				
 	inventory_changed.emit()

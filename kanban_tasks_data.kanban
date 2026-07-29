@@ -57,7 +57,6 @@
 				"82435f02-bf9a-4131-b4e7-e124e5aef292",
 				"32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
 				"22a25d16-05fd-4a68-86e6-25dbf8cc4fc6",
-				"b75116fa-6bdd-41ae-886b-827a62957178",
 				"b09ca5c3-b56f-4405-8782-d4f309f06d81",
 				"81666a40-4240-4fa0-87d1-ea974b6bde91",
 				"77757c6a-bb16-4e39-82c1-82878a5ebfa4",
@@ -67,7 +66,9 @@
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
-			"tasks": []
+			"tasks": [
+				"b75116fa-6bdd-41ae-886b-827a62957178"
+			]
 		}
 	],
 	"tasks": [
@@ -75,13 +76,6 @@
 			"uuid": "d8015aa9-8b9a-4b72-bd0e-258b99c6b37b",
 			"title": "have map changes send signal to enemies to update pathfinding",
 			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "eb64d933-d5d9-4062-ac65-6ade36f217d7",
-			"title": "fix enemies blocking eachother from reaching their path nodes deadlocking them",
-			"description": "add random offset so enemies dont fully overlap",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
