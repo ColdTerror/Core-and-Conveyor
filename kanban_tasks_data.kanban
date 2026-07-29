@@ -53,10 +53,8 @@
 				"4d35837e-0d17-42b9-8eb5-fda1cee20ca8",
 				"7921dbcb-24e7-4801-9f67-d85c5f03e073",
 				"4597ad50-3855-4702-9e42-4f1d1bac13a7",
-				"f9248cc1-e609-4a3c-aa48-1e72eb8f9405",
 				"82435f02-bf9a-4131-b4e7-e124e5aef292",
 				"32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
-				"22a25d16-05fd-4a68-86e6-25dbf8cc4fc6",
 				"b09ca5c3-b56f-4405-8782-d4f309f06d81",
 				"81666a40-4240-4fa0-87d1-ea974b6bde91",
 				"77757c6a-bb16-4e39-82c1-82878a5ebfa4",
@@ -67,7 +65,7 @@
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
-				"b75116fa-6bdd-41ae-886b-827a62957178"
+				"f9248cc1-e609-4a3c-aa48-1e72eb8f9405"
 			]
 		}
 	],
@@ -376,20 +374,6 @@
 		{
 			"uuid": "32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
 			"title": "max bot energy research",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "22a25d16-05fd-4a68-86e6-25dbf8cc4fc6",
-			"title": "remove cant be undone text",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "b75116fa-6bdd-41ae-886b-827a62957178",
-			"title": "enforce max pinned resources in the screen",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

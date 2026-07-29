@@ -128,14 +128,8 @@ func _check_day_night_triggers():
 		elif force_blood_moon:
 			current_moon_phase = MoonPhase.BLOOD
 		else:
-			# Roll the Moon Phase normally
-			var roll = randf()
-			if roll < 0.15:
-				current_moon_phase = MoonPhase.FULL
-			elif roll > 0.85:
-				current_moon_phase = MoonPhase.BLOOD
-			else:
-				current_moon_phase = MoonPhase.NORMAL
+			# Roll the Moon Phase with back-to-back special type prevention
+			current_moon_phase = _roll_moon_phase()
 			
 		night_started.emit(current_day)
 		
@@ -146,6 +140,30 @@ func _check_day_night_triggers():
 				AudioManager.play_playlist_track("Night_Full", 3.0)
 			_:
 				AudioManager.play_playlist_track("Night_Normal", 3.0)
+
+
+
+## Rolls a random moon phase, preventing back-to-back Full Moons or Blood Moons.
+func _roll_moon_phase() -> MoonPhase:
+	for attempt in range(20):
+		var roll = randf()
+		var candidate: MoonPhase
+		if roll < 0.15:
+			candidate = MoonPhase.FULL
+		elif roll > 0.85:
+			candidate = MoonPhase.BLOOD
+		else:
+			candidate = MoonPhase.NORMAL
+			
+		# Enforce rule: No back-to-back FULL or BLOOD moons!
+		if candidate == MoonPhase.FULL and last_night_moon_phase == MoonPhase.FULL:
+			continue
+		if candidate == MoonPhase.BLOOD and last_night_moon_phase == MoonPhase.BLOOD:
+			continue
+			
+		return candidate
+		
+	return MoonPhase.NORMAL
 
 
 

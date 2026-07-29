@@ -329,7 +329,7 @@ func refresh_ui():
 		selected_object is BotHomeBuilding
 	)
 	if can_relocate:
-		_create_button("Relocate (Can't Be Undone)", Color(0.8, 0.4, 1.0), func():
+		_create_button("Relocate", Color(0.8, 0.4, 1.0), func():
 			if building_manager.has_method("start_relocating"):
 				building_manager.start_relocating(selected_object)
 				close_menu()
