@@ -323,6 +323,19 @@ func get_solar_efficiency() -> float:
 
 
 
+## Calculates the estimated energy cost for the bot to travel back to its home stand.
+func _get_energy_to_reach_home() -> float:
+	if home_tile == Vector2i(-1, -1) or not level_ref or not level_ref.object_layer:
+		return max_energy * 0.10
+		
+	var home_world_pos = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(home_tile))
+	var dist_px = global_position.distance_to(home_world_pos)
+	var speed = max(1.0, _get_speed())
+	var travel_sec = dist_px / speed
+	return travel_sec * energy_drain_rate
+
+
+
 func _handle_energy(delta: float):
 	var at_home = false
 	if home_tile != Vector2i(-1, -1) and level_ref and level_ref.object_layer:
@@ -377,17 +390,31 @@ func _handle_energy(delta: float):
 			else:
 				current_state = State.RECHARGING
 
-		# LOW BATTERY: 10% (Smart Return)
-		elif current_energy <= (max_energy * low_battery_threshold):
-			if current_state != State.MOVING_HOME:
-				_clear_reservation()
-				action_timer.stop()
-				target_tile = Vector2i(-1, -1)
-				
-				if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
-					current_state = State.MOVING_HOME
-				else:
-					current_state = State.RECHARGING
+		# RETURN HOME (Dynamic distance calculation for Lvl 2+, Basic 10% threshold for Lvl 1)
+		else:
+			var return_threshold = max_energy * low_battery_threshold
+			
+			if bot_level >= 2:
+				var needed_energy = _get_energy_to_reach_home()
+				return_threshold = needed_energy * 1.20
+			
+			if current_energy <= return_threshold and current_state != State.MOVING_HOME:
+				# If Lvl 2+ and right next to target tile (< 36px) with > 3.0 energy, let current action finish first
+				var near_target = false
+				if bot_level >= 2 and target_tile != Vector2i(-1, -1) and level_ref and level_ref.object_layer:
+					var target_pos = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(target_tile))
+					if global_position.distance_to(target_pos) < 36.0:
+						near_target = true
+						
+				if not near_target or current_energy <= 3.0:
+					_clear_reservation()
+					action_timer.stop()
+					target_tile = Vector2i(-1, -1)
+					
+					if home_tile != Vector2i(-1, -1) and _request_path_exact(home_tile):
+						current_state = State.MOVING_HOME
+					else:
+						current_state = State.RECHARGING
 
 
 
