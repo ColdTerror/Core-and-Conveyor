@@ -92,8 +92,11 @@ func add_resources(resource_name: String, amount: int):
 func remove_resources_from_global(cost: Dictionary):
 	for resource_name in cost:
 		var amount = cost[resource_name]
-		var current = global_inventory.get(resource_name, 0)
-		global_inventory[resource_name] = max(0, current - amount)
+		for key in global_inventory.keys():
+			if ItemDatabase.are_names_equal(key, resource_name):
+				var current = global_inventory[key]
+				global_inventory[key] = max(0, current - amount)
+				break
 	
 	inventory_changed.emit()
 
@@ -102,8 +105,11 @@ func remove_resources_from_global(cost: Dictionary):
 func spend_resources(cost: Dictionary):
 	for resource_name in cost:
 		var amount = cost[resource_name]
-		var current = global_inventory.get(resource_name, 0)
-		global_inventory[resource_name] = max(0, current - amount)
+		for key in global_inventory.keys():
+			if ItemDatabase.are_names_equal(key, resource_name):
+				var current = global_inventory[key]
+				global_inventory[key] = max(0, current - amount)
+				break
 		
 		# Magic purchases immediately destroy the item, so we log consumption!
 		log_item_consumed(resource_name, amount)
@@ -116,7 +122,7 @@ func spend_resources(cost: Dictionary):
 func can_afford(cost: Dictionary) -> bool:
 	for resource_name in cost:
 		var amount_needed = cost[resource_name]
-		var amount_we_have = global_inventory.get(resource_name, 0)
+		var amount_we_have = get_item_count(resource_name)
 		if amount_we_have < amount_needed: 
 			return false
 	return true
@@ -136,7 +142,11 @@ func _pull_items_from_sources(cost: Dictionary):
 
 ## Queries current secure inventory count for a specific resource type.
 func get_item_count(item_name: String) -> int:
-	return global_inventory.get(item_name, 0)
+	var total = 0
+	for key in global_inventory.keys():
+		if ItemDatabase.are_names_equal(key, item_name):
+			total += global_inventory[key]
+	return total
 
 
 ## Compiles a total map of resources currently stored in unsecure storage.

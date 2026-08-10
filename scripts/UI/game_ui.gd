@@ -354,7 +354,7 @@ func update_labels():
 		var resource_name = EconomyManager.pinned_resources[i]
 		
 		# Grab both values
-		var secured = EconomyManager.global_inventory.get(resource_name, 0)
+		var secured = EconomyManager.get_item_count(resource_name)
 		var in_transit = unsecured_map.get(resource_name, 0)
 
 		# Create the resource HUD item if it doesn't exist yet
@@ -387,7 +387,7 @@ func _on_placement_cost_updated(b_name: String, total_cost: Dictionary, can_affo
 	else:
 		for res in total_cost:
 			var needed = total_cost[res]
-			var have = EconomyManager.global_inventory.get(res, 0)
+			var have = EconomyManager.get_item_count(res)
 			text += "%s: %d / %d\n" % [res, have, needed]
 			
 	if not extra_stats.is_empty():

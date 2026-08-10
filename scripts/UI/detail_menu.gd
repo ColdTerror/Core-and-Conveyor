@@ -978,7 +978,7 @@ func _setup_upgrade_ui():
 	
 	for cost in old_b.upgrade_cost:
 		upgrade_cost_dict[cost.item_name] = cost.amount
-		var owned = EconomyManager.global_inventory.get(cost.item_name, 0)
+		var owned = EconomyManager.get_item_count(cost.item_name)
 		var display_cost = " • %s: %d (Owned: %d)" % [cost.item_name, cost.amount, owned]
 		if owned < cost.amount:
 			display_cost += " [LACKING]"

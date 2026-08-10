@@ -311,7 +311,7 @@ func consume_resources(remaining_bill: Dictionary):
 	
 	for res_name in needed_items:
 		for inv_res in inventory.keys():
-			if inv_res.display_name == res_name:
+			if ItemDatabase.are_names_equal(inv_res.display_name, res_name):
 				
 				var take = min(remaining_bill[res_name], inventory[inv_res])
 				

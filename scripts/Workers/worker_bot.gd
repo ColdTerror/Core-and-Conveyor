@@ -1050,7 +1050,7 @@ func set_home(grid_pos: Vector2i):
 	# Delete the old home building if it exists
 	var old_home = get_home_building()
 	if is_instance_valid(old_home):
-		if old_home.destroyed.is_connected(_on_home_building_destroyed):
+		while old_home.destroyed.is_connected(_on_home_building_destroyed):
 			old_home.destroyed.disconnect(_on_home_building_destroyed)
 		old_home.die()
 		
@@ -1060,7 +1060,8 @@ func set_home(grid_pos: Vector2i):
 	if level_ref:
 		var new_home = spawn_home_building(grid_pos)
 		if is_instance_valid(new_home):
-			new_home.destroyed.connect(_on_home_building_destroyed)
+			if not new_home.destroyed.is_connected(_on_home_building_destroyed):
+				new_home.destroyed.connect(_on_home_building_destroyed)
 			
 	current_energy = max(0.0, current_energy - (max_energy / 2.0))
 	if current_energy <= 0.0 and not is_limping:
@@ -1110,8 +1111,14 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	if bm.corruption_layer and bm.corruption_layer.get_cell_source_id(grid_pos) != -1:
 		return false
 		
+	if not bm.pathfinder:
+		return false
+
 	var active_astar = bm.pathfinder.flying_astar if is_flying else bm.pathfinder.bot_astar
-	if bm.pathfinder and active_astar.is_point_solid(grid_pos):
+	if not active_astar or not active_astar.is_in_boundsv(grid_pos):
+		return false
+
+	if active_astar.is_point_solid(grid_pos):
 		if grid_pos != home_tile:
 			return false
 		
@@ -1120,11 +1127,10 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 		return false
 		
 	# Enforce path walkability check from bot's current position to target home tile
-	if bm.pathfinder:
-		var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(grid_pos))
-		var path = bm.pathfinder.get_path_route(global_position, target_world, true, is_flying)
-		if path.is_empty():
-			return false
+	var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(grid_pos))
+	var path = bm.pathfinder.get_path_route(global_position, target_world, true, is_flying)
+	if path.is_empty():
+		return false
 			
 	return true
 

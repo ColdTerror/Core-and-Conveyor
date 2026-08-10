@@ -207,7 +207,7 @@ func _on_button_hovered(label_text: String, data, is_building: bool):
 					var cost_parts = []
 					for item_name in cost_dict:
 						var amount = cost_dict[item_name]
-						var have = EconomyManager.global_inventory.get(item_name, 0)
+						var have = EconomyManager.get_item_count(item_name)
 						var color_str = "#66ff66" if have >= amount else "#ff5555"
 						cost_parts.append("[color=%s]%d %s[/color]" % [color_str, amount, item_name])
 					cost_text = "Cost: " + ", ".join(cost_parts)
