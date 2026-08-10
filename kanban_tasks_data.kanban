@@ -27,6 +27,7 @@
 			"uuid": "62c67ba8-0ba8-4e3f-8581-608a5697f4bd",
 			"title": "Doing",
 			"tasks": [
+				"7a87df7c-a4d0-47bb-b193-5afe0ef590bc",
 				"e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
 				"def306dc-1b25-4816-ab97-d9e5edba7996",
 				"f8de0140-146b-497a-819d-8d485531c7bc",
@@ -34,8 +35,6 @@
 				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
 				"a3283276-3b70-4a9d-8a6e-27ef751b36fa",
 				"ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
-				"22d40eb3-206b-4bb6-82e3-354ca61edef1",
-				"7a87df7c-a4d0-47bb-b193-5afe0ef590bc",
 				"1f19f767-ca5c-4019-9851-cbb3836d5ba7",
 				"02b43ce0-017e-4d72-b447-3f4e4d2865af",
 				"220e5866-f3ea-4147-ae56-2f25b432a63a",
@@ -199,13 +198,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "a04e4d56-c6e7-4b16-98ea-e85bea7a8b25",
-			"title": "display bot level in workers tab",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "a3283276-3b70-4a9d-8a6e-27ef751b36fa",
 			"title": "pause construction button ",
 			"description": "you can pause all taks for a certain priority item, so you could manually stop all work on walls to stop bots from going to frontlines or to have them focus on something else\n",
@@ -216,13 +208,6 @@
 			"uuid": "ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
 			"title": "item dictionary? to see item stats for ammo etc",
 			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "22d40eb3-206b-4bb6-82e3-354ca61edef1",
-			"title": "bots can go over walls?",
-			"description": "maybe its just the hover and the animation not playing\n",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},

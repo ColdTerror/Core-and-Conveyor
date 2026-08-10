@@ -147,17 +147,19 @@ func _process(delta):
 				current_state = State.IDLE
 	
 	if is_flying and sprite:
-		var is_on_unwalkable = false
+		var is_over_obstacle = false
 		if level_ref and level_ref.object_layer and level_ref.terrain_layer:
 			var current_tile = level_ref.object_layer.local_to_map(global_position)
 			var tile_data = level_ref.terrain_layer.get_cell_tile_data(current_tile)
 			if tile_data == null or not tile_data.get_custom_data("is_Walkable") or tile_data.get_custom_data("is_water"):
-				is_on_unwalkable = true
+				is_over_obstacle = true
+			elif level_ref.building_manager and level_ref.building_manager.occupied_tiles.has(current_tile):
+				is_over_obstacle = true
 				
-		if is_on_unwalkable:
+		if is_over_obstacle:
 			_flight_time += delta
-			var base_float_y = -6.0
-			var bobble_y = sin(_flight_time * 5.0) * 3.0
+			var base_float_y = -12.0
+			var bobble_y = sin(_flight_time * 6.0) * 2.5
 			sprite.position.y = base_float_y + bobble_y
 		else:
 			sprite.position.y = 0.0
