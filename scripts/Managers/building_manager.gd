@@ -64,13 +64,13 @@ var master_priority_queue: Array = []
 
 
 func _is_grouped_type(building: Node) -> bool:
-	if building is ConveyorBuilding or building is WallBuilding or building is TerraformSite:
+	if building is ConveyorBuilding or building is WallBuilding or building is TerraformSite or building is BotHomeBuilding:
 		return true
 		
 	# Check the blueprint name to identify construction sites for grouped types
 	if building is ConstructionSite:
 		var b_name = building.building_name
-		if "Wall" in b_name or "Conveyor" in b_name or "Belt" in b_name or "Router" in b_name or "Filter" in b_name:
+		if "Wall" in b_name or "Conveyor" in b_name or "Belt" in b_name or "Router" in b_name or "Filter" in b_name or "Home" in b_name or "Charging Stand" in b_name:
 			return true
 			
 	return false
@@ -751,14 +751,11 @@ func _commit_drag_line():
 	start_placing(original_scene)
 
 
-
 func _clear_drag_ghosts():
 	for g in drag_ghosts:
 		if is_instance_valid(g): g.queue_free()
 	drag_ghosts.clear()
-
-
-
+	
 func _register_building(building: Building):
 	if building.is_ghost: return
 	
@@ -776,6 +773,8 @@ func _register_building(building: Building):
 			group_name = "Walls"
 		elif building is TerraformSite: 
 			group_name = "Terraform"
+		elif building is BotHomeBuilding or "Home" in b_name or "Charging Stand" in b_name:
+			group_name = "Bot Homes"
 			
 		if group_name != "" and not master_priority_queue.has(group_name):
 			master_priority_queue.append(group_name)
@@ -1184,7 +1183,6 @@ func _try_add_terrain_job(grid_pos: Vector2i):
 
 
 ## Searches the queue to find the highest priority job needing bot interaction.
-## Searches the queue to find the highest priority job needing bot interaction.
 func get_highest_priority_job(bot_position: Vector2, is_flying: bool = false, bot_requesting: Node = null) -> Node:
 	for item in master_priority_queue:
 		if typeof(item) == TYPE_STRING:
@@ -1424,6 +1422,22 @@ func move_priority_down(item: Variant):
 		var temp = master_priority_queue[idx + 1]
 		master_priority_queue[idx + 1] = item
 		master_priority_queue[idx] = temp
+
+
+## Moves the target item directly to the top rank (index 0) of the priority queue.
+func move_priority_to_top(item: Variant):
+	var idx = master_priority_queue.find(item)
+	if idx > 0:
+		master_priority_queue.remove_at(idx)
+		master_priority_queue.insert(0, item)
+
+
+## Moves the target item directly to the bottom rank of the priority queue.
+func move_priority_to_bottom(item: Variant):
+	var idx = master_priority_queue.find(item)
+	if idx != -1 and idx < master_priority_queue.size() - 1:
+		master_priority_queue.remove_at(idx)
+		master_priority_queue.append(item)
 
 
 

@@ -375,7 +375,7 @@ func refresh_ui():
 		
 	info_label.text = info_label.text.strip_edges()
 	
-	if not (selected_object.has_method("set_priority") or selected_object is BotHomeBuilding):
+	if not selected_object.has_method("set_priority"):
 		_build_priority_widget(selected_object)
 
 
@@ -849,6 +849,8 @@ func _build_priority_widget(b: Node):
 		priority_item = "Walls"
 	elif b is TerraformSite:
 		priority_item = "Terraform"
+	elif b is BotHomeBuilding:
+		priority_item = "Bot Homes"
 	elif b is ConstructionSite:
 		var b_name = b.building_name if "building_name" in b else ""
 		if "Wall" in b_name:
@@ -857,6 +859,8 @@ func _build_priority_widget(b: Node):
 			priority_item = "Belts"
 		elif "Terraform" in b_name:
 			priority_item = "Terraform"
+		elif "Home" in b_name or "Charging Stand" in b_name:
+			priority_item = "Bot Homes"
 		
 	var current_rank = bm.get_priority_rank(priority_item)
 	var max_rank = bm.get_total_priority_ranks()
@@ -865,6 +869,15 @@ func _build_priority_widget(b: Node):
 	var hbox = HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	
+	var top_btn = Button.new()
+	top_btn.text = " Top "
+	top_btn.disabled = (current_rank == 1)
+	top_btn.pressed.connect(func():
+		call_explicit_refresh(func():
+			bm.move_priority_to_top(priority_item)
+		)
+	)
+
 	var up_btn = Button.new()
 	up_btn.text = " ▲ "
 	up_btn.disabled = (current_rank == 1) 
@@ -886,10 +899,21 @@ func _build_priority_widget(b: Node):
 			bm.move_priority_down(priority_item)
 		)
 	)
+
+	var bottom_btn = Button.new()
+	bottom_btn.text = " Btm "
+	bottom_btn.disabled = (current_rank == max_rank)
+	bottom_btn.pressed.connect(func():
+		call_explicit_refresh(func():
+			bm.move_priority_to_bottom(priority_item)
+		)
+	)
 	
+	hbox.add_child(top_btn)
 	hbox.add_child(up_btn)
 	hbox.add_child(rank_label)
 	hbox.add_child(down_btn)
+	hbox.add_child(bottom_btn)
 	action_container.add_child(hbox)
 
 

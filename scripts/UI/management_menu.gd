@@ -168,11 +168,19 @@ func _refresh_priority_tab():
 		_create_priority_row(item, rank, max_rank)
 
 
-## Instantiates sorting cards with up/down arrows and leashed camera trackers.
+## Instantiates sorting cards with top/up/down/bottom buttons and leashed camera trackers.
 func _create_priority_row(item: Variant, rank: int, max_rank: int):
 	var hbox = HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var top_btn = Button.new()
+	top_btn.text = " Top "
+	top_btn.disabled = (rank == 1)
+	top_btn.pressed.connect(func():
+		building_manager.move_priority_to_top(item)
+		_refresh_priority_tab()
+	)
 	
 	var up_btn = Button.new()
 	up_btn.text = " ▲ "
@@ -216,12 +224,22 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 		building_manager.move_priority_down(item)
 		_refresh_priority_tab()
 	)
+
+	var bottom_btn = Button.new()
+	bottom_btn.text = " Btm "
+	bottom_btn.disabled = (rank == max_rank)
+	bottom_btn.pressed.connect(func():
+		building_manager.move_priority_to_bottom(item)
+		_refresh_priority_tab()
+	)
 	
 	# Assemble priority row
+	hbox.add_child(top_btn)
 	hbox.add_child(up_btn)
 	hbox.add_child(rank_label)
 	hbox.add_child(name_btn)  
 	hbox.add_child(down_btn)
+	hbox.add_child(bottom_btn)
 	
 	priority_list_container.add_child(hbox)
 
