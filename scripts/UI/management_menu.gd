@@ -227,7 +227,37 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 
 
 
-## Refreshes the registry of worker bots with active task descriptions and leashing commands.
+## Formats full status string for a worker bot including Level, XP %, active task, and inventory.
+func _get_bot_status_string(bot: Node) -> String:
+	var level_str = ""
+	if "bot_level" in bot and "current_xp" in bot and "XP_THRESHOLDS" in bot:
+		var global_max = 2
+		if ResearchManager.has_method("get_bot_max_level"):
+			global_max = ResearchManager.get_bot_max_level()
+			
+		var lvl = bot.bot_level
+		if lvl >= global_max:
+			level_str = "[Lvl %d/%d MAX] " % [lvl, global_max]
+		else:
+			var prev_threshold = bot.XP_THRESHOLDS[lvl - 1] if lvl > 1 else 0
+			var next_threshold = bot.XP_THRESHOLDS[lvl] if lvl < bot.XP_THRESHOLDS.size() else bot.current_xp
+			var needed = next_threshold - prev_threshold
+			var current_progress = bot.current_xp - prev_threshold
+			var pct = int((float(current_progress) / float(max(1, needed))) * 100.0)
+			pct = clamp(pct, 0, 99)
+			level_str = "[Lvl %d/%d (%d%%)] " % [lvl, global_max, pct]
+
+	var task_info = ""
+	if bot.has_method("get_inventory_info"):
+		var info = bot.get_inventory_info()
+		task_info = "Task: %s | Carrying: %s" % [info.get("Target", "Idle"), info.get("Carrying", "Nothing")]
+	else:
+		task_info = "Task: Unknown"
+		
+	return level_str + task_info
+
+
+## Refreshes the registry of worker bots with active task descriptions, levels, and leashing commands.
 func _refresh_bot_tab(force_rebuild: bool = false):
 	if not bot_list_container: return
 	
@@ -240,13 +270,10 @@ func _refresh_bot_tab(force_rebuild: bool = false):
 		# Soft update labels
 		for bot in bots:
 			if bot_status_labels.has(bot) and is_instance_valid(bot_status_labels[bot]):
-				if bot.has_method("get_inventory_info"):
-					var info = bot.get_inventory_info()
-					var new_text = "Task: %s | Carrying: %s" % [info.get("Target", "Idle"), info.get("Carrying", "Nothing")]
-					bot_status_labels[bot].text = new_text
+				bot_status_labels[bot].text = _get_bot_status_string(bot)
 
 
-## Instantiates bot listings showing tasks, energy, and centering buttons.
+## Instantiates bot listings showing tasks, energy, level, XP, and centering buttons.
 func _rebuild_bot_list(bots: Array):
 	# Clean up previous rows
 	bot_status_labels.clear()
@@ -270,11 +297,7 @@ func _rebuild_bot_list(bots: Array):
 		
 		var status_label = Label.new()
 		status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if bot.has_method("get_inventory_info"):
-			var info = bot.get_inventory_info()
-			status_label.text = "Task: %s | Carrying: %s" % [info.get("Target", "Idle"), info.get("Carrying", "Nothing")]
-		else:
-			status_label.text = "Task: Unknown"
+		status_label.text = _get_bot_status_string(bot)
 			
 		# Save reference in tracker
 		bot_status_labels[bot] = status_label

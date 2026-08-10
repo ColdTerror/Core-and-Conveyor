@@ -242,11 +242,12 @@ func _recalculate_stats():
 	
 	if bot_level >= 2:
 		calc_speed *= 1.25
+		calc_carry += 2
 	if bot_level >= 3:
 		calc_speed *= 1.5
 		calc_carry += 2
 	if bot_level >= 4:
-		calc_carry += 3
+		calc_carry += 1
 		calc_max_hp += 50
 		
 	_normal_speed = calc_speed
