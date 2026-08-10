@@ -287,8 +287,8 @@ func _get_speed() -> float:
 	elif current_state == State.PANIC_MOVING_HOME:
 		mult *= SPEED_MULT_PANIC
 
-	# Terrain modifier
-	if level_ref and level_ref.terrain_layer:
+	# Terrain modifier (ground bots wading through water get slowed down by 60%, flying/thruster bots hover over and ignore it)
+	if not is_flying and level_ref and level_ref.terrain_layer:
 		var grid = level_ref.terrain_layer.local_to_map(global_position)
 		var tile = level_ref.terrain_layer.get_cell_tile_data(grid)
 		if tile and tile.get_custom_data("is_water"):

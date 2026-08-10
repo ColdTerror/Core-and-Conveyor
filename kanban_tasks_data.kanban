@@ -34,14 +34,12 @@
 				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
 				"a3283276-3b70-4a9d-8a6e-27ef751b36fa",
 				"ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
-				"15753405-8ff7-40e4-a460-802605a57b32",
 				"22d40eb3-206b-4bb6-82e3-354ca61edef1",
 				"7a87df7c-a4d0-47bb-b193-5afe0ef590bc",
 				"1f19f767-ca5c-4019-9851-cbb3836d5ba7",
 				"02b43ce0-017e-4d72-b447-3f4e4d2865af",
 				"220e5866-f3ea-4147-ae56-2f25b432a63a",
 				"bd7f988d-b229-4278-af06-06b630ffdd49",
-				"fd42bb7c-f854-4247-be22-e6be0e0ad701",
 				"7c09d4ec-6a91-47fa-8224-4a9bc796960a",
 				"5eff4662-4d5b-4561-81e5-ff40b7e97ba9",
 				"7921dbcb-24e7-4801-9f67-d85c5f03e073",
@@ -56,17 +54,7 @@
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
-			"tasks": [
-				"f9248cc1-e609-4a3c-aa48-1e72eb8f9405",
-				"4597ad50-3855-4702-9e42-4f1d1bac13a7",
-				"4d35837e-0d17-42b9-8eb5-fda1cee20ca8",
-				"9a2c2636-b5be-4afa-a6ba-770f4e30ba9a",
-				"a04e4d56-c6e7-4b16-98ea-e85bea7a8b25",
-				"8cbafcea-e82e-4089-bf30-0aabe6d59712",
-				"4cfdeeb5-e472-4caf-8a06-156d729147e4",
-				"8afb9863-9cc5-4416-8392-9e4edcc7da7a",
-				"b83b0664-2b9c-4da2-83a0-19dc079b9fad"
-			]
+			"tasks": []
 		}
 	],
 	"tasks": [
@@ -218,27 +206,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "8cbafcea-e82e-4089-bf30-0aabe6d59712",
-			"title": "upgrade bot capacity",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "4cfdeeb5-e472-4caf-8a06-156d729147e4",
-			"title": "make building and corruption range the same",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "b83b0664-2b9c-4da2-83a0-19dc079b9fad",
-			"title": "bot throws errors when changing home loocations?",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "a3283276-3b70-4a9d-8a6e-27ef751b36fa",
 			"title": "pause construction button ",
 			"description": "you can pause all taks for a certain priority item, so you could manually stop all work on walls to stop bots from going to frontlines or to have them focus on something else\n",
@@ -248,27 +215,6 @@
 		{
 			"uuid": "ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
 			"title": "item dictionary? to see item stats for ammo etc",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "9a2c2636-b5be-4afa-a6ba-770f4e30ba9a",
-			"title": "tower range is wrong in upgrade preview",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "8afb9863-9cc5-4416-8392-9e4edcc7da7a",
-			"title": "owned tracker for upgrades is bugged?",
-			"description": "only tracks items in core im assuming it says 0 owned planks but i have a full stockpile of 100",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "15753405-8ff7-40e4-a460-802605a57b32",
-			"title": "hovering bots should have no water slow penalty",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
@@ -316,13 +262,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "fd42bb7c-f854-4247-be22-e6be0e0ad701",
-			"title": "hover bots should see water as more costly but still be able to cross",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "7c09d4ec-6a91-47fa-8224-4a9bc796960a",
 			"title": "eclipse, where day becaomes a second night",
 			"description": "",
@@ -337,29 +276,8 @@
 			"steps": []
 		},
 		{
-			"uuid": "4d35837e-0d17-42b9-8eb5-fda1cee20ca8",
-			"title": "stockpile upgrade no stat changes?",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "7921dbcb-24e7-4801-9f67-d85c5f03e073",
 			"title": "give walls some corruption resistance",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "4597ad50-3855-4702-9e42-4f1d1bac13a7",
-			"title": "fletcher upgrade doesnt show stat",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "f9248cc1-e609-4a3c-aa48-1e72eb8f9405",
-			"title": "some moon randomness checks, no 2 full moons in a row or 2 within 5 days etc",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
