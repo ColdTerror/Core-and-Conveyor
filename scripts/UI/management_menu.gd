@@ -43,6 +43,11 @@ var current_sort_mode: SortMode = SortMode.A_Z
 
 ## Connects signals from the Jukebox, global menu controllers, and tab components during initialization.
 func _ready():
+	# Fix window dimensions across all tabs to prevent vertical height jumping
+	var panel = get_node_or_null("PanelContainer")
+	if panel:
+		panel.custom_minimum_size = Vector2(720, 520)
+		
 	# Listen to global UI state machine
 	GameState.menu_changed.connect(_on_global_menu_changed)
 	
@@ -55,7 +60,14 @@ func _ready():
 		
 	if tab_container:
 		tab_container.focus_mode = Control.FOCUS_NONE
+		tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		
+		for tab in tab_container.get_children():
+			var scroll = tab.find_child("ScrollContainer", true, false)
+			if scroll:
+				scroll.custom_minimum_size = Vector2(0, 370)
+				scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
 		var tab_bar = tab_container.get_tab_bar()
 		tab_bar.focus_mode = Control.FOCUS_NONE
 		tab_bar.tab_clicked.connect(_on_tab_clicked)
