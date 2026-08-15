@@ -141,7 +141,7 @@ func _on_mouse_exited():
 
 ## Executes the periodic harvesting loop and tries to dispense stored output buffers.
 func building_tick(delta: float) -> void:
-	if not level_ref or not target_resource: return
+	if is_paused or not level_ref or not target_resource: return
 	
 	if stored_amount > 0:
 		_try_output_item()

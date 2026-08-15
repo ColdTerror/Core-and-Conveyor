@@ -233,6 +233,28 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 		_refresh_priority_tab()
 	)
 	
+	var is_paused = false
+	if typeof(item) == TYPE_STRING:
+		is_paused = building_manager.is_group_paused(item)
+	elif is_instance_valid(item) and "is_paused" in item:
+		is_paused = item.is_paused
+		
+	var pause_btn = Button.new()
+	pause_btn.text = " ▶ " if is_paused else " ⏸ "
+	pause_btn.tooltip_text = "Resume Construction/Work" if is_paused else "Pause Construction/Work"
+	pause_btn.modulate = Color(0.2, 0.9, 0.4) if is_paused else Color(1.0, 0.7, 0.2)
+	pause_btn.pressed.connect(func():
+		if typeof(item) == TYPE_STRING:
+			building_manager.set_group_paused(item, not is_paused)
+		elif is_instance_valid(item):
+			if item.has_method("set_paused"):
+				item.set_paused(not is_paused)
+			else:
+				item.is_paused = not is_paused
+				building_manager.evict_bots_from_building(item)
+		_refresh_priority_tab()
+	)
+	
 	# Assemble priority row
 	hbox.add_child(top_btn)
 	hbox.add_child(up_btn)
@@ -240,6 +262,7 @@ func _create_priority_row(item: Variant, rank: int, max_rank: int):
 	hbox.add_child(name_btn)  
 	hbox.add_child(down_btn)
 	hbox.add_child(bottom_btn)
+	hbox.add_child(pause_btn)
 	
 	priority_list_container.add_child(hbox)
 

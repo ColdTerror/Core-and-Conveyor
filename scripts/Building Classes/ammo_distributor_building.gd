@@ -95,7 +95,7 @@ func setup(level_instance: Node2D):
 
 ## Increments transfer timers and triggers range redraws.
 func _physics_process(delta):
-	if is_ghost:
+	if is_ghost or is_paused:
 		return
 		
 	if turret_pivot and is_instance_valid(current_target_tower) and not current_target_tower.is_queued_for_deletion():

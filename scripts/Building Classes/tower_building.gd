@@ -247,6 +247,7 @@ func void_inventory():
 
 ## Ticks combat logic, managing weapon reload cooldowns and searching for targets.
 func building_tick(delta: float) -> void:
+	if is_paused: return
 	if attack_cooldown > 0:
 		attack_cooldown -= delta
 	

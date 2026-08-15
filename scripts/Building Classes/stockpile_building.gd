@@ -63,6 +63,7 @@ func _exit_tree():
 
 ## Runs stockpile tick, trying to dispense selected item buffers onto output directions.
 func building_tick(delta: float) -> void:
+	if is_paused: return
 	if selected_output_name != "":
 		_try_output_item()
 

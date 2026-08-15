@@ -105,7 +105,7 @@ func can_accept_item(item_res: ItemResource) -> bool:
 
 ## Runs the periodic processing, crafting, and finished-product dispensing loop.
 func building_tick(delta: float) -> void:
-	if not level_ref or not active_recipe: return
+	if is_paused or not level_ref or not active_recipe: return
 
 	if output_inventory > 0:
 		_try_output_item()

@@ -916,6 +916,33 @@ func _build_priority_widget(b: Node):
 	hbox.add_child(bottom_btn)
 	action_container.add_child(hbox)
 
+	var is_item_paused = false
+	if typeof(priority_item) == TYPE_STRING:
+		is_item_paused = bm.is_group_paused(priority_item)
+	elif "is_paused" in b:
+		is_item_paused = b.is_paused
+		
+	var hbox_pause = HBoxContainer.new()
+	hbox_pause.alignment = BoxContainer.ALIGNMENT_CENTER
+	
+	var pause_btn = Button.new()
+	pause_btn.text = " ▶ Resume Work " if is_item_paused else " ⏸ Pause Work "
+	pause_btn.modulate = Color(0.2, 0.9, 0.4) if is_item_paused else Color(1.0, 0.7, 0.2)
+	pause_btn.pressed.connect(func():
+		call_explicit_refresh(func():
+			if typeof(priority_item) == TYPE_STRING:
+				bm.set_group_paused(priority_item, not is_item_paused)
+			elif b.has_method("set_paused"):
+				b.set_paused(not is_item_paused)
+			else:
+				b.is_paused = not is_item_paused
+				bm.evict_bots_from_building(b)
+		)
+	)
+	
+	hbox_pause.add_child(pause_btn)
+	action_container.add_child(hbox_pause)
+
 
 
 ## Initiates an entry transition tween effect for menu panels.

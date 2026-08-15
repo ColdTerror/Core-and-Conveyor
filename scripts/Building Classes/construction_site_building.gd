@@ -236,6 +236,20 @@ func _draw():
 		var border_color = Color(1.0, 0.8, 0.2, 0.8).lerp(Color(0.2, 1.0, 0.2, 0.8), build_pct)
 		draw_rect(full_rect, border_color, false, 2.0)
 
+	if is_paused:
+		draw_rect(full_rect, Color(0.1, 0.1, 0.15, 0.5), true)
+		var center = top_left + Vector2(w / 2.0, h / 2.0)
+		var bar_w = max(3.0, min(6.0, w * 0.15))
+		var bar_h = max(10.0, min(16.0, h * 0.4))
+		var gap = max(3.0, bar_w * 0.8)
+		
+		var bar1_rect = Rect2(center + Vector2(-gap / 2.0 - bar_w, -bar_h / 2.0), Vector2(bar_w, bar_h))
+		var bar2_rect = Rect2(center + Vector2(gap / 2.0, -bar_h / 2.0), Vector2(bar_w, bar_h))
+		
+		draw_rect(bar1_rect, Color(1.0, 0.7, 0.2, 0.95), true)
+		draw_rect(bar2_rect, Color(1.0, 0.7, 0.2, 0.95), true)
+		draw_rect(full_rect, Color(1.0, 0.6, 0.0, 0.9), false, 2.0)
+
 
 
 ## Serializes construction progress, resource delivery logs, and metadata for saving.

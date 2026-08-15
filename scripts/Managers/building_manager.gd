@@ -1200,6 +1200,9 @@ func _building_needs_work_raw(bldg: Node) -> bool:
 	if not is_instance_valid(bldg):
 		return false
 		
+	if "is_paused" in bldg and bldg.is_paused:
+		return false
+		
 	if bldg is ConstructionSite or bldg is TerraformSite:
 		if bldg.is_ready_to_build:
 			return bldg.health < bldg.max_health
@@ -1222,6 +1225,84 @@ func _building_needs_work_raw(bldg: Node) -> bool:
 		return true
 		
 	return false
+
+
+
+## Immediately cancels active jobs and clears reservations for all bots working on or en-route to a building/site.
+func evict_bots_from_building(bldg: Node):
+	if not is_instance_valid(bldg) or not level_ref: return
+	var b_tiles = bldg.occupied_tiles if "occupied_tiles" in bldg else []
+	if b_tiles.is_empty(): return
+	
+	var bots = level_ref.get_tree().get_nodes_in_group("Bots")
+	for bot in bots:
+		if not is_instance_valid(bot) or bot.is_queued_for_deletion(): continue
+		var affects_bot = false
+		if "committed_job_tile" in bot and bot.committed_job_tile in b_tiles:
+			affects_bot = true
+		elif bot.target_tile in b_tiles:
+			affects_bot = true
+			
+		if affects_bot:
+			if bot.has_method("_clear_reservation"):
+				bot._clear_reservation()
+			if "action_timer" in bot and bot.action_timer:
+				bot.action_timer.stop()
+			bot.target_tile = Vector2i(-1, -1)
+			if "committed_job_tile" in bot:
+				bot.committed_job_tile = Vector2i(-1, -1)
+			if "current_state" in bot:
+				bot.current_state = bot.State.IDLE
+
+
+
+## Toggles the pause state for all buildings/sites belonging to a specific priority group.
+func set_group_paused(group_name: String, paused: bool):
+	for b in buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
+		var matches = false
+		var b_name = b.building_name if "building_name" in b else ""
+		
+		if group_name == "Belts":
+			matches = (b is ConveyorBuilding) or (b is ConstructionSite and ("Conveyor" in b_name or "Belt" in b_name or "Router" in b_name or "Filter" in b_name))
+		elif group_name == "Walls":
+			matches = (b is WallBuilding) or (b is ConstructionSite and "Wall" in b_name)
+		elif group_name == "Terraform":
+			matches = (b is TerraformSite) or (b is ConstructionSite and "Terraform" in b_name)
+		elif group_name == "Bot Homes":
+			matches = (b is BotHomeBuilding) or (b is ConstructionSite and ("Home" in b_name or "Charging Stand" in b_name))
+			
+		if matches:
+			if b.has_method("set_paused"):
+				b.set_paused(paused)
+			else:
+				b.is_paused = paused
+
+
+## Returns true if all active items in the target priority group are currently paused.
+func is_group_paused(group_name: String) -> bool:
+	var total_count = 0
+	var paused_count = 0
+	for b in buildings:
+		if not is_instance_valid(b) or b.is_queued_for_deletion(): continue
+		var matches = false
+		var b_name = b.building_name if "building_name" in b else ""
+		
+		if group_name == "Belts":
+			matches = (b is ConveyorBuilding) or (b is ConstructionSite and ("Conveyor" in b_name or "Belt" in b_name or "Router" in b_name or "Filter" in b_name))
+		elif group_name == "Walls":
+			matches = (b is WallBuilding) or (b is ConstructionSite and "Wall" in b_name)
+		elif group_name == "Terraform":
+			matches = (b is TerraformSite) or (b is ConstructionSite and "Terraform" in b_name)
+		elif group_name == "Bot Homes":
+			matches = (b is BotHomeBuilding) or (b is ConstructionSite and ("Home" in b_name or "Charging Stand" in b_name))
+			
+		if matches:
+			total_count += 1
+			if "is_paused" in b and b.is_paused:
+				paused_count += 1
+				
+	return total_count > 0 and paused_count == total_count
 
 
 

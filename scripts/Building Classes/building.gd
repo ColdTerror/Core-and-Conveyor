@@ -21,6 +21,7 @@ signal health_changed(current_hp: int, max_hp: int)
 signal destroyed(building_instance: Building)
 
 var is_ghost: bool = false
+@export var is_paused: bool = false
 
 # True = Stockpile (Blocks path completely)
 # False = Wall (Walkable but expensive)
@@ -258,6 +259,7 @@ func _on_mouse_exited():
 
 ## Virtual method executed every gameplay frame update.
 func building_tick(delta: float) -> void:
+	if is_paused or is_ghost: return
 	pass
 	
 
@@ -397,11 +399,26 @@ func apply_upgrade_data(data: Dictionary):
 	
 
 
+## Sets whether construction/repair work on this building is paused.
+func set_paused(paused: bool):
+	if is_paused == paused: return
+	is_paused = paused
+	queue_redraw()
+	
+	# Evict any active bots working on or en-route to this building
+	if is_inside_tree():
+		var bm = get_tree().get_first_node_in_group("BuildingManager")
+		if bm and bm.has_method("evict_bots_from_building"):
+			bm.evict_bots_from_building(self)
+
+
+
 ## Packs structural stats and configurations for database save files.
 func get_save_data() -> Dictionary:
 	var data = {
 		"building_name": building_name,
-		"health": health
+		"health": health,
+		"is_paused": is_paused
 	}
 	
 	if "is_horizontal" in self: data["is_horizontal"] = self.get("is_horizontal")
@@ -413,6 +430,7 @@ func get_save_data() -> Dictionary:
 ## Restructures active values from saved database records.
 func load_save_data(data: Dictionary):
 	health = data.get("health", max_health)
+	is_paused = data.get("is_paused", false)
 	
 	# Trigger health bar updates
 	if health < max_health:
