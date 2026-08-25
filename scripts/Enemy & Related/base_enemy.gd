@@ -557,6 +557,8 @@ func _draw():
 		var border_width = 1.5
 		draw_arc(Vector2.ZERO, attack_range, 0.0, TAU, 64, circle_color, border_width, true)
 		
+	if not is_selected: return
+	
 	if current_path.size() > 0:
 		var local_points = PackedVector2Array()
 		local_points.append(Vector2.ZERO)

@@ -324,6 +324,9 @@ func _try_output_item():
 
 ## Instantiates visual item nodes, snaps positions, and deposits them into accepting neighbors.
 func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_offset: Vector2i) -> bool:
+	if not generic_item_scene:
+		generic_item_scene = load("res://scenes/buildings & related/belts & items/item.tscn")
+		
 	if not generic_item_scene or not target_resource.item_drop: return false
 	
 	var new_item_node = generic_item_scene.instantiate()

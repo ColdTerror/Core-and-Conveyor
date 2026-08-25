@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://duvfi011ype5f" path="res://scripts/Building Classes/router_building.gd" id="1_y4pf7"]
 [ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_dawp2"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_ia5t4"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_hdl5s"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_y4pf7"]
@@ -19,6 +20,7 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [node name="RouterBuilding" type="Node2D" unique_id=706441701]
 script = ExtResource("1_y4pf7")
+generic_item_scene = ExtResource("2_ia5t4")
 building_name = "Router"
 icon = SubResource("AtlasTexture_y4pf7")
 build_costs = Array[ExtResource("3_hdl5s")]([SubResource("Resource_axnho"), SubResource("Resource_v6thk")])

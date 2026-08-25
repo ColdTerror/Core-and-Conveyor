@@ -167,6 +167,9 @@ func _spawn_item_into_conveyor(receiver: Node, source_tile: Vector2i, direction_
 	if not item_res or inventory.get(item_res, 0) <= 0:
 		return false
 	
+	if not generic_item_scene:
+		generic_item_scene = load("res://scenes/buildings & related/belts & items/item.tscn")
+
 	if not generic_item_scene: return false
 	
 	var new_item_node = generic_item_scene.instantiate()

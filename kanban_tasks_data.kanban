@@ -33,7 +33,6 @@
 				"fb9cdbd1-4cac-4335-b33e-71b983d03f27",
 				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
 				"ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
-				"bd7f988d-b229-4278-af06-06b630ffdd49",
 				"7c09d4ec-6a91-47fa-8224-4a9bc796960a",
 				"5eff4662-4d5b-4561-81e5-ff40b7e97ba9",
 				"7921dbcb-24e7-4801-9f67-d85c5f03e073",
@@ -49,7 +48,7 @@
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
-				"02b43ce0-017e-4d72-b447-3f4e4d2865af"
+				"ac3175f6-f844-488b-b1a3-f0d66d97d706"
 			]
 		}
 	],
@@ -209,20 +208,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "02b43ce0-017e-4d72-b447-3f4e4d2865af",
-			"title": "f4 to switch between enemy and bot grids",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "bd7f988d-b229-4278-af06-06b630ffdd49",
-			"title": "show bot/enemy path only when selecting them",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "7c09d4ec-6a91-47fa-8224-4a9bc796960a",
 			"title": "eclipse, where day becaomes a second night",
 			"description": "",
@@ -281,6 +266,13 @@
 		{
 			"uuid": "da96d35e-5a32-4d57-9212-3e789996ec74",
 			"title": "enemy health should scale with day",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "ac3175f6-f844-488b-b1a3-f0d66d97d706",
+			"title": "ERROR: Conveyor cannot load item! Assign generic_item_scene in Inspector.",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

@@ -1424,7 +1424,7 @@ func _update_sprite(move_dir: Vector2 = Vector2.ZERO):
 
 
 func _draw_path():
-	if current_path.is_empty(): return
+	if current_path.is_empty() or not is_selected: return
 	
 	var points = PackedVector2Array()
 	points.append(Vector2.ZERO)

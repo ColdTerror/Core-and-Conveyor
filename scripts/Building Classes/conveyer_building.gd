@@ -260,7 +260,10 @@ func load_save_data(data: Dictionary):
 	
 	if data.has("held_item_name"):
 		if not generic_item_scene:
-			print("ERROR: Conveyor cannot load item! Assign generic_item_scene in Inspector.")
+			generic_item_scene = load("res://scenes/buildings & related/belts & items/item.tscn")
+			
+		if not generic_item_scene:
+			print_debug("ERROR: Conveyor cannot load item! Assign generic_item_scene in Inspector.")
 			return
 			
 		var item_res = ItemDatabase.get_item(data["held_item_name"])

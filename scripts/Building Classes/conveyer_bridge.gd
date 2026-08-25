@@ -326,6 +326,9 @@ func load_save_data(data: Dictionary):
 	v_dir = Vector2i(data.get("v_dir_x", 0), data.get("v_dir_y", 1))
 	v_cooldown = data.get("v_cooldown", 0.0)
 	
+	if not generic_item_scene:
+		generic_item_scene = load("res://scenes/buildings & related/belts & items/item.tscn")
+
 	if data.has("h_held_item_name"):
 		var item_res = ItemDatabase.get_item(data["h_held_item_name"])
 		if item_res and generic_item_scene:
