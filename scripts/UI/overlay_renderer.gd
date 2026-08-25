@@ -480,17 +480,19 @@ func _rebuild_path_cost_cache():
 	#var astar = bm.pathfinder.enemy_astar
 	
 	var astar
-	#TODO
+	var blocked_color = Color(1.0, 0.25, 0.25, 0.85)
+	
 	if bm.show_path_grid_type == 1:
 		astar = bm.pathfinder.enemy_astar
+		blocked_color = Color(1.0, 0.25, 0.25, 0.85) # Coral Red for Enemy Grid
 	elif bm.show_path_grid_type == 2:
 		astar = bm.pathfinder.bot_astar
+		blocked_color = Color(0.2, 0.8, 1.0, 0.85) # Cyan for Ground Bot Grid
 	elif bm.show_path_grid_type == 3:
 		astar = bm.pathfinder.flying_astar
+		blocked_color = Color(0.8, 0.4, 1.0, 0.85) # Purple for Flying Bot Grid
 	else:
 		astar = bm.pathfinder.enemy_astar
-	
-	print_debug(bm.show_path_grid_type)
 	
 	var region = astar.region
 	var font = _font
@@ -508,7 +510,7 @@ func _rebuild_path_cost_cache():
 				var draw_pos = center_px - Vector2(t_size.x/2.0, -t_size.y/3.0)
 				
 				cached_path_draws.append({
-					"pos": draw_pos, "text": text, "color": Color(1.0, 0.2, 0.2, 0.8)
+					"pos": draw_pos, "text": text, "color": blocked_color
 				})
 			else:
 				var cost = astar.get_point_weight_scale(coords)

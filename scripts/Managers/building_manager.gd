@@ -122,13 +122,13 @@ func handle_overlay_hotkeys(keycode: int):
 			_clear_all_overlays()
 			show_attack_grid = toggle
 		KEY_F4: 
+			var next_type = (show_path_grid_type + 1) % 4
 			_clear_all_overlays()
-			show_path_grid_type += 1
-			show_path_grid_type %= 4
-			if (show_path_grid_type == 0):
-				show_path_grid = false
-			else:
-				show_path_grid = true
+			show_path_grid_type = next_type
+			show_path_grid = (show_path_grid_type != 0)
+			
+			var grid_names = ["Off", "Enemy Grid", "Ground Bot Grid", "Flying Bot Grid"]
+			print("Path Grid Overlay: ", grid_names[show_path_grid_type])
 		
 			
 		KEY_EQUAL: # The '+' key 
@@ -147,6 +147,7 @@ func _clear_all_overlays():
 	show_safe_grid = false
 	show_attack_grid = false
 	show_path_grid = false
+	show_path_grid_type = 0
 
 
 
