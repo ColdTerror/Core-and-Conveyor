@@ -42,7 +42,10 @@ var terraform_jobs: Dictionary = {}
 var show_build_grid: bool = false
 var show_safe_grid: bool = false
 var show_attack_grid: bool = false
+
 var show_path_grid: bool = false
+var show_path_grid_type: int = 0
+
 var overlay_threshold: int = 1 
 var show_overlay_numbers: bool = true
 var _auto_enabled_grids: Dictionary = {"build": false, "safe": false, "attack": false}
@@ -119,9 +122,15 @@ func handle_overlay_hotkeys(keycode: int):
 			_clear_all_overlays()
 			show_attack_grid = toggle
 		KEY_F4: 
-			var toggle = not show_path_grid
 			_clear_all_overlays()
-			show_path_grid = toggle
+			show_path_grid_type += 1
+			show_path_grid_type %= 4
+			if (show_path_grid_type == 0):
+				show_path_grid = false
+			else:
+				show_path_grid = true
+		
+			
 		KEY_EQUAL: # The '+' key 
 			overlay_threshold += 1
 			print("Overlay Threshold: ", overlay_threshold)

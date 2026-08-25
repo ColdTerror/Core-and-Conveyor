@@ -16,6 +16,11 @@ var _prev_show_build_grid: bool = false
 var _prev_show_safe_grid: bool = false
 var _prev_show_attack_grid: bool = false
 var _prev_show_path_grid: bool = false
+
+#Type of path grid shown (0 = enemy, 1 = bot, 2 = flying)
+var _prev_show_path_grid_type: int = 0
+
+
 var _prev_placing_building: bool = false
 var _prev_hovered_building: Building = null
 var _prev_selected_building: Building = null
@@ -47,14 +52,18 @@ func _process(delta):
 	var needs_redraw = false
 
 	# Path grid: rebuild cache
-	if bm.show_path_grid and not _prev_show_path_grid:
-		_rebuild_path_cost_cache()
-
+	#if bm.show_path_grid and not _prev_show_path_grid:
+		#_rebuild_path_cost_cache()
+	
+	if (bm.show_path_grid_type != _prev_show_path_grid_type):
+			_rebuild_path_cost_cache()
+			
 	# Diff-check for toggle redraws
 	if (bm.show_build_grid    != _prev_show_build_grid    or \
 		bm.show_safe_grid     != _prev_show_safe_grid     or \
 		bm.show_attack_grid   != _prev_show_attack_grid   or \
 		bm.show_path_grid     != _prev_show_path_grid     or \
+		bm.show_path_grid_type     != _prev_show_path_grid_type    or \
 		bm.placing_building   != _prev_placing_building   or \
 		bm.terraform_jobs.is_empty() != _prev_terraform_jobs_empty or \
 		bm.overlay_threshold != _prev_overlay_threshold or \
@@ -102,6 +111,7 @@ func _process(delta):
 	_prev_show_safe_grid         = bm.show_safe_grid
 	_prev_show_attack_grid       = bm.show_attack_grid
 	_prev_show_path_grid         = bm.show_path_grid
+	_prev_show_path_grid_type    = bm.show_path_grid_type
 	_prev_placing_building       = bm.placing_building
 	_prev_terraform_jobs_empty   = bm.terraform_jobs.is_empty()
 	_prev_overlay_threshold      = bm.overlay_threshold
@@ -466,7 +476,22 @@ func _rebuild_path_cost_cache():
 	var bm = level.building_manager
 	if not bm or not bm.pathfinder or not bm.pathfinder.enemy_astar: return
 
-	var astar = bm.pathfinder.enemy_astar
+	
+	#var astar = bm.pathfinder.enemy_astar
+	
+	var astar
+	#TODO
+	if bm.show_path_grid_type == 1:
+		astar = bm.pathfinder.enemy_astar
+	elif bm.show_path_grid_type == 2:
+		astar = bm.pathfinder.bot_astar
+	elif bm.show_path_grid_type == 3:
+		astar = bm.pathfinder.flying_astar
+	else:
+		astar = bm.pathfinder.enemy_astar
+	
+	print_debug(bm.show_path_grid_type)
+	
 	var region = astar.region
 	var font = _font
 	var font_size = 14
