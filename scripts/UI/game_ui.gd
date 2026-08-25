@@ -56,6 +56,12 @@ var threshold_hud: HBoxContainer
 var threshold_digits: Array = []
 var threshold_lbl_right: Label
 
+var path_grid_hud: HBoxContainer
+var path_grid_label: Label
+
+var build_grid_hud: HBoxContainer
+var build_grid_label: Label
+
 
 
 ## Connects signals from EconomyManager, TimeManager, and BuildingManager, and hides the game over panel.
@@ -223,12 +229,37 @@ func _ready():
 	
 	threshold_hud.hide()
 
-	# Guarantee vertical VBoxContainer sorting order (index 0 is top, 5 is bottom)
+	# Instantiate dynamic Build Grid HUD
+	build_grid_hud = HBoxContainer.new()
+	build_grid_hud.alignment = HBoxContainer.ALIGNMENT_CENTER
+	$VBoxContainer.add_child(build_grid_hud)
+	
+	build_grid_label = Label.new()
+	build_grid_label.text = "Build Grid: ON  [F1]"
+	build_grid_label.add_theme_font_size_override("font_size", 20)
+	build_grid_label.modulate = Color(0.2, 0.9, 0.4) # Emerald Green
+	build_grid_hud.add_child(build_grid_label)
+	build_grid_hud.hide()
+
+	# Instantiate dynamic Path Grid HUD
+	path_grid_hud = HBoxContainer.new()
+	path_grid_hud.alignment = HBoxContainer.ALIGNMENT_CENTER
+	$VBoxContainer.add_child(path_grid_hud)
+	
+	path_grid_label = Label.new()
+	path_grid_label.text = "Path Grid: Enemy Grid  [F4]"
+	path_grid_label.add_theme_font_size_override("font_size", 20)
+	path_grid_hud.add_child(path_grid_label)
+	path_grid_hud.hide()
+
+	# Guarantee vertical VBoxContainer sorting order (index 0 is top, 6 is bottom)
 	$VBoxContainer.move_child(date_hud, 0)
 	$VBoxContainer.move_child(wave_hud, 1)
 	$VBoxContainer.move_child(wave_status_label, 2)
 	$VBoxContainer.move_child(corruption_hud, 3)
 	$VBoxContainer.move_child(threshold_hud, 4)
+	$VBoxContainer.move_child(build_grid_hud, 5)
+	$VBoxContainer.move_child(path_grid_hud, 6)
 
 ## Updates gameplay labels including the clock, wave forecast, corruption state, and safe grid metrics.
 func _process(_delta):
@@ -323,14 +354,37 @@ func _process(_delta):
 		_set_digits_value(percent_digits, pct)
 	
 	# Update overlay threshold UI
-	if building_manager and threshold_hud:
-		if building_manager.show_safe_grid or building_manager.show_attack_grid:
-			threshold_hud.show()
-			_set_digits_value(threshold_digits, building_manager.overlay_threshold)
-			var num_status = "ON" if building_manager.show_overlay_numbers else "OFF"
-			threshold_lbl_right.text = "  [+ / -]   |   Numbers: %s  [N]" % num_status
-		else:
-			threshold_hud.hide()
+	if building_manager:
+		if threshold_hud:
+			if building_manager.show_safe_grid or building_manager.show_attack_grid:
+				threshold_hud.show()
+				_set_digits_value(threshold_digits, building_manager.overlay_threshold)
+				var num_status = "ON" if building_manager.show_overlay_numbers else "OFF"
+				threshold_lbl_right.text = "  [+ / -]   |   Numbers: %s  [N]" % num_status
+			else:
+				threshold_hud.hide()
+
+		if build_grid_hud:
+			if building_manager.show_build_grid and not building_manager.placing_building:
+				build_grid_hud.show()
+			else:
+				build_grid_hud.hide()
+				
+		if path_grid_hud:
+			if building_manager.show_path_grid and building_manager.show_path_grid_type > 0:
+				path_grid_hud.show()
+				var p_type = building_manager.show_path_grid_type
+				if p_type == 1:
+					path_grid_label.text = "Path Grid: Enemy Grid  [F4]"
+					path_grid_label.modulate = Color(1.0, 0.35, 0.35) # Coral Red
+				elif p_type == 2:
+					path_grid_label.text = "Path Grid: Ground Bot Grid  [F4]"
+					path_grid_label.modulate = Color(0.2, 0.85, 1.0) # Bright Cyan
+				elif p_type == 3:
+					path_grid_label.text = "Path Grid: Flying Bot Grid  [F4]"
+					path_grid_label.modulate = Color(0.85, 0.45, 1.0) # Purple/Magenta
+			else:
+				path_grid_hud.hide()
 	
 	# Move the costPanel to follow mouse
 	if costPanel.visible: 
