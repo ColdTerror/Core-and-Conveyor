@@ -28,27 +28,25 @@
 			"title": "Doing",
 			"tasks": [
 				"e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
-				"def306dc-1b25-4816-ab97-d9e5edba7996",
 				"f8de0140-146b-497a-819d-8d485531c7bc",
-				"fb9cdbd1-4cac-4335-b33e-71b983d03f27",
 				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
 				"ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
 				"7c09d4ec-6a91-47fa-8224-4a9bc796960a",
 				"5eff4662-4d5b-4561-81e5-ff40b7e97ba9",
-				"7921dbcb-24e7-4801-9f67-d85c5f03e073",
 				"82435f02-bf9a-4131-b4e7-e124e5aef292",
 				"32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
 				"b09ca5c3-b56f-4405-8782-d4f309f06d81",
-				"81666a40-4240-4fa0-87d1-ea974b6bde91",
-				"77757c6a-bb16-4e39-82c1-82878a5ebfa4",
-				"da96d35e-5a32-4d57-9212-3e789996ec74"
+				"81666a40-4240-4fa0-87d1-ea974b6bde91"
 			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
-				"ac3175f6-f844-488b-b1a3-f0d66d97d706"
+				"def306dc-1b25-4816-ab97-d9e5edba7996",
+				"fb9cdbd1-4cac-4335-b33e-71b983d03f27",
+				"77757c6a-bb16-4e39-82c1-82878a5ebfa4",
+				"59f5f662-ef1f-4c89-bc10-a462c2db489a"
 			]
 		}
 	],
@@ -222,13 +220,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "7921dbcb-24e7-4801-9f67-d85c5f03e073",
-			"title": "give walls some corruption resistance",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "82435f02-bf9a-4131-b4e7-e124e5aef292",
 			"title": "more building slots research",
 			"description": "or maybe a infinite building slow research that increases in cost like bots\n",
@@ -264,15 +255,15 @@
 			"steps": []
 		},
 		{
-			"uuid": "da96d35e-5a32-4d57-9212-3e789996ec74",
-			"title": "enemy health should scale with day",
+			"uuid": "ac3175f6-f844-488b-b1a3-f0d66d97d706",
+			"title": "ERROR: Conveyor cannot load item! Assign generic_item_scene in Inspector.",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
 		{
-			"uuid": "ac3175f6-f844-488b-b1a3-f0d66d97d706",
-			"title": "ERROR: Conveyor cannot load item! Assign generic_item_scene in Inspector.",
+			"uuid": "59f5f662-ef1f-4c89-bc10-a462c2db489a",
+			"title": "get rid of fallback center",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

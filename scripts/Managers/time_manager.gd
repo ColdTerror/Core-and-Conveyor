@@ -19,7 +19,7 @@ enum MoonPhase { NORMAL, FULL, BLOOD }
 enum Season { SPRING, SUMMER, AUTUMN, WINTER }
 
 @export var lighting_modulate: CanvasModulate
-@export var real_minutes_per_day: float = 2.0 
+@export var real_minutes_per_day: float = 18.0
 
 @export_group("Atmosphere")
 @export var day_color := Color(1.0, 1.0, 1.0, 1)       # Bright and normal
