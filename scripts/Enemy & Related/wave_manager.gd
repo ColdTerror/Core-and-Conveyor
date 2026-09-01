@@ -22,11 +22,6 @@ class_name WaveManager
 @export var time_manager: TimeManager
 @export var corruption_manager: CorruptionManager
 
-# --- SPAWN SETTINGS ---
-@export_group("Spawn Settings")
-@export var fallback_spawn_center: Vector2 = Vector2(1600, 1600)
-@export var fallback_spawn_radius: float = 800.0
-
 # --- WAVE PACING ---
 @export_group("Wave Pacing")
 @export var initial_enemy_count: int = 15
@@ -65,6 +60,16 @@ func _ready():
 	if time_manager:
 		time_manager.night_started.connect(_on_night_started)
 		time_manager.day_started.connect(_on_day_started)
+
+
+
+## Checks whether any active corruption tiles exist on the map.
+func _has_corruption() -> bool:
+	if corruption_manager and corruption_manager.get_corruption_size() > 0:
+		return true
+	if corruption_layer and not corruption_layer.get_used_cells().is_empty():
+		return true
+	return false
 
 
 
@@ -280,13 +285,16 @@ func _process(delta: float):
 
 
 
-## Spawns a single trickle enemy along an active corruption edge or map boundary.
+## Spawns a single trickle enemy along an active corruption tile.
 func _do_trickle_spawn():
 	if enemies_to_spawn <= 0: return
-	trickle_enemies_remaining -= 1
-	enemies_to_spawn -= 1
 	
 	var spawn_pos = _get_single_edge_spawn_position()
+	if spawn_pos == Vector2.INF:
+		return
+		
+	trickle_enemies_remaining -= 1
+	enemies_to_spawn -= 1
 	_instantiate_and_configure_enemy(spawn_pos)
 
 
@@ -294,12 +302,16 @@ func _do_trickle_spawn():
 ## Spawns a group mini-wave burst with each enemy assigned its own distinct tile.
 func _do_group_spawn(count: int):
 	if count <= 0 or enemies_to_spawn <= 0: return
-	var actual_count = min(count, enemies_to_spawn)
+	
+	var spawn_positions = _get_distinct_group_spawn_positions(min(count, enemies_to_spawn))
+	if spawn_positions.is_empty():
+		return
+		
+	var actual_count = spawn_positions.size()
 	group_enemies_remaining -= actual_count
 	enemies_to_spawn -= actual_count
 	
-	var spawn_positions = _get_distinct_group_spawn_positions(actual_count)
-	print("Group Mini-Wave Spawning %d monsters across distinct tiles." % spawn_positions.size())
+	print("Group Mini-Wave Spawning %d monsters across distinct corruption tiles." % actual_count)
 	
 	for spawn_pos in spawn_positions:
 		_instantiate_and_configure_enemy(spawn_pos)
@@ -308,6 +320,8 @@ func _do_group_spawn(count: int):
 
 ## Instantiates an enemy unit, scales stats, applies elite mutations, and connects signals.
 func _instantiate_and_configure_enemy(spawn_pos: Vector2):
+	if spawn_pos == Vector2.INF: return
+	
 	var chosen_scene = _get_enemy_scene_for_wave(current_wave)
 	if not chosen_scene: return
 	
@@ -340,7 +354,7 @@ func _instantiate_and_configure_enemy(spawn_pos: Vector2):
 
 
 
-## Selects a single active corruption edge tile, or falls back to map boundary outer edges.
+## Selects a single active corruption edge tile, or falls back to any corrupted tile. Returns Vector2.INF if no corruption exists.
 func _get_single_edge_spawn_position() -> Vector2:
 	if corruption_manager and not corruption_manager.active_edges.is_empty():
 		var edge_tile = corruption_manager.active_edges.pick_random()
@@ -352,82 +366,55 @@ func _get_single_edge_spawn_position() -> Vector2:
 		if not used_cells.is_empty():
 			return corruption_layer.map_to_local(used_cells.pick_random())
 			
-	return _get_map_outer_edge_position()
+	return Vector2.INF
 
 
 
-## Finds N distinct neighboring corruption tiles for a group burst (each enemy gets its own tile).
+## Finds N distinct neighboring corruption tiles for a group burst. Returns empty array if no corruption exists.
 func _get_distinct_group_spawn_positions(count: int) -> Array[Vector2]:
 	var positions: Array[Vector2] = []
 	
-	# Attempt to locate seed tile along active corruption edges
+	# Attempt to locate seed tile along active corruption edges or used cells
 	var seed_tile: Vector2i = Vector2i.MIN
 	if corruption_manager and not corruption_manager.active_edges.is_empty():
 		seed_tile = corruption_manager.active_edges.pick_random()
 	elif corruption_layer and not corruption_layer.get_used_cells().is_empty():
 		seed_tile = corruption_layer.get_used_cells().pick_random()
 		
-	if seed_tile != Vector2i.MIN and corruption_layer:
-		# Collect distinct neighboring corruption tiles via BFS
-		var selected_tiles: Array[Vector2i] = [seed_tile]
-		var visited = {seed_tile: true}
-		var queue: Array[Vector2i] = [seed_tile]
-		var dirs = [
-			Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT,
-			Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)
-		]
-		
-		while not queue.is_empty() and selected_tiles.size() < count:
-			var curr = queue.pop_front()
-			dirs.shuffle()
-			for d in dirs:
-				var n = curr + d
-				if visited.has(n): continue
-				visited[n] = true
-				if corruption_layer.get_cell_source_id(n) != -1:
-					selected_tiles.append(n)
-					queue.append(n)
-					if selected_tiles.size() == count:
-						break
-						
-		for tile in selected_tiles:
-			positions.append(corruption_layer.map_to_local(tile))
-			
-		# If corruption didn't have enough tiles for the full group, fill remaining with map edge fallbacks
-		while positions.size() < count:
-			positions.append(_get_map_outer_edge_position())
-			
+	if seed_tile == Vector2i.MIN or not corruption_layer:
+		# No corruption exists on the map
 		return positions
 
-	# FALLBACK: If no corruption exists at all, generate distinct map outer boundary positions
-	for i in range(count):
-		positions.append(_get_map_outer_edge_position())
+	# Collect distinct neighboring corruption tiles via BFS
+	var selected_tiles: Array[Vector2i] = [seed_tile]
+	var visited = {seed_tile: true}
+	var queue: Array[Vector2i] = [seed_tile]
+	var dirs = [
+		Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT,
+		Vector2i(1, 1), Vector2i(-1, 1), Vector2i(1, -1), Vector2i(-1, -1)
+	]
+	
+	while not queue.is_empty() and selected_tiles.size() < count:
+		var curr = queue.pop_front()
+		dirs.shuffle()
+		for d in dirs:
+			var n = curr + d
+			if visited.has(n): continue
+			visited[n] = true
+			if corruption_layer.get_cell_source_id(n) != -1:
+				selected_tiles.append(n)
+				queue.append(n)
+				if selected_tiles.size() == count:
+					break
+					
+	for tile in selected_tiles:
+		positions.append(corruption_layer.map_to_local(tile))
+		
+	# If corruption didn't have enough distinct tiles for the full group count, fill remaining positions from existing corruption tiles
+	while positions.size() < count and not selected_tiles.is_empty():
+		positions.append(corruption_layer.map_to_local(selected_tiles.pick_random()))
 		
 	return positions
-
-
-
-## Generates a random world position along the outer boundary edges of the terrain map layer.
-func _get_map_outer_edge_position() -> Vector2:
-	var rect = Rect2i(0, 0, 100, 100)
-	if terrain_layer and not terrain_layer.get_used_cells().is_empty():
-		rect = terrain_layer.get_used_rect()
-		
-	var side = randi() % 4
-	var edge_tile = Vector2i.ZERO
-	match side:
-		0: # Top Edge
-			edge_tile = Vector2i(randi_range(rect.position.x, rect.position.x + max(0, rect.size.x - 1)), rect.position.y)
-		1: # Right Edge
-			edge_tile = Vector2i(rect.position.x + max(0, rect.size.x - 1), randi_range(rect.position.y, rect.position.y + max(0, rect.size.y - 1)))
-		2: # Bottom Edge
-			edge_tile = Vector2i(randi_range(rect.position.x, rect.position.x + max(0, rect.size.x - 1)), rect.position.y + max(0, rect.size.y - 1))
-		3: # Left Edge
-			edge_tile = Vector2i(rect.position.x, randi_range(rect.position.y, rect.position.y + max(0, rect.size.y - 1)))
-			
-	if terrain_layer:
-		return terrain_layer.map_to_local(edge_tile)
-	return fallback_spawn_center + Vector2(cos(randf() * TAU), sin(randf() * TAU)) * fallback_spawn_radius
 
 
 
@@ -439,7 +426,7 @@ func _on_enemy_died(_enemy_instance):
 
 ## Returns the expected number of enemy spawns for the upcoming night's wave.
 func get_estimated_enemies() -> int:
-	if not time_manager: return 0
+	if not time_manager or not _has_corruption(): return 0
 	
 	var upcoming_wave = time_manager.current_day 
 	var base_enemies = initial_enemy_count * pow(difficulty_multiplier, upcoming_wave - 1)

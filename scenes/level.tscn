@@ -193,7 +193,6 @@ flyer_scene = ExtResource("52_flyer_scene")
 slime_large_scene = ExtResource("53_slime_large_scene")
 time_manager = NodePath("../TimeManager")
 corruption_manager = NodePath("../CorruptionManager")
-fallback_spawn_radius = 100.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1939464240]
 position = Vector2(2400, 2400)
