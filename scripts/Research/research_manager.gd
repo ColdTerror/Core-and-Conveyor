@@ -123,11 +123,11 @@ func recalculate_all_stats():
 			"Belt Speed 2":          
 				belt_speed_mult += 0.25
 			"Building Limit 1":
-				max_buildings_allowed += 10
+				max_buildings_allowed += 25
 			"Building Limit 2":
-				max_buildings_allowed += 20
+				max_buildings_allowed += 50
 			"Building Limit 3":
-				max_buildings_allowed += 30
+				max_buildings_allowed += 75
 			"Tower Damage 1":
 				tower_damage_mult += 0.10
 			"Tower Damage 2":

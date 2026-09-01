@@ -193,7 +193,7 @@ selectable = false
 title = "Building Limit 1"
 slot/0/left_enabled = false
 research_name = "Building Limit 1"
-desc = "Increase Building Limit by 10"
+desc = "Increase Building Limit by 25"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
@@ -311,7 +311,7 @@ draggable = false
 selectable = false
 title = "Building Limit 2"
 research_name = "Building Limit 2"
-desc = "Increase Building Limit by 20"
+desc = "Increase Building Limit by 50"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50
@@ -430,7 +430,7 @@ selectable = false
 title = "Building Limit 3"
 slot/0/right_enabled = false
 research_name = "Building Limit 3"
-desc = "Increase Building Limit by 30"
+desc = "Increase Building Limit by 75"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50

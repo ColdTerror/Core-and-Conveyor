@@ -32,9 +32,7 @@
 				"ed43cc75-2e3a-47a4-a345-03b76bdd90b7",
 				"7c09d4ec-6a91-47fa-8224-4a9bc796960a",
 				"5eff4662-4d5b-4561-81e5-ff40b7e97ba9",
-				"82435f02-bf9a-4131-b4e7-e124e5aef292",
-				"81666a40-4240-4fa0-87d1-ea974b6bde91",
-				"32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3"
+				"81666a40-4240-4fa0-87d1-ea974b6bde91"
 			]
 		},
 		{
@@ -195,13 +193,6 @@
 			"uuid": "82435f02-bf9a-4131-b4e7-e124e5aef292",
 			"title": "more building slots research",
 			"description": "or maybe a infinite building slow research that increases in cost like bots\n",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
-			"title": "max bot energy research",
-			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},
