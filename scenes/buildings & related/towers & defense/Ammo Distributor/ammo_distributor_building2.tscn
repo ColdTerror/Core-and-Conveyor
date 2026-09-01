@@ -1,36 +1,39 @@
-[gd_scene format=3 uid="uid://cx6i12distr4a"]
+[gd_scene format=3 uid="uid://cb8v33djbe1jy"]
 
-[ext_resource type="Script" uid="uid://bggeswiirj78i" path="res://scripts/Building Classes/ammo_distributor_building.gd" id="1_dist_script"]
-[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_build_tex"]
-[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_cost_script"]
+[ext_resource type="Script" uid="uid://bggeswiirj78i" path="res://scripts/Building Classes/ammo_distributor_building.gd" id="1_72gwn"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="2_4bjkp"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_1roge"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
-atlas = ExtResource("2_build_tex")
+atlas = ExtResource("2_4bjkp")
 region = Rect2(480, 320, 64, 64)
 
 [sub_resource type="Resource" id="Resource_cost_plank"]
-script = ExtResource("3_cost_script")
+script = ExtResource("3_1roge")
 item_name = "Plank"
 amount = 0
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
 [sub_resource type="Resource" id="Resource_cost_stone_brick"]
-script = ExtResource("3_cost_script")
+script = ExtResource("3_1roge")
 item_name = "Stone Brick"
 amount = 0
 metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 
-[node name="AmmoDistributorBuilding" type="Node2D" unique_id=1798213177 groups=["PriorityTarget", "Structure"]]
-script = ExtResource("1_dist_script")
+[node name="AmmoDistributorBuilding1" type="Node2D" unique_id=1798213177 groups=["PriorityTarget", "Structure"]]
+script = ExtResource("1_72gwn")
+distribution_range = 8.0
+transfer_interval = 0.75
+rotation_speed = 20.0
 building_name = "Ammo Distributor"
 size = Vector2i(2, 2)
 icon = SubResource("AtlasTexture_icon")
-build_costs = Array[ExtResource("3_cost_script")]([SubResource("Resource_cost_plank"), SubResource("Resource_cost_stone_brick")])
+build_costs = Array[ExtResource("3_1roge")]([SubResource("Resource_cost_plank"), SubResource("Resource_cost_stone_brick")])
 build_range = 4
 corruption_range = 4
 
 [node name="Base" type="Sprite2D" parent="." unique_id=1153641874]
-texture = ExtResource("2_build_tex")
+texture = ExtResource("2_4bjkp")
 region_enabled = true
 region_rect = Rect2(96, 320, 64, 64)
 
@@ -38,16 +41,16 @@ region_rect = Rect2(96, 320, 64, 64)
 
 [node name="Unloaded" type="Sprite2D" parent="TowerPivot" unique_id=388999329]
 visible = false
-texture = ExtResource("2_build_tex")
+texture = ExtResource("2_4bjkp")
 region_enabled = true
 region_rect = Rect2(480, 416, 64, 64)
 
 [node name="Loaded" type="Sprite2D" parent="TowerPivot" unique_id=694129427]
-texture = ExtResource("2_build_tex")
+texture = ExtResource("2_4bjkp")
 region_enabled = true
 region_rect = Rect2(480, 480, 64, 64)
 
 [node name="CrateOverlay" type="Sprite2D" parent="." unique_id=94717593]
-texture = ExtResource("2_build_tex")
+texture = ExtResource("2_4bjkp")
 region_enabled = true
 region_rect = Rect2(524, 396, 8, 8)
