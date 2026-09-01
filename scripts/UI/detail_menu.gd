@@ -619,6 +619,8 @@ func _setup_core_ui(b: CoreBuilding):
 ## Displays general attributes and status indicators for ammo distributors.
 func _setup_ammo_distributor_ui(b: AmmoDistributorBuilding):
 	info_label.modulate = Color(0.4, 0.85, 1.0)
+	var batch_size = b.ammo_per_distribution if "ammo_per_distribution" in b else 1
+	info_label.text = "Transfer Batch: %d ammo / pulse" % batch_size
 	
 	_create_button("Void Inventory", Color(1.0, 0.3, 0.3), func():
 		if is_instance_valid(b) and b.has_method("void_inventory"):

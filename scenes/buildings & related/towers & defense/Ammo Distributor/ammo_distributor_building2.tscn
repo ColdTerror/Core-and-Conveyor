@@ -24,6 +24,7 @@ metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
 script = ExtResource("1_72gwn")
 distribution_range = 8.0
 transfer_interval = 0.75
+ammo_per_distribution = 2
 rotation_speed = 20.0
 building_name = "Ammo Distributor"
 size = Vector2i(2, 2)

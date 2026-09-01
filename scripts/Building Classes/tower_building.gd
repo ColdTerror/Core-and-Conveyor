@@ -209,24 +209,23 @@ func add_item(item_res: ItemResource, amount: int = 1) -> int:
 	if not ammo_inventory.is_empty() and ammo_inventory[0].display_name != item_res.display_name:
 		return 0
 	
-	var shots_to_add = 0
-	var return_val = 0
+	var space_left = max(0, ammo_capacity - ammo_inventory.size())
+	if space_left <= 0:
+		return 0
+		
+	var shots_to_add: int = 0
+	var return_val: int = 0
 	
 	# Hybrid pipeline logic:
 	if amount == 1:
 		# Scenario A: Bot/Belt Delivery!
-		# If completely full, reject delivery.
-		if ammo_inventory.size() >= ammo_capacity: 
-			return 0 
-			
-		# If any space exists, accept the whole stack to prevent stuck worker bots.
 		shots_to_add = item_res.stack_size if "stack_size" in item_res else 1
+		shots_to_add = min(shots_to_add, space_left)
 		return_val = 1 
 	else:
-		# Scenario B: Saved State Injection!
-		# Accept the exact amount saved to perfectly restore game state.
-		shots_to_add = amount
-		return_val = amount 
+		# Scenario B: Distributor Batch Delivery / Save Injection!
+		shots_to_add = min(amount, space_left)
+		return_val = shots_to_add
 		
 	for i in range(shots_to_add):
 		ammo_inventory.append(item_res)

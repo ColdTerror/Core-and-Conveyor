@@ -13,6 +13,7 @@ var inventory: Dictionary = {} # ItemResource -> int
 
 @export var distribution_range: float = 6.0 ## Supply range in tiles (default 6 tiles)
 @export var transfer_interval: float = 1.0 # 1.0 second
+@export var ammo_per_distribution: int = 1 ## Amount of ammo transferred per distribution pulse (default 1)
 var check_timer: float = 0.0
 
 var show_range_overlay := false:
@@ -48,6 +49,7 @@ func _ready():
 	if has_node("CrateOverlay"):
 		crate_overlay = get_node("CrateOverlay")
 		crate_overlay.visible = false
+
 
 
 ## Computes a local grid map of tiles falling within the distributor's supply range.
@@ -230,34 +232,35 @@ func _distribute_ammo():
 			if dist > range_px + 16.0:
 				continue
 			
-		# Check if the tower needs ammo
-		if b.ammo_inventory.size() >= b.ammo_capacity:
+		# Check if the tower has enough room for the full batch size
+		var space_left = b.ammo_capacity - b.ammo_inventory.size()
+		if space_left < ammo_per_distribution:
 			continue
 			
-		# Check if we have compatible ammo for this tower
+		# Check if we have compatible ammo for this tower in sufficient quantity (>= ammo_per_distribution)
 		var candidate_res: ItemResource = null
 		
 		# If the tower is not empty, we MUST match the exact type it currently has
 		if not b.ammo_inventory.is_empty():
 			var active_name = b.ammo_inventory[0].display_name
 			for key in inventory.keys():
-				if key.display_name == active_name and inventory[key] > 0:
+				if key.display_name == active_name and inventory[key] >= ammo_per_distribution:
 					candidate_res = key
 					break
 		else:
-			# Tower is empty: first see if we hold its preferred ammo type
+			# Tower is empty: first see if we hold its preferred ammo type in sufficient quantity
 			var preferred_res: ItemResource = null
 			for key in inventory.keys():
-				if inventory[key] > 0 and key.ammo_type == b.preferred_ammo_type:
+				if inventory[key] >= ammo_per_distribution and key.ammo_type == b.preferred_ammo_type:
 					preferred_res = key
 					break
 					
 			if preferred_res:
 				candidate_res = preferred_res
 			else:
-				# No preferred type available: find ANY compatible ammo we hold
+				# No preferred type available: find ANY compatible ammo we hold in sufficient quantity
 				for key in inventory.keys():
-					if inventory[key] > 0 and b.compatible_ammo_types.has(key.ammo_type):
+					if inventory[key] >= ammo_per_distribution and b.compatible_ammo_types.has(key.ammo_type):
 						candidate_res = key
 						break
 					
@@ -274,8 +277,8 @@ func _distribute_ammo():
 	if best_tower and best_item_res:
 		current_target_tower = best_tower
 		
-		# Deduct 1 ammo from distributor
-		inventory[best_item_res] -= 1
+		# Deduct full batch ammo quantity from distributor
+		inventory[best_item_res] -= ammo_per_distribution
 		if inventory[best_item_res] <= 0:
 			inventory.erase(best_item_res)
 			
@@ -289,12 +292,12 @@ func _distribute_ammo():
 			unloaded_sprite.visible = true
 			
 		# Spawn visual flying supply package
-		_spawn_delivery_projectile(best_item_res, best_tower)
+		_spawn_delivery_projectile(best_item_res, best_tower, ammo_per_distribution)
 
 
 
 ## Animates a Godot logo package tweening smoothly to the target tower.
-func _spawn_delivery_projectile(item_res: ItemResource, target_tower: TowerBuilding):
+func _spawn_delivery_projectile(item_res: ItemResource, target_tower: TowerBuilding, amount: int = 1):
 	var sprite = Sprite2D.new()
 	if crate_overlay:
 		sprite.texture = crate_overlay.texture
@@ -318,7 +321,7 @@ func _spawn_delivery_projectile(item_res: ItemResource, target_tower: TowerBuild
 	tween.tween_property(sprite, "global_position", target_tower.global_position, duration)
 	tween.tween_callback(func():
 		if is_instance_valid(target_tower) and not target_tower.is_queued_for_deletion():
-			target_tower.add_item(item_res, 1)
+			target_tower.add_item(item_res, amount)
 		sprite.queue_free()
 	)
 
