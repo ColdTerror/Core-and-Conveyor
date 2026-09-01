@@ -21,7 +21,7 @@ attack_range = 180.0
 projectile_scene = ExtResource("2_proj")
 damage_multipliers = {
 "Crushing": 1.2,
-"Piercing": 1.0
+"Piercing": 0.75
 }
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]

@@ -18,7 +18,7 @@ max_health = 60
 movement_speed = 35.0
 damage_multipliers = {
 "Crushing": 1.2,
-"Piercing": 1.0
+"Piercing": 0.9
 }
 
 [node name="Sprite2D" parent="." index="0" unique_id=1688166691]
