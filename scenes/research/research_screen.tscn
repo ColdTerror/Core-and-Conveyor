@@ -64,6 +64,12 @@ connections = Array[Dictionary]([{
 "to_node": &"Core3",
 "to_port": 0
 }, {
+"from_node": &"Core3",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"Core4",
+"to_port": 0
+}, {
 "from_node": &"Bot1",
 "from_port": 0,
 "keep_alive": false,
@@ -74,6 +80,12 @@ connections = Array[Dictionary]([{
 "from_port": 0,
 "keep_alive": false,
 "to_node": &"Bot3",
+"to_port": 0
+}, {
+"from_node": &"Bot3",
+"from_port": 0,
+"keep_alive": false,
+"to_node": &"Bot4",
 "to_port": 0
 }, {
 "from_node": &"Building1",
@@ -377,7 +389,6 @@ position_offset = Vector2(1000, 0)
 draggable = false
 selectable = false
 title = "Core Expansion 3"
-slot/0/right_enabled = false
 research_name = "Core Expansion 3"
 desc = "Unlock Tier 3 Research"
 research_cost = {
@@ -397,7 +408,6 @@ position_offset = Vector2(1000, 200)
 draggable = false
 selectable = false
 title = "Thruster Upgrade"
-slot/0/right_enabled = false
 research_name = "Thruster Upgrade"
 desc = "Allow Bots to Navigate Difficult Terrain"
 research_cost = {
@@ -485,6 +495,46 @@ slot/0/right_enabled = false
 research_name = "Pneumatic Logistics"
 desc = "Unlocks the Item Launcher and 
 Item Receiver structures"
+research_cost = {
+ExtResource("3_xgb3y"): 50,
+ExtResource("4_3s71f"): 50
+}
+
+[node name="Core4" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=1605020715 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 1125.0
+offset_right = 1525.0
+offset_bottom = 162.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1500, 0)
+draggable = false
+selectable = false
+title = "Core Expansion 4"
+slot/0/right_enabled = false
+research_name = "Core Expansion 4"
+desc = "Unlock Tier 4 Research"
+research_cost = {
+ExtResource("3_xgb3y"): 75
+}
+
+[node name="Bot4" parent="BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit" unique_id=794786078 instance=ExtResource("2_l6ox2")]
+custom_minimum_size = Vector2(400, 150)
+layout_mode = 0
+offset_left = 1125.0
+offset_top = 150.0
+offset_right = 1525.0
+offset_bottom = 300.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 1
+position_offset = Vector2(1500, 200)
+draggable = false
+selectable = false
+title = "Battery Upgrade"
+slot/0/right_enabled = false
+research_name = "Battery Upgrade"
+desc = "Increase Bot Max Energy to 200"
 research_cost = {
 ExtResource("3_xgb3y"): 50,
 ExtResource("4_3s71f"): 50

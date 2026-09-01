@@ -33,16 +33,14 @@
 				"7c09d4ec-6a91-47fa-8224-4a9bc796960a",
 				"5eff4662-4d5b-4561-81e5-ff40b7e97ba9",
 				"82435f02-bf9a-4131-b4e7-e124e5aef292",
-				"32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
-				"81666a40-4240-4fa0-87d1-ea974b6bde91"
+				"81666a40-4240-4fa0-87d1-ea974b6bde91",
+				"32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3"
 			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
-			"tasks": [
-				"b09ca5c3-b56f-4405-8782-d4f309f06d81"
-			]
+			"tasks": []
 		}
 	],
 	"tasks": [
@@ -203,13 +201,6 @@
 		{
 			"uuid": "32c5bd7c-4132-4d5e-b30b-fe9bdfdb70f3",
 			"title": "max bot energy research",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "b09ca5c3-b56f-4405-8782-d4f309f06d81",
-			"title": "damagae stats per tower like btd6",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

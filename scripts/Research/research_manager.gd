@@ -42,6 +42,8 @@ const TECH_TIERS: Dictionary = {
 	"Weekly Radar":     3,
 	"Thruster Upgrade": 3,
 	"Pneumatic Logistics": 3,
+	"Core Expansion 4": 3,   # Requires tier 3, unlocks tier 4
+	"Battery Upgrade": 4,
 }
 
 var unlocked_techs: Array[String] = []
@@ -138,7 +140,9 @@ func recalculate_all_stats():
 				moon_measure_level = max(moon_measure_level, 1)
 			"Moon Measurement 2":
 				moon_measure_level = max(moon_measure_level, 2)
-			"Thruster Upgrade", "Pneumatic Logistics":
+			"Thruster Upgrade", "Battery Upgrade": #Bots check for these in unlocked tech in update bots
+				pass
+			"Pneumatic Logistics": #Level checks for this in unlocked tech when displaying buildings
 				pass
 			_:
 				print("WARNING: Unknown tech -> ", tech)

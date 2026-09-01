@@ -68,10 +68,12 @@ func _arrange_nodes():
 	_place(ge, "Core1", col_0, row_core)
 	_place(ge, "Core2", col_1, row_core)
 	_place(ge, "Core3", col_2, row_core)
+	_place(ge, "Core4", col_3, row_core)
 	
 	_place(ge, "Bot1", col_0, row_bots)
 	_place(ge, "Bot2", col_1, row_bots)
 	_place(ge, "Bot3", col_2, row_bots)
+	_place(ge, "Bot4", col_3, row_bots)
 	
 	_place(ge, "Building1", col_0, row_buildings)
 	_place(ge, "Building2", col_1, row_buildings)
@@ -92,9 +94,11 @@ func _arrange_nodes():
 	# WIRE THE CONNECTIONS
 	ge.connect_node("Core1", 0, "Core2", 0)
 	ge.connect_node("Core2", 0, "Core3", 0)
+	ge.connect_node("Core3", 0, "Core4", 0)
 	
 	ge.connect_node("Bot1", 0, "Bot2", 0)
 	ge.connect_node("Bot2", 0, "Bot3", 0)
+	ge.connect_node("Bot3", 0, "Bot4", 0)
 	
 	ge.connect_node("Building1", 0, "Building2", 0)
 	ge.connect_node("Building2", 0, "Building3", 0)

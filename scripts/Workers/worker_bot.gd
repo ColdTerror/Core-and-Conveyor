@@ -260,6 +260,11 @@ func _recalculate_stats():
 	health = int(max_health * hp_ratio)
 	
 	is_flying = "Thruster Upgrade" in ResearchManager.unlocked_techs
+	
+	if ("Battery Upgrade" in ResearchManager.unlocked_techs):
+		max_energy = 200
+	else:
+		max_energy = 100
 
 
 ## Grants experience points to the bot, managing level boundaries.
