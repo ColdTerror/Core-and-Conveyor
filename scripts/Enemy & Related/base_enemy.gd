@@ -576,6 +576,9 @@ func take_damage(damage: int, source: Node2D = null, damage_type: String = "None
 	var final_damage := roundi(damage * multiplier)
 	health -= final_damage
 	
+	if is_instance_valid(source) and source.has_method("record_damage"):
+		source.record_damage(final_damage)
+	
 	_flash_hit()
 	
 	# Spawn Floating Damage Number (White for normal, Gold for weakness)
@@ -592,6 +595,8 @@ func take_damage(damage: int, source: Node2D = null, damage_type: String = "None
 		global_position += push_dir * 6.0
 	
 	if health <= 0:
+		if is_instance_valid(source) and source.has_method("record_kill"):
+			source.record_kill()
 		die()
 		return # Stop processing if dead
 		

@@ -529,7 +529,10 @@ func _setup_tower_ui(b: TowerBuilding):
 		info_label.text += "Damage Mult: %.2fx\n" % effective_mult
 		
 	if b.projectiles_per_shot > 1:
-		info_label.text += "Projectiles: %dx (%d° Spread)" % [b.projectiles_per_shot, int(b.spread_degrees)]
+		info_label.text += "Projectiles: %dx (%d° Spread)\n" % [b.projectiles_per_shot, int(b.spread_degrees)]
+	
+	info_label.text += "Total Damage: %d\n" % b.total_damage_dealt
+	info_label.text += "Kills: %d" % b.final_blows
 	
 	match b.targeting_mode:
 		"Closest": info_label.modulate = Color(0.8, 0.8, 1.0)

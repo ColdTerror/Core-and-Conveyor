@@ -43,6 +43,10 @@ var targeting_modes: Array[String] = ["Closest", "Strongest", "Weakest", "Furthe
 var current_targeting_index: int = 0
 var targeting_mode: String = "Closest"
 
+# --- COMBAT STATISTICS ---
+var total_damage_dealt: int = 0
+var final_blows: int = 0
+
 var _cached_range_tiles: Dictionary = {}
 
 var show_range_overlay := false:
@@ -51,6 +55,16 @@ var show_range_overlay := false:
 		queue_redraw()
 
 signal fired_projectile(source_tower, start_pos, target_node, item_data, final_damage, speed, angle_offset)
+
+
+
+## Accumulates damage dealt by this tower instance.
+func record_damage(amount: int):
+	total_damage_dealt += amount
+
+## Increments the final blow (kill) count for this tower instance.
+func record_kill():
+	final_blows += 1
 
 
 
@@ -440,6 +454,8 @@ func get_save_data() -> Dictionary:
 	data["targeting_mode"] = targeting_mode
 	data["current_targeting_index"] = current_targeting_index
 	data["attack_cooldown"] = attack_cooldown
+	data["total_damage_dealt"] = total_damage_dealt
+	data["final_blows"] = final_blows
 	
 	return data
 
@@ -451,6 +467,8 @@ func load_save_data(data: Dictionary):
 	targeting_mode = data.get("targeting_mode", "Closest")
 	current_targeting_index = data.get("current_targeting_index", 0)
 	attack_cooldown = data.get("attack_cooldown", 0.0)
+	total_damage_dealt = data.get("total_damage_dealt", 0)
+	final_blows = data.get("final_blows", 0)
 	
 	ammo_inventory.clear()
 	if data.has("ammo_inventory"):

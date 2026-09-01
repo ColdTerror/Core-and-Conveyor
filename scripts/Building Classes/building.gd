@@ -366,6 +366,11 @@ func get_upgrade_data() -> Dictionary:
 	if "current_targeting_index" in self:
 		data["current_targeting_index"] = self.get("current_targeting_index")
 	
+	if "total_damage_dealt" in self:
+		data["total_damage_dealt"] = self.get("total_damage_dealt")
+	if "final_blows" in self:
+		data["final_blows"] = self.get("final_blows")
+	
 	if "direction" in self:
 		data["direction"] = self.get("direction")
 	if "rotation" in self:
@@ -388,6 +393,11 @@ func apply_upgrade_data(data: Dictionary):
 		self.set("targeting_mode", data["targeting_mode"])
 	if data.has("current_targeting_index") and "current_targeting_index" in self:
 		self.set("current_targeting_index", data["current_targeting_index"])
+		
+	if data.has("total_damage_dealt") and "total_damage_dealt" in self:
+		self.set("total_damage_dealt", data["total_damage_dealt"])
+	if data.has("final_blows") and "final_blows" in self:
+		self.set("final_blows", data["final_blows"])
 		
 	if data.has("direction") and "direction" in self:
 		self.set("direction", data["direction"])
