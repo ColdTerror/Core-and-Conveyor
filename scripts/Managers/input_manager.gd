@@ -165,15 +165,15 @@ func _process(delta):
 func _unhandled_input(event: InputEvent):
 	if not level_ref or not building_manager: return
 	
-	# THE GATEKEEPER: Block World Clicks/interactions when a menu is open,
-	# except zoom, middle-mouse drag press/release, and active drag motion.
+	# THE GATEKEEPER: Block World Clicks/interactions and scroll zoom when a menu is open,
+	# allowing only middle-mouse drag panning.
 	if GameState.is_menu_open and current_mode != InteractionMode.SET_HOME:
 		var is_camera_input = false
 		if event is InputEventMouseButton:
-			if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_MIDDLE]:
+			if event.button_index == MOUSE_BUTTON_MIDDLE:
 				is_camera_input = true
 			else:
-				# Consume left/right clicks
+				# Consume left/right clicks and wheel scrolls so world camera doesn't zoom
 				get_viewport().set_input_as_handled()
 		elif event is InputEventMouseMotion:
 			var cam = get_tree().get_first_node_in_group("Camera")
@@ -186,13 +186,15 @@ func _unhandled_input(event: InputEvent):
 	# CAMERA ZOOM
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			var cam = get_tree().get_first_node_in_group("Camera")
-			if cam: cam.apply_zoom(event.position, 1 + cam.zoom_speed)
+			if not GameState.is_menu_open:
+				var cam = get_tree().get_first_node_in_group("Camera")
+				if cam: cam.apply_zoom(event.position, 1 + cam.zoom_speed)
 			get_viewport().set_input_as_handled()
 			return
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			var cam = get_tree().get_first_node_in_group("Camera")
-			if cam: cam.apply_zoom(event.position, 1 - cam.zoom_speed)
+			if not GameState.is_menu_open:
+				var cam = get_tree().get_first_node_in_group("Camera")
+				if cam: cam.apply_zoom(event.position, 1 - cam.zoom_speed)
 			get_viewport().set_input_as_handled()
 			return
 		elif event.button_index == MOUSE_BUTTON_MIDDLE:
