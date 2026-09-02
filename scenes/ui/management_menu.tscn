@@ -197,6 +197,132 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="Codex" type="MarginContainer" parent="PanelContainer/TabContainer" unique_id=2100000001]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Codex" unique_id=2100000002]
+layout_mode = 2
+
+[node name="TopRow" type="HBoxContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer" unique_id=2100000003]
+layout_mode = 2
+
+[node name="CategoryButtons" type="HBoxContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/TopRow" unique_id=2100000004]
+layout_mode = 2
+
+[node name="BtnItems" type="Button" parent="PanelContainer/TabContainer/Codex/VBoxContainer/TopRow/CategoryButtons" unique_id=2100000005]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+text = "Items"
+
+[node name="BtnEnemies" type="Button" parent="PanelContainer/TabContainer/Codex/VBoxContainer/TopRow/CategoryButtons" unique_id=2100000006]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+text = "Enemies"
+
+[node name="BtnBuildings" type="Button" parent="PanelContainer/TabContainer/Codex/VBoxContainer/TopRow/CategoryButtons" unique_id=2100000007]
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+text = "Buildings"
+
+[node name="Spacer" type="Control" parent="PanelContainer/TabContainer/Codex/VBoxContainer/TopRow" unique_id=2100000008]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SearchBox" type="LineEdit" parent="PanelContainer/TabContainer/Codex/VBoxContainer/TopRow" unique_id=2100000009]
+custom_minimum_size = Vector2(180, 28)
+layout_mode = 2
+placeholder_text = "Search Codex..."
+clear_button_enabled = true
+
+[node name="SubCategoryRow" type="HBoxContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer" unique_id=2100000010]
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/TabContainer/Codex/VBoxContainer" unique_id=2100000011]
+layout_mode = 2
+
+[node name="SplitBody" type="HBoxContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer" unique_id=2100000012]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LeftScroll" type="ScrollContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody" unique_id=2100000013]
+custom_minimum_size = Vector2(230, 360)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="EntryListContainer" type="VBoxContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/LeftScroll" unique_id=2100000014]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VSeparator" type="VSeparator" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody" unique_id=2100000015]
+layout_mode = 2
+
+[node name="RightPanel" type="PanelContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody" unique_id=2100000016]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RightScroll" type="ScrollContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel" unique_id=2100000017]
+custom_minimum_size = Vector2(0, 360)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="DetailVBox" type="VBoxContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll" unique_id=2100000018]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DetailHeader" type="HBoxContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox" unique_id=2100000019]
+layout_mode = 2
+
+[node name="DetailIcon" type="TextureRect" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader" unique_id=2100000020]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleBox" type="VBoxContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader" unique_id=2100000021]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DetailTitle" type="Label" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader/TitleBox" unique_id=2100000022]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Select an Entry"
+
+[node name="DetailSub" type="Label" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader/TitleBox" unique_id=2100000023]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.698039, 0.698039, 0.698039, 1)
+text = "Codex Reference"
+
+[node name="DetailSeparator" type="HSeparator" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox" unique_id=2100000024]
+layout_mode = 2
+
+[node name="DetailDescription" type="Label" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox" unique_id=2100000025]
+layout_mode = 2
+autowrap_mode = 2
+text = "Choose an item, enemy, or building from the list to view its complete statistics, combat counters, and logistical details."
+
+[node name="StatsTitle" type="Label" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox" unique_id=2100000026]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Specifications & Stats:"
+
+[node name="StatsGrid" type="GridContainer" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox" unique_id=2100000027]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 2
+
+[node name="CombatNotes" type="Label" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox" unique_id=2100000028]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85098, 0.301961, 1)
+autowrap_mode = 2
+
 [node name="Close" type="Button" parent="PanelContainer" unique_id=766048388]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2

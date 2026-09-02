@@ -6,6 +6,8 @@
 # ==============================================================================
 extends Control
 
+const CodexDatabase = preload("res://scripts/Managers/codex_database.gd")
+
 @export var building_manager: BuildingManager
 
 @onready var tab_container = $PanelContainer/TabContainer
@@ -23,6 +25,26 @@ extends Control
 
 @onready var quota_info_label = $PanelContainer/TabContainer/Quota/VBoxContainer/InfoLabel
 @onready var quota_list_container = $PanelContainer/TabContainer/Quota/VBoxContainer/ScrollContainer/ListContainer
+
+@onready var codex_btn_items = $PanelContainer/TabContainer/Codex/VBoxContainer/TopRow/CategoryButtons/BtnItems
+@onready var codex_btn_enemies = $PanelContainer/TabContainer/Codex/VBoxContainer/TopRow/CategoryButtons/BtnEnemies
+@onready var codex_btn_buildings = $PanelContainer/TabContainer/Codex/VBoxContainer/TopRow/CategoryButtons/BtnBuildings
+@onready var codex_search_box = $PanelContainer/TabContainer/Codex/VBoxContainer/TopRow/SearchBox
+@onready var codex_subcategory_row = $PanelContainer/TabContainer/Codex/VBoxContainer/SubCategoryRow
+@onready var codex_entry_list = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/LeftScroll/EntryListContainer
+@onready var codex_detail_icon = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader/DetailIcon
+@onready var codex_detail_title = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader/TitleBox/DetailTitle
+@onready var codex_detail_sub = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader/TitleBox/DetailSub
+@onready var codex_detail_desc = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailDescription
+@onready var codex_stats_title = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/StatsTitle
+@onready var codex_stats_grid = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/StatsGrid
+@onready var codex_combat_notes = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/CombatNotes
+
+var current_codex_category: String = "Items"
+var current_codex_subcategory: String = "All"
+var current_codex_search: String = ""
+var current_codex_entry_id: String = ""
+var _codex_entry_buttons: Dictionary = {}
 
 @onready var close_button = $PanelContainer/Close
 
@@ -78,6 +100,15 @@ func _ready():
 	if resource_sort_button:
 		resource_sort_button.pressed.connect(_on_sort_button_pressed)
 		_update_sort_button_text()
+		
+	if codex_btn_items:
+		codex_btn_items.pressed.connect(func(): _set_codex_category("Items"))
+	if codex_btn_enemies:
+		codex_btn_enemies.pressed.connect(func(): _set_codex_category("Enemies"))
+	if codex_btn_buildings:
+		codex_btn_buildings.pressed.connect(func(): _set_codex_category("Buildings"))
+	if codex_search_box:
+		codex_search_box.text_changed.connect(_on_codex_search_changed)
 
 
 
@@ -114,6 +145,8 @@ func _on_tab_clicked(tab_index):
 		_refresh_music_tab()
 	elif target_tab == 4: 
 		_refresh_quota_tab()
+	elif target_tab == 5:
+		_refresh_codex_tab()
 		
 	# Keep tab index focused
 	tab_container.call_deferred("set_current_tab", target_tab)
@@ -138,6 +171,7 @@ func open_menu():
 		_refresh_resource_tab()
 		_refresh_music_tab() 
 		_refresh_quota_tab()
+		_refresh_codex_tab()
 		show()
 
 
@@ -789,3 +823,221 @@ func _update_sort_button_text():
 			resource_sort_button.text = "Sort: Most v"
 		SortMode.LEAST_MOST:
 			resource_sort_button.text = "Sort: Least ^"
+
+
+
+# ==============================================================================
+# CODEX / IN-GAME WIKI METHODS
+# ==============================================================================
+
+## Refreshes the Codex tab, rebuilding categories, subcategory filters, and the entry list.
+func _refresh_codex_tab():
+	_update_codex_category_buttons()
+	_rebuild_codex_subcategories()
+	_populate_codex_list()
+
+
+## Switches the active main category (Items, Enemies, Buildings).
+func _set_codex_category(cat: String):
+	current_codex_category = cat
+	current_codex_subcategory = "All"
+	_update_codex_category_buttons()
+	_rebuild_codex_subcategories()
+	_populate_codex_list()
+
+
+## Highlights the currently active main category button.
+func _update_codex_category_buttons():
+	if not codex_btn_items: return
+	codex_btn_items.modulate = Color(0.4, 0.9, 1.0) if current_codex_category == "Items" else Color.WHITE
+	codex_btn_enemies.modulate = Color(0.4, 0.9, 1.0) if current_codex_category == "Enemies" else Color.WHITE
+	codex_btn_buildings.modulate = Color(0.4, 0.9, 1.0) if current_codex_category == "Buildings" else Color.WHITE
+
+
+## Rebuilds the sub-category filter buttons for the current main category.
+func _rebuild_codex_subcategories():
+	if not codex_subcategory_row: return
+	for c in codex_subcategory_row.get_children():
+		c.queue_free()
+		
+	var subcats: Array[String] = []
+	match current_codex_category:
+		"Items":
+			subcats = ["All", "Ammo", "Raw Resources", "Refined"]
+		"Enemies":
+			subcats = ["All", "Ground", "Air"]
+		"Buildings":
+			subcats = ["All", "Defense", "Logistics", "Production"]
+			
+	for sub in subcats:
+		var btn = Button.new()
+		btn.text = sub
+		btn.custom_minimum_size = Vector2(65, 24)
+		if sub == current_codex_subcategory:
+			btn.modulate = Color(1.0, 0.85, 0.3)
+		else:
+			btn.modulate = Color(0.7, 0.7, 0.7)
+			
+		btn.pressed.connect(func():
+			current_codex_subcategory = sub
+			_rebuild_codex_subcategories()
+			_populate_codex_list()
+		)
+		codex_subcategory_row.add_child(btn)
+
+
+## Filters the entry list in real time when text is entered into the search box.
+func _on_codex_search_changed(new_text: String):
+	current_codex_search = new_text.strip_edges().to_lower()
+	_populate_codex_list()
+
+
+## Populates the left scrollable list with entries matching the category, subcategory, and search term.
+func _populate_codex_list():
+	if not codex_entry_list: return
+	for c in codex_entry_list.get_children():
+		c.queue_free()
+	_codex_entry_buttons.clear()
+	
+	var all_entries: Array[Dictionary] = []
+	match current_codex_category:
+		"Items":
+			all_entries = CodexDatabase.get_items()
+		"Enemies":
+			all_entries = CodexDatabase.get_enemies()
+		"Buildings":
+			all_entries = CodexDatabase.get_buildings()
+			
+	var filtered: Array[Dictionary] = []
+	for entry in all_entries:
+		# Subcategory filter
+		if current_codex_subcategory != "All":
+			if entry.get("subcategory", "") != current_codex_subcategory:
+				continue
+		# Search filter
+		if current_codex_search != "":
+			var name_match = entry.get("name", "").to_lower().contains(current_codex_search)
+			var desc_match = entry.get("description", "").to_lower().contains(current_codex_search)
+			if not name_match and not desc_match:
+				continue
+		filtered.append(entry)
+		
+	if filtered.is_empty():
+		var empty_lbl = Label.new()
+		empty_lbl.text = "No matching entries found."
+		empty_lbl.modulate = Color(0.6, 0.6, 0.6)
+		codex_entry_list.add_child(empty_lbl)
+		_render_codex_card({})
+		return
+		
+	var selected_found = false
+	for entry in filtered:
+		var btn = Button.new()
+		btn.custom_minimum_size = Vector2(0, 34)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		
+		var hbox = HBoxContainer.new()
+		hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		
+		if entry.get("icon", null):
+			var tr = TextureRect.new()
+			tr.custom_minimum_size = Vector2(24, 24)
+			tr.texture = entry["icon"]
+			tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			hbox.add_child(tr)
+			
+		var name_lbl = Label.new()
+		name_lbl.text = " " + entry.get("name", "")
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_lbl.clip_text = true
+		hbox.add_child(name_lbl)
+		
+		btn.add_child(hbox)
+		
+		var entry_id = entry.get("id", "")
+		btn.pressed.connect(func():
+			_select_codex_entry(entry)
+		)
+		
+		codex_entry_list.add_child(btn)
+		_codex_entry_buttons[entry_id] = btn
+		
+		if entry_id == current_codex_entry_id:
+			selected_found = true
+			
+	# Restore previous selection or default to first entry in list
+	if selected_found:
+		for entry in filtered:
+			if entry.get("id", "") == current_codex_entry_id:
+				_select_codex_entry(entry)
+				break
+	else:
+		_select_codex_entry(filtered[0])
+
+
+## Selects a codex entry, highlighting its button and rendering its details.
+func _select_codex_entry(entry: Dictionary):
+	current_codex_entry_id = entry.get("id", "")
+	for eid in _codex_entry_buttons.keys():
+		var b: Button = _codex_entry_buttons[eid]
+		if is_instance_valid(b):
+			b.modulate = Color(0.5, 1.0, 0.7) if eid == current_codex_entry_id else Color.WHITE
+			
+	_render_codex_card(entry)
+
+
+## Renders the detailed stat card on the right side of the Codex panel.
+func _render_codex_card(entry: Dictionary):
+	if entry.is_empty():
+		if codex_detail_icon: codex_detail_icon.texture = null
+		if codex_detail_title: codex_detail_title.text = "No Entry Selected"
+		if codex_detail_sub: codex_detail_sub.text = ""
+		if codex_detail_desc: codex_detail_desc.text = ""
+		if codex_stats_grid:
+			for c in codex_stats_grid.get_children():
+				c.queue_free()
+		if codex_combat_notes: codex_combat_notes.text = ""
+		return
+		
+	if codex_detail_icon:
+		codex_detail_icon.texture = entry.get("icon", null)
+	if codex_detail_title:
+		codex_detail_title.text = entry.get("name", "Unknown")
+	if codex_detail_sub:
+		codex_detail_sub.text = "%s • %s" % [entry.get("subcategory", ""), entry.get("category", "")]
+	if codex_detail_desc:
+		codex_detail_desc.text = entry.get("description", "")
+		
+	if codex_stats_grid:
+		for c in codex_stats_grid.get_children():
+			c.queue_free()
+			
+		var stats: Dictionary = entry.get("stats", {})
+		for k in stats.keys():
+			var key_lbl = Label.new()
+			key_lbl.text = "• " + str(k) + ":"
+			key_lbl.modulate = Color(0.75, 0.75, 0.75)
+			key_lbl.custom_minimum_size = Vector2(130, 0)
+			codex_stats_grid.add_child(key_lbl)
+			
+			var val_lbl = Label.new()
+			val_lbl.text = str(stats[k])
+			val_lbl.modulate = Color.WHITE
+			codex_stats_grid.add_child(val_lbl)
+			
+	if codex_combat_notes:
+		var notes_parts: Array[String] = []
+		if entry.has("weaknesses") and entry["weaknesses"] != "":
+			notes_parts.append("Damage Multiplier: " + entry["weaknesses"])
+		if entry.has("combat_notes") and entry["combat_notes"] != "":
+			notes_parts.append("Tactical Note: " + entry["combat_notes"])
+			
+		if notes_parts.is_empty():
+			codex_combat_notes.text = ""
+			codex_combat_notes.visible = false
+		else:
+			codex_combat_notes.text = "\n" + "\n".join(notes_parts)
+			codex_combat_notes.visible = true
