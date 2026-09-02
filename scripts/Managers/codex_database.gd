@@ -340,7 +340,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Perimeter Wall",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(0, 0, 32, 32)),
+			"icon": get_building_atlas(Rect2(160, 160, 32, 32)),
 			"description": "Sturdy stone barricade that blocks ground enemy movement and funnels horde units into defensive kill-zones.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -354,7 +354,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Security Gate",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(32, 0, 32, 32)),
+			"icon": get_building_atlas(Rect2(224, 192, 96, 32)),
 			"description": "Automated portcullis that opens instantly for friendly worker bots while remaining barred against hostile night monsters.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -369,7 +369,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Conveyor Belt",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(0, 32, 32, 32)),
+			"icon": get_building_atlas(Rect2(0, 224, 32, 32)),
 			"description": "Standard logistical belt lane that transports resources and finished ammunition between factories, stockpiles, and towers.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -382,7 +382,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Belt Router",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(32, 32, 32, 32)),
+			"icon": get_building_atlas(Rect2(0, 192, 32, 32)),
 			"description": "Splits incoming belt items evenly across up to 3 outgoing directions in round-robin sequence.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -395,7 +395,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Belt Filter",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(64, 32, 32, 32)),
+			"icon": get_building_atlas(Rect2(64, 192, 32, 32)),
 			"description": "Inspects passing items and diverts a specifically selected resource type to its filtered output, letting all other items pass straight.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -408,7 +408,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Conveyor Bridge",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(96, 32, 32, 32)),
+			"icon": get_building_atlas(Rect2(32, 192, 32, 32)),
 			"description": "An elevated crossover bridge allowing two independent conveyor lines to intersect without mixing items.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -421,12 +421,12 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Stockpile",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(128, 320, 64, 64)),
+			"icon": get_building_atlas(Rect2(0, 0, 128, 128)),
 			"description": "High-capacity bulk storage container. Holds up to 250 units of mixed or dedicated resources with belt input/output ports.",
 			"stats": {
-				"Footprint": "2x2 Tiles",
-				"Capacity": "250 Items",
-				"Dedicated Mode": "Optional single-item lock"
+				"Footprint": "4x4 Tiles",
+				"Capacity": "25/50 Items In Mixed/Dedicated",
+				"Dedicated Mode": "Optional single-item lock that increases single item storage"
 			},
 			"combat_notes": "Buffers ammo and materials close to defenses so worker bots have short travel routes."
 		},
@@ -437,11 +437,11 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Command Core",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(0, 320, 96, 96)),
-			"description": "The heart of your colony. Contains primary research systems, base storage, and wireless bot charging emitters. If the core falls, the game is lost!",
+			"icon": get_building_atlas(Rect2(512, 192, 128, 128)),
+			"description": "The heart of your colony. Contains primary research systems, base storag. If the core falls, the game is lost!",
 			"stats": {
-				"Footprint": "3x3 Tiles",
-				"Health": "1000 HP",
+				"Footprint": "4x4 Tiles",
+				"Health": "100 HP",
 				"Recharge Field": "Solar Powered"
 			},
 			"combat_notes": "Protect at all costs! All enemy horde units prioritize breaching toward the Core."
@@ -451,10 +451,10 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Sawmill",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(64, 320, 64, 64)),
+			"icon": get_building_atlas(Rect2(256, 0, 128, 128)),
 			"description": "Wood processing facility that cuts raw tree logs into refined Planks for construction and advanced ammo.",
 			"stats": {
-				"Footprint": "2x2 Tiles",
+				"Footprint": "4x4 Tiles",
 				"Recipe": "Wood -> Planks"
 			},
 			"combat_notes": "Powers Bow Tower Tier 2 upgrades and Ballista Bolt crafting."
@@ -464,10 +464,10 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Stonemason",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(128, 320, 64, 64)),
+			"icon": get_building_atlas(Rect2(768, 0, 128, 128)),
 			"description": "Masonry workshop that chips raw stone into polished Stone Bricks for fortified structures.",
 			"stats": {
-				"Footprint": "2x2 Tiles",
+				"Footprint": "4x4 Tiles",
 				"Recipe": "Stone -> Stone Bricks"
 			},
 			"combat_notes": "Required for Tier 2 buildings, reinforced walls, and advanced defense towers."
@@ -477,10 +477,10 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Fletcher",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(192, 320, 64, 64)),
+			"icon": get_building_atlas(Rect2(480, 0, 128, 128)),
 			"description": "Dedicated ammunition workshop that crafts Wooden Arrows and Stone Arrows for bow towers.",
 			"stats": {
-				"Footprint": "2x2 Tiles",
+				"Footprint": "4x4 Tiles",
 				"Recipes": "Wooden Arrows, Stone Arrows"
 			},
 			"combat_notes": "Keep supplied with Wood and Stone to maintain steady ammo supply for night waves."
@@ -490,10 +490,10 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Stone Crusher",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(256, 320, 64, 64)),
+			"icon": get_building_atlas(Rect2(992, 0, 128, 128)),
 			"description": "Heavy industrial crusher that fractures large stones into sling Pebbles and artillery Boulders.",
 			"stats": {
-				"Footprint": "2x2 Tiles",
+				"Footprint": "4x4 Tiles",
 				"Recipes": "Stone -> Pebbles / Boulders"
 			},
 			"combat_notes": "Supplies Sling Towers and Scattershot Towers with Crushing ammo."

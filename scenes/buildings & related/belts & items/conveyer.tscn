@@ -3,11 +3,12 @@
 [ext_resource type="Script" uid="uid://b42i3e20qg8yw" path="res://scripts/Building Classes/conveyer_building.gd" id="1_34v7p"]
 [ext_resource type="Texture2D" uid="uid://ccb3pqwas4kud" path="res://assets/Tiles.png" id="1_yfprp"]
 [ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="2_b8jsk"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="3_8gq67"]
 [ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="3_vllef"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_34v7p"]
-atlas = ExtResource("1_yfprp")
-region = Rect2(0, 64, 32, 32)
+atlas = ExtResource("3_8gq67")
+region = Rect2(0, 224, 32, 32)
 
 [sub_resource type="Resource" id="Resource_rxp7r"]
 script = ExtResource("3_vllef")
