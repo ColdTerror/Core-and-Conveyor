@@ -37,9 +37,7 @@
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
-				"630dd640-0c72-4e1c-adef-07022f12a005",
-				"04d7e461-eae9-4985-9d84-9ade6a9891ff",
-				"c0fbcad5-dbfd-4fbb-9861-e468f2b9fd98"
+				"f6b662fd-cab4-4f49-b2fd-3d4d8246a2b5"
 			]
 		}
 	],
@@ -192,22 +190,15 @@
 			"steps": []
 		},
 		{
-			"uuid": "630dd640-0c72-4e1c-adef-07022f12a005",
-			"title": "fix codex sprites in buildings",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "04d7e461-eae9-4985-9d84-9ade6a9891ff",
-			"title": "wall down",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "c0fbcad5-dbfd-4fbb-9861-e468f2b9fd98",
 			"title": "add harvesting buildings and conveyer icon tp codex",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "f6b662fd-cab4-4f49-b2fd-3d4d8246a2b5",
+			"title": "have show upgrade button in codex",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

@@ -88,7 +88,7 @@ static func get_items() -> Array[Dictionary]:
 	return list
 
 
-## Returns all categorized Enemy entries.
+## Returns all categorized Enemy entries with accurate physical multipliers.
 static func get_enemies() -> Array[Dictionary]:
 	var zombie_tex = load("res://assets/Enemies/Zombie_Enemy.png") as Texture2D
 	var spider_tex = load("res://assets/Enemies/Spider_Enemy.png") as Texture2D
@@ -103,9 +103,9 @@ static func get_enemies() -> Array[Dictionary]:
 			"category": "Enemies",
 			"subcategory": "Ground",
 			"icon": get_atlas_texture(zombie_tex, 8, 3, 0),
-			"description": "Standard corrupted miner resurrected by the dark fog. Moves directly toward defensive perimeters and attacking towers.",
+			"description": "Standard corrupted miner resurrected by the dark fog. Marches methodically toward defensive perimeter walls and attacking turrets.",
 			"stats": {
-				"Max Health": "50",
+				"Max Health": "50 HP",
 				"Move Speed": "40 px/s",
 				"Attack Type": "Melee (Bump)",
 				"Attack Damage": "10",
@@ -113,17 +113,17 @@ static func get_enemies() -> Array[Dictionary]:
 				"Flying": "No"
 			},
 			"weaknesses": "Neutral (1.0x Piercing, 1.0x Crushing)",
-			"combat_notes": "Reliable baseline target. Any tower and ammo combination is equally effective against them."
+			"combat_notes": "Balanced baseline horde monster. Any tower and ammo combination is equally effective."
 		},
 		{
 			"id": "fast_enemy",
-			"name": "Spider",
+			"name": "Fast Enemy (Spider)",
 			"category": "Enemies",
 			"subcategory": "Ground",
 			"icon": get_atlas_texture(spider_tex, 4, 3, 0),
-			"description": "A swift, scurrying arachnid designed to flank perimeter walls and harass busy worker bots with high sprint velocity.",
+			"description": "A swift, scurrying arachnid designed to flank perimeter defenses and ambush busy worker bots with high sprint velocity.",
 			"stats": {
-				"Max Health": "25",
+				"Max Health": "25 HP",
 				"Move Speed": "75 px/s",
 				"Attack Type": "Melee (Bump)",
 				"Attack Damage": "5",
@@ -131,7 +131,7 @@ static func get_enemies() -> Array[Dictionary]:
 				"Flying": "No"
 			},
 			"weaknesses": "Weak to Piercing (+20% damage)",
-			"combat_notes": "Vulnerable to sharp projectiles! Bow Towers with Wooden/Stone Arrows and Ballista Towers dispatch them quickly."
+			"combat_notes": "Vulnerable to Piercing projectiles! Bow Towers firing Wooden/Stone Arrows and Ballistas dispatch them rapidly."
 		},
 		{
 			"id": "flyer_drone",
@@ -139,9 +139,9 @@ static func get_enemies() -> Array[Dictionary]:
 			"category": "Enemies",
 			"subcategory": "Air",
 			"icon": get_atlas_texture(drone_tex, 3, 3, 0),
-			"description": "An airborne drone that hovers over terrain obstacles, water bodies, and defensive walls to assault inner structures directly.",
+			"description": "An airborne drone that glides effortlessly over terrain obstacles, lakes, and walls to assault internal factories directly.",
 			"stats": {
-				"Max Health": "35",
+				"Max Health": "35 HP",
 				"Move Speed": "60 px/s",
 				"Attack Type": "Melee (Dive)",
 				"Attack Damage": "12",
@@ -149,7 +149,7 @@ static func get_enemies() -> Array[Dictionary]:
 				"Flying": "Yes (Ignores walls & water)"
 			},
 			"weaknesses": "Weak to Piercing (+20% damage)",
-			"combat_notes": "Bypasses all wall chokepoints. Place Bow Towers and Ballistas inside your core base to intercept them."
+			"combat_notes": "Bypasses all perimeter wall mazes. Place Bow Towers and Ballistas inside your core base to intercept them."
 		},
 		{
 			"id": "ranged_tank",
@@ -157,9 +157,9 @@ static func get_enemies() -> Array[Dictionary]:
 			"category": "Enemies",
 			"subcategory": "Ground",
 			"icon": get_atlas_texture(tank_tex, 2, 3, 0),
-			"description": "A heavy siege beast equipped with long-range bio-cannons that bombard defensive towers from beyond normal melee range.",
+			"description": "A heavily armored siege beast equipped with long-range bio-cannons that bombard defensive towers from safe standoff distance.",
 			"stats": {
-				"Max Health": "40",
+				"Max Health": "40 HP",
 				"Move Speed": "40 px/s",
 				"Attack Type": "Ranged Projectile",
 				"Attack Range": "180 px",
@@ -167,8 +167,8 @@ static func get_enemies() -> Array[Dictionary]:
 				"Attack Speed": "0.5 /s",
 				"Flying": "No"
 			},
-			"weaknesses": "Weak to Crushing (+20% damage)",
-			"combat_notes": "Armored against arrows. Heavy crushing ammunition (Pebbles from Sling/Scattershot, or Boulders) deals +20% bonus damage."
+			"weaknesses": "Weak to Crushing (+20%) • Resists Piercing (-25%)",
+			"combat_notes": "Thick armor deflects arrows (takes 0.75x Piercing damage). Heavy crushing ammunition (Pebbles from Sling/Scattershot, or Boulders) deals +20% bonus damage."
 		},
 		{
 			"id": "slime_large",
@@ -176,17 +176,17 @@ static func get_enemies() -> Array[Dictionary]:
 			"category": "Enemies",
 			"subcategory": "Ground",
 			"icon": get_atlas_texture(slime_tex, 4, 2, 0),
-			"description": "A massive, gelatinous blob with dense health. When defeated, it violently splits into two Medium Slimes.",
+			"description": "A massive, gelatinous monster with dense health. When defeated, it violently fractures into two Medium Slimes.",
 			"stats": {
-				"Max Health": "120",
+				"Max Health": "120 HP",
 				"Move Speed": "30 px/s",
 				"Attack Type": "Melee (Squash)",
 				"Attack Damage": "15",
 				"Attack Speed": "1.0 /s",
 				"Flying": "No"
 			},
-			"weaknesses": "Weak to Crushing (+20% damage)",
-			"combat_notes": "Extremely resistant to light arrows. Splitting nature makes Scattershot and Crushing weapons ideal counters."
+			"weaknesses": "Weak to Crushing (+20%) • Resists Piercing (-20%)",
+			"combat_notes": "Dense gelatinous body absorbs light arrows (takes 0.8x Piercing damage). Crushing weapons like Scattershot Towers and Slings deal +20% bonus damage."
 		},
 		{
 			"id": "slime_medium",
@@ -194,17 +194,17 @@ static func get_enemies() -> Array[Dictionary]:
 			"category": "Enemies",
 			"subcategory": "Ground",
 			"icon": get_atlas_texture(slime_tex, 4, 2, 0),
-			"description": "A fractured division of a Large Slime. Continues charging defensive structures and splits into two Small Slimes on death.",
+			"description": "A fractured division of a Large Slime. Charges defensive lines and splits into two Small Slimes upon destruction.",
 			"stats": {
-				"Max Health": "60",
+				"Max Health": "60 HP",
 				"Move Speed": "35 px/s",
 				"Attack Type": "Melee (Squash)",
 				"Attack Damage": "10",
 				"Attack Speed": "1.0 /s",
 				"Flying": "No"
 			},
-			"weaknesses": "Weak to Crushing (+20% damage)",
-			"combat_notes": "Vulnerable to Crushing damage. Spawns two Small Slimes when destroyed."
+			"weaknesses": "Weak to Crushing (+20%) • Resists Piercing (-10%)",
+			"combat_notes": "Resistant to light arrow shots (takes 0.9x Piercing damage). Highly vulnerable to crushing kinetic pebbles."
 		},
 		{
 			"id": "slime_small",
@@ -212,9 +212,9 @@ static func get_enemies() -> Array[Dictionary]:
 			"category": "Enemies",
 			"subcategory": "Ground",
 			"icon": get_atlas_texture(slime_tex, 4, 2, 0),
-			"description": "A fast, scurrying mini-slime that swarms defensive positions in groups after larger slimes are broken apart.",
+			"description": "A fast, scurrying mini-slime that swarms defenses in clusters once parent slimes are destroyed. Does not split further.",
 			"stats": {
-				"Max Health": "30",
+				"Max Health": "30 HP",
 				"Move Speed": "40 px/s",
 				"Attack Type": "Melee (Squash)",
 				"Attack Damage": "5",
@@ -222,22 +222,24 @@ static func get_enemies() -> Array[Dictionary]:
 				"Flying": "No"
 			},
 			"weaknesses": "Weak to Crushing (+20% damage)",
-			"combat_notes": "Last stage of the slime life cycle. Does not split further upon death."
+			"combat_notes": "Neutral to Piercing arrows (1.0x), but crushed quickly by Scattershot and Sling pebble fire (+20% damage)."
 		}
 	]
 
 
-## Returns all categorized Building entries.
+## Returns all categorized Building entries with verified footprints, icons, and consolidated upgrade info.
 static func get_buildings() -> Array[Dictionary]:
 	return [
-		# --- DEFENSE ---
+		# ======================================================================
+		# DEFENSE
+		# ======================================================================
 		{
 			"id": "bow_tower",
 			"name": "Bow Tower",
 			"category": "Buildings",
 			"subcategory": "Defense",
 			"icon": get_building_atlas(Rect2(288, 320, 64, 64)),
-			"description": "Standard defensive turret that fires arrows at approaching enemies. Can be upgraded to Bow Tower Tier 2.",
+			"description": "Standard defensive turret that fires arrows at approaching enemies. Can be upgraded to Tier 2 for increased range, fire rate, and damage.",
 			"stats": {
 				"Footprint": "2x2 Tiles",
 				"Attack Range": "8 Tiles",
@@ -245,27 +247,10 @@ static func get_buildings() -> Array[Dictionary]:
 				"Damage Mult": "1.0x",
 				"Ammo Capacity": "20 Shots",
 				"Preferred Ammo": "Arrow (Wooden / Stone)",
-				"Build Cost": "25 Wood, 25 Stone"
+				"Build Cost": "25 Wood, 25 Stone",
+				"Tier 2 Upgrade": "Range 10 • Fire Rate 2.0/s • Mult 1.5x • Cap 25 (Cost: 25W, 25S, 10 Planks, 10 Bricks)"
 			},
-			"combat_notes": "Best deployed along entry paths to snipe fast and flying enemies with Piercing arrows."
-		},
-		{
-			"id": "bow_tower_2",
-			"name": "Bow Tower Tier 2",
-			"category": "Buildings",
-			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(288, 320, 64, 64)),
-			"description": "Upgraded archer tower with extended engagement range and reinforced firing velocity.",
-			"stats": {
-				"Footprint": "2x2 Tiles",
-				"Attack Range": "10 Tiles",
-				"Fire Rate": "1.2 /s",
-				"Damage Mult": "1.5x",
-				"Ammo Capacity": "25 Shots",
-				"Preferred Ammo": "Arrow (Wooden / Stone)",
-				"Upgrade Cost": "25 Wood, 25 Stone, 10 Planks, 10 Stone Bricks"
-			},
-			"combat_notes": "Outranges enemy ranged units and deals 50% more damage per arrow."
+			"combat_notes": "Excellent perimeter defense. Fires Piercing arrows that deal +20% bonus damage against fast spiders and flying drones."
 		},
 		{
 			"id": "ballista_tower",
@@ -284,7 +269,7 @@ static func get_buildings() -> Array[Dictionary]:
 				"Compatible Ammo": "BallistaBolt, Arrow (0.5x scale)",
 				"Build Cost": "Planks, Stone Bricks"
 			},
-			"combat_notes": "Enormous range and devastating single-target punch. Highly effective against armored bosses and flyers."
+			"combat_notes": "Massive 14-tile reach and devastating 3.0x damage punch. Outranges all enemy siege artillery."
 		},
 		{
 			"id": "scattershot_tower",
@@ -317,23 +302,25 @@ static func get_buildings() -> Array[Dictionary]:
 				"Ammo Capacity": "50 Shots",
 				"Preferred Ammo": "Pebble (Crushing)"
 			},
-			"combat_notes": "Rapid-fire Crushing damage tears through Ranged Tanks and Slimes quickly."
+			"combat_notes": "Rapid-fire Crushing damage tears through armored Ranged Tanks and Slimes quickly."
 		},
 		{
 			"id": "ammo_distributor",
 			"name": "Ammo Distributor",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(352, 448, 64, 64)),
-			"description": "Automated supply cannon that launches ammunition packages directly into nearby towers within its 6-tile radius.",
+			"icon": get_building_atlas(Rect2(480, 320, 64, 64)),
+			"description": "Automated supply cannon that launches ammunition packages directly into nearby towers within its radius.",
 			"stats": {
 				"Footprint": "2x2 Tiles",
-				"Supply Range": "6 Tiles",
+				"Supply Range": "6 Tiles (Base)",
 				"Transfer Rate": "1.0s interval",
-				"Batch Size": "Configurable (1 - 2+ ammo/pulse)",
-				"Storage Capacity": "Up to 10 of each ammo type"
+				"Batch Size": "1 Ammo / pulse (Base)",
+				"Storage Capacity": "Up to 10 of each ammo type",
+				"Build Cost": "Planks, Stone Bricks",
+				"Tier 2 Upgrade": "Range 8 Tiles • Interval 0.75s • Batch 2 Ammo / pulse"
 			},
-			"combat_notes": "Eliminates the need for manual bot ammo deliveries to frontline towers."
+			"combat_notes": "Eliminates the need for manual bot ammo deliveries to frontline towers. Strictly delivers when target towers have room."
 		},
 		{
 			"id": "wall",
@@ -341,41 +328,47 @@ static func get_buildings() -> Array[Dictionary]:
 			"category": "Buildings",
 			"subcategory": "Defense",
 			"icon": get_building_atlas(Rect2(160, 160, 32, 32)),
-			"description": "Sturdy stone barricade that blocks ground enemy movement and funnels horde units into defensive kill-zones.",
+			"description": "Sturdy defensive barricade that blocks ground enemy movement and funnels horde units into designated kill-zones.",
 			"stats": {
 				"Footprint": "1x1 Tile",
-				"Health": "150 HP",
-				"Build Cost": "5 Stone"
+				"Health": "100 HP",
+				"Pathfinding Cost": "Scales dynamically with health",
+				"Build Cost": "1 Wood / Stone"
 			},
-			"combat_notes": "Enemies will path around walls if open paths exist, or attack them if fully walled in."
+			"combat_notes": "Enemies will path around walls if open paths exist, or attack them if fully enclosed."
 		},
 		{
 			"id": "gate",
 			"name": "Security Gate",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(224, 192, 96, 32)),
-			"description": "Automated portcullis that opens instantly for friendly worker bots while remaining barred against hostile night monsters.",
+			"icon": get_building_atlas(Rect2(224, 224, 96, 32)),
+			"description": "Reinforced 3-tile wide automated portcullis that opens instantly for friendly worker bots while barring enemies.",
 			"stats": {
-				"Footprint": "1x1 Tile",
-				"Health": "150 HP"
+				"Footprint": "3x1 Tiles (Horizontal / Vertical)",
+				"Health": "100 HP",
+				"Orientation": "Auto-rotates horizontal/vertical"
 			},
-			"combat_notes": "Allows bots to venture outside perimeter walls to harvest resources during the daytime."
+			"combat_notes": "Allows bots to venture outside perimeter walls to harvest resources during the day without leaving gaps for enemies."
 		},
 
-		# --- LOGISTICS ---
+		# ======================================================================
+		# LOGISTICS
+		# ======================================================================
 		{
 			"id": "conveyor_belt",
 			"name": "Conveyor Belt",
 			"category": "Buildings",
 			"subcategory": "Logistics",
 			"icon": get_building_atlas(Rect2(0, 224, 32, 32)),
-			"description": "Standard logistical belt lane that transports resources and finished ammunition between factories, stockpiles, and towers.",
+			"description": "Logistical conveyor lane that transports resources and finished ammunition smoothly across your factory.",
 			"stats": {
 				"Footprint": "1x1 Tile",
-				"Speed": "Base (Upgradeable via Belt Speed Research)"
+				"Speed": "Base (Upgradeable via Research)",
+				"Build Cost": "1 Wood",
+				"Building Limit": "Exempt (Does not consume building slots)"
 			},
-			"combat_notes": "Does not count towards your building limit cap."
+			"combat_notes": "Forms the logistical backbone of your factory and defense resupply lines."
 		},
 		{
 			"id": "router_building",
@@ -383,12 +376,13 @@ static func get_buildings() -> Array[Dictionary]:
 			"category": "Buildings",
 			"subcategory": "Logistics",
 			"icon": get_building_atlas(Rect2(0, 192, 32, 32)),
-			"description": "Splits incoming belt items evenly across up to 3 outgoing directions in round-robin sequence.",
+			"description": "Distributes incoming belt items evenly across up to 3 outgoing directions in round-robin sequence.",
 			"stats": {
 				"Footprint": "1x1 Tile",
-				"Outputs": "3 Directions"
+				"Outputs": "3 Directions",
+				"Build Cost": "1 Wood, 1 Stone"
 			},
-			"combat_notes": "Essential for distributing raw resources into multiple parallel crafters or ammo lines."
+			"combat_notes": "Essential for splitting raw resources into multiple parallel crafters or ammo production lines."
 		},
 		{
 			"id": "filter_building",
@@ -396,12 +390,13 @@ static func get_buildings() -> Array[Dictionary]:
 			"category": "Buildings",
 			"subcategory": "Logistics",
 			"icon": get_building_atlas(Rect2(64, 192, 32, 32)),
-			"description": "Inspects passing items and diverts a specifically selected resource type to its filtered output, letting all other items pass straight.",
+			"description": "Inspects passing items and diverts a specifically selected resource type to its filtered output, letting all others pass straight.",
 			"stats": {
 				"Footprint": "1x1 Tile",
-				"Configuration": "Selectable Item Filter"
+				"Configuration": "Selectable Item Filter",
+				"Build Cost": "1 Wood, 1 Stone"
 			},
-			"combat_notes": "Prevents mixed item jams on shared conveyor supply belts."
+			"combat_notes": "Prevents mixed-item jams on shared conveyor supply belts."
 		},
 		{
 			"id": "conveyor_bridge",
@@ -412,7 +407,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "An elevated crossover bridge allowing two independent conveyor lines to intersect without mixing items.",
 			"stats": {
 				"Footprint": "1x1 Tile",
-				"Capacity": "2 Isolated Lanes"
+				"Capacity": "2 Isolated Lanes (Horizontal & Vertical)"
 			},
 			"combat_notes": "Solves complex factory layout spaghetti."
 		},
@@ -422,27 +417,60 @@ static func get_buildings() -> Array[Dictionary]:
 			"category": "Buildings",
 			"subcategory": "Logistics",
 			"icon": get_building_atlas(Rect2(0, 0, 128, 128)),
-			"description": "High-capacity bulk storage container. Holds up to 250 units of mixed or dedicated resources with belt input/output ports.",
+			"description": "High-capacity bulk storage container with belt input/output ports. Can be locked to a single dedicated item.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
-				"Capacity": "25/50 Items In Mixed/Dedicated",
-				"Dedicated Mode": "Optional single-item lock that increases single item storage"
+				"Capacity (Tier 1)": "50 Mixed / 100 Dedicated Items",
+				"Build Cost": "25 Wood",
+				"Dedicated Mode": "Optional single-item lock",
+				"Tier 2 Upgrade": "75 Mixed / 200 Dedicated Capacity (Cost: 50 Wood)"
 			},
 			"combat_notes": "Buffers ammo and materials close to defenses so worker bots have short travel routes."
 		},
+		{
+			"id": "item_launcher",
+			"name": "Item Launcher",
+			"category": "Buildings",
+			"subcategory": "Logistics",
+			"icon": get_building_atlas(Rect2(544, 448, 128, 128)),
+			"description": "High-velocity pneumatic launcher that shoots item payload canisters across long distances directly into an Item Receiver.",
+			"stats": {
+				"Footprint": "4x4 Tiles",
+				"Health": "200 HP",
+				"Delivery": "Pneumatic Air Capsule"
+			},
+			"combat_notes": "Connects distant mining outposts to your central base without needing miles of conveyor belts."
+		},
+		{
+			"id": "item_receiver",
+			"name": "Item Receiver",
+			"category": "Buildings",
+			"subcategory": "Logistics",
+			"icon": get_building_atlas(Rect2(800, 448, 128, 128)),
+			"description": "Pneumatic capture port that catches incoming item canisters from Item Launchers and unloads them onto belts.",
+			"stats": {
+				"Footprint": "4x4 Tiles",
+				"Health": "200 HP",
+				"Outputs": "Belt Unload Ports"
+			},
+			"combat_notes": "Place at your core factory to catch raw ores fired from remote extraction drill sites."
+		},
 
-		# --- PRODUCTION & INFRASTRUCTURE ---
+		# ======================================================================
+		# PRODUCTION & EXTRACTION
+		# ======================================================================
 		{
 			"id": "core",
 			"name": "Command Core",
 			"category": "Buildings",
 			"subcategory": "Production",
 			"icon": get_building_atlas(Rect2(512, 192, 128, 128)),
-			"description": "The heart of your colony. Contains primary research systems, base storag. If the core falls, the game is lost!",
+			"description": "The heart of your colony. Contains primary research systems, base storage, and wireless bot charging emitters. If the core falls, the game is lost!",
 			"stats": {
 				"Footprint": "4x4 Tiles",
-				"Health": "100 HP",
-				"Recharge Field": "Solar Powered"
+				"Health": "1000 HP",
+				"Recharge Field": "Solar Powered",
+				"Base Storage": "Accepts all raw resources"
 			},
 			"combat_notes": "Protect at all costs! All enemy horde units prioritize breaching toward the Core."
 		},
@@ -455,20 +483,24 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "Wood processing facility that cuts raw tree logs into refined Planks for construction and advanced ammo.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
-				"Recipe": "Wood -> Planks"
+				"Recipe": "Wood -> Planks",
+				"Build Cost": "50 Wood, 25 Stone",
+				"Tier 2 Upgrade": "Enhanced sawing speed (Cost: 50W, 50S, 25 Planks)"
 			},
-			"combat_notes": "Powers Bow Tower Tier 2 upgrades and Ballista Bolt crafting."
+			"combat_notes": "Powers Bow Tower Tier 2 upgrades, Ballista Bolt crafting, and advanced structures."
 		},
 		{
 			"id": "stonemason",
-			"name": "Stonemason",
+			"name": "Stone Mason",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(768, 0, 128, 128)),
-			"description": "Masonry workshop that chips raw stone into polished Stone Bricks for fortified structures.",
+			"icon": get_building_atlas(Rect2(768, 0, 192, 128)),
+			"description": "Large masonry workshop that chips raw stone into polished Stone Bricks for fortified structures.",
 			"stats": {
-				"Footprint": "4x4 Tiles",
-				"Recipe": "Stone -> Stone Bricks"
+				"Footprint": "6x4 Tiles",
+				"Recipe": "Stone -> Stone Bricks",
+				"Build Cost": "25 Wood, 50 Stone",
+				"Tier 2 Upgrade": "Enhanced shaping speed (Cost: 25W, 50S, 25 Bricks)"
 			},
 			"combat_notes": "Required for Tier 2 buildings, reinforced walls, and advanced defense towers."
 		},
@@ -478,12 +510,14 @@ static func get_buildings() -> Array[Dictionary]:
 			"category": "Buildings",
 			"subcategory": "Production",
 			"icon": get_building_atlas(Rect2(480, 0, 128, 128)),
-			"description": "Dedicated ammunition workshop that crafts Wooden Arrows and Stone Arrows for bow towers.",
+			"description": "Dedicated ammunition workshop that crafts Wooden Arrows, Stone Arrows, and Ballista Bolts.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
-				"Recipes": "Wooden Arrows, Stone Arrows"
+				"Recipes": "Wooden Arrows, Stone Arrows, Ballista Bolts",
+				"Build Cost": "25 Wood, 25 Stone",
+				"Tier 2 Upgrade": "Enhanced fletching speed (Cost: 50W, 50S, 25 Planks)"
 			},
-			"combat_notes": "Keep supplied with Wood and Stone to maintain steady ammo supply for night waves."
+			"combat_notes": "Keep supplied with Wood and Stone to maintain steady ammo production for night waves."
 		},
 		{
 			"id": "stone_crusher",
@@ -494,8 +528,70 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "Heavy industrial crusher that fractures large stones into sling Pebbles and artillery Boulders.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
-				"Recipes": "Stone -> Pebbles / Boulders"
+				"Recipes": "Stone -> Pebbles / Boulders",
+				"Build Cost": "25 Wood, 15 Stone"
 			},
 			"combat_notes": "Supplies Sling Towers and Scattershot Towers with Crushing ammo."
+		},
+		{
+			"id": "lumberjack",
+			"name": "Lumberjack",
+			"category": "Buildings",
+			"subcategory": "Production",
+			"icon": get_building_atlas(Rect2(128, 0, 128, 128)),
+			"description": "Automated logging station that fells surrounding trees and outputs Wood logs continuously onto belts.",
+			"stats": {
+				"Footprint": "4x4 Tiles",
+				"Harvest Target": "Forest Trees",
+				"Work Interval": "2.0s per log",
+				"Build Cost": "10 Wood",
+				"Tier 2 Upgrade": "Enhanced logging rate (Cost: 50 Wood)"
+			},
+			"combat_notes": "Automates wood harvesting so worker bots can focus on construction and defense logistics."
+		},
+		{
+			"id": "stone_mine",
+			"name": "Stone Mine",
+			"category": "Buildings",
+			"subcategory": "Production",
+			"icon": get_building_atlas(Rect2(640, 0, 96, 96)),
+			"description": "Automated quarry drill that extracts raw Stone from stone deposit tiles and outputs directly onto belts.",
+			"stats": {
+				"Footprint": "3x3 Tiles",
+				"Harvest Target": "Stone Deposits",
+				"Work Interval": "2.0s per stone",
+				"Build Cost": "25 Wood",
+				"Tier 2 Upgrade": "Enhanced quarrying speed (Cost: 25 Wood, 50 Stone)"
+			},
+			"combat_notes": "Provides an infinite, automated flow of Stone for arrow crafting and fortification."
+		},
+		{
+			"id": "ore_drill",
+			"name": "Ore Drill",
+			"category": "Buildings",
+			"subcategory": "Production",
+			"icon": get_building_atlas(Rect2(896, 160, 96, 96)),
+			"description": "Heavy rotary drill designed to bore deep into mineral veins to extract raw Iron Ore.",
+			"stats": {
+				"Footprint": "3x3 Tiles",
+				"Harvest Target": "Iron Ore Veins",
+				"Work Interval": "2.5s per ore",
+				"Build Cost": "50 Wood, 25 Stone"
+			},
+			"combat_notes": "Key mid-to-late game building for extracting advanced metallurgy ores."
+		},
+		{
+			"id": "bot_home",
+			"name": "Bot Home",
+			"category": "Buildings",
+			"subcategory": "Production",
+			"icon": get_building_atlas(Rect2(128, 544, 32, 32)),
+			"description": "Dedicated docking post and high-efficiency charging stand for worker bots.",
+			"stats": {
+				"Footprint": "1x1 Tile",
+				"Charging": "Rapid Bot Recharging Stand",
+				"Building Limit": "Exempt (Does not consume building slots)"
+			},
+			"combat_notes": "Place near distant mining or defense clusters so worker bots recharge locally without walking all the way back to the Core."
 		}
 	]
