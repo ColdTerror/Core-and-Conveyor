@@ -36,6 +36,7 @@ const CodexDatabase = preload("res://scripts/Managers/codex_database.gd")
 @onready var codex_detail_title = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader/TitleBox/DetailTitle
 @onready var codex_detail_sub = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader/TitleBox/DetailSub
 @onready var codex_detail_desc = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailDescription
+@onready var codex_tier_toggle_btn = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader/TierToggleBtn
 @onready var codex_stats_title = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/StatsTitle
 @onready var codex_stats_grid = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/StatsGrid
 @onready var codex_combat_notes = $PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/CombatNotes
@@ -44,6 +45,8 @@ var current_codex_category: String = "Items"
 var current_codex_subcategory: String = "All"
 var current_codex_search: String = ""
 var current_codex_entry_id: String = ""
+var current_codex_entry: Dictionary = {}
+var current_codex_tier_index: int = 0
 var _codex_entry_buttons: Dictionary = {}
 
 @onready var close_button = $PanelContainer/Close
@@ -109,6 +112,8 @@ func _ready():
 		codex_btn_buildings.pressed.connect(func(): _set_codex_category("Buildings"))
 	if codex_search_box:
 		codex_search_box.text_changed.connect(_on_codex_search_changed)
+	if codex_tier_toggle_btn:
+		codex_tier_toggle_btn.pressed.connect(_on_codex_tier_toggle_pressed)
 
 
 
@@ -980,13 +985,26 @@ func _populate_codex_list():
 
 ## Selects a codex entry, highlighting its button and rendering its details.
 func _select_codex_entry(entry: Dictionary):
+	current_codex_entry = entry
 	current_codex_entry_id = entry.get("id", "")
+	current_codex_tier_index = 0 # Always reset to Level 1 on new entry selection
 	for eid in _codex_entry_buttons.keys():
 		var b: Button = _codex_entry_buttons[eid]
 		if is_instance_valid(b):
 			b.modulate = Color(0.5, 1.0, 0.7) if eid == current_codex_entry_id else Color.WHITE
 			
 	_render_codex_card(entry)
+
+
+## Toggles between Level 1 and Level 2 (or cycles tiers) on the active building card.
+func _on_codex_tier_toggle_pressed():
+	if current_codex_entry.is_empty() or not current_codex_entry.has("tiers"):
+		return
+	var tiers: Array = current_codex_entry["tiers"]
+	if tiers.size() <= 1:
+		return
+	current_codex_tier_index = (current_codex_tier_index + 1) % tiers.size()
+	_render_codex_card(current_codex_entry)
 
 
 ## Renders the detailed stat card on the right side of the Codex panel.
@@ -996,26 +1014,60 @@ func _render_codex_card(entry: Dictionary):
 		if codex_detail_title: codex_detail_title.text = "No Entry Selected"
 		if codex_detail_sub: codex_detail_sub.text = ""
 		if codex_detail_desc: codex_detail_desc.text = ""
+		if codex_tier_toggle_btn: codex_tier_toggle_btn.visible = false
 		if codex_stats_grid:
 			for c in codex_stats_grid.get_children():
 				c.queue_free()
 		if codex_combat_notes: codex_combat_notes.text = ""
 		return
 		
+	var has_tiers: bool = entry.has("tiers") and (entry["tiers"] as Array).size() > 1
+	var current_tier: Dictionary = {}
+	if has_tiers:
+		var tiers_arr: Array = entry["tiers"]
+		var idx = clampi(current_codex_tier_index, 0, tiers_arr.size() - 1)
+		current_tier = tiers_arr[idx]
+
 	if codex_detail_icon:
 		codex_detail_icon.texture = entry.get("icon", null)
 	if codex_detail_title:
-		codex_detail_title.text = entry.get("name", "Unknown")
+		if has_tiers and current_tier.has("level_label"):
+			codex_detail_title.text = "%s (%s)" % [entry.get("name", "Unknown"), current_tier["level_label"]]
+		else:
+			codex_detail_title.text = entry.get("name", "Unknown")
 	if codex_detail_sub:
 		codex_detail_sub.text = "%s • %s" % [entry.get("subcategory", ""), entry.get("category", "")]
 	if codex_detail_desc:
-		codex_detail_desc.text = entry.get("description", "")
+		if has_tiers and current_tier.has("description"):
+			codex_detail_desc.text = current_tier["description"]
+		else:
+			codex_detail_desc.text = entry.get("description", "")
 		
+	# Configure Show Upgrade / Show Base toggle button
+	if codex_tier_toggle_btn:
+		if has_tiers:
+			codex_tier_toggle_btn.visible = true
+			var tiers_arr: Array = entry["tiers"]
+			var next_idx = (current_codex_tier_index + 1) % tiers_arr.size()
+			if next_idx == 0:
+				codex_tier_toggle_btn.text = "Show Base (Lvl 1) ⬇"
+				codex_tier_toggle_btn.modulate = Color(1.0, 0.85, 0.3)
+			else:
+				codex_tier_toggle_btn.text = "Show Level %d ⬆" % (next_idx + 1)
+				codex_tier_toggle_btn.modulate = Color(0.4, 0.9, 1.0)
+		else:
+			codex_tier_toggle_btn.visible = false
+
 	if codex_stats_grid:
 		for c in codex_stats_grid.get_children():
 			c.queue_free()
 			
-		var stats: Dictionary = entry.get("stats", {})
+		var stats: Dictionary = {}
+		if has_tiers and current_tier.has("stats"):
+			stats = current_tier["stats"]
+		else:
+			stats = entry.get("stats", {})
+
 		for k in stats.keys():
 			var key_lbl = Label.new()
 			key_lbl.text = "• " + str(k) + ":"

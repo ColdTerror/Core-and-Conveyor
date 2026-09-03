@@ -300,6 +300,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.698039, 0.698039, 0.698039, 1)
 text = "Codex Reference"
 
+[node name="TierToggleBtn" type="Button" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox/DetailHeader" unique_id=2100000029]
+visible = false
+custom_minimum_size = Vector2(130, 30)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+text = "Show Upgrade"
+
 [node name="DetailSeparator" type="HSeparator" parent="PanelContainer/TabContainer/Codex/VBoxContainer/SplitBody/RightPanel/RightScroll/DetailVBox" unique_id=2100000024]
 layout_mode = 2
 

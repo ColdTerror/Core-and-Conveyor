@@ -227,7 +227,7 @@ static func get_enemies() -> Array[Dictionary]:
 	]
 
 
-## Returns all categorized Building entries with verified footprints, icons, and consolidated upgrade info.
+## Returns all categorized Building entries with verified footprints, icons, and structured upgrade tiers.
 static func get_buildings() -> Array[Dictionary]:
 	return [
 		# ======================================================================
@@ -247,10 +247,37 @@ static func get_buildings() -> Array[Dictionary]:
 				"Damage Mult": "1.0x",
 				"Ammo Capacity": "20 Shots",
 				"Preferred Ammo": "Arrow (Wooden / Stone)",
-				"Build Cost": "25 Wood, 25 Stone",
-				"Tier 2 Upgrade": "Range 10 • Fire Rate 2.0/s • Mult 1.5x • Cap 25 (Cost: 25W, 25S, 10 Planks, 10 Bricks)"
+				"Build Cost": "25 Wood, 25 Stone"
 			},
-			"combat_notes": "Excellent perimeter defense. Fires Piercing arrows that deal +20% bonus damage against fast spiders and flying drones."
+			"combat_notes": "Excellent perimeter defense. Fires Piercing arrows that deal +20% bonus damage against fast spiders and flying drones.",
+			"tiers": [
+				{
+					"level_label": "Level 1 (Base)",
+					"description": "Standard defensive turret that fires arrows at approaching enemies.",
+					"stats": {
+						"Footprint": "2x2 Tiles",
+						"Attack Range": "8 Tiles",
+						"Fire Rate": "1.0 /s",
+						"Damage Mult": "1.0x",
+						"Ammo Capacity": "20 Shots",
+						"Preferred Ammo": "Arrow (Wooden / Stone)",
+						"Build Cost": "25 Wood, 25 Stone"
+					}
+				},
+				{
+					"level_label": "Level 2 (Upgraded)",
+					"description": "Upgraded archer tower with extended engagement range, reinforced firing velocity, and increased ammo capacity.",
+					"stats": {
+						"Footprint": "2x2 Tiles",
+						"Attack Range": "10 Tiles",
+						"Fire Rate": "2.0 /s",
+						"Damage Mult": "1.5x",
+						"Ammo Capacity": "25 Shots",
+						"Preferred Ammo": "Arrow (Wooden / Stone)",
+						"Upgrade Cost": "25 Wood, 25 Stone, 10 Planks, 10 Stone Bricks"
+					}
+				}
+			]
 		},
 		{
 			"id": "ballista_tower",
@@ -313,14 +340,39 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "Automated supply cannon that launches ammunition packages directly into nearby towers within its radius.",
 			"stats": {
 				"Footprint": "2x2 Tiles",
-				"Supply Range": "6 Tiles (Base)",
-				"Transfer Rate": "1.0s interval",
-				"Batch Size": "1 Ammo / pulse (Base)",
+				"Supply Range": "6 Tiles",
+				"Transfer Interval": "1.0s",
+				"Batch Size": "1 Ammo / pulse",
 				"Storage Capacity": "Up to 10 of each ammo type",
-				"Build Cost": "Planks, Stone Bricks",
-				"Tier 2 Upgrade": "Range 8 Tiles • Interval 0.75s • Batch 2 Ammo / pulse"
+				"Build Cost": "Planks, Stone Bricks"
 			},
-			"combat_notes": "Eliminates the need for manual bot ammo deliveries to frontline towers. Strictly delivers when target towers have room."
+			"combat_notes": "Eliminates the need for manual bot ammo deliveries to frontline towers. Strictly delivers when target towers have room.",
+			"tiers": [
+				{
+					"level_label": "Level 1 (Base)",
+					"description": "Automated supply cannon that launches ammunition packages directly into nearby towers within its radius.",
+					"stats": {
+						"Footprint": "2x2 Tiles",
+						"Supply Range": "6 Tiles",
+						"Transfer Interval": "1.0s",
+						"Batch Size": "1 Ammo / pulse",
+						"Storage Capacity": "Up to 10 of each ammo type",
+						"Build Cost": "Planks, Stone Bricks"
+					}
+				},
+				{
+					"level_label": "Level 2 (Upgraded)",
+					"description": "Enhanced high-velocity supply distributor with wider delivery coverage and double the batch delivery payload.",
+					"stats": {
+						"Footprint": "2x2 Tiles",
+						"Supply Range": "8 Tiles (+33%)",
+						"Transfer Interval": "0.75s (Faster)",
+						"Batch Size": "2 Ammo / pulse (Double)",
+						"Turret Rotation": "20.0 rad/s (High Speed)",
+						"Storage Capacity": "Up to 10 of each ammo type"
+					}
+				}
+			]
 		},
 		{
 			"id": "wall",
@@ -420,12 +472,36 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "High-capacity bulk storage container with belt input/output ports. Can be locked to a single dedicated item.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
-				"Capacity (Tier 1)": "50 Mixed / 100 Dedicated Items",
+				"Capacity (Mixed)": "50 Items",
+				"Capacity (Dedicated)": "100 Items",
 				"Build Cost": "25 Wood",
-				"Dedicated Mode": "Optional single-item lock",
-				"Tier 2 Upgrade": "75 Mixed / 200 Dedicated Capacity (Cost: 50 Wood)"
+				"Dedicated Mode": "Optional single-item lock"
 			},
-			"combat_notes": "Buffers ammo and materials close to defenses so worker bots have short travel routes."
+			"combat_notes": "Buffers ammo and materials close to defenses so worker bots have short travel routes.",
+			"tiers": [
+				{
+					"level_label": "Level 1 (Base)",
+					"description": "High-capacity bulk storage container with belt input/output ports. Can be locked to a single dedicated item.",
+					"stats": {
+						"Footprint": "4x4 Tiles",
+						"Capacity (Mixed)": "50 Items",
+						"Capacity (Dedicated)": "100 Items",
+						"Build Cost": "25 Wood",
+						"Dedicated Mode": "Optional single-item lock"
+					}
+				},
+				{
+					"level_label": "Level 2 (Upgraded)",
+					"description": "Reinforced warehouse storage container with expanded internal volume.",
+					"stats": {
+						"Footprint": "4x4 Tiles",
+						"Capacity (Mixed)": "75 Items (+50%)",
+						"Capacity (Dedicated)": "200 Items (Double)",
+						"Upgrade Cost": "50 Wood",
+						"Dedicated Mode": "Optional single-item lock"
+					}
+				}
+			]
 		},
 		{
 			"id": "item_launcher",
@@ -484,10 +560,32 @@ static func get_buildings() -> Array[Dictionary]:
 			"stats": {
 				"Footprint": "4x4 Tiles",
 				"Recipe": "Wood -> Planks",
-				"Build Cost": "50 Wood, 25 Stone",
-				"Tier 2 Upgrade": "Enhanced sawing speed (Cost: 50W, 50S, 25 Planks)"
+				"Cutting Speed": "1.0x (Standard)",
+				"Build Cost": "50 Wood, 25 Stone"
 			},
-			"combat_notes": "Powers Bow Tower Tier 2 upgrades, Ballista Bolt crafting, and advanced structures."
+			"combat_notes": "Powers Bow Tower Tier 2 upgrades, Ballista Bolt crafting, and advanced structures.",
+			"tiers": [
+				{
+					"level_label": "Level 1 (Base)",
+					"description": "Wood processing facility that cuts raw tree logs into refined Planks for construction and advanced ammo.",
+					"stats": {
+						"Footprint": "4x4 Tiles",
+						"Recipe": "Wood -> Planks",
+						"Cutting Speed": "1.0x (Standard)",
+						"Build Cost": "50 Wood, 25 Stone"
+					}
+				},
+				{
+					"level_label": "Level 2 (Upgraded)",
+					"description": "Steam-powered sawmill with high-torque circular blades for accelerated plank production.",
+					"stats": {
+						"Footprint": "4x4 Tiles",
+						"Recipe": "Wood -> Planks",
+						"Cutting Speed": "Accelerated (High Speed)",
+						"Upgrade Cost": "50 Wood, 50 Stone, 25 Planks"
+					}
+				}
+			]
 		},
 		{
 			"id": "stonemason",
@@ -499,10 +597,32 @@ static func get_buildings() -> Array[Dictionary]:
 			"stats": {
 				"Footprint": "6x4 Tiles",
 				"Recipe": "Stone -> Stone Bricks",
-				"Build Cost": "25 Wood, 50 Stone",
-				"Tier 2 Upgrade": "Enhanced shaping speed (Cost: 25W, 50S, 25 Bricks)"
+				"Chiseling Speed": "1.0x (Standard)",
+				"Build Cost": "25 Wood, 50 Stone"
 			},
-			"combat_notes": "Required for Tier 2 buildings, reinforced walls, and advanced defense towers."
+			"combat_notes": "Required for Tier 2 buildings, reinforced walls, and advanced defense towers.",
+			"tiers": [
+				{
+					"level_label": "Level 1 (Base)",
+					"description": "Large masonry workshop that chips raw stone into polished Stone Bricks for fortified structures.",
+					"stats": {
+						"Footprint": "6x4 Tiles",
+						"Recipe": "Stone -> Stone Bricks",
+						"Chiseling Speed": "1.0x (Standard)",
+						"Build Cost": "25 Wood, 50 Stone"
+					}
+				},
+				{
+					"level_label": "Level 2 (Upgraded)",
+					"description": "Reinforced masonry foundry utilizing precision stonecutting blades.",
+					"stats": {
+						"Footprint": "6x4 Tiles",
+						"Recipe": "Stone -> Stone Bricks",
+						"Chiseling Speed": "Accelerated (High Speed)",
+						"Upgrade Cost": "25 Wood, 50 Stone, 25 Stone Bricks"
+					}
+				}
+			]
 		},
 		{
 			"id": "fletcher",
@@ -514,10 +634,32 @@ static func get_buildings() -> Array[Dictionary]:
 			"stats": {
 				"Footprint": "4x4 Tiles",
 				"Recipes": "Wooden Arrows, Stone Arrows, Ballista Bolts",
-				"Build Cost": "25 Wood, 25 Stone",
-				"Tier 2 Upgrade": "Enhanced fletching speed (Cost: 50W, 50S, 25 Planks)"
+				"Crafting Speed": "1.0x (Standard)",
+				"Build Cost": "25 Wood, 25 Stone"
 			},
-			"combat_notes": "Keep supplied with Wood and Stone to maintain steady ammo production for night waves."
+			"combat_notes": "Keep supplied with Wood and Stone to maintain steady ammo production for night waves.",
+			"tiers": [
+				{
+					"level_label": "Level 1 (Base)",
+					"description": "Dedicated ammunition workshop that crafts Wooden Arrows, Stone Arrows, and Ballista Bolts.",
+					"stats": {
+						"Footprint": "4x4 Tiles",
+						"Recipes": "Wooden Arrows, Stone Arrows, Ballista Bolts",
+						"Crafting Speed": "1.0x (Standard)",
+						"Build Cost": "25 Wood, 25 Stone"
+					}
+				},
+				{
+					"level_label": "Level 2 (Upgraded)",
+					"description": "Automated bowyer and fletching lathe capable of assembling ammunition at rapid rates.",
+					"stats": {
+						"Footprint": "4x4 Tiles",
+						"Recipes": "Wooden Arrows, Stone Arrows, Ballista Bolts",
+						"Crafting Speed": "Accelerated (High Speed)",
+						"Upgrade Cost": "50 Wood, 50 Stone, 25 Planks"
+					}
+				}
+			]
 		},
 		{
 			"id": "stone_crusher",
@@ -544,10 +686,31 @@ static func get_buildings() -> Array[Dictionary]:
 				"Footprint": "4x4 Tiles",
 				"Harvest Target": "Forest Trees",
 				"Work Interval": "2.0s per log",
-				"Build Cost": "10 Wood",
-				"Tier 2 Upgrade": "Enhanced logging rate (Cost: 50 Wood)"
+				"Build Cost": "10 Wood"
 			},
-			"combat_notes": "Automates wood harvesting so worker bots can focus on construction and defense logistics."
+			"combat_notes": "Automates wood harvesting so worker bots can focus on construction and defense logistics.",
+			"tiers": [
+				{
+					"level_label": "Level 1 (Base)",
+					"description": "Automated logging station that fells surrounding trees and outputs Wood logs continuously onto belts.",
+					"stats": {
+						"Footprint": "4x4 Tiles",
+						"Harvest Target": "Forest Trees",
+						"Work Interval": "2.0s per log",
+						"Build Cost": "10 Wood"
+					}
+				},
+				{
+					"level_label": "Level 2 (Upgraded)",
+					"description": "Industrial timbering camp with high-power mechanical saws for rapid lumber harvesting.",
+					"stats": {
+						"Footprint": "4x4 Tiles",
+						"Harvest Target": "Forest Trees",
+						"Work Interval": "1.2s per log (Rapid)",
+						"Upgrade Cost": "50 Wood"
+					}
+				}
+			]
 		},
 		{
 			"id": "stone_mine",
@@ -560,10 +723,31 @@ static func get_buildings() -> Array[Dictionary]:
 				"Footprint": "3x3 Tiles",
 				"Harvest Target": "Stone Deposits",
 				"Work Interval": "2.0s per stone",
-				"Build Cost": "25 Wood",
-				"Tier 2 Upgrade": "Enhanced quarrying speed (Cost: 25 Wood, 50 Stone)"
+				"Build Cost": "25 Wood"
 			},
-			"combat_notes": "Provides an infinite, automated flow of Stone for arrow crafting and fortification."
+			"combat_notes": "Provides an infinite, automated flow of Stone for arrow crafting and fortification.",
+			"tiers": [
+				{
+					"level_label": "Level 1 (Base)",
+					"description": "Automated quarry drill that extracts raw Stone from stone deposit tiles and outputs directly onto belts.",
+					"stats": {
+						"Footprint": "3x3 Tiles",
+						"Harvest Target": "Stone Deposits",
+						"Work Interval": "2.0s per stone",
+						"Build Cost": "25 Wood"
+					}
+				},
+				{
+					"level_label": "Level 2 (Upgraded)",
+					"description": "Heavy pneumatic quarry extractor with deep-bore percussion drills.",
+					"stats": {
+						"Footprint": "3x3 Tiles",
+						"Harvest Target": "Stone Deposits",
+						"Work Interval": "1.2s per stone (Rapid)",
+						"Upgrade Cost": "25 Wood, 50 Stone"
+					}
+				}
+			]
 		},
 		{
 			"id": "ore_drill",
