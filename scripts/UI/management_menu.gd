@@ -1068,6 +1068,17 @@ func _render_codex_card(entry: Dictionary):
 		else:
 			stats = entry.get("stats", {})
 
+		# Retrieve previous tier stats for comparison if this is an upgraded level (> 0)
+		var prev_stats: Dictionary = {}
+		var is_upgraded_level: bool = has_tiers and current_codex_tier_index > 0
+		if is_upgraded_level:
+			var tiers_arr: Array = entry["tiers"]
+			var prev_idx: int = current_codex_tier_index - 1
+			if prev_idx >= 0 and prev_idx < tiers_arr.size():
+				var prev_tier: Dictionary = tiers_arr[prev_idx]
+				if prev_tier.has("stats"):
+					prev_stats = prev_tier["stats"]
+
 		for k in stats.keys():
 			var key_lbl = Label.new()
 			key_lbl.text = "• " + str(k) + ":"
@@ -1076,8 +1087,24 @@ func _render_codex_card(entry: Dictionary):
 			codex_stats_grid.add_child(key_lbl)
 			
 			var val_lbl = Label.new()
-			val_lbl.text = str(stats[k])
-			val_lbl.modulate = Color.WHITE
+			var val_str = str(stats[k])
+			val_lbl.text = val_str
+			
+			# Color changed/upgraded stats green compared to previous level
+			if is_upgraded_level:
+				var is_stat_changed: bool = false
+				if prev_stats.has(k):
+					is_stat_changed = (str(prev_stats[k]) != val_str)
+				elif k != "Upgrade Cost":
+					is_stat_changed = true
+					
+				if is_stat_changed:
+					val_lbl.modulate = Color(0.35, 1.0, 0.45) # Vivid green for upgraded/changed stat!
+				else:
+					val_lbl.modulate = Color.WHITE
+			else:
+				val_lbl.modulate = Color.WHITE
+				
 			codex_stats_grid.add_child(val_lbl)
 			
 	if codex_combat_notes:

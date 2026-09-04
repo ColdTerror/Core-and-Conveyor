@@ -325,7 +325,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"stats": {
 				"Footprint": "2x2 Tiles",
 				"Attack Range": "7 Tiles",
-				"Fire Rate": "3.0 /s (Rapid)",
+				"Fire Rate": "3.0 /s",
 				"Ammo Capacity": "50 Shots",
 				"Preferred Ammo": "Pebble (Crushing)"
 			},
@@ -365,11 +365,12 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Enhanced high-velocity supply distributor with wider delivery coverage and double the batch delivery payload.",
 					"stats": {
 						"Footprint": "2x2 Tiles",
-						"Supply Range": "8 Tiles (+33%)",
-						"Transfer Interval": "0.75s (Faster)",
-						"Batch Size": "2 Ammo / pulse (Double)",
-						"Turret Rotation": "20.0 rad/s (High Speed)",
-						"Storage Capacity": "Up to 10 of each ammo type"
+						"Supply Range": "8 Tiles",
+						"Transfer Interval": "0.75s",
+						"Batch Size": "2 Ammo / pulse",
+						"Turret Rotation": "20.0 rad/s",
+						"Storage Capacity": "Up to 10 of each ammo type",
+						"Upgrade Cost": "Planks, Stone Bricks"
 					}
 				}
 			]
@@ -495,8 +496,8 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Reinforced warehouse storage container with expanded internal volume.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
-						"Capacity (Mixed)": "75 Items (+50%)",
-						"Capacity (Dedicated)": "200 Items (Double)",
+						"Capacity (Mixed)": "75 Items",
+						"Capacity (Dedicated)": "200 Items",
 						"Upgrade Cost": "50 Wood",
 						"Dedicated Mode": "Optional single-item lock"
 					}
@@ -559,8 +560,9 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "Wood processing facility that cuts raw tree logs into refined Planks for construction and advanced ammo.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
+				"Max Health": "100 HP",
 				"Recipe": "Wood -> Planks",
-				"Cutting Speed": "1.0x (Standard)",
+				"Cutting Speed": "1.0x",
 				"Build Cost": "50 Wood, 25 Stone"
 			},
 			"combat_notes": "Powers Bow Tower Tier 2 upgrades, Ballista Bolt crafting, and advanced structures.",
@@ -570,8 +572,9 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Wood processing facility that cuts raw tree logs into refined Planks for construction and advanced ammo.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
+						"Max Health": "100 HP",
 						"Recipe": "Wood -> Planks",
-						"Cutting Speed": "1.0x (Standard)",
+						"Cutting Speed": "1.0x",
 						"Build Cost": "50 Wood, 25 Stone"
 					}
 				},
@@ -580,8 +583,9 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Steam-powered sawmill with high-torque circular blades for accelerated plank production.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
+						"Max Health": "150 HP",
 						"Recipe": "Wood -> Planks",
-						"Cutting Speed": "Accelerated (High Speed)",
+						"Cutting Speed": "1.5x",
 						"Upgrade Cost": "50 Wood, 50 Stone, 25 Planks"
 					}
 				}
@@ -596,8 +600,9 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "Large masonry workshop that chips raw stone into polished Stone Bricks for fortified structures.",
 			"stats": {
 				"Footprint": "6x4 Tiles",
+				"Max Health": "100 HP",
 				"Recipe": "Stone -> Stone Bricks",
-				"Chiseling Speed": "1.0x (Standard)",
+				"Chiseling Speed": "1.0x",
 				"Build Cost": "25 Wood, 50 Stone"
 			},
 			"combat_notes": "Required for Tier 2 buildings, reinforced walls, and advanced defense towers.",
@@ -607,8 +612,9 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Large masonry workshop that chips raw stone into polished Stone Bricks for fortified structures.",
 					"stats": {
 						"Footprint": "6x4 Tiles",
+						"Max Health": "100 HP",
 						"Recipe": "Stone -> Stone Bricks",
-						"Chiseling Speed": "1.0x (Standard)",
+						"Chiseling Speed": "1.0x",
 						"Build Cost": "25 Wood, 50 Stone"
 					}
 				},
@@ -617,8 +623,9 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Reinforced masonry foundry utilizing precision stonecutting blades.",
 					"stats": {
 						"Footprint": "6x4 Tiles",
+						"Max Health": "150 HP",
 						"Recipe": "Stone -> Stone Bricks",
-						"Chiseling Speed": "Accelerated (High Speed)",
+						"Chiseling Speed": "1.5x",
 						"Upgrade Cost": "25 Wood, 50 Stone, 25 Stone Bricks"
 					}
 				}
@@ -633,8 +640,9 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "Dedicated ammunition workshop that crafts Wooden Arrows, Stone Arrows, and Ballista Bolts.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
+				"Max Health": "100 HP",
 				"Recipes": "Wooden Arrows, Stone Arrows, Ballista Bolts",
-				"Crafting Speed": "1.0x (Standard)",
+				"Crafting Speed": "1.0x",
 				"Build Cost": "25 Wood, 25 Stone"
 			},
 			"combat_notes": "Keep supplied with Wood and Stone to maintain steady ammo production for night waves.",
@@ -644,8 +652,9 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Dedicated ammunition workshop that crafts Wooden Arrows, Stone Arrows, and Ballista Bolts.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
+						"Max Health": "100 HP",
 						"Recipes": "Wooden Arrows, Stone Arrows, Ballista Bolts",
-						"Crafting Speed": "1.0x (Standard)",
+						"Crafting Speed": "1.0x",
 						"Build Cost": "25 Wood, 25 Stone"
 					}
 				},
@@ -654,8 +663,9 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Automated bowyer and fletching lathe capable of assembling ammunition at rapid rates.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
+						"Max Health": "150 HP",
 						"Recipes": "Wooden Arrows, Stone Arrows, Ballista Bolts",
-						"Crafting Speed": "Accelerated (High Speed)",
+						"Crafting Speed": "1.5x",
 						"Upgrade Cost": "50 Wood, 50 Stone, 25 Planks"
 					}
 				}
@@ -684,7 +694,9 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "Automated logging station that fells surrounding trees and outputs Wood logs continuously onto belts.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
+				"Max Health": "100 HP",
 				"Harvest Target": "Forest Trees",
+				"Scan Radius": "4 Tiles",
 				"Work Interval": "2.0s per log",
 				"Build Cost": "10 Wood"
 			},
@@ -695,7 +707,9 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Automated logging station that fells surrounding trees and outputs Wood logs continuously onto belts.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
+						"Max Health": "100 HP",
 						"Harvest Target": "Forest Trees",
+						"Scan Radius": "4 Tiles",
 						"Work Interval": "2.0s per log",
 						"Build Cost": "10 Wood"
 					}
@@ -705,8 +719,10 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Industrial timbering camp with high-power mechanical saws for rapid lumber harvesting.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
+						"Max Health": "150 HP",
 						"Harvest Target": "Forest Trees",
-						"Work Interval": "1.2s per log (Rapid)",
+						"Scan Radius": "6 Tiles",
+						"Work Interval": "1.5s per log",
 						"Upgrade Cost": "50 Wood"
 					}
 				}
@@ -721,8 +737,11 @@ static func get_buildings() -> Array[Dictionary]:
 			"description": "Automated quarry drill that extracts raw Stone from stone deposit tiles and outputs directly onto belts.",
 			"stats": {
 				"Footprint": "3x3 Tiles",
+				"Max Health": "100 HP",
 				"Harvest Target": "Stone Deposits",
+				"Scan Radius": "4 Tiles",
 				"Work Interval": "2.0s per stone",
+				"Fallback Yield": "1 per cycle",
 				"Build Cost": "25 Wood"
 			},
 			"combat_notes": "Provides an infinite, automated flow of Stone for arrow crafting and fortification.",
@@ -732,8 +751,11 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Automated quarry drill that extracts raw Stone from stone deposit tiles and outputs directly onto belts.",
 					"stats": {
 						"Footprint": "3x3 Tiles",
+						"Max Health": "100 HP",
 						"Harvest Target": "Stone Deposits",
+						"Scan Radius": "4 Tiles",
 						"Work Interval": "2.0s per stone",
+						"Fallback Yield": "1 per cycle",
 						"Build Cost": "25 Wood"
 					}
 				},
@@ -742,8 +764,11 @@ static func get_buildings() -> Array[Dictionary]:
 					"description": "Heavy pneumatic quarry extractor with deep-bore percussion drills.",
 					"stats": {
 						"Footprint": "3x3 Tiles",
+						"Max Health": "150 HP",
 						"Harvest Target": "Stone Deposits",
-						"Work Interval": "1.2s per stone (Rapid)",
+						"Scan Radius": "6 Tiles",
+						"Work Interval": "1.5s per stone",
+						"Fallback Yield": "2 per cycle",
 						"Upgrade Cost": "25 Wood, 50 Stone"
 					}
 				}
