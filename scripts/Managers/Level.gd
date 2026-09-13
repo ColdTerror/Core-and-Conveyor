@@ -50,6 +50,7 @@ const RES_IRON_ORE := 6
 @export var stonemason_scene: PackedScene
 @export var fletcher_scene: PackedScene
 @export var stone_crusher_scene: PackedScene
+@export var forge_scene: PackedScene
 
 @export_subgroup("Defense")
 @export var bow_tower_scene: PackedScene
@@ -185,7 +186,9 @@ func _setup_hotbar_items():
 			{"name": "Ore Drill", "scene": ore_drill_scene},
 			{"name": "Stonemason", "scene": stonemason_scene},
 			{"name": "Fletcher", "scene": fletcher_scene},
-			{"name": "Stone Crusher", "scene": stone_crusher_scene}
+			{"name": "Stone Crusher", "scene": stone_crusher_scene},
+			{"name": "Forge", "scene": forge_scene}
+			
 		],
 		"Defense": [
 			{"name": "Bow Tower", "scene": bow_tower_scene},

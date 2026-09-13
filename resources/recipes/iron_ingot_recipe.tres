@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RecipeResource" format=3 uid="uid://dwsq6g6h0lalb"]
+
+[ext_resource type="Resource" uid="uid://tck87w0u85np" path="res://resources/items/raw_resources/iron_ore.tres" id="1_xpn4m"]
+[ext_resource type="Resource" uid="uid://6pu3p66yuo1w" path="res://resources/items/refined_resources/iron_ingot.tres" id="2_xpn4m"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="4_qgqu6"]
+
+[resource]
+script = ExtResource("4_qgqu6")
+recipe_name = "Iron Ingot"
+craft_time = 5.0
+inputs = {
+ExtResource("1_xpn4m"): 5
+}
+output_item = ExtResource("2_xpn4m")
+metadata/_custom_type_script = "uid://cklg1indprsb3"

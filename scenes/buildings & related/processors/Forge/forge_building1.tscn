@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://rgygumhi1v5u"]
+
+[ext_resource type="Script" uid="uid://b38bbdwg8gt5r" path="res://scripts/Building Classes/processor_building.gd" id="1_chk7t"]
+[ext_resource type="Script" uid="uid://cklg1indprsb3" path="res://resources/recipes/recipe_resource.gd" id="2_r2oy4"]
+[ext_resource type="Resource" uid="uid://dwsq6g6h0lalb" path="res://resources/recipes/iron_ingot_recipe.tres" id="3_m0fr8"]
+[ext_resource type="PackedScene" uid="uid://dh3njqr7x7ls7" path="res://scenes/buildings & related/belts & items/item.tscn" id="6_taw6a"]
+[ext_resource type="Texture2D" uid="uid://r4ptpn5bnwmd" path="res://assets/Buildings.png" id="7_grvyd"]
+[ext_resource type="Script" uid="uid://cgb51uk8xwxmq" path="res://scripts/CostData.gd" id="8_22r68"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5rwt6"]
+atlas = ExtResource("7_grvyd")
+region = Rect2(864, 160, 160, 96)
+
+[sub_resource type="Resource" id="Resource_axv5i"]
+script = ExtResource("8_22r68")
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_g2ddr"]
+script = ExtResource("8_22r68")
+item_name = "Stone"
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_30ehh"]
+script = ExtResource("8_22r68")
+item_name = "Plank"
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="Resource" id="Resource_hxl2k"]
+script = ExtResource("8_22r68")
+item_name = "Stone Brick"
+amount = 25
+metadata/_custom_type_script = "uid://cgb51uk8xwxmq"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0p6bf"]
+size = Vector2(160, 96)
+
+[node name="Forge1" type="Node2D" unique_id=2042910788 groups=["Structure"]]
+script = ExtResource("1_chk7t")
+recipes = Array[ExtResource("2_r2oy4")]([ExtResource("3_m0fr8")])
+generic_item_scene = ExtResource("6_taw6a")
+building_name = "Forge"
+size = Vector2i(5, 3)
+icon = SubResource("AtlasTexture_5rwt6")
+build_costs = Array[ExtResource("8_22r68")]([SubResource("Resource_axv5i"), SubResource("Resource_g2ddr"), SubResource("Resource_30ehh"), SubResource("Resource_hxl2k")])
+build_range = 10.0
+corruption_range = 10.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1104015182]
+texture = ExtResource("7_grvyd")
+region_enabled = true
+region_rect = Rect2(864, 160, 160, 96)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=803807135]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1856652810]
+shape = SubResource("RectangleShape2D_0p6bf")
+
+[node name="Line2D" type="Line2D" parent="." unique_id=1388375912]
+width = 2.0
+default_color = Color(0.8211179, 0, 0.4125038, 1)

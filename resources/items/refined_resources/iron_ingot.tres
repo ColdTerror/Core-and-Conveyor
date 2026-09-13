@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://6pu3p66yuo1w"]
+
+[ext_resource type="Script" uid="uid://c1ggtlkymktgi" path="res://resources/items/ItemResource.gd" id="1_d8fev"]
+[ext_resource type="Texture2D" uid="uid://b0gxrsvr8wc6c" path="res://assets/Items.png" id="2_ebdfl"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mxpat"]
+atlas = ExtResource("2_ebdfl")
+region = Rect2(64, 32, 32, 32)
+
+[resource]
+script = ExtResource("1_d8fev")
+display_name = "Iron Ingot"
+texture = SubResource("AtlasTexture_mxpat")
+description = "Refined Iron"
+metadata/_custom_type_script = "uid://c1ggtlkymktgi"

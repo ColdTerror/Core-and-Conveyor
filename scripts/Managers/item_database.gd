@@ -10,6 +10,7 @@ extends Node
 var items: Dictionary = {
 	"Wood": preload("res://resources/items/raw_resources/wood.tres"),
 	"Stone": preload("res://resources/items/raw_resources/stone.tres"),
+	"Iron Ore": preload("res://resources/items/raw_resources/iron_ore.tres"),
 	"Wooden Arrow": preload("res://resources/items/ammo/wooden_arrow.tres"),
 	"Stone Arrow": preload("res://resources/items/ammo/stone_arrow.tres"),
 	"Ballista Bolt": preload("res://resources/items/ammo/ballista_bolt.tres"),
@@ -17,6 +18,7 @@ var items: Dictionary = {
 	"Pebble": preload("res://resources/items/ammo/pebble_ammo.tres"),
 	"Plank": preload("res://resources/items/refined_resources/plank.tres"),
 	"Stone Brick": preload("res://resources/items/refined_resources/stone_brick.tres"),
+	"Iron Ingot": preload("res://resources/items/refined_resources/iron_ingot.tres"),
 }
 
 
@@ -30,6 +32,8 @@ static func normalize_name(item_name: String) -> String:
 	if n == "Ballista Bolts": return "Ballista Bolt"
 	if n == "Boulders": return "Boulder"
 	if n == "Pebbles": return "Pebble"
+	if n == "Iron Ores": return "Iron Ore"
+	if n == "Iron Ingots": return "Iron Ingot"
 	return n
 
 

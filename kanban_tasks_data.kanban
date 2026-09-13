@@ -19,8 +19,7 @@
 				"acde8781-ff29-4a12-99dd-ab748c852411",
 				"5cddb597-1d54-408f-b02d-89944c71b046",
 				"b38bcdb8-37f5-4266-973b-18edac1c3efd",
-				"07777806-299d-4761-ad85-56e33abc5a1f",
-				"22304f95-31b4-4be0-ae2e-87e22107a8fd"
+				"07777806-299d-4761-ad85-56e33abc5a1f"
 			]
 		},
 		{
@@ -36,9 +35,7 @@
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
-			"tasks": [
-				"f6b662fd-cab4-4f49-b2fd-3d4d8246a2b5"
-			]
+			"tasks": []
 		}
 	],
 	"tasks": [
@@ -130,13 +127,6 @@
 			"uuid": "07777806-299d-4761-ad85-56e33abc5a1f",
 			"title": "a map view of inaccessible/accessible tiles for bots",
 			"description": "movement cost from core screen as well? so you can see if walls are effective etc",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "22304f95-31b4-4be0-ae2e-87e22107a8fd",
-			"title": "bot slow penalty when going over belts?",
-			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		},

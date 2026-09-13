@@ -45,9 +45,9 @@ static func get_items() -> Array[Dictionary]:
 		var subcategory = "Materials"
 		if res.is_ammo:
 			subcategory = "Ammo"
-		elif key in ["Wood", "Stone"]:
+		elif key in ["Wood", "Stone", "Iron Ore"]:
 			subcategory = "Raw Resources"
-		elif key in ["Plank", "Stone Brick"]:
+		elif key in ["Plank", "Stone Brick", "Iron Ingot"]:
 			subcategory = "Refined"
 			
 		var stats: Dictionary = {}
@@ -788,6 +788,20 @@ static func get_buildings() -> Array[Dictionary]:
 				"Build Cost": "50 Wood, 25 Stone"
 			},
 			"combat_notes": "Key mid-to-late game building for extracting advanced metallurgy ores."
+		},
+		{
+			"id": "forge",
+			"name": "Forge",
+			"category": "Buildings",
+			"subcategory": "Production",
+			"icon": get_building_atlas(Rect2(864, 160, 160, 96)),
+			"description": "Forge building used to smelt raw ores into usable ingots",
+			"stats": {
+				"Footprint": "5x3 Tiles",
+				"Crafting Time Mult": 1.5,
+				"Build Cost": "25 Wood, 25 Stone, 25 Planks, 25 Stone Bricks"
+			},
+			"combat_notes": "Key mid-to-late game building for turning ores into usable building materials"
 		},
 		{
 			"id": "bot_home",
