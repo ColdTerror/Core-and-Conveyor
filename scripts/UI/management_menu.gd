@@ -1029,7 +1029,10 @@ func _render_codex_card(entry: Dictionary):
 		current_tier = tiers_arr[idx]
 
 	if codex_detail_icon:
-		codex_detail_icon.texture = entry.get("icon", null)
+		if has_tiers and current_tier.has("icon") and current_tier["icon"] != null:
+			codex_detail_icon.texture = current_tier["icon"]
+		else:
+			codex_detail_icon.texture = entry.get("icon", null)
 	if codex_detail_title:
 		if has_tiers and current_tier.has("level_label"):
 			codex_detail_title.text = "%s (%s)" % [entry.get("name", "Unknown"), current_tier["level_label"]]

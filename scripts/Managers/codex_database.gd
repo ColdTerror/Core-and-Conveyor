@@ -22,7 +22,7 @@ static func get_atlas_texture(tex: Texture2D, hframes: int = 1, vframes: int = 1
 	atlas.region = Rect2(col * fw, row * fh, fw, fh)
 	return atlas
 
-## Helper to create an AtlasTexture from a Buildings.png rect.
+## Helper to create an AtlasTexture from a Buildings.png rect (fallback).
 static func get_building_atlas(rect: Rect2) -> Texture2D:
 	var tex = load("res://assets/Buildings.png") as Texture2D
 	if not tex: return null
@@ -30,6 +30,12 @@ static func get_building_atlas(rect: Rect2) -> Texture2D:
 	atlas.atlas = tex
 	atlas.region = rect
 	return atlas
+
+## Helper to fetch building icon dynamically from BuildingDatabase.
+static func get_building_icon(id: String, tier: int = 1) -> Texture2D:
+	if BuildingDatabase:
+		return BuildingDatabase.get_building_icon(id, tier)
+	return null
 
 
 ## Returns all categorized Item entries.
@@ -238,7 +244,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Bow Tower",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(288, 320, 64, 64)),
+			"icon": get_building_icon("bow_tower", 1),
 			"description": "Standard defensive turret that fires arrows at approaching enemies. Can be upgraded to Tier 2 for increased range, fire rate, and damage.",
 			"stats": {
 				"Footprint": "2x2 Tiles",
@@ -253,6 +259,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"tiers": [
 				{
 					"level_label": "Level 1 (Base)",
+					"icon": get_building_icon("bow_tower", 1),
 					"description": "Standard defensive turret that fires arrows at approaching enemies.",
 					"stats": {
 						"Footprint": "2x2 Tiles",
@@ -266,6 +273,7 @@ static func get_buildings() -> Array[Dictionary]:
 				},
 				{
 					"level_label": "Level 2 (Upgraded)",
+					"icon": get_building_icon("bow_tower", 2),
 					"description": "Upgraded archer tower with extended engagement range, reinforced firing velocity, and increased ammo capacity.",
 					"stats": {
 						"Footprint": "2x2 Tiles",
@@ -284,7 +292,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Ballista Tower",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(192, 320, 96, 96)),
+			"icon": get_building_icon("ballista_tower", 1),
 			"description": "Heavy long-range siege artillery that launches massive Ballista Bolts capable of impaling high-health monsters.",
 			"stats": {
 				"Footprint": "3x3 Tiles",
@@ -303,7 +311,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Scattershot Tower",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(352, 320, 64, 64)),
+			"icon": get_building_icon("scattershot_tower", 1),
 			"description": "Multi-barrel shotgun turret that discharges 5 pebbles in a wide 20-degree cone for swarm suppression.",
 			"stats": {
 				"Footprint": "2x2 Tiles",
@@ -320,7 +328,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Sling Tower",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(416, 320, 64, 64)),
+			"icon": get_building_icon("sling_tower", 1),
 			"description": "Rapid-fire mechanical sling that pelts enemies continuously with crushing pebbles.",
 			"stats": {
 				"Footprint": "2x2 Tiles",
@@ -336,7 +344,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Ammo Distributor",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(480, 320, 64, 64)),
+			"icon": get_building_icon("ammo_distributor", 1),
 			"description": "Automated supply cannon that launches ammunition packages directly into nearby towers within its radius.",
 			"stats": {
 				"Footprint": "2x2 Tiles",
@@ -350,6 +358,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"tiers": [
 				{
 					"level_label": "Level 1 (Base)",
+					"icon": get_building_icon("ammo_distributor", 1),
 					"description": "Automated supply cannon that launches ammunition packages directly into nearby towers within its radius.",
 					"stats": {
 						"Footprint": "2x2 Tiles",
@@ -362,6 +371,7 @@ static func get_buildings() -> Array[Dictionary]:
 				},
 				{
 					"level_label": "Level 2 (Upgraded)",
+					"icon": get_building_icon("ammo_distributor", 2),
 					"description": "Enhanced high-velocity supply distributor with wider delivery coverage and double the batch delivery payload.",
 					"stats": {
 						"Footprint": "2x2 Tiles",
@@ -380,7 +390,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Perimeter Wall",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(160, 160, 32, 32)),
+			"icon": get_building_icon("wall", 1),
 			"description": "Sturdy defensive barricade that blocks ground enemy movement and funnels horde units into designated kill-zones.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -395,7 +405,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Security Gate",
 			"category": "Buildings",
 			"subcategory": "Defense",
-			"icon": get_building_atlas(Rect2(224, 224, 96, 32)),
+			"icon": get_building_icon("gate", 1),
 			"description": "Reinforced 3-tile wide automated portcullis that opens instantly for friendly worker bots while barring enemies.",
 			"stats": {
 				"Footprint": "3x1 Tiles (Horizontal / Vertical)",
@@ -413,7 +423,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Conveyor Belt",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(0, 224, 32, 32)),
+			"icon": get_building_icon("conveyor_belt", 1),
 			"description": "Logistical conveyor lane that transports resources and finished ammunition smoothly across your factory.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -428,7 +438,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Belt Router",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(0, 192, 32, 32)),
+			"icon": get_building_icon("router_building", 1),
 			"description": "Distributes incoming belt items evenly across up to 3 outgoing directions in round-robin sequence.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -442,7 +452,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Belt Filter",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(64, 192, 32, 32)),
+			"icon": get_building_icon("filter_building", 1),
 			"description": "Inspects passing items and diverts a specifically selected resource type to its filtered output, letting all others pass straight.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -456,7 +466,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Conveyor Bridge",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(32, 192, 32, 32)),
+			"icon": get_building_icon("conveyor_bridge", 1),
 			"description": "An elevated crossover bridge allowing two independent conveyor lines to intersect without mixing items.",
 			"stats": {
 				"Footprint": "1x1 Tile",
@@ -469,7 +479,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Stockpile",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(0, 0, 128, 128)),
+			"icon": get_building_icon("stockpile", 1),
 			"description": "High-capacity bulk storage container with belt input/output ports. Can be locked to a single dedicated item.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
@@ -482,6 +492,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"tiers": [
 				{
 					"level_label": "Level 1 (Base)",
+					"icon": get_building_icon("stockpile", 1),
 					"description": "High-capacity bulk storage container with belt input/output ports. Can be locked to a single dedicated item.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
@@ -493,6 +504,7 @@ static func get_buildings() -> Array[Dictionary]:
 				},
 				{
 					"level_label": "Level 2 (Upgraded)",
+					"icon": get_building_icon("stockpile", 2),
 					"description": "Reinforced warehouse storage container with expanded internal volume.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
@@ -509,7 +521,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Item Launcher",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(544, 448, 128, 128)),
+			"icon": get_building_icon("item_launcher", 1),
 			"description": "High-velocity pneumatic launcher that shoots item payload canisters across long distances directly into an Item Receiver.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
@@ -523,7 +535,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Item Receiver",
 			"category": "Buildings",
 			"subcategory": "Logistics",
-			"icon": get_building_atlas(Rect2(800, 448, 128, 128)),
+			"icon": get_building_icon("item_receiver", 1),
 			"description": "Pneumatic capture port that catches incoming item canisters from Item Launchers and unloads them onto belts.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
@@ -541,7 +553,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Command Core",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(512, 192, 128, 128)),
+			"icon": get_building_icon("core", 1),
 			"description": "The heart of your colony. Contains primary research systems, base storage, and wireless bot charging emitters. If the core falls, the game is lost!",
 			"stats": {
 				"Footprint": "4x4 Tiles",
@@ -556,7 +568,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Sawmill",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(256, 0, 128, 128)),
+			"icon": get_building_icon("sawmill", 1),
 			"description": "Wood processing facility that cuts raw tree logs into refined Planks for construction and advanced ammo.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
@@ -569,6 +581,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"tiers": [
 				{
 					"level_label": "Level 1 (Base)",
+					"icon": get_building_icon("sawmill", 1),
 					"description": "Wood processing facility that cuts raw tree logs into refined Planks for construction and advanced ammo.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
@@ -580,6 +593,7 @@ static func get_buildings() -> Array[Dictionary]:
 				},
 				{
 					"level_label": "Level 2 (Upgraded)",
+					"icon": get_building_icon("sawmill", 2),
 					"description": "Steam-powered sawmill with high-torque circular blades for accelerated plank production.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
@@ -596,7 +610,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Stone Mason",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(768, 0, 192, 128)),
+			"icon": get_building_icon("stonemason", 1),
 			"description": "Large masonry workshop that chips raw stone into polished Stone Bricks for fortified structures.",
 			"stats": {
 				"Footprint": "6x4 Tiles",
@@ -609,6 +623,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"tiers": [
 				{
 					"level_label": "Level 1 (Base)",
+					"icon": get_building_icon("stonemason", 1),
 					"description": "Large masonry workshop that chips raw stone into polished Stone Bricks for fortified structures.",
 					"stats": {
 						"Footprint": "6x4 Tiles",
@@ -620,6 +635,7 @@ static func get_buildings() -> Array[Dictionary]:
 				},
 				{
 					"level_label": "Level 2 (Upgraded)",
+					"icon": get_building_icon("stonemason", 2),
 					"description": "Reinforced masonry foundry utilizing precision stonecutting blades.",
 					"stats": {
 						"Footprint": "6x4 Tiles",
@@ -636,7 +652,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Fletcher",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(480, 0, 128, 128)),
+			"icon": get_building_icon("fletcher", 1),
 			"description": "Dedicated ammunition workshop that crafts Wooden Arrows, Stone Arrows, and Ballista Bolts.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
@@ -649,6 +665,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"tiers": [
 				{
 					"level_label": "Level 1 (Base)",
+					"icon": get_building_icon("fletcher", 1),
 					"description": "Dedicated ammunition workshop that crafts Wooden Arrows, Stone Arrows, and Ballista Bolts.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
@@ -660,6 +677,7 @@ static func get_buildings() -> Array[Dictionary]:
 				},
 				{
 					"level_label": "Level 2 (Upgraded)",
+					"icon": get_building_icon("fletcher", 2),
 					"description": "Automated bowyer and fletching lathe capable of assembling ammunition at rapid rates.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
@@ -676,7 +694,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Stone Crusher",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(992, 0, 128, 128)),
+			"icon": get_building_icon("stone_crusher", 1),
 			"description": "Heavy industrial crusher that fractures large stones into sling Pebbles and artillery Boulders.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
@@ -690,7 +708,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Lumberjack",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(128, 0, 128, 128)),
+			"icon": get_building_icon("lumberjack", 1),
 			"description": "Automated logging station that fells surrounding trees and outputs Wood logs continuously onto belts.",
 			"stats": {
 				"Footprint": "4x4 Tiles",
@@ -704,6 +722,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"tiers": [
 				{
 					"level_label": "Level 1 (Base)",
+					"icon": get_building_icon("lumberjack", 1),
 					"description": "Automated logging station that fells surrounding trees and outputs Wood logs continuously onto belts.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
@@ -716,6 +735,7 @@ static func get_buildings() -> Array[Dictionary]:
 				},
 				{
 					"level_label": "Level 2 (Upgraded)",
+					"icon": get_building_icon("lumberjack", 2),
 					"description": "Industrial timbering camp with high-power mechanical saws for rapid lumber harvesting.",
 					"stats": {
 						"Footprint": "4x4 Tiles",
@@ -733,7 +753,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Stone Mine",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(640, 0, 96, 96)),
+			"icon": get_building_icon("stone_mine", 1),
 			"description": "Automated quarry drill that extracts raw Stone from stone deposit tiles and outputs directly onto belts.",
 			"stats": {
 				"Footprint": "3x3 Tiles",
@@ -748,6 +768,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"tiers": [
 				{
 					"level_label": "Level 1 (Base)",
+					"icon": get_building_icon("stone_mine", 1),
 					"description": "Automated quarry drill that extracts raw Stone from stone deposit tiles and outputs directly onto belts.",
 					"stats": {
 						"Footprint": "3x3 Tiles",
@@ -761,6 +782,7 @@ static func get_buildings() -> Array[Dictionary]:
 				},
 				{
 					"level_label": "Level 2 (Upgraded)",
+					"icon": get_building_icon("stone_mine", 2),
 					"description": "Heavy pneumatic quarry extractor with deep-bore percussion drills.",
 					"stats": {
 						"Footprint": "3x3 Tiles",
@@ -779,7 +801,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Ore Drill",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(896, 160, 96, 96)),
+			"icon": get_building_icon("ore_drill", 1),
 			"description": "Heavy rotary drill designed to bore deep into mineral veins to extract raw Iron Ore.",
 			"stats": {
 				"Footprint": "3x3 Tiles",
@@ -794,7 +816,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Forge",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(864, 160, 160, 96)),
+			"icon": get_building_icon("forge", 1),
 			"description": "Forge building used to smelt raw ores into usable ingots",
 			"stats": {
 				"Footprint": "5x3 Tiles",
@@ -808,7 +830,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"name": "Bot Home",
 			"category": "Buildings",
 			"subcategory": "Production",
-			"icon": get_building_atlas(Rect2(128, 544, 32, 32)),
+			"icon": get_building_icon("bot_home", 1),
 			"description": "Dedicated docking post and high-efficiency charging stand for worker bots.",
 			"stats": {
 				"Footprint": "1x1 Tile",

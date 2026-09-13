@@ -31,6 +31,7 @@ GameState="*uid://bv1q0jdinb14"
 ResearchManager="*uid://cacfewps4sp0b"
 SaveManager="*uid://b0n8fy8v587vl"
 ItemDatabase="*uid://bgrght5xfwaty"
+BuildingDatabase="*res://scripts/Managers/building_database.gd"
 InputManager="*uid://cvnhhqs11go8y"
 AudioManager="*uid://b62cdiulu7kma"
 
