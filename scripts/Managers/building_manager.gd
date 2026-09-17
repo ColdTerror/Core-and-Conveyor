@@ -1230,7 +1230,7 @@ func _building_needs_work_raw(bldg: Node) -> bool:
 	if bldg.health < bldg.max_health:
 		if (bldg is WallBuilding) or (bldg is GateBuilding):
 			var time_managers = get_tree().get_nodes_in_group("TimeManager")
-			if not time_managers.is_empty() and time_managers[0].is_night:
+			if not time_managers.is_empty() and (time_managers[0].is_night or time_managers[0].is_eclipse_active):
 				return false
 		return true
 		

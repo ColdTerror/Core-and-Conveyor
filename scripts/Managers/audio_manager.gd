@@ -166,7 +166,7 @@ func _on_music_finished():
 		music_player.play() 
 		return
 		
-	if time_manager.is_night:
+	if time_manager.is_night or ("is_eclipse_active" in time_manager and time_manager.is_eclipse_active):
 		match time_manager.current_moon_phase:
 			TimeManager.MoonPhase.BLOOD:
 				play_playlist_track("Night_Blood", 0.25)

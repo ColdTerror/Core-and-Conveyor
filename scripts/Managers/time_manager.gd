@@ -14,6 +14,9 @@ signal hour_passed(hour: int)
 signal day_started(day_number: int)
 signal night_started(day_number: int)
 signal season_changed(new_season: Season)
+signal eclipse_warning(hours_remaining: float)
+signal eclipse_started
+signal eclipse_ended
 
 enum MoonPhase { NORMAL, FULL, BLOOD }
 enum Season { SPRING, SUMMER, AUTUMN, WINTER }
@@ -26,12 +29,15 @@ enum Season { SPRING, SUMMER, AUTUMN, WINTER }
 @export var night_color := Color(0.5, 0.5, 0.8, 1)     # Dark, moody purple/blue
 @export var blood_moon_color := Color(0.9, 0.65, 0.65, 1.0)# Terrifying Red!
 @export var full_moon_color := Color(0.6, 0.7, 1.0, 1) # Bright, safe blue!
+@export var eclipse_color := Color(0.45, 0.4, 0.6, 1.0)# Amber/violet solar corona twilight
 @export var sunrise_hour: int = 6
 @export var sunset_hour: int = 18
 
 @export_group("Debug & Testing")
 @export var force_full_moon: bool = false
 @export var force_blood_moon: bool = false
+@export var force_eclipse: bool = false
+@export var eclipse_chance: float = 0.15
 
 var is_time_running: bool = false
 var current_day: int = 1
@@ -41,13 +47,18 @@ var is_night: bool = false
 var current_moon_phase: MoonPhase = MoonPhase.NORMAL
 var last_night_moon_phase: MoonPhase = MoonPhase.NORMAL
 
+var is_eclipse_today: bool = false
+var is_eclipse_active: bool = false
+var is_eclipse_warning: bool = false
+
 
 
 
 ## Adds this node to the global group for easy lookup.
 func _ready():
 	add_to_group("TimeManager")
-
+	if force_eclipse and current_day > 3 and not is_night and current_time < 15.0:
+		is_eclipse_today = true
 
 
 ## Runs the real-time calendar clock, manages hourly signals, and transitions daytime color modulations.
@@ -73,6 +84,38 @@ func _process(delta: float):
 		hour_passed.emit(current_hour)
 		_check_day_night_triggers()
 
+	_check_eclipse_lifecycle()
+
+
+## Checks and manages eclipse warning, totality, and conclusion timing.
+func _check_eclipse_lifecycle():
+	if force_eclipse and not is_eclipse_today and not is_night and current_time < 15.0:
+		is_eclipse_today = true
+
+	if not is_eclipse_today:
+		return
+
+	# Warning check at 11:00 AM
+	if current_time >= 11.0 and current_time < 12.0:
+		if not is_eclipse_warning:
+			is_eclipse_warning = true
+			eclipse_warning.emit(max(0.0, 12.0 - current_time))
+
+	# Totality start at 12:00 PM
+	if current_time >= 12.0 and current_time < 15.0:
+		if not is_eclipse_active:
+			is_eclipse_active = true
+			eclipse_started.emit()
+			AudioManager.play_playlist_track("Night_Normal", 2.0)
+
+	# Totality end at 3:00 PM
+	if current_time >= 15.0:
+		if is_eclipse_active:
+			is_eclipse_active = false
+			is_eclipse_today = false
+			is_eclipse_warning = false
+			eclipse_ended.emit()
+			AudioManager.play_playlist_track("Day", 2.0)
 
 
 ## Triggers daily score accounting, week ending checks, and archival metrics logs at midnight.
@@ -114,7 +157,24 @@ func _check_day_night_triggers():
 	if current_hour == sunrise and is_night:
 		is_night = false
 		last_night_moon_phase = current_moon_phase
-		current_moon_phase = MoonPhase.NORMAL # Reset for the day
+		
+		# Pre-roll tonight's moon phase at dawn so forecast/eclipse knows in advance!
+		if force_full_moon:
+			current_moon_phase = MoonPhase.FULL
+		elif force_blood_moon:
+			current_moon_phase = MoonPhase.BLOOD
+		else:
+			current_moon_phase = _roll_moon_phase()
+			
+		# Check for Eclipse today (Only on Normal Moon days, after Day 1, 15% chance)
+		if force_eclipse or (current_day > 1 and current_moon_phase == MoonPhase.NORMAL and randf() < eclipse_chance):
+			is_eclipse_today = true
+		else:
+			is_eclipse_today = false
+			
+		is_eclipse_warning = false
+		is_eclipse_active = false
+		
 		day_started.emit(current_day)
 		AudioManager.play_playlist_track("Sunrise", 3.0)
 		
@@ -122,14 +182,11 @@ func _check_day_night_triggers():
 	elif current_hour == sunset and not is_night:
 		is_night = true
 		
-		# --- DEBUG OVERRIDES ---
+		# If debug overrides were toggled mid-day
 		if force_full_moon:
 			current_moon_phase = MoonPhase.FULL
 		elif force_blood_moon:
 			current_moon_phase = MoonPhase.BLOOD
-		else:
-			# Roll the Moon Phase with back-to-back special type prevention
-			current_moon_phase = _roll_moon_phase()
 			
 		night_started.emit(current_day)
 		
@@ -192,7 +249,19 @@ func _update_lighting():
 		lighting_modulate.color = day_color.lerp(target_night_color, blend_factor)
 		
 	elif current_time > sunrise + transition_duration and current_time < sunset:
-		lighting_modulate.color = day_color
+		if is_eclipse_today:
+			if current_time >= 11.5 and current_time < 12.0:
+				var f = (current_time - 11.5) / 0.5
+				lighting_modulate.color = day_color.lerp(eclipse_color, f)
+			elif current_time >= 12.0 and current_time < 15.0:
+				lighting_modulate.color = eclipse_color
+			elif current_time >= 15.0 and current_time <= 15.5:
+				var f = (current_time - 15.0) / 0.5
+				lighting_modulate.color = eclipse_color.lerp(day_color, f)
+			else:
+				lighting_modulate.color = day_color
+		else:
+			lighting_modulate.color = day_color
 	else:
 		if current_moon_phase == MoonPhase.BLOOD: target_night_color = blood_moon_color
 		elif current_moon_phase == MoonPhase.FULL: target_night_color = full_moon_color
@@ -256,7 +325,9 @@ func get_save_data() -> Dictionary:
 		"current_hour": current_hour,
 		"is_night": is_night,
 		"current_moon_phase": current_moon_phase,
-		"last_night_moon_phase": last_night_moon_phase
+		"last_night_moon_phase": last_night_moon_phase,
+		"is_eclipse_today": is_eclipse_today,
+		"is_eclipse_active": is_eclipse_active
 	}
 
 
@@ -270,6 +341,8 @@ func load_save_data(data: Dictionary):
 	is_night = data.get("is_night", false)
 	current_moon_phase = data.get("current_moon_phase", MoonPhase.NORMAL)
 	last_night_moon_phase = data.get("last_night_moon_phase", MoonPhase.NORMAL)
+	is_eclipse_today = data.get("is_eclipse_today", false)
+	is_eclipse_active = data.get("is_eclipse_active", false)
 	
 	_update_lighting()
 	
@@ -278,12 +351,20 @@ func load_save_data(data: Dictionary):
 			MoonPhase.BLOOD: AudioManager.play_playlist_track("Night_Blood", 0.5)
 			MoonPhase.FULL: AudioManager.play_playlist_track("Night_Full", 0.5)
 			_: AudioManager.play_playlist_track("Night_Normal", 0.5)
+	elif is_eclipse_active:
+		AudioManager.play_playlist_track("Night_Normal", 0.5)
 	elif current_time >= get_sunrise_hour() and current_time < get_sunrise_hour() + 2.0:
 		AudioManager.play_playlist_track("Sunrise", 0.5)
 	else:
 		AudioManager.play_playlist_track("Day", 0.5)
 		
 	season_changed.emit(get_current_season())
+
+
+
+## Returns true if darkness covers the land (either regular night or solar eclipse).
+func is_dark() -> bool:
+	return is_night or is_eclipse_active
 
 
 
@@ -312,3 +393,16 @@ func debug_skip_to_next_morning():
 	# On the next frame, it will see the hour changed to 6 and trigger the sunrise logic!
 	current_hour = get_sunrise_hour() - 1
 	is_night = true
+
+
+
+## Forcefully triggers an eclipse event immediately by jumping clock to 11:54 AM.
+func debug_trigger_eclipse():
+	if is_night:
+		is_night = false
+	is_eclipse_today = true
+	is_eclipse_warning = false
+	is_eclipse_active = false
+	current_time = 11.9
+	current_hour = 11
+	_update_lighting()

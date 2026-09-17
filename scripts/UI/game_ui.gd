@@ -47,6 +47,8 @@ var wave_digits: Array = []
 var queue_digits: Array = []
 var active_digits: Array = []
 var wave_status_label: Label
+var wave_pref_label: Label
+
 
 var corruption_hud: HBoxContainer
 var corruption_digits: Array = []
@@ -68,6 +70,8 @@ var build_grid_label: Label
 func _ready():
 	update_labels()
 	EconomyManager.inventory_changed.connect(_on_inventory_changed)
+	
+
 	
 	if game_over_panel:
 		game_over_panel.hide()
@@ -108,7 +112,6 @@ func _ready():
 	)
 
 
-	
 	# Instantiate dynamic Date HUD
 	date_hud = HBoxContainer.new()
 	date_hud.alignment = HBoxContainer.ALIGNMENT_CENTER
@@ -155,6 +158,7 @@ func _ready():
 	wave_pref.text = "Night "
 	wave_pref.add_theme_font_size_override("font_size", 20)
 	wave_hud.add_child(wave_pref)
+	wave_pref_label = wave_pref
 	wave_digits = _create_digit_list(wave_hud, 2)
 	
 	var queue_lbl = Label.new()
@@ -253,6 +257,7 @@ func _ready():
 	path_grid_hud.hide()
 
 	# Guarantee vertical VBoxContainer sorting order (index 0 is top, 6 is bottom)
+
 	$VBoxContainer.move_child(date_hud, 0)
 	$VBoxContainer.move_child(wave_hud, 1)
 	$VBoxContainer.move_child(wave_status_label, 2)
@@ -286,20 +291,34 @@ func _process(_delta):
 			wave_hud.show()
 			wave_status_label.hide()
 			
-			_set_digits_value(wave_digits, wave_manager.current_wave)
+			if wave_manager.is_eclipse_wave:
+				if wave_pref_label:
+					wave_pref_label.text = "Eclipse "
+				_set_digits_value(wave_digits, time_manager.current_day if time_manager else wave_manager.current_wave)
+				wave_hud.modulate = Color(1.0, 0.65, 0.3) # Eerie amber/orange
+			else:
+				if wave_pref_label:
+					wave_pref_label.text = "Night "
+				_set_digits_value(wave_digits, wave_manager.current_wave)
+				wave_hud.modulate = Color(1.0, 0.4, 0.4) 
+			
 			_set_digits_value(queue_digits, wave_manager.enemies_to_spawn)
 			_set_digits_value(active_digits, enemies_alive)
-			
-			wave_hud.modulate = Color(1.0, 0.4, 0.4) 
 		else:
 			wave_hud.hide()
 			wave_status_label.show()
 			wave_hud.modulate = Color.WHITE
+			if wave_pref_label:
+				wave_pref_label.text = "Night "
 			
 			# NO RESEARCH: Completely blind!
 			if not ResearchManager.wave_measure:
-				wave_status_label.text = "Night approaching..."
-				wave_status_label.modulate = Color.WHITE
+				if time_manager and time_manager.is_eclipse_warning:
+					wave_status_label.text = "The sky dims unnaturally... an eclipse approaches!"
+					wave_status_label.modulate = Color(1.0, 0.7, 0.2)
+				else:
+					wave_status_label.text = "Night approaching..."
+					wave_status_label.modulate = Color.WHITE
 				
 			# HAS RESEARCH: Show the forecast!
 			else:
@@ -323,11 +342,17 @@ func _process(_delta):
 								is_blood_moon = true
 							TimeManager.MoonPhase.NORMAL:
 								moon_status = " [Normal Moon]"
+								if time_manager.is_eclipse_today:
+									moon_status += " [SOLAR ECLIPSE AT NOON]"
 					else:
 						moon_status = " [Calculating Lunar Phase...]"
 				
+				# Eclipse warning overrides status label during warning window (11:00 AM - 12:00 PM)
+				if time_manager and time_manager.is_eclipse_warning:
+					wave_status_label.text = "WARNING: Solar Eclipse Imminent (12:00 PM)! Defend the Core!"
+					wave_status_label.modulate = Color(1.0, 0.7, 0.2)
 				# Apply the text and colors!
-				if forecast <= 0 or is_full_moon:
+				elif forecast <= 0 or is_full_moon:
 					wave_status_label.text = "Full Moon Tonight... The forest is quiet."
 					wave_status_label.modulate = Color(0.6, 0.8, 1.0) # Soft moonlight blue
 				else:

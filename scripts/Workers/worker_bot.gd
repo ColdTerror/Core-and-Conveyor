@@ -136,10 +136,10 @@ func _process(delta):
 	queue_redraw()
 	_handle_energy(delta)
 	
-	# Cancel wall/gate repairs at night
+	# Cancel wall/gate repairs at night or during an eclipse
 	if current_state in [State.MOVING_TO_REPAIR, State.REPAIRING]:
 		var time_managers = get_tree().get_nodes_in_group("TimeManager")
-		if not time_managers.is_empty() and time_managers[0].is_night:
+		if not time_managers.is_empty() and (time_managers[0].is_night or time_managers[0].is_eclipse_active):
 			var target_building = level_ref.building_manager.occupied_tiles.get(target_tile, null)
 			if is_instance_valid(target_building) and ((target_building is WallBuilding) or (target_building is GateBuilding)):
 				_clear_reservation()

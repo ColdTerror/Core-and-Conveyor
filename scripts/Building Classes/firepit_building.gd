@@ -84,9 +84,11 @@ func _connect_time_manager():
 
 	_time_manager.day_started.connect(_on_day_started)
 	_time_manager.night_started.connect(_on_night_started)
+	_time_manager.eclipse_started.connect(_on_eclipse_started)
+	_time_manager.eclipse_ended.connect(_on_eclipse_ended)
 
-	# Immediately match whatever state the game is in (e.g. loaded mid-night)
-	if _time_manager.is_night:
+	# Immediately match whatever state the game is in (e.g. loaded mid-night or mid-eclipse)
+	if _time_manager.is_night or _time_manager.is_eclipse_active:
 		_light_on(_time_manager.current_moon_phase)
 	else:
 		_light_off()
@@ -96,8 +98,9 @@ func _connect_time_manager():
 ## Gently pulses the light radius and energy each frame to simulate a live flame.
 func _process(delta: float):
 	if _time_manager:
-		if _time_manager.is_night != _is_lit:
-			if _time_manager.is_night:
+		var should_be_lit = _time_manager.is_night or _time_manager.is_eclipse_active
+		if should_be_lit != _is_lit:
+			if should_be_lit:
 				_light_on(_time_manager.current_moon_phase)
 			else:
 				_light_off()
@@ -156,6 +159,21 @@ func _on_night_started(_day_num: int):
 
 
 
+## Called when an eclipse begins — ignites the light.
+func _on_eclipse_started():
+	var moon_phase = TimeManager.MoonPhase.NORMAL
+	if _time_manager:
+		moon_phase = _time_manager.current_moon_phase
+	_light_on(moon_phase)
+
+
+
+## Called when an eclipse ends — extinguishes the light.
+func _on_eclipse_ended():
+	_light_off()
+
+
+
 ## Disconnects signals cleanly when the building is removed from the scene tree.
 func _exit_tree():
 	if is_instance_valid(_time_manager):
@@ -163,3 +181,7 @@ func _exit_tree():
 			_time_manager.day_started.disconnect(_on_day_started)
 		if _time_manager.night_started.is_connected(_on_night_started):
 			_time_manager.night_started.disconnect(_on_night_started)
+		if _time_manager.eclipse_started.is_connected(_on_eclipse_started):
+			_time_manager.eclipse_started.disconnect(_on_eclipse_started)
+		if _time_manager.eclipse_ended.is_connected(_on_eclipse_ended):
+			_time_manager.eclipse_ended.disconnect(_on_eclipse_ended)

@@ -46,6 +46,7 @@ var current_wave: int = 0
 var night_enemies_total: int = 0
 var enemies_to_spawn: int = 0
 var is_wave_active: bool = false
+var is_eclipse_wave: bool = false
 var spawn_accumulator: float = 0.0
 
 var trickle_enemies_total: int = 0
@@ -60,6 +61,8 @@ func _ready():
 	if time_manager:
 		time_manager.night_started.connect(_on_night_started)
 		time_manager.day_started.connect(_on_day_started)
+		time_manager.eclipse_started.connect(_on_eclipse_started)
+		time_manager.eclipse_ended.connect(_on_eclipse_ended)
 
 
 
@@ -229,10 +232,110 @@ func _on_day_started(day_num: int):
 	print("Sunrise! Night %d survived." % current_wave)
 
 
+## Triggers a daytime Solar Eclipse wave using the current day's normal horde size compressed into 3 hours without incrementing permanent wave difficulty.
+func _on_eclipse_started():
+	is_eclipse_wave = true
+	is_wave_active = true
+	spawn_accumulator = 0.0
+	
+	var day_idx = time_manager.current_day if time_manager else max(1, current_wave)
+	var base_enemies = initial_enemy_count * pow(difficulty_multiplier, max(0, day_idx - 1))
+	var extra_enemies = 0
+	if corruption_manager:
+		var land_size = corruption_manager.get_corruption_size()
+		extra_enemies = round(land_size * corruption_penalty_factor)
+		
+	night_enemies_total = round(base_enemies + extra_enemies)
+	enemies_to_spawn = night_enemies_total
+	
+	trickle_enemies_total = round(night_enemies_total * trickle_ratio)
+	trickle_enemies_remaining = trickle_enemies_total
+	group_enemies_total = night_enemies_total - trickle_enemies_total
+	group_enemies_remaining = group_enemies_total
+	
+	_schedule_eclipse_groups()
+	
+	print("SOLAR ECLIPSE HORDE: %d enemies inbound (%d trickle, %d grouped in %d mini-waves)." % [
+		night_enemies_total, trickle_enemies_total, group_enemies_total, scheduled_groups.size()
+	])
+
+
+## Schedules 2 to 3 intense group mini-waves tightly compressed between 12:00 PM and 3:00 PM.
+func _schedule_eclipse_groups():
+	scheduled_groups.clear()
+	if group_enemies_total <= 0: return
+	
+	var num_groups = randi_range(2, 3)
+	num_groups = min(num_groups, group_enemies_total)
+	if num_groups <= 0: return
+	
+	var group_counts: Array[int] = []
+	var base_c = group_enemies_total / num_groups
+	var rem = group_enemies_total % num_groups
+	for i in range(num_groups):
+		var c = base_c + (1 if i < rem else 0)
+		group_counts.append(c)
+	group_counts.shuffle()
+	
+	var step = 2.2 / float(num_groups + 1)
+	for i in range(num_groups):
+		var clock_hour = 12.3 + (i + 1) * step + randf_range(-0.08, 0.08)
+		scheduled_groups.append({
+			"clock_hour": clock_hour,
+			"count": group_counts[i]
+		})
+
+
+## Concludes the daytime Solar Eclipse wave without modifying current_wave calendar difficulty.
+func _on_eclipse_ended():
+	if is_eclipse_wave:
+		is_wave_active = false
+		is_eclipse_wave = false
+		if enemies_to_spawn > 0:
+			print("Eclipse Totality Ended! Flushing %d stragglers to spawn!" % enemies_to_spawn)
+			while enemies_to_spawn > 0:
+				if trickle_enemies_remaining > 0:
+					_do_trickle_spawn()
+				elif not scheduled_groups.is_empty():
+					var group_data = scheduled_groups.pop_front()
+					_do_group_spawn(group_data.get("count", 1))
+				else:
+					_do_trickle_spawn()
+		scheduled_groups.clear()
+		print("Sunlight restored! Eclipse horde survived.")
+
+
 
 ## Drives continuous curve spawning distribution for trickle pool and triggers scheduled group bursts.
 func _process(delta: float):
 	if not is_wave_active or enemies_to_spawn <= 0: 
+		return
+
+	# --- ECLIPSE WAVE SPAWNING (12:00 PM to 3:00 PM) ---
+	if is_eclipse_wave:
+		var time_now = time_manager.current_time if time_manager else 13.5
+		var eclipse_progress = clampf((time_now - 12.0) / 3.0, 0.0, 1.0)
+		var x_e = (eclipse_progress - 0.5) * 2.0
+		var curve = 1.0 - pow(abs(x_e), 2.0)
+		
+		var real_mins = time_manager.real_minutes_per_day if time_manager else 18.0
+		var eclipse_duration_sec = (real_mins * 60.0) * (3.0 / 24.0)
+		var peak_rate = (1.5 * trickle_enemies_total) / eclipse_duration_sec
+		var current_spawn_rate = max(0.1, peak_rate * curve)
+		
+		spawn_accumulator += current_spawn_rate * delta
+		while spawn_accumulator >= 1.0 and trickle_enemies_remaining > 0:
+			spawn_accumulator -= 1.0
+			_do_trickle_spawn()
+			
+		if not scheduled_groups.is_empty():
+			var i = scheduled_groups.size() - 1
+			while i >= 0:
+				var group_data = scheduled_groups[i]
+				if time_now >= group_data.get("clock_hour", 999.0):
+					scheduled_groups.remove_at(i)
+					_do_group_spawn(group_data.get("count", 1))
+				i -= 1
 		return
 
 	var sunset = 18.0
