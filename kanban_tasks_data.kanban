@@ -28,7 +28,8 @@
 			"tasks": [
 				"e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
 				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
-				"81666a40-4240-4fa0-87d1-ea974b6bde91"
+				"81666a40-4240-4fa0-87d1-ea974b6bde91",
+				"11d5130e-2ad1-47f6-ae45-22ee0ff761ae"
 			]
 		},
 		{
@@ -191,6 +192,13 @@
 			"uuid": "f6b662fd-cab4-4f49-b2fd-3d4d8246a2b5",
 			"title": "have show upgrade button in codex",
 			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "11d5130e-2ad1-47f6-ae45-22ee0ff761ae",
+			"title": "new sprites",
+			"description": "iron ore, iron bars\niron drill\nforge",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
