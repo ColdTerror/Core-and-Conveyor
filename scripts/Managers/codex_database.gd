@@ -804,7 +804,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"icon": get_building_icon("ore_drill", 1),
 			"description": "Heavy rotary drill designed to bore deep into mineral veins to extract raw Iron Ore.",
 			"stats": {
-				"Footprint": "3x3 Tiles",
+				"Footprint": "4x5 Tiles",
 				"Harvest Target": "Iron Ore Veins",
 				"Work Interval": "2.5s per ore",
 				"Build Cost": "50 Wood, 25 Stone"
@@ -819,7 +819,7 @@ static func get_buildings() -> Array[Dictionary]:
 			"icon": get_building_icon("forge", 1),
 			"description": "Forge building used to smelt raw ores into usable ingots",
 			"stats": {
-				"Footprint": "5x3 Tiles",
+				"Footprint": "4x4 Tiles",
 				"Crafting Time Mult": 1.5,
 				"Build Cost": "25 Wood, 25 Stone, 25 Planks, 25 Stone Bricks"
 			},

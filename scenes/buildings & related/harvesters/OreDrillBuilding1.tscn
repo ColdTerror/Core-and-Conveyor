@@ -8,7 +8,7 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_drill"]
 atlas = ExtResource("3_buildings_sheet")
-region = Rect2(896, 160, 96, 96)
+region = Rect2(1184, 0, 128, 160)
 
 [sub_resource type="Resource" id="Resource_wood_cost"]
 script = ExtResource("5_cost_script")
@@ -28,7 +28,7 @@ generic_item_scene = ExtResource("4_item_scene")
 work_interval = 2.5
 fallback_work_interval_multiplier = 1.0
 building_name = "Ore Drill"
-size = Vector2i(3, 3)
+size = Vector2i(4, 5)
 icon = SubResource("AtlasTexture_drill")
 build_costs = Array[ExtResource("5_cost_script")]([SubResource("Resource_wood_cost"), SubResource("Resource_stone_cost")])
 build_range = 10.0
@@ -37,7 +37,7 @@ corruption_range = 10.0
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1372560711]
 texture = ExtResource("3_buildings_sheet")
 region_enabled = true
-region_rect = Rect2(896, 160, 96, 96)
+region_rect = Rect2(1184, 0, 128, 160)
 
 [node name="Line2D" type="Line2D" parent="." unique_id=846815626]
 width = 2.0
