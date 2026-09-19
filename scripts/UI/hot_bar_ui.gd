@@ -33,6 +33,7 @@ const BUILDING_DESCRIPTIONS: Dictionary = {
 	"Sawmill": "Processes raw Wood into Planks.",
 	"Stone Mine": "Mines stone from nearby stone deposits automatically.",
 	"Ore Drill": "Extracts iron and other ores from nearby bedrock deposits.",
+	"Forge": "Smelts raw ores into refined metal ingots.",
 	"Stonemason": "Refines raw Stone into Stone Bricks.",
 	"Fletcher": "Crafts Wooden Arrows and Stone Arrows using Planks, Stone, and Iron.",
 	"Stone Crusher": "Crushes Stone into Pebbles for Sling Towers.",

@@ -49,7 +49,3 @@ corruption_range = 10.0
 texture = ExtResource("7_grvyd")
 region_enabled = true
 region_rect = Rect2(1376, 0, 128, 128)
-
-[node name="Line2D" type="Line2D" parent="." unique_id=1388375912]
-width = 2.0
-default_color = Color(0.8211179, 0, 0.4125038, 1)
