@@ -393,7 +393,7 @@ func _reset_target():
 
 
 
-## Runs a global radar search to find and lock the nearest priority building target.
+## Runs a global radar search to find and lock the nearest functional building by weighted path cost.
 func _find_target():
 	# DISTRACTION CHECK
 	if not is_target_locked:
@@ -403,25 +403,99 @@ func _find_target():
 		if current_target != null and current_target.has_method("set_priority"):
 			return 
 
-	# Global radar (look for priority targets/buildings) with 8 tiles of perception noise
-	var targets = get_tree().get_nodes_in_group("PriorityTarget")
-	var nearest: Node2D = null
-	var min_dist = INF
-	
-	for t in targets:
-		if not is_instance_valid(t) or (t is Building and t.is_ghost): continue
-		
-		# Add up to 8 tiles (256 pixels) of random noise to distribute aggro
-		var real_dist = global_position.distance_to(t.global_position)
-		var noise = randf_range(-256.0, 256.0) 
-		var perceived_dist = max(0.0, real_dist + noise)
-		var d = perceived_dist * perceived_dist
-		
-		if d < min_dist:
-			min_dist = d
-			nearest = t
+	var bm: BuildingManager = null
+	if InputManager and is_instance_valid(InputManager.building_manager):
+		bm = InputManager.building_manager
+	elif is_inside_tree():
+		var lvl = get_tree().get_first_node_in_group("Level")
+		if lvl and "building_manager" in lvl:
+			bm = lvl.building_manager
+
+	var candidates: Array = []
+	if bm:
+		for b in bm.buildings:
+			if not is_instance_valid(b) or b.is_ghost or b.is_queued_for_deletion():
+				continue
+			# Exclude non-functional infrastructure (belts, walls, gates, construction sites, terraform sites)
+			if b is ConveyorBuilding or b is WallBuilding or b is GateBuilding or b is ConstructionSite or b is TerraformSite:
+				continue
 			
-	current_target = nearest
+			var dist_sq = global_position.distance_squared_to(b.global_position)
+			candidates.append({
+				"building": b,
+				"dist": dist_sq
+			})
+	else:
+		# Fallback if building manager not found: search PriorityTarget group
+		for t in get_tree().get_nodes_in_group("PriorityTarget"):
+			if not is_instance_valid(t) or (t is Building and t.is_ghost): continue
+			candidates.append({
+				"building": t,
+				"dist": global_position.distance_squared_to(t.global_position)
+			})
+
+	if candidates.is_empty():
+		current_target = null
+		return
+
+	# Sort candidates by straight-line distance
+	candidates.sort_custom(func(a, b): return a["dist"] < b["dist"])
+
+	# Evaluate the top 3-5 closest candidates via A* weighted pathfinding cost
+	var max_to_evaluate = min(5, candidates.size())
+	var best_building: Node2D = null
+	var lowest_path_cost := INF
+	var active_astar = pathfinder.flying_astar if (pathfinder and is_flying) else (pathfinder.enemy_astar if pathfinder else null)
+
+	if pathfinder and pathfinder.main_layer and active_astar:
+		for i in range(max_to_evaluate):
+			var b = candidates[i]["building"]
+			var access_points = b.get_access_points(pathfinder) if b.has_method("get_access_points") else []
+			
+			if access_points.is_empty():
+				# If building has no access points (e.g. completely boxed in), check straight-line path to global_position
+				var fallback_path = pathfinder.get_path_route(global_position, b.global_position, false, is_flying)
+				if not fallback_path.is_empty():
+					var cost = _calculate_path_cost(fallback_path, active_astar)
+					if cost < lowest_path_cost:
+						lowest_path_cost = cost
+						best_building = b
+				continue
+
+			var building_best_cost := INF
+			for pt in access_points:
+				var path = pathfinder.get_path_route(global_position, pt, false, is_flying)
+				if path.is_empty():
+					continue
+
+				var cost = _calculate_path_cost(path, active_astar)
+				if cost < building_best_cost:
+					building_best_cost = cost
+
+			if building_best_cost < lowest_path_cost:
+				lowest_path_cost = building_best_cost
+				best_building = b
+
+	# If all top candidates were unreachable by A*, fallback to the closest by distance
+	if best_building == null:
+		best_building = candidates[0]["building"]
+
+	current_target = best_building
+	_recalculate_path()
+
+
+
+## Calculates total accumulated weight scale cost along a path for enemy pathfinding.
+func _calculate_path_cost(path: PackedVector2Array, astar: AStarGrid2D) -> float:
+	if not pathfinder or not pathfinder.main_layer or not astar:
+		return float(path.size())
+		
+	var total_cost := 0.0
+	for world_point in path:
+		var local = pathfinder.main_layer.to_local(world_point)
+		var map_coords = pathfinder.main_layer.local_to_map(local)
+		total_cost += astar.get_point_weight_scale(map_coords)
+	return total_cost
 
 
 
@@ -465,22 +539,14 @@ func _recalculate_path():
 			
 		var best_path = PackedVector2Array()
 		var best_cost := INF
+		var active_astar = pathfinder.flying_astar if is_flying else pathfinder.enemy_astar
  
 		for pt in access_points:
 			var path = pathfinder.get_path_route(global_position, pt, false, is_flying)
 			if path.is_empty():
 				continue
  
-			var total_cost := 0.0
- 
-			# Convert world positions back to grid coords
-			for world_point in path:
-				var local = pathfinder.main_layer.to_local(world_point)
-				var map_coords = pathfinder.main_layer.local_to_map(local)
- 
-				var active_astar = pathfinder.flying_astar if is_flying else pathfinder.enemy_astar
-				var weight = active_astar.get_point_weight_scale(map_coords)
-				total_cost += weight
+			var total_cost = _calculate_path_cost(path, active_astar)
  
 			if best_path.is_empty() or total_cost < best_cost:
 				best_cost = total_cost
@@ -491,6 +557,7 @@ func _recalculate_path():
  
 	var new_path = pathfinder.get_path_route(global_position, target_pos, false, is_flying)
 	current_path = _prune_start_point(new_path)
+
 
 
 
