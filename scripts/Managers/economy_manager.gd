@@ -60,10 +60,14 @@ func _on_source_inventory_changed():
 
 
 
-## Registers a resource as permanently discovered by the player.
-func discover_resource(resource_name: String):
-	if not resource_name in discovered_resources:
-		discovered_resources.append(resource_name)
+## Registers a resource as permanently discovered by the player, and auto-pins to the HUD if slots remain.
+func discover_resource(resource_name: String, auto_pin: bool = true):
+	var norm_name = ItemDatabase.normalize_name(resource_name)
+	if not norm_name in discovered_resources:
+		discovered_resources.append(norm_name)
+		if auto_pin and not norm_name in pinned_resources and pinned_resources.size() < MAX_PINNED_RESOURCES:
+			pinned_resources.append(norm_name)
+		inventory_changed.emit()
 
 
 
@@ -199,14 +203,15 @@ func load_save_data(data: Dictionary):
 	history_archive.clear()
 	if data.has("history_archive"):
 		history_archive.assign(data["history_archive"])
-	if data.has("pinned_resources"):
+	var has_saved_pins = data.has("pinned_resources")
+	if has_saved_pins:
 		pinned_resources.clear()
 		for item in data["pinned_resources"]:
 			if pinned_resources.size() < MAX_PINNED_RESOURCES:
 				pinned_resources.append(str(item))
 	if data.has("discovered_resources"):
 		for item in data["discovered_resources"]:
-			discover_resource(str(item))
+			discover_resource(str(item), not has_saved_pins)
 	stats_updated.emit()
 
 
@@ -219,7 +224,7 @@ func recalculate_global_inventory():
 		if source.has_method("get_economy_assets"):
 			var assets = source.get_economy_assets()
 			for item_name in assets:
-				discover_resource(item_name)
+				discover_resource(item_name, false)
 				global_inventory[item_name] = global_inventory.get(item_name, 0) + assets[item_name]
 				
 	inventory_changed.emit()

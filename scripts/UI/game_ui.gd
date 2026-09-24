@@ -30,6 +30,7 @@ extends Control
 @onready var exit_button = $"../../GameOverPanel/VBoxContainer/Exit"
 
 var resource_labels: Dictionary = {}
+var _is_updating_labels: bool = false
 
 const DIGIT_SCENE = preload("res://scenes/ui/split_flap_digit.tscn")
 
@@ -420,6 +421,10 @@ func _process(_delta):
 
 ## Refreshes pinning inventory slots in the top HUD panel with current count and in-transit numbers.
 func update_labels():
+	if _is_updating_labels:
+		return
+	_is_updating_labels = true
+
 	# Hide all existing labels
 	for key in resource_labels.keys():
 		resource_labels[key].hide()
@@ -427,8 +432,8 @@ func update_labels():
 	# Get the full unsecured map once to avoid calling it in the loop
 	var unsecured_map = EconomyManager.get_unsecured_inventory()
 
-	# Loop through ONLY the pinned list (capped at 5 items to prevent HUD overlaps)
-	var max_slots = min(EconomyManager.pinned_resources.size(), 5)
+	# Loop through ONLY the pinned list (capped at MAX_PINNED_RESOURCES items to prevent HUD overlaps)
+	var max_slots = min(EconomyManager.pinned_resources.size(), EconomyManager.MAX_PINNED_RESOURCES)
 	for i in range(max_slots):
 		var resource_name = EconomyManager.pinned_resources[i]
 		
@@ -449,6 +454,8 @@ func update_labels():
 		item.update_values(secured, in_transit)
 		item.show()
 		inventoryContainer.move_child(item, i)
+
+	_is_updating_labels = false
 
 
 

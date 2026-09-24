@@ -29,14 +29,18 @@
 				"e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
 				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
 				"81666a40-4240-4fa0-87d1-ea974b6bde91",
-				"11d5130e-2ad1-47f6-ae45-22ee0ff761ae"
+				"8f983f11-c0b0-4f94-a552-51365af23da6",
+				"651a92de-d256-4472-802a-8eb2e60d64a4",
+				"24601864-4559-4f91-b17c-c1d5a82d74d7"
 			]
 		},
 		{
 			"uuid": "1749730f-6186-4207-8551-2460adcad71a",
 			"title": "Done",
 			"tasks": [
-				"7c09d4ec-6a91-47fa-8224-4a9bc796960a"
+				"2e33fbe8-31d4-4bfa-9e71-f8f95cd4ef3c",
+				"fdeea808-386f-4376-99d0-35cb4059cfd4",
+				"2f59eea3-f358-49aa-bba1-e231c4d4f9be"
 			]
 		}
 	],
@@ -161,13 +165,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "7c09d4ec-6a91-47fa-8224-4a9bc796960a",
-			"title": "eclipse, where day becaomes a second night",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "81666a40-4240-4fa0-87d1-ea974b6bde91",
 			"title": "you kinda run outta things to do/build after a wekk",
 			"description": "",
@@ -196,9 +193,44 @@
 			"steps": []
 		},
 		{
-			"uuid": "11d5130e-2ad1-47f6-ae45-22ee0ff761ae",
-			"title": "new sprites",
-			"description": "iron ore, iron bars\niron drill\nforge",
+			"uuid": "8f983f11-c0b0-4f94-a552-51365af23da6",
+			"title": "show building outlines when building a new one",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "651a92de-d256-4472-802a-8eb2e60d64a4",
+			"title": "check ground bot grid for what belts are",
+			"description": "it seems to advoid it when moving but not when depositing?\n",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "2f59eea3-f358-49aa-bba1-e231c4d4f9be",
+			"title": "automatically add new items to top bar until its full",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "fdeea808-386f-4376-99d0-35cb4059cfd4",
+			"title": "fix iron ore outcrop depleted state sprite",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "2e33fbe8-31d4-4bfa-9e71-f8f95cd4ef3c",
+			"title": "fix stone mining state sprite",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "24601864-4559-4f91-b17c-c1d5a82d74d7",
+			"title": "ore drill animation?",
+			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []
 		}
