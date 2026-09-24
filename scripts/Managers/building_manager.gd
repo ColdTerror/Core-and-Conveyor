@@ -1473,9 +1473,12 @@ func _find_closest_needing_work_in_group(group_name: String, bot_pos: Vector2, i
 				if pathfinder and active_astar.is_in_boundsv(test_tile) and not active_astar.is_point_solid(test_tile):
 					var path_array = active_astar.get_id_path(bot_grid, test_tile)
 					if not path_array.is_empty() or bot_grid == test_tile:
-						var path_len = path_array.size()
-						if path_len < shortest_cost:
-							shortest_cost = path_len
+						var path_cost: float = 0.0
+						var start_idx: int = 1 if (path_array.size() > 0 and path_array[0] == bot_grid) else 0
+						for i in range(start_idx, path_array.size()):
+							path_cost += active_astar.get_point_weight_scale(path_array[i])
+						if path_cost < shortest_cost:
+							shortest_cost = path_cost
 							
 		if shortest_cost != INF:
 			valid_paths_found += 1

@@ -1022,7 +1022,7 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 	var best_target = Vector2i(-1, -1)
 	var my_grid = level_ref.object_layer.local_to_map(global_position)
 	
-	var shortest_path_length = INF
+	var shortest_path_cost = INF
 	
 	# For multi-tile buildings or single resources, check adjacent neighbors to find the most accessible standing point
 	for t_tile in target_tiles:
@@ -1039,15 +1039,18 @@ func _get_standable_adjacent_tile(target_tiles: Array) -> Dictionary:
 				if path_array.is_empty() and my_grid != test_tile:
 					continue
 					
-				var path_length = path_array.size()
+				var path_cost: float = 0.0
+				var start_idx: int = 1 if (path_array.size() > 0 and path_array[0] == my_grid) else 0
+				for i in range(start_idx, path_array.size()):
+					path_cost += active_astar.get_point_weight_scale(path_array[i])
 				
-				# Keep track of the closest standable neighbor based on actual pathfinding steps
-				if path_length < shortest_path_length:
-					shortest_path_length = path_length
+				# Keep track of the closest standable neighbor based on actual weighted path cost
+				if path_cost < shortest_path_cost:
+					shortest_path_cost = path_cost
 					best_stand = test_tile
 					best_target = t_tile
 					
-	return {"stand": best_stand, "target": best_target, "path_length": shortest_path_length}
+	return {"stand": best_stand, "target": best_target, "path_length": shortest_path_cost}
 
 
 
