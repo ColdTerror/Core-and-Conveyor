@@ -1028,15 +1028,15 @@ func _setup_upgrade_ui():
 	new_b.queue_free() # Clean up template
 	
 	# Get costs & affordability
-	var upgrade_cost_dict = {}
+	var upgrade_cost_dict = old_b.get_upgrade_cost()
 	var cost_lines: Array[String] = []
 	var can_afford_instant = true
 	
-	for cost in old_b.upgrade_cost:
-		upgrade_cost_dict[cost.item_name] = cost.amount
-		var owned = EconomyManager.get_item_count(cost.item_name)
-		var display_cost = " • %s: %d (Owned: %d)" % [cost.item_name, cost.amount, owned]
-		if owned < cost.amount:
+	for item_name in upgrade_cost_dict:
+		var amount = upgrade_cost_dict[item_name]
+		var owned = EconomyManager.get_item_count(item_name)
+		var display_cost = " • %s: %d (Owned: %d)" % [item_name, amount, owned]
+		if owned < amount:
 			display_cost += " [LACKING]"
 			can_afford_instant = false
 		cost_lines.append(display_cost)

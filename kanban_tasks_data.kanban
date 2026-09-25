@@ -30,7 +30,8 @@
 				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
 				"81666a40-4240-4fa0-87d1-ea974b6bde91",
 				"8f983f11-c0b0-4f94-a552-51365af23da6",
-				"24601864-4559-4f91-b17c-c1d5a82d74d7"
+				"24601864-4559-4f91-b17c-c1d5a82d74d7",
+				"5e3c5a69-ed5d-43e7-802c-42fecd5585c1"
 			]
 		},
 		{
@@ -230,6 +231,13 @@
 		{
 			"uuid": "24601864-4559-4f91-b17c-c1d5a82d74d7",
 			"title": "ore drill animation?",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "5e3c5a69-ed5d-43e7-802c-42fecd5585c1",
+			"title": "number popup for mining and depositing",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

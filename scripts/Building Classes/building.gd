@@ -270,13 +270,31 @@ func get_inventory_info() -> Dictionary:
 	
 
 
-## Helper to bundle build costs into a dictionary for the Manager.
+## Helper to bundle build costs into a dictionary from BuildingDatabase or local fallback.
 func get_build_cost() -> Dictionary:
+	if BuildingDatabase and BuildingDatabase.has_method("get_build_cost"):
+		var db_cost = BuildingDatabase.get_build_cost(building_name, building_level)
+		if not db_cost.is_empty():
+			return db_cost
+			
 	var cost_dict = {}
-	
 	for cost in build_costs:
-		cost_dict[cost.item_name] = cost.amount
-		
+		if cost:
+			cost_dict[cost.item_name] = cost.amount
+	return cost_dict
+
+
+## Helper to bundle upgrade costs into a dictionary from BuildingDatabase or local fallback.
+func get_upgrade_cost() -> Dictionary:
+	if BuildingDatabase and BuildingDatabase.has_method("get_upgrade_cost"):
+		var db_cost = BuildingDatabase.get_upgrade_cost(building_name, building_level)
+		if not db_cost.is_empty():
+			return db_cost
+			
+	var cost_dict = {}
+	for cost in upgrade_cost:
+		if cost:
+			cost_dict[cost.item_name] = cost.amount
 	return cost_dict
 	
 

@@ -960,9 +960,7 @@ func upgrade_building_at(grid_pos: Vector2i) -> bool:
 	var old_building = occupied_tiles[grid_pos]
 	if not old_building.upgrades_to: return false
 	
-	var upgrade_cost_dict = {}
-	for cost in old_building.upgrade_cost:
-		upgrade_cost_dict[cost.item_name] = cost.amount
+	var upgrade_cost_dict = old_building.get_upgrade_cost()
 	
 	var is_instant = old_building is ConveyorBuilding or old_building is WallBuilding
 	
@@ -1077,9 +1075,7 @@ func show_upgrade_preview(grid_pos: Vector2i):
 		placement_cost_updated.emit(b.building_name + " (Max Tier)", {}, false, {})
 		return
 
-	var upgrade_cost_dict = {}
-	for cost in b.upgrade_cost:
-		upgrade_cost_dict[cost.item_name if "item_name" in cost else cost] = cost.amount if "amount" in cost else b.upgrade_cost[cost]
+	var upgrade_cost_dict = b.get_upgrade_cost()
 	
 	var is_instant = b is ConveyorBuilding or b is WallBuilding
 	var can_afford = true
