@@ -874,6 +874,8 @@ func _do_harvest():
 	var harvested_amount = ResourceManager.request_harvest(target_tile, info, 1)
 	
 	if harvested_amount > 0:
+		if level_ref and level_ref.has_method("spawn_damage_number"):
+			level_ref.spawn_damage_number(global_position, -1, Color(1.0, 1.0, 1.0, 1.0))
 		carried_item_res = info["data"].item_drop
 		carried_item_name = carried_item_res.display_name
 		carried_amount += harvested_amount
@@ -911,6 +913,8 @@ func _do_fetch():
 	if result.get("amount", 0) > 0:
 		carried_amount = result["amount"]
 		carried_item_res = result["resource"]
+		if level_ref and level_ref.has_method("spawn_damage_number"):
+			level_ref.spawn_damage_number(global_position, -carried_amount, Color(1.0, 1.0, 1.0, 1.0))
 		inventory_changed.emit()
 		current_state = State.IDLE
 	else:
@@ -930,6 +934,8 @@ func _do_deposit():
 		return
 		
 	var amount_taken = storage.add_item(carried_item_res, carried_amount)
+	if level_ref and level_ref.has_method("spawn_damage_number"):
+		level_ref.spawn_damage_number(global_position, amount_taken, Color(1.0, 1.0, 1.0, 1.0))
 	carried_amount -= amount_taken
 	inventory_changed.emit()
 	
@@ -1255,7 +1261,7 @@ func take_damage(damage: int, source: Node2D = null):
 	if not lvl and is_instance_valid(InputManager.level_ref):
 		lvl = InputManager.level_ref
 	if lvl and lvl.has_method("spawn_damage_number"):
-		lvl.spawn_damage_number(global_position, damage, Color(0.3, 0.9, 1.0))
+		lvl.spawn_damage_number(global_position, -damage, Color(0.3, 0.9, 1.0))
 	
 	if health <= 0:
 		die()

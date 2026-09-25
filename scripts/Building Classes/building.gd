@@ -341,7 +341,7 @@ func take_damage(amount: int):
 	if not lvl and is_instance_valid(InputManager.level_ref):
 		lvl = InputManager.level_ref
 	if lvl and lvl.has_method("spawn_damage_number"):
-		lvl.spawn_damage_number(global_position, amount, Color(1.0, 0.3, 0.3))
+		lvl.spawn_damage_number(global_position, -amount, Color(1.0, 0.3, 0.3))
 	
 	if health <= 0:
 		die()

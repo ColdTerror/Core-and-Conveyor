@@ -404,7 +404,7 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 			dest_pos = start_pos + dir * source_tower.attack_range
 		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower, p_lifetime, p_dmg_type, dest_pos)
 
-
+#TODO
 ## Spawns a floating damage number label at world_pos that drifts upward and fades out.
 func spawn_damage_number(world_pos: Vector2, amount: int, color: Color):
 	var node = Node2D.new()
@@ -413,7 +413,12 @@ func spawn_damage_number(world_pos: Vector2, amount: int, color: Color):
 	node.z_as_relative = false
 	
 	var label = Label.new()
-	label.text = "-%d" % amount
+	
+	if (amount > 0):
+		label.text = "+%d" % amount
+	else:
+		label.text = "%d" % amount
+	
 	label.modulate = color
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

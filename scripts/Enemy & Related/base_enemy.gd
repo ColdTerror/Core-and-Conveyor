@@ -654,7 +654,7 @@ func take_damage(damage: int, source: Node2D = null, damage_type: String = "None
 	if not lvl and is_instance_valid(InputManager.level_ref):
 		lvl = InputManager.level_ref
 	if lvl and lvl.has_method("spawn_damage_number"):
-		lvl.spawn_damage_number(global_position, final_damage, num_color)
+		lvl.spawn_damage_number(global_position, -final_damage, num_color)
 		
 	# Apply Directional Knockback
 	if is_instance_valid(source):
