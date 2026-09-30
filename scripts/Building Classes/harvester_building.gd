@@ -200,9 +200,9 @@ func _perform_harvest():
 		var actual_harvested = ResourceManager.request_harvest(current_target, info, harvest_damage)
 		
 		if actual_harvested > 0:
-			if level_ref and level_ref.has_method("spawn_damage_number"):
+			if level_ref and level_ref.has_method("spawn_resource_popup"):
 				var target_pos = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(current_target))
-				level_ref.spawn_damage_number(target_pos, -actual_harvested, Color(0.45, 0.9, 0.45))
+				level_ref.spawn_resource_popup(target_pos, -actual_harvested, Color(0.45, 0.9, 0.45))
 			stored_amount += actual_harvested
 			inventory_changed.emit()
 			if target_resource and target_resource.item_drop:

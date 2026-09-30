@@ -95,12 +95,21 @@ var last_terrain_tile := Vector2i(-1, -1)
 @onready var quota_manager: QuotaManager = $QuotaManager
 @onready var pathfinder = $Pathfinder
 
+var floating_text_layer: Node2D
+
 
 
 ## Binds level references to autoloads, initializes sub-managers, hooks up HUD signals,
 ## and triggers procedural map generation or unpacks saved slots on boot.
 func _ready():
 	add_to_group("Level")
+	
+	floating_text_layer = Node2D.new()
+	floating_text_layer.name = "FloatingTextLayer"
+	floating_text_layer.z_index = 100
+	floating_text_layer.z_as_relative = false
+	add_child(floating_text_layer)
+	
 	# Push all the necessary references up to the Autoload!
 	InputManager.level_ref = self
 	InputManager.building_manager = building_manager
@@ -404,40 +413,57 @@ func _on_tower_fired(source_tower, start_pos, target_node, item_data, final_dama
 			dest_pos = start_pos + dir * source_tower.attack_range
 		proj.setup(start_pos, dir, speed, final_damage, item_data.texture, source_tower, p_lifetime, p_dmg_type, dest_pos)
 
-#TODO
-## Spawns a floating damage number label at world_pos that drifts upward and fades out.
-func spawn_damage_number(world_pos: Vector2, amount: int, color: Color):
-	if amount == 0:
+## Spawns any floating text string at world_pos that drifts upward and fades out.
+func spawn_floating_text(world_pos: Vector2, text: String, color: Color = Color.WHITE):
+	if text.is_empty():
 		return
+	
 	var node = Node2D.new()
 	node.global_position = world_pos + Vector2(randf_range(-8.0, 8.0), -16.0)
 	node.z_index = 100
 	node.z_as_relative = false
 	
 	var label = Label.new()
-	
-	if (amount > 0):
-		label.text = "+%d" % amount
-	else:
-		label.text = "%d" % amount
-	
+	label.text = text
 	label.modulate = color
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	label.add_theme_constant_override("outline_size", 4)
-	label.position = Vector2(-25, -12)
-	label.size = Vector2(50, 24)
+	label.position = Vector2(-30, -12)
+	label.size = Vector2(60, 24)
 	node.add_child(label)
 	
-	add_child(node)
+	if is_instance_valid(floating_text_layer):
+		floating_text_layer.add_child(node)
+	else:
+		add_child(node)
 	
 	var tween = node.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(node, "position", node.position + Vector2(randf_range(-6.0, 6.0), -30.0), 0.6)
-	tween.tween_property(label, "modulate:a", 0.0, 0.6)
+	tween.tween_property(node, "position", node.position + Vector2(randf_range(-6.0, 6.0), -28.0), 0.75)\
+		.set_trans(Tween.TRANS_CUBIC)\
+		.set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, 0.35)\
+		.set_delay(0.4)
 	tween.chain().tween_callback(node.queue_free)
+
+
+## Spawns a floating combat damage number at world_pos that drifts upward and fades out.
+func spawn_damage_number(world_pos: Vector2, amount: int, color: Color):
+	if amount == 0:
+		return
+	var text = ("+%d" if amount > 0 else "%d") % amount
+	spawn_floating_text(world_pos, text, color)
+
+
+## Spawns a floating resource transfer popup (+amount or -amount) at world_pos.
+func spawn_resource_popup(world_pos: Vector2, amount: int, color: Color = Color(0.45, 0.9, 0.45)):
+	if amount == 0:
+		return
+	var text = ("+%d" if amount > 0 else "%d") % amount
+	spawn_floating_text(world_pos, text, color)
 
 
 
