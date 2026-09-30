@@ -158,8 +158,8 @@ func _finish_work():
 
 	is_working = false
 	output_inventory += active_recipe.output_count
-	if level_ref and level_ref.has_method("spawn_damage_number"):
-		level_ref.spawn_damage_number(global_position, active_recipe.output_count, Color(1.0, 1.0, 1.0, 1.0))
+	if active_recipe.output_count > 0 and level_ref and level_ref.has_method("spawn_damage_number"):
+		level_ref.spawn_damage_number(global_position, active_recipe.output_count, Color(0.3, 0.95, 0.4))
 	
 	EconomyManager.log_item_produced(active_recipe.output_item.display_name, active_recipe.output_count)
 	
