@@ -128,6 +128,7 @@ func _draw():
 	_draw_tool_highlight()
 	_draw_zone_overlays()
 	_draw_tower_ranges()
+	_draw_existing_building_footprints()
 	_draw_ghost_previews()
 	_draw_hover_footprint()
 	_draw_resource_hover_footprint()
@@ -406,6 +407,49 @@ func _draw_ghost_previews():
 		draw_rect(Rect2(top_left, footprint_px), border_color, false, 2.0)
 		
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1,1))
+
+
+
+## Outlines the footprints of existing structures while placing a building to assist with alignment.
+func _draw_existing_building_footprints():
+	var bm = level.building_manager
+	if not bm or not bm.placing_building: return
+	
+	var tile_size = 32.0
+	var border_color = Color(1.0, 1.0, 1.0, 0.45)
+	
+	for b in bm.buildings:
+		if not is_instance_valid(b) or not (b is Building) or b.is_ghost or b.is_queued_for_deletion():
+			continue
+		
+		# Exclude conveyor systems (conveyors, routers, filters, bridges)
+		if b is ConveyorBuilding:
+			continue
+			
+		# Exclude wall systems (walls, gates)
+		if b is WallBuilding or b is GateBuilding:
+			continue
+			
+		# Exclude terraform sites
+		if b is TerraformSite:
+			continue
+			
+		# If it's a construction site, exclude if it's for walls or conveyors
+		if b is ConstructionSite:
+			var b_name = b.building_name.to_lower()
+			if "conveyor" in b_name or "belt" in b_name or "router" in b_name or "filter" in b_name or "bridge" in b_name:
+				continue
+			if "wall" in b_name or "gate" in b_name:
+				continue
+			
+		var b_size = b.size if "size" in b else Vector2i(1, 1)
+		var footprint_px = Vector2(b_size.x * tile_size, b_size.y * tile_size)
+		var top_left = -footprint_px / 2.0
+		
+		draw_set_transform(to_local(b.global_position), b.rotation, b.scale)
+		draw_rect(Rect2(top_left, footprint_px), border_color, false, 1.5)
+	
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1, 1))
 
 
 
