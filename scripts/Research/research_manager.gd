@@ -35,15 +35,49 @@ const TECH_TIERS: Dictionary = {
 	"Belt Speed 2":     2,   
 	"Building Limit 2": 2,
 	"Tower Damage 2":   2,
-	"Moon Measurement": 2,
+	"Moon Measurement 1": 2,
 	"Core Expansion 3": 2,   # Requires tier 2, unlocks tier 3
 	"Building Limit 3": 3,
 	"Tower Damage 3":   3,
-	"Weekly Radar":     3,
+	"Moon Measurement 2": 3,
 	"Thruster Upgrade": 3,
 	"Pneumatic Logistics": 3,
 	"Core Expansion 4": 3,   # Requires tier 3, unlocks tier 4
 	"Battery Upgrade": 4,
+}
+
+# Master dictionary of technology research costs.
+# Single source of truth for all research prices.
+var research_costs: Dictionary = {
+	# --- Tier 0 ---
+	"Core Expansion 1": { "Wood": 25 },
+
+	# --- Tier 1 ---
+	"Wave Measurement": { "Wood": 25 },
+	"Fleet Expansion":  { "Wood": 30, "Stone": 25 },
+	"Belt Speed 1":     { "Wood": 25, "Stone": 25 },
+	"Building Limit 1": { "Wood": 40, "Stone": 30 },
+	"Tower Damage 1":   { "Wood": 35, "Stone": 35 },
+	"Core Expansion 2": { "Wood": 50, "Stone": 50 },
+
+	# --- Tier 2 ---
+	"Moon Measurement 1": { "Planks": 20 },
+	"Advanced Tooling":   { "Planks": 25, "Stone Bricks": 25 },
+	"Belt Speed 2":       { "Planks": 30, "Stone Bricks": 20 },
+	"Building Limit 2":   { "Planks": 35, "Stone Bricks": 35 },
+	"Tower Damage 2":     { "Planks": 40, "Stone Bricks": 30 },
+	"Core Expansion 3":   { "Planks": 50, "Stone Bricks": 50 },
+
+	# --- Tier 3 ---
+	"Moon Measurement 2":  { "Planks": 30, "Stone Bricks": 20 },
+	"Pneumatic Logistics": { "Planks": 30, "Stone Bricks": 30, "Iron Ingot": 15 },
+	"Thruster Upgrade":    { "Planks": 40, "Stone Bricks": 20, "Iron Ingot": 20 },
+	"Building Limit 3":    { "Planks": 50, "Stone Bricks": 50, "Iron Ingot": 15 },
+	"Tower Damage 3":      { "Planks": 50, "Stone Bricks": 40, "Iron Ingot": 25 },
+	"Core Expansion 4":    { "Planks": 60, "Stone Bricks": 60, "Iron Ingot": 30 },
+
+	# --- Tier 4 ---
+	"Battery Upgrade": { "Planks": 50, "Stone Bricks": 40, "Iron Ingot": 35 }
 }
 
 var unlocked_techs: Array[String] = []
@@ -51,6 +85,37 @@ var unlocked_techs: Array[String] = []
 # Intel trackers
 var wave_measure: bool = false
 var moon_measure_level: int = 0
+
+
+## Returns raw research cost dictionary (item names -> amounts) for a tech.
+func get_research_cost(tech_name: String) -> Dictionary:
+	if research_costs.has(tech_name):
+		return research_costs[tech_name].duplicate()
+	return {}
+
+
+## Returns research cost dictionary resolved to ItemResource instances (ItemResource -> amount).
+func get_research_cost_resources(tech_name: String) -> Dictionary:
+	var raw_cost = get_research_cost(tech_name)
+	var resolved_cost: Dictionary = {}
+	for item_name in raw_cost:
+		var item_res = ItemDatabase.get_item(item_name) if ItemDatabase else null
+		if item_res:
+			resolved_cost[item_res] = raw_cost[item_name]
+		else:
+			resolved_cost[item_name] = raw_cost[item_name]
+	return resolved_cost
+
+
+## Formats research cost into a readable string (e.g. "25 Wood, 25 Stone").
+func get_cost_string(tech_name: String) -> String:
+	var cost = get_research_cost(tech_name)
+	if cost.is_empty():
+		return "Free"
+	var parts: Array[String] = []
+	for item_name in cost:
+		parts.append("%s: %d" % [item_name, cost[item_name]])
+	return ", ".join(parts)
 
 
 ## Returns the starting level for newly constructed worker bots.

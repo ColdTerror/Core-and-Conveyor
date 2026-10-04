@@ -33,6 +33,7 @@ signal research_started
 
 ## Initializes the node, setting UI text and connecting runtime signals.
 func _ready():
+	_sync_costs_from_database()
 	_refresh_editor_ui()
 	
 	# EDITOR SAFETY CHECK: Stop here if we are inside the Godot Editor!
@@ -45,12 +46,21 @@ func _ready():
 	_refresh_button()
 
 
+## Pulls centralized research costs from ResearchManager if available.
+func _sync_costs_from_database():
+	if ResearchManager and ResearchManager.has_method("get_research_cost_resources"):
+		var db_cost = ResearchManager.get_research_cost_resources(research_name)
+		if not db_cost.is_empty():
+			research_cost = db_cost
+
+
 ## Updates the title, description, and cost labels inside the editor and runtime UI.
 func _refresh_editor_ui():
 	# CRITICAL: Prevent crashes if the setter fires before the node enters the scene tree
 	if not is_node_ready():
 		return
 		
+	_sync_costs_from_database()
 	title = research_name
 	desc_label.text = desc
 	cost_label.text = _format_costs(research_cost)
@@ -79,6 +89,7 @@ func _on_research_pressed():
 		print("Tier not unlocked yet!")
 		return
 		
+	_sync_costs_from_database()
 	var core = get_tree().get_first_node_in_group("Core")
 	if core and core.has_method("start_research"):
 		core.start_research(research_name, research_cost)

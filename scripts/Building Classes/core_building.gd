@@ -70,14 +70,31 @@ func get_bot_cost() -> Dictionary:
 
 
 ## Initiates a new research upgrade project, immediately funding it from available inventory.
-func start_research(r_name: String, cost: Dictionary):
+func start_research(r_name: String, cost: Dictionary = {}):
 	if active_research_name != "":
 		print("Already researching something!")
 		return
 		
 	active_research_name = r_name
-	research_bill = cost.duplicate()
-	research_bill_max = cost.duplicate()
+	research_bill.clear()
+	research_bill_max.clear()
+	
+	var active_cost = cost
+	if active_cost.is_empty() and ResearchManager and ResearchManager.has_method("get_research_cost"):
+		active_cost = ResearchManager.get_research_cost(r_name)
+		
+	for key in active_cost.keys():
+		var item_res: ItemResource = null
+		if key is ItemResource:
+			item_res = key
+		elif key is String and ItemDatabase:
+			item_res = ItemDatabase.get_item(key)
+			
+		if item_res:
+			research_bill[item_res] = int(active_cost[key])
+			research_bill_max[item_res] = int(active_cost[key])
+		else:
+			print("WARNING: Unknown research cost resource: ", key)
 	
 	_consume_existing_inventory_for_bill(research_bill, research_bill_max)
 	_check_research_completion()
