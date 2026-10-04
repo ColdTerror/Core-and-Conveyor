@@ -101,91 +101,96 @@ var buildings: Dictionary = {
 # Master dictionary of building construction and upgrade costs.
 # Single source of truth for all building build and upgrade prices.
 var building_costs: Dictionary = {
-	"bow_tower": {
-		1: { "build": { "Wood": 25, "Stone": 25 }, "upgrade": { "Wood": 50, "Stone": 25, "Planks": 25 } },
-		2: { "build": {}, "upgrade": {} }
+	# --- Logistics & Barricades (Tier 0 - Spammable) ---
+	"conveyor_belt": {
+		1: { "build": { "Wood": 1 }, "upgrade": {} }
 	},
-	"stockpile": {
-		1: { "build": { "Wood": 20, "Stone": 10 }, "upgrade": { "Wood": 40, "Stone": 20, "Planks": 15 } },
-		2: { "build": {}, "upgrade": {} }
+	"router_building": {
+		1: { "build": { "Wood": 4, "Stone": 2 }, "upgrade": {} }
 	},
-	"fletcher": {
-		1: { "build": { "Wood": 25, "Stone": 25 }, "upgrade": { "Wood": 50, "Stone": 50, "Planks": 25 } },
-		2: { "build": {}, "upgrade": {} }
+	"filter_building": {
+		1: { "build": { "Wood": 6, "Stone": 4 }, "upgrade": {} }
 	},
-	"sawmill": {
-		1: { "build": { "Wood": 30, "Stone": 15 }, "upgrade": { "Wood": 60, "Stone": 30, "Planks": 20 } },
-		2: { "build": {}, "upgrade": {} }
-	},
-	"stonemason": {
-		1: { "build": { "Wood": 25, "Stone": 30 }, "upgrade": { "Wood": 50, "Stone": 60, "Stone Bricks": 20 } },
-		2: { "build": {}, "upgrade": {} }
-	},
-	"lumberjack": {
-		1: { "build": { "Wood": 15, "Stone": 10 }, "upgrade": { "Wood": 30, "Stone": 20, "Planks": 15 } },
-		2: { "build": {}, "upgrade": {} }
-	},
-	"stone_mine": {
-		1: { "build": { "Wood": 20, "Stone": 15 }, "upgrade": { "Wood": 40, "Stone": 30, "Planks": 20 } },
-		2: { "build": {}, "upgrade": {} }
-	},
-	"ammo_distributor": {
-		1: { "build": { "Planks": 15, "Stone Bricks": 15 }, "upgrade": { "Planks": 30, "Stone Bricks": 30 } },
-		2: { "build": {}, "upgrade": {} }
-	},
-	"ballista_tower": {
-		1: { "build": { "Planks": 30, "Stone Bricks": 30 }, "upgrade": {} }
-	},
-	"scattershot_tower": {
-		1: { "build": { "Planks": 20, "Stone": 25 }, "upgrade": {} }
-	},
-	"sling_tower": {
-		1: { "build": { "Wood": 15, "Stone": 15 }, "upgrade": {} }
+	"conveyor_bridge": {
+		1: { "build": { "Wood": 6, "Stone": 4 }, "upgrade": {} }
 	},
 	"wall": {
 		1: { "build": { "Wood": 2, "Stone": 2 }, "upgrade": {} }
 	},
 	"gate": {
-		1: { "build": { "Wood": 10, "Stone": 10 }, "upgrade": {} }
+		1: { "build": { "Wood": 6, "Stone": 6 }, "upgrade": {} }
 	},
-	"conveyor_belt": {
-		1: { "build": { "Wood": 1 }, "upgrade": {} }
+
+	# --- Early Economy & Defense (Tier 1 - Raw Materials) ---
+	"lumberjack": {
+		1: { "build": { "Wood": 15, "Stone": 10 }, "upgrade": { "Wood": 30, "Planks": 15 } },
+		2: { "upgrade": {} }
 	},
-	"router_building": {
-		1: { "build": { "Wood": 5, "Stone": 5 }, "upgrade": {} }
+	"stone_mine": {
+		1: { "build": { "Wood": 10, "Stone": 20 }, "upgrade": { "Stone": 30, "Stone Bricks": 15 } },
+		2: { "upgrade": {} }
 	},
-	"filter_building": {
-		1: { "build": { "Wood": 10, "Stone": 10 }, "upgrade": {} }
+	"sawmill": {
+		1: { "build": { "Wood": 25, "Stone": 15 }, "upgrade": { "Wood": 30, "Planks": 20 } },
+		2: { "upgrade": {} }
 	},
-	"conveyor_bridge": {
-		1: { "build": { "Wood": 10, "Stone": 10 }, "upgrade": {} }
+	"stonemason": {
+		1: { "build": { "Wood": 15, "Stone": 25 }, "upgrade": { "Stone": 30, "Stone Bricks": 20 } },
+		2: { "upgrade": {} }
 	},
-	"item_launcher": {
-		1: { "build": { "Wood": 25, "Stone": 25 }, "upgrade": {} }
+	"stockpile": {
+		1: { "build": { "Wood": 20, "Stone": 15 }, "upgrade": { "Planks": 25, "Stone Bricks": 25 } },
+		2: { "upgrade": {} }
 	},
-	"item_receiver": {
-		1: { "build": { "Wood": 25, "Stone": 25 }, "upgrade": {} }
+	"bow_tower": {
+		1: { "build": { "Wood": 25, "Stone": 15 }, "upgrade": { "Planks": 25, "Stone Bricks": 15 } },
+		2: { "upgrade": {} }
+	},
+	"sling_tower": {
+		1: { "build": { "Wood": 15, "Stone": 15 }, "upgrade": {} }
 	},
 	"stone_crusher": {
-		1: { "build": { "Wood": 20, "Stone": 25 }, "upgrade": {} }
+		1: { "build": { "Wood": 20, "Stone": 20 }, "upgrade": {} }
 	},
-	"forge": {
-		1: { "build": { "Wood": 30, "Stone": 40, "Planks": 20, "Stone Bricks": 20 }, "upgrade": {} }
+	"item_launcher": {
+		1: { "build": { "Wood": 15, "Stone": 15 }, "upgrade": {} }
 	},
-	"ore_drill": {
-		1: { "build": { "Wood": 30, "Stone": 30 }, "upgrade": {} }
-	},
-	"bot_home": {
-		1: { "build": { "Wood": 25, "Stone": 25 }, "upgrade": {} }
+	"item_receiver": {
+		1: { "build": { "Wood": 15, "Stone": 15 }, "upgrade": {} }
 	},
 	"firepit": {
 		1: { "build": { "Wood": 20, "Stone": 20 }, "upgrade": {} }
 	},
-	"quota_building": {
-		1: { "build": { "Wood": 50, "Stone": 50 }, "upgrade": {} }
+	"bot_home": {
+		1: { "build": {}, "upgrade": {} }
 	},
 	"core": {
 		1: { "build": {}, "upgrade": {} }
+	},
+
+	# --- Advanced & Military (Tier 2 - Refined Materials) ---
+	"fletcher": {
+		1: { "build": { "Planks": 20, "Stone Bricks": 15 }, "upgrade": { "Planks": 30, "Stone Bricks": 20 } },
+		2: { "upgrade": {} }
+	},
+	"ammo_distributor": {
+		1: { "build": { "Planks": 15, "Stone Bricks": 15 }, "upgrade": { "Planks": 25, "Stone Bricks": 25 } },
+		2: { "upgrade": {} }
+	},
+	"ore_drill": {
+		1: { "build": { "Wood": 25, "Stone": 25, "Planks": 15 }, "upgrade": {} }
+	},
+	"forge": {
+		1: { "build": { "Planks": 20, "Stone Bricks": 25 }, "upgrade": {} }
+	},
+	"scattershot_tower": {
+		1: { "build": { "Planks": 20, "Stone": 20 }, "upgrade": {} }
+	},
+	"ballista_tower": {
+		1: { "build": { "Planks": 30, "Stone Bricks": 25 }, "upgrade": {} }
+	},
+	"quota_building": {
+		1: { "build": { "Planks": 40, "Stone Bricks": 40 }, "upgrade": {} }
 	}
 }
 
@@ -242,8 +247,6 @@ func get_build_cost(id_or_name: String, tier: int = 1) -> Dictionary:
 		var tier_dict: Dictionary = building_costs[norm]
 		if tier_dict.has(tier) and tier_dict[tier].has("build"):
 			return tier_dict[tier]["build"].duplicate()
-		elif tier_dict.has(1) and tier_dict[1].has("build"):
-			return tier_dict[1]["build"].duplicate()
 	return {}
 
 
