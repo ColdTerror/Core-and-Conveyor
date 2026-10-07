@@ -23,12 +23,16 @@ signal research_started
 
 @export var research_cost: Dictionary = {}:
 	set(value):
+		if research_cost == value:
+			return
 		research_cost = value
 		_refresh_editor_ui()
 
 @onready var desc_label = $DescLabel
 @onready var cost_label = $CostLabel
 @onready var research_button = $Button
+
+var _is_syncing: bool = false
 
 
 ## Initializes the node, setting UI text and connecting runtime signals.
@@ -48,10 +52,16 @@ func _ready():
 
 ## Pulls centralized research costs from ResearchManager if available.
 func _sync_costs_from_database():
+	if _is_syncing:
+		return
+	if Engine.is_editor_hint():
+		return
+	_is_syncing = true
 	if ResearchManager and ResearchManager.has_method("get_research_cost_resources"):
 		var db_cost = ResearchManager.get_research_cost_resources(research_name)
 		if not db_cost.is_empty():
 			research_cost = db_cost
+	_is_syncing = false
 
 
 ## Updates the title, description, and cost labels inside the editor and runtime UI.
@@ -60,10 +70,11 @@ func _refresh_editor_ui():
 	if not is_node_ready():
 		return
 		
-	_sync_costs_from_database()
 	title = research_name
-	desc_label.text = desc
-	cost_label.text = _format_costs(research_cost)
+	if desc_label:
+		desc_label.text = desc
+	if cost_label:
+		cost_label.text = _format_costs(research_cost)
 
 
 ## Syncs the research button text and state (Researched, Locked, or Research) with current status.

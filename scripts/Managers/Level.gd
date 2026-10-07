@@ -96,6 +96,7 @@ var last_terrain_tile := Vector2i(-1, -1)
 @onready var pathfinder = $Pathfinder
 
 var floating_text_layer: Node2D
+var map_preview_panel: Control = null
 
 
 
@@ -146,6 +147,7 @@ func _ready():
 		SaveManager.unpack_save(self)
 	else:
 		generate_simple_map()
+		_setup_map_preview_panel()
 
 	var tm = get_tree().get_first_node_in_group("TimeManager")
 	if tm:
@@ -222,6 +224,9 @@ func _setup_hotbar_items():
 ## Hooked to building manager core placement, expanding HUD options upon completion.
 func _on_core_placed():
 	print_debug("from level on core placed")
+	if is_instance_valid(map_preview_panel):
+		map_preview_panel.dismiss()
+		map_preview_panel = null
 	_show_main_categories()
 
 
@@ -468,6 +473,44 @@ func spawn_resource_popup(world_pos: Vector2, amount: int, color: Color = Color(
 
 
 # MAP GENERATION
+
+
+## Instantiates the pre-settlement Map Survey panel overlay if the Core has not yet been placed.
+func _setup_map_preview_panel() -> void:
+	if building_manager and building_manager.is_core_placed:
+		return
+	
+	var hud_layer = $CanvasLayer/Hud_Layer
+	if not hud_layer:
+		return
+	
+	var panel = MapPreviewPanel.new()
+	hud_layer.add_child(panel)
+	panel.setup(self)
+	map_preview_panel = panel
+
+
+## Regenerates the procedural map with the specified map type and biome.
+func reroll_map(new_map_type: MapGenType, new_biome: MapBiome) -> void:
+	if building_manager and building_manager.is_core_placed:
+		return
+	
+	if building_manager:
+		building_manager.cancel_placement()
+	
+	current_map_type = new_map_type
+	current_biome = new_biome
+	
+	ResourceManager.active_regrowth_tasks.clear()
+	
+	generate_simple_map()
+	update_seasonal_resource_sprites()
+	
+	var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
+	if renderer:
+		renderer.queue_redraw()
+	
+	print("Level: Map rerolled -> Type: %s, Biome: %s" % [MapGenType.keys()[current_map_type], MapBiome.keys()[current_biome]])
 
 
 ## Drives procedural map generation utilizing layered simplex noises and falloff gradients.
