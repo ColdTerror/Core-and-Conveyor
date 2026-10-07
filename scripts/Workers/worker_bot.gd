@@ -301,6 +301,11 @@ func _get_speed() -> float:
 		if tile and tile.get_custom_data("is_water"):
 			mult *= SPEED_MULT_WATER
 
+	# Weather modifier (rain, snow, blizzard, sandstorm slows bot locomotion)
+	var weather_mgr = get_tree().get_first_node_in_group("WeatherManager")
+	if weather_mgr and weather_mgr.has_method("get_bot_speed_multiplier"):
+		mult *= weather_mgr.get_bot_speed_multiplier()
+
 	return _normal_speed * mult
 
 
@@ -322,9 +327,15 @@ func get_solar_efficiency() -> float:
 			season_factor = 1.33
 		time_mgr.Season.WINTER:
 			season_factor = 0.4
+
+	# Weather factor: cloud cover, rain, snow, sandstorms reduce solar output
+	var weather_factor = 1.0
+	var weather_mgr = get_tree().get_first_node_in_group("WeatherManager")
+	if weather_mgr and weather_mgr.has_method("get_solar_multiplier"):
+		weather_factor = weather_mgr.get_solar_multiplier()
 			
-	# Combined multiplier, clamped to a minimum of 10%
-	return clamp(tod_factor * season_factor, 0.10, 2.0)
+	# Combined multiplier, clamped to a minimum of 5%
+	return clamp(tod_factor * season_factor * weather_factor, 0.05, 2.0)
 
 
 

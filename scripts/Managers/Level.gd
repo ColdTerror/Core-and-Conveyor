@@ -95,6 +95,7 @@ var last_terrain_tile := Vector2i(-1, -1)
 @onready var quota_manager: QuotaManager = $QuotaManager
 @onready var pathfinder = $Pathfinder
 
+var weather_manager: WeatherManager = null
 var floating_text_layer: Node2D
 var map_preview_panel: Control = null
 
@@ -142,6 +143,22 @@ func _ready():
 	building_manager.core_placed_event.connect(_on_core_placed)
 	
 	building_manager.pathfinder = pathfinder
+	
+	if has_node("WeatherManager"):
+		weather_manager = $WeatherManager
+	else:
+		weather_manager = WeatherManager.new()
+		weather_manager.name = "WeatherManager"
+		add_child(weather_manager)
+		
+	weather_manager.level_ref = self
+	weather_manager.time_manager = get_node_or_null("TimeManager")
+
+	var weather_overlay = WeatherOverlay.new()
+	weather_overlay.name = "WeatherOverlay"
+	weather_overlay.weather_manager = weather_manager
+	$CanvasLayer.add_child(weather_overlay)
+	$CanvasLayer.move_child(weather_overlay, 0)
 	
 	if not SaveManager.pending_load_data.is_empty():
 		SaveManager.unpack_save(self)
@@ -509,6 +526,9 @@ func reroll_map(new_map_type: MapGenType, new_biome: MapBiome) -> void:
 	var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
 	if renderer:
 		renderer.queue_redraw()
+	
+	if weather_manager:
+		weather_manager.reset_for_biome()
 	
 	print("Level: Map rerolled -> Type: %s, Biome: %s" % [MapGenType.keys()[current_map_type], MapBiome.keys()[current_biome]])
 

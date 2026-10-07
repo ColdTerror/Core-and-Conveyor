@@ -46,7 +46,8 @@ var sfx_tracks: Dictionary = {
 	"wood": preload("res://audio/SFX/Bots/Kenny/impactWood_medium_000.ogg"),
 	"stone": preload("res://audio/SFX/Bots/Kenny/impactMining_000.ogg"),
 	"pain": preload("res://audio/SFX/Bots/Kenny/impactPunch_heavy_001.ogg"),
-	"walk_grass": preload("res://audio/SFX/Bots/Kenny/footstep_grass_004.ogg")
+	"walk_grass": preload("res://audio/SFX/Bots/Kenny/footstep_grass_004.ogg"),
+	"weather_ding": preload("res://audio/SFX/Bots/Kenny/impactTin_medium_000.ogg")
 }
 
 var sfx_playlists: Dictionary = {

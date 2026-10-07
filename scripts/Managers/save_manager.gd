@@ -42,6 +42,9 @@ func save_game(level_ref: Node2D, slot: int = current_slot):
 	if level_ref.has_node("BuildingManager"):
 		save_data["building_manager"] = level_ref.get_node("BuildingManager").get_save_data()
 		
+	if level_ref.has_node("WeatherManager"):
+		save_data["weather_manager"] = level_ref.get_node("WeatherManager").get_save_data()
+		
 	var json_string = JSON.stringify(save_data)
 	var file_path = SAVE_PATH_TEMPLATE % slot
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
@@ -121,6 +124,9 @@ func unpack_save(level_ref: Node2D):
 	
 	if data.has("wave_manager") and level_ref.has_node("WaveManager"):
 		level_ref.get_node("WaveManager").load_save_data(data["wave_manager"])
+			
+	if data.has("weather_manager") and level_ref.has_node("WeatherManager"):
+		level_ref.get_node("WeatherManager").load_save_data(data["weather_manager"])
 			
 	# Finally, do a roll call of the newly spawned physical buildings!
 	EconomyManager.recalculate_global_inventory()

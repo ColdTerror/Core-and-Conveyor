@@ -42,6 +42,8 @@ var time_separator: Label
 var hour_digits: Array = []
 var clock_divider: Label
 var minute_digits: Array = []
+var weather_badge: Button
+var _weather_update_cooldown: float = 0.0
 
 var wave_hud: HBoxContainer
 var wave_digits: Array = []
@@ -121,6 +123,35 @@ func _ready():
 	# Move to top of VBoxContainer
 	$VBoxContainer.move_child(date_hud, 0)
 	
+	# Dynamic Weather Badge inside date_hud (placed on the left side)
+	weather_badge = Button.new()
+	weather_badge.focus_mode = Control.FOCUS_NONE
+	weather_badge.text = " ☀️ Clear "
+	weather_badge.tooltip_text = "Current Weather"
+	weather_badge.add_theme_font_size_override("font_size", 13)
+
+	var badge_style = StyleBoxFlat.new()
+	badge_style.bg_color = Color(0.12, 0.15, 0.22, 0.85)
+	badge_style.border_color = Color(0.35, 0.45, 0.6, 0.7)
+	badge_style.set_border_width_all(1)
+	badge_style.set_corner_radius_all(6)
+	badge_style.content_margin_left = 8
+	badge_style.content_margin_right = 8
+	badge_style.content_margin_top = 2
+	badge_style.content_margin_bottom = 2
+	weather_badge.add_theme_stylebox_override("normal", badge_style)
+
+	var badge_hov = badge_style.duplicate()
+	badge_hov.bg_color = Color(0.18, 0.24, 0.35, 0.95)
+	badge_hov.border_color = Color(0.5, 0.7, 0.95, 0.9)
+	weather_badge.add_theme_stylebox_override("hover", badge_hov)
+
+	date_hud.add_child(weather_badge)
+
+	var weather_sep = Label.new()
+	weather_sep.text = "   "
+	date_hud.add_child(weather_sep)
+
 	var yr_pref = Label.new()
 	yr_pref.text = "Yr "
 	yr_pref.add_theme_font_size_override("font_size", 20)
@@ -268,7 +299,7 @@ func _ready():
 	$VBoxContainer.move_child(path_grid_hud, 6)
 
 ## Updates gameplay labels including the clock, wave forecast, corruption state, and safe grid metrics.
-func _process(_delta):
+func _process(delta: float):
 	# Update the clock
 	if time_manager:
 		var time = time_manager.current_time
@@ -283,6 +314,17 @@ func _process(_delta):
 		
 		_set_digits_value(hour_digits, hours)
 		_set_digits_value(minute_digits, minutes)
+
+	# Update Weather Badge
+	_weather_update_cooldown -= delta
+	if _weather_update_cooldown <= 0.0:
+		_weather_update_cooldown = 0.5
+		var w_mgr = get_tree().get_first_node_in_group("WeatherManager")
+		if w_mgr and is_instance_valid(weather_badge):
+			var icon_str = w_mgr.get_weather_icon(w_mgr.current_weather)
+			var name_str = w_mgr.get_weather_name(w_mgr.current_weather)
+			weather_badge.text = " %s %s " % [icon_str, name_str]
+			weather_badge.tooltip_text = w_mgr.get_weather_tooltip()
 
 	# Update combat stats
 	if wave_manager:

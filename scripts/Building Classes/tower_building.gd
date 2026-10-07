@@ -79,6 +79,12 @@ func _ready():
 	apply_research_buffs()
 	EconomyManager.register_source(self, false)
 	
+	var weather_mgr = get_tree().get_first_node_in_group("WeatherManager")
+	if weather_mgr and weather_mgr.has_signal("weather_changed"):
+		weather_mgr.weather_changed.connect(func(_new_w, _old_w):
+			_cached_range_tiles = _get_local_range_tiles()
+		)
+	
 	if has_node("TowerPivot"):
 		turret_pivot = get_node("TowerPivot")
 		if turret_pivot.has_node("Loaded"):
@@ -127,6 +133,16 @@ func _draw():
 
 
 
+## Returns current attack range factoring in weather visibility penalties.
+func get_effective_attack_range() -> int:
+	var penalty = 0
+	var weather_mgr = get_tree().get_first_node_in_group("WeatherManager")
+	if weather_mgr and weather_mgr.has_method("get_tower_range_penalty"):
+		penalty = weather_mgr.get_tower_range_penalty()
+	return max(2, attack_range - penalty)
+
+
+
 ## Computes a local grid map of tiles falling within the tower's radial attack range.
 func _get_local_range_tiles() -> Dictionary:
 	var tiles = {}
@@ -142,8 +158,9 @@ func _get_local_range_tiles() -> Dictionary:
 	var rect_y_min = -half_h
 	var rect_y_max = half_h
 	
-	var max_dist_px = attack_range * tile_size
-	var search_radius = attack_range + max(b_size.x, b_size.y)
+	var eff_range = get_effective_attack_range()
+	var max_dist_px = eff_range * tile_size
+	var search_radius = eff_range + max(b_size.x, b_size.y)
 	
 	for x in range(-search_radius, search_radius + 1):
 		for y in range(-search_radius, search_radius + 1):
