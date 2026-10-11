@@ -20,6 +20,11 @@ func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Re
 	print("Pathfinder: Setup Triple-Brains...")
 	main_layer = terrain_layer
 	
+	# Instantiate fresh AStarGrid2D brains to completely purge old solid obstacles and weights on map reroll
+	enemy_astar = AStarGrid2D.new()
+	bot_astar = AStarGrid2D.new()
+	flying_astar = AStarGrid2D.new()
+	
 	# Setup all three grids exactly the same
 	for astar in [enemy_astar, bot_astar, flying_astar]:
 		astar.region = map_rect
@@ -41,15 +46,24 @@ func setup(terrain_layer: TileMapLayer, object_layer: TileMapLayer, map_rect: Re
 				
 			var is_water = tile_data.get_custom_data("is_water")
 			if is_water:
+				enemy_astar.set_point_solid(coords, false)
 				enemy_astar.set_point_weight_scale(coords, 10.0)
 				bot_astar.set_point_solid(coords, true)
 				# Water is walkable for flying bots!
 				flying_astar.set_point_solid(coords, false)
+				flying_astar.set_point_weight_scale(coords, 1.0)
+			else:
+				enemy_astar.set_point_solid(coords, false)
+				enemy_astar.set_point_weight_scale(coords, 1.0)
+				bot_astar.set_point_solid(coords, false)
+				bot_astar.set_point_weight_scale(coords, 1.0)
+				flying_astar.set_point_solid(coords, false)
+				flying_astar.set_point_weight_scale(coords, 1.0)
 
 			if object_layer.get_cell_source_id(coords) != -1:
 				enemy_astar.set_point_solid(coords, true)
 				bot_astar.set_point_solid(coords, true)
-				# Real placed buildings are still solid for flying bots to prevent overlapping
+				# Real placed buildings / obstacles are still solid for flying bots to prevent overlapping
 				flying_astar.set_point_solid(coords, true)
 
 

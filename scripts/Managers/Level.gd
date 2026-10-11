@@ -525,6 +525,8 @@ func reroll_map(new_map_type: MapGenType, new_biome: MapBiome) -> void:
 	
 	var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
 	if renderer:
+		if renderer.has_method("_rebuild_path_cost_cache"):
+			renderer._rebuild_path_cost_cache()
 		renderer.queue_redraw()
 	
 	if weather_manager:
@@ -735,7 +737,7 @@ func generate_simple_map():
 						place_resource_at(pos, RES_STONE, normalized_s)
 						_spawn_iron_ore_vein_near(pos, iron_noise, terrain_map)
 					
-	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
+	var map_rect = Rect2i(0, 0, MAP_WIDTH, MAP_HEIGHT)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	print("Map generated: ", MapGenType.keys()[current_map_type])
 
@@ -934,7 +936,7 @@ func load_map_save_data(data: Dictionary):
 				"data": tile_data
 			}
 			
-	var map_rect = Rect2i(0, 0, MAP_HEIGHT, MAP_WIDTH)
+	var map_rect = Rect2i(0, 0, MAP_WIDTH, MAP_HEIGHT)
 	pathfinder.setup(terrain_layer, object_layer, map_rect)
 	
 	if data.has("worker_bots"):
