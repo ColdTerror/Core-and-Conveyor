@@ -34,14 +34,13 @@ ItemDatabase="*uid://bgrght5xfwaty"
 BuildingDatabase="*res://scripts/Managers/building_database.gd"
 InputManager="*uid://cvnhhqs11go8y"
 AudioManager="*uid://b62cdiulu7kma"
+SettingsManager="*res://scripts/Managers/settings_manager.gd"
 
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
-window/size/borderless=true
 window/stretch/mode="canvas_items"
-window/stretch/scale_mode="integer"
 
 [editor_plugins]
 

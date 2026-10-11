@@ -189,7 +189,7 @@ theme_override_constants/separation = 10
 [node name="SettingsTitle" type="Label" parent="CenterContainer/SettingsPanel/VBoxContainer" unique_id=115859497]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Audio Settings"
+text = "Settings"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="CenterContainer/SettingsPanel/VBoxContainer" unique_id=475025905]
@@ -235,6 +235,11 @@ text = "SFX Enabled"
 [node name="Spacer3" type="Control" parent="CenterContainer/SettingsPanel/VBoxContainer" unique_id=666550897]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
+
+[node name="DisplaySettings" type="Button" parent="CenterContainer/SettingsPanel/VBoxContainer" unique_id=184910248]
+custom_minimum_size = Vector2(220, 40)
+layout_mode = 2
+text = "Display Settings"
 
 [node name="Keybinds" type="Button" parent="CenterContainer/SettingsPanel/VBoxContainer" unique_id=8923489]
 custom_minimum_size = Vector2(220, 40)

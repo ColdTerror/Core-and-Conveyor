@@ -30,6 +30,11 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	resized.connect(_update_emitter_bounds)
+	if get_tree() and get_tree().root:
+		get_tree().root.size_changed.connect(_update_emitter_bounds)
+	_update_emitter_bounds()
+
 	if not weather_manager:
 		weather_manager = get_tree().get_first_node_in_group("WeatherManager") as WeatherManager
 		
@@ -37,6 +42,29 @@ func _ready() -> void:
 		weather_manager.weather_changed.connect(_on_weather_changed)
 		weather_manager.lightning_triggered.connect(_on_lightning_triggered)
 		_apply_weather_visuals(weather_manager.current_weather, true)
+
+
+## Dynamically adjusts particle spawn extents and center positions to match the viewport dimensions.
+func _update_emitter_bounds() -> void:
+	var vp_size = get_viewport_rect().size
+	var w = vp_size.x if vp_size.x > 0 else 1920.0
+	var h = vp_size.y if vp_size.y > 0 else 1080.0
+	var half_w = w * 0.5
+	var half_h = h * 0.5
+
+	if rain_particles:
+		rain_particles.position = Vector2(half_w, -20)
+		rain_particles.emission_rect_extents = Vector2(half_w + 100.0, 10)
+	if snow_particles:
+		snow_particles.position = Vector2(half_w, -20)
+		snow_particles.emission_rect_extents = Vector2(half_w + 100.0, 10)
+	if hail_particles:
+		hail_particles.position = Vector2(half_w, -20)
+		hail_particles.emission_rect_extents = Vector2(half_w + 100.0, 10)
+	if sand_particles:
+		sand_particles.position = Vector2(-20, half_h)
+		sand_particles.emission_rect_extents = Vector2(10, half_h + 100.0)
+
 
 
 ## Builds lightweight CPUParticles2D emitters and full-screen ambient tint rectangles.

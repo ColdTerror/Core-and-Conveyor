@@ -20,7 +20,6 @@ func save_game(level_ref: Node2D, slot: int = current_slot):
 	var save_data = {}
 	
 	save_data["economy_stats"] = EconomyManager.get_save_data()
-	save_data["audio_manager"] = AudioManager.get_save_data()
 
 	if is_instance_valid(level_ref) and level_ref.has_method("get_map_save_data"):
 		save_data["map_data"] = level_ref.get_map_save_data()
@@ -94,9 +93,6 @@ func unpack_save(level_ref: Node2D):
 	print("SaveManager: Unpacking data into the new world...")
 	var data = pending_load_data
 	
-	if data.has("audio_manager"):
-		AudioManager.load_save_data(data["audio_manager"])
-		
 	if data.has("map_data") and level_ref.has_method("load_map_save_data"):
 		level_ref.load_map_save_data(data["map_data"])
 	

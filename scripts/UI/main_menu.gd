@@ -31,6 +31,7 @@ extends Control
 @onready var sfx_slider = $CenterContainer/SettingsPanel/VBoxContainer/SfxSlider
 @onready var sfx_mute = $CenterContainer/SettingsPanel/VBoxContainer/SfxMute
 @onready var settings_back_btn = $CenterContainer/SettingsPanel/VBoxContainer/Back
+@onready var display_settings_btn = $CenterContainer/SettingsPanel/VBoxContainer/DisplaySettings
 @onready var keybinds_btn = $CenterContainer/SettingsPanel/VBoxContainer/Keybinds
 
 var delete_confirm_dialog: ConfirmationDialog
@@ -79,11 +80,32 @@ func _ready():
 	music_mute.button_pressed = not AudioManager.is_music_muted
 	sfx_mute.button_pressed = not AudioManager.is_sfx_muted
 	
-	music_slider.value_changed.connect(func(val): AudioManager.set_music_volume(val))
-	sfx_slider.value_changed.connect(func(val): AudioManager.set_sfx_volume(val))
-	music_mute.toggled.connect(func(is_enabled): AudioManager.set_music_muted(not is_enabled))
-	sfx_mute.toggled.connect(func(is_enabled): AudioManager.set_sfx_muted(not is_enabled))
+	music_slider.value_changed.connect(func(val):
+		AudioManager.set_music_volume(val)
+		_save_current_audio_settings()
+	)
+	sfx_slider.value_changed.connect(func(val):
+		AudioManager.set_sfx_volume(val)
+		_save_current_audio_settings()
+	)
+	music_mute.toggled.connect(func(is_enabled):
+		AudioManager.set_music_muted(not is_enabled)
+		_save_current_audio_settings()
+	)
+	sfx_mute.toggled.connect(func(is_enabled):
+		AudioManager.set_sfx_muted(not is_enabled)
+		_save_current_audio_settings()
+	)
 	
+	display_settings_btn.pressed.connect(func():
+		if get_node_or_null("DisplaySettingsMenu"): return
+		var display_scene = load("res://scenes/ui/display_settings_menu.tscn")
+		var menu = display_scene.instantiate()
+		menu.name = "DisplaySettingsMenu"
+		add_child(menu)
+		menu.closed.connect(func(): menu.queue_free())
+	)
+
 	keybinds_btn.pressed.connect(func():
 		if get_node_or_null("KeybindSettingsMenu"): return
 		var keybind_scene = load("res://scenes/ui/keybind_settings_menu.tscn")
@@ -97,7 +119,7 @@ func _ready():
 	var all_buttons = [
 		new_game_btn, load_game_btn, settings_btn, exit_btn,
 		load_1_btn, load_2_btn, load_3_btn, del_1_btn, del_2_btn, del_3_btn, load_back_btn,
-		settings_back_btn, keybinds_btn
+		settings_back_btn, display_settings_btn, keybinds_btn
 	]
 	for btn in all_buttons:
 		if is_instance_valid(btn):
@@ -216,3 +238,9 @@ func _flash_button_error(button: Button):
 		button.text = original_text
 		button.modulate = original_color
 		button.disabled = false
+
+
+func _save_current_audio_settings() -> void:
+	if has_node("/root/SettingsManager"):
+		var sm = get_node("/root/SettingsManager")
+		sm.save_audio_settings(music_slider.value, sfx_slider.value, not music_mute.button_pressed, not sfx_mute.button_pressed)

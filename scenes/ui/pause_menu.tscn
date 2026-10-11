@@ -22,7 +22,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(800, 500)
+custom_minimum_size = Vector2(820, 540)
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
@@ -79,6 +79,11 @@ size_flags_vertical = 3
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 text = "Resume"
+
+[node name="DisplaySettings" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Display Settings"
 
 [node name="Keybinds" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn"]
 custom_minimum_size = Vector2(0, 42)

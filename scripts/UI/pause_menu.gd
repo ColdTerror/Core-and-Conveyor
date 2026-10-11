@@ -28,6 +28,7 @@ signal save_requested(slot: int)
 @onready var sfx_slider = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/SfxSlider
 
 @onready var resume_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/Resume
+@onready var display_settings_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/DisplaySettings
 @onready var keybinds_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/Keybinds
 @onready var menu_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/Menu
 @onready var exit_button = $CenterContainer/PanelContainer/MarginContainer/HBoxContainer/LeftColumn/Exit
@@ -63,6 +64,15 @@ func _ready():
 	if OS.has_feature("web"):
 		exit_button.hide()
 	
+	display_settings_button.pressed.connect(func():
+		if get_node_or_null("DisplaySettingsMenu"): return
+		var display_scene = load("res://scenes/ui/display_settings_menu.tscn")
+		var menu = display_scene.instantiate()
+		menu.name = "DisplaySettingsMenu"
+		add_child(menu)
+		menu.closed.connect(func(): menu.queue_free())
+	)
+
 	keybinds_button.pressed.connect(func():
 		if get_node_or_null("KeybindSettingsMenu"): return
 		var keybind_scene = load("res://scenes/ui/keybind_settings_menu.tscn")
@@ -72,10 +82,22 @@ func _ready():
 		menu.closed.connect(func(): menu.queue_free())
 	)
 	
-	music_slider.value_changed.connect(func(val): AudioManager.set_music_volume(val))
-	sfx_slider.value_changed.connect(func(val): AudioManager.set_sfx_volume(val))
-	music_mute.toggled.connect(func(is_enabled: bool): AudioManager.set_music_muted(not is_enabled))
-	sfx_mute.toggled.connect(func(is_enabled: bool): AudioManager.set_sfx_muted(not is_enabled))
+	music_slider.value_changed.connect(func(val):
+		AudioManager.set_music_volume(val)
+		_save_current_audio_settings()
+	)
+	sfx_slider.value_changed.connect(func(val):
+		AudioManager.set_sfx_volume(val)
+		_save_current_audio_settings()
+	)
+	music_mute.toggled.connect(func(is_enabled: bool):
+		AudioManager.set_music_muted(not is_enabled)
+		_save_current_audio_settings()
+	)
+	sfx_mute.toggled.connect(func(is_enabled: bool):
+		AudioManager.set_sfx_muted(not is_enabled)
+		_save_current_audio_settings()
+	)
 	
 	quick_save_btn.pressed.connect(func(): 
 		save_requested.emit(SaveManager.current_slot)
@@ -341,3 +363,9 @@ func _flash_button_error(button: Button):
 ## Triggers save file recovery by slot ID.
 func _on_load_slot(slot: int):
 	SaveManager.load_game(slot)
+
+
+func _save_current_audio_settings() -> void:
+	if has_node("/root/SettingsManager"):
+		var sm = get_node("/root/SettingsManager")
+		sm.save_audio_settings(music_slider.value, sfx_slider.value, not music_mute.button_pressed, not sfx_mute.button_pressed)
