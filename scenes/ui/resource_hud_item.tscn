@@ -17,6 +17,7 @@ vertical_alignment = 1
 layout_mode = 2
 
 [node name="UnsecuredLabel" type="Label" parent="." unique_id=1537876883]
+custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
-text = "(+0)  "
+text = "(+0)"
 vertical_alignment = 1

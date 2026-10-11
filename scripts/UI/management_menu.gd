@@ -509,6 +509,8 @@ func _create_resource_row(item_name: String, available: int, in_transit: int, is
 		text += " (+%d)" % in_transit
 	amount_label.text = text
 	amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	amount_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	amount_label.tooltip_text = "%s Inventory:\n• %d Secured: Stored in Core or Stockpiles (available to spend).\n• (+%d) Unsecured: In harvesters, machines, or transit." % [item_name, available, in_transit]
 	
 	main_row.add_child(pin_btn)
 	main_row.add_child(name_btn)
