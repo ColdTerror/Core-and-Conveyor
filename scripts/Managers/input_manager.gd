@@ -258,10 +258,14 @@ func _unhandled_input(event: InputEvent):
 				if is_instance_valid(bot_awaiting_home):
 					if bot_awaiting_home.has_method("is_valid_home_tile"):
 						if not bot_awaiting_home.is_valid_home_tile(grid_pos):
+							if level_ref and level_ref.has_method("spawn_floating_text"):
+								level_ref.spawn_floating_text(mouse_pos, "Must be empty tile in build zone", Color(1.0, 0.35, 0.35))
 							get_viewport().set_input_as_handled()
 							return
 							
 					bot_awaiting_home.set_home(grid_pos)
+					if level_ref and level_ref.has_method("spawn_floating_text"):
+						level_ref.spawn_floating_text(mouse_pos, "Bot Home Relocated!", Color(0.3, 0.9, 1.0))
 					if bot_awaiting_home.has_method("toggle_set_home_mode"):
 						bot_awaiting_home.toggle_set_home_mode(false)
 						

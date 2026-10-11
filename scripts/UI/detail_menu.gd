@@ -732,6 +732,8 @@ func _setup_bot_ui(b: Node2D):
 			
 		if b.has_method("toggle_set_home_mode"):
 			b.toggle_set_home_mode(true)
+			
+		close_menu()
 	)
 
 

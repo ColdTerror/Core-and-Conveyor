@@ -1183,12 +1183,6 @@ func is_valid_home_tile(grid_pos: Vector2i) -> bool:
 	if grid_pos in get_reserved_home_tiles():
 		return false
 		
-	# Enforce path walkability check from bot's current position to target home tile
-	var target_world = level_ref.object_layer.to_global(level_ref.object_layer.map_to_local(grid_pos))
-	var path = bm.pathfinder.get_path_route(global_position, target_world, true, is_flying)
-	if path.is_empty():
-		return false
-			
 	return true
 
 

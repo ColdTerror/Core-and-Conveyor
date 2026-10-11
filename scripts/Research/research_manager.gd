@@ -255,4 +255,3 @@ func load_save_data(data: Dictionary):
 func reset_state() -> void:
 	unlocked_techs.clear()
 	recalculate_all_stats()
-
