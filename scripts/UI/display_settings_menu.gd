@@ -33,6 +33,13 @@ func _ready() -> void:
 	close_button.pressed.connect(func(): closed.emit())
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE:
+			closed.emit()
+			get_viewport().set_input_as_handled()
+
+
 func _populate_options() -> void:
 	# 1. Window Modes
 	window_mode_option.clear()

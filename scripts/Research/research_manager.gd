@@ -249,3 +249,10 @@ func load_save_data(data: Dictionary):
 			unlocked_techs.append(tech)
 			
 	recalculate_all_stats()
+
+
+## Resets all research unlocks and stats to fresh game defaults.
+func reset_state() -> void:
+	unlocked_techs.clear()
+	recalculate_all_stats()
+

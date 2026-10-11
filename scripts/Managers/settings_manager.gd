@@ -37,7 +37,24 @@ signal display_settings_changed
 
 
 func _ready() -> void:
+	process_mode = PROCESS_MODE_ALWAYS
 	load_and_apply_settings()
+
+
+## Listens for universal PC fullscreen shortcuts (F11 and Alt+Enter).
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F11 or (event.keycode == KEY_ENTER and event.alt_pressed):
+			toggle_fullscreen()
+			get_viewport().set_input_as_handled()
+
+
+## Toggles between Windowed and Borderless Fullscreen.
+func toggle_fullscreen() -> void:
+	if current_window_mode == WindowMode.WINDOWED:
+		apply_display_settings(WindowMode.BORDERLESS_FULLSCREEN, current_resolution, current_vsync, current_fps_limit)
+	else:
+		apply_display_settings(WindowMode.WINDOWED, current_resolution, current_vsync, current_fps_limit)
 
 
 ## Loads user settings from configuration file or initializes default values.

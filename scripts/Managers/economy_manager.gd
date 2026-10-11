@@ -228,3 +228,18 @@ func recalculate_global_inventory():
 				global_inventory[item_name] = global_inventory.get(item_name, 0) + assets[item_name]
 				
 	inventory_changed.emit()
+
+
+## Resets all economy inventories, sources, and statistics for a fresh game session.
+func reset_state() -> void:
+	global_inventory = {"Wood": 0, "Stone": 0}
+	discovered_resources = ["Wood", "Stone"]
+	pinned_resources = ["Wood", "Stone"]
+	secured_sources.clear()
+	unsecured_sources.clear()
+	daily_production.clear()
+	daily_consumption.clear()
+	history_archive.clear()
+	inventory_changed.emit()
+	stats_updated.emit()
+

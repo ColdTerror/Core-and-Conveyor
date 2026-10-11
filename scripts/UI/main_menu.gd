@@ -147,8 +147,10 @@ func _setup_button_effects(btn: Button):
 	)
 
 func _on_new_game():
-	# Fresh game, ensure save briefcase is clear
+	# Fresh game, ensure save briefcase and autoload states are completely clear
 	SaveManager.pending_load_data.clear()
+	EconomyManager.reset_state()
+	ResearchManager.reset_state()
 	get_tree().change_scene_to_file("res://scenes/level.tscn")
 
 func _on_open_load():

@@ -72,17 +72,25 @@ func _on_bind_button_pressed(action: String, btn: Button):
 
 
 func _input(event: InputEvent):
-	if binding_action == "": return
-	
-	if event is InputEventKey and event.pressed:
-		get_viewport().set_input_as_handled()
-		
-		var new_key = event.physical_keycode
-		_rebind_action(binding_action, new_key)
-		
-		binding_button.text = OS.get_keycode_string(new_key)
-		binding_action = ""
-		binding_button = null
+	if event is InputEventKey and event.pressed and not event.echo:
+		if binding_action != "":
+			get_viewport().set_input_as_handled()
+			if event.keycode == KEY_ESCAPE:
+				# Cancel rebinding prompt
+				binding_button.text = _get_action_key_text(binding_action)
+				binding_action = ""
+				binding_button = null
+				return
+			
+			var new_key = event.physical_keycode
+			_rebind_action(binding_action, new_key)
+			binding_button.text = OS.get_keycode_string(new_key)
+			binding_action = ""
+			binding_button = null
+		else:
+			if event.keycode == KEY_ESCAPE:
+				closed.emit()
+				get_viewport().set_input_as_handled()
 
 
 func _rebind_action(action: String, physical_keycode: int):

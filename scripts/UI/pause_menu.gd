@@ -187,7 +187,7 @@ func resume_game():
 func back_to_menu():
 	hide()
 	get_tree().paused = false
-	#AudioManager.set_music_muffled(false)
+	AudioManager.set_music_muffled(false)
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 	
 

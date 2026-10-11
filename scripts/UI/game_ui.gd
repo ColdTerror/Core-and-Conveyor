@@ -551,8 +551,8 @@ func _on_core_destroyed():
 ## Resets inventories and reload-unpauses the game scene to begin a new round.
 func _on_restart_pressed():
 	get_tree().paused = false 
-	EconomyManager.global_inventory.clear()
-	EconomyManager.inventory_changed.emit()
+	EconomyManager.reset_state()
+	ResearchManager.reset_state()
 	get_tree().reload_current_scene()
 
 
