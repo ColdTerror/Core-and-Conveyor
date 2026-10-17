@@ -123,6 +123,8 @@ func unpack_save(level_ref: Node2D):
 			
 	if data.has("weather_manager") and level_ref.has_node("WeatherManager"):
 		level_ref.get_node("WeatherManager").load_save_data(data["weather_manager"])
+		if level_ref.has_node("BuildingManager"):
+			level_ref.get_node("BuildingManager").rebuild_attack_tiles()
 			
 	# Finally, do a roll call of the newly spawned physical buildings!
 	EconomyManager.recalculate_global_inventory()

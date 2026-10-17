@@ -290,7 +290,14 @@ func _collect_tower_stats(b: Node2D, stats: Array):
 			stats.append("Damage Mult: %.2fx" % damage_mult)
 
 	if "fire_rate" in b: stats.append("Fire Rate: %.2f/s" % b.fire_rate)
-	if "attack_range" in b: stats.append("Range: %d Tiles" % int(b.attack_range))
+	if b.has_method("get_effective_attack_range"):
+		var eff_range = b.get_effective_attack_range()
+		if eff_range != b.attack_range:
+			stats.append("Range: %d Tiles (Weather: -%d)" % [eff_range, b.attack_range - eff_range])
+		else:
+			stats.append("Range: %d Tiles" % eff_range)
+	elif "attack_range" in b:
+		stats.append("Range: %d Tiles" % int(b.attack_range))
 	if "preferred_ammo_type" in b: stats.append("Preferred Ammo: %s" % b.preferred_ammo_type)
 	if "compatible_ammo_types" in b and b.compatible_ammo_types.size() > 1:
 		var compatible_list = ", ".join(b.compatible_ammo_types)

@@ -503,7 +503,12 @@ func _setup_stockpile_ui(b: StockpileBuilding):
 
 ## Standardizes defense tower prioritization controls and targeting targets.
 func _setup_tower_ui(b: TowerBuilding):
-	info_label.text = "Priority: %s\n" % b.targeting_mode
+	var eff_range = b.get_effective_attack_range() if b.has_method("get_effective_attack_range") else b.attack_range
+	if eff_range != b.attack_range:
+		info_label.text = "Range: %d tiles (Weather: -%d)\n" % [eff_range, b.attack_range - eff_range]
+	else:
+		info_label.text = "Range: %d tiles\n" % eff_range
+	info_label.text += "Priority: %s\n" % b.targeting_mode
 	
 	if b.ammo_inventory.is_empty():
 		info_label.text += "Ammo: Empty\n"

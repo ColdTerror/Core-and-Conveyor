@@ -81,9 +81,8 @@ func _ready():
 	
 	var weather_mgr = get_tree().get_first_node_in_group("WeatherManager")
 	if weather_mgr and weather_mgr.has_signal("weather_changed"):
-		weather_mgr.weather_changed.connect(func(_new_w, _old_w):
-			_cached_range_tiles = _get_local_range_tiles()
-		)
+		if not weather_mgr.weather_changed.is_connected(_on_weather_changed):
+			weather_mgr.weather_changed.connect(_on_weather_changed)
 	
 	if has_node("TowerPivot"):
 		turret_pivot = get_node("TowerPivot")
@@ -117,8 +116,13 @@ func _exit_tree():
 ## Links this tower to the active level instance.
 func setup(level_instance: Node2D):
 	level_ref = level_instance
+	update_weather_range()
 
+func update_weather_range() -> void:
+	_cached_range_tiles = _get_local_range_tiles()
 
+func _on_weather_changed(_new_w, _old_w) -> void:
+	update_weather_range()
 
 ## Calculates and applies upgraded damage multipliers based on technology research levels.
 func apply_research_buffs():
@@ -136,7 +140,12 @@ func _draw():
 ## Returns current attack range factoring in weather visibility penalties.
 func get_effective_attack_range() -> int:
 	var penalty = 0
-	var weather_mgr = get_tree().get_first_node_in_group("WeatherManager")
+	var weather_mgr: WeatherManager = null
+	if level_ref and "weather_manager" in level_ref and level_ref.weather_manager:
+		weather_mgr = level_ref.weather_manager
+	elif is_inside_tree():
+		weather_mgr = get_tree().get_first_node_in_group("WeatherManager") as WeatherManager
+		
 	if weather_mgr and weather_mgr.has_method("get_tower_range_penalty"):
 		penalty = weather_mgr.get_tower_range_penalty()
 	return max(2, attack_range - penalty)

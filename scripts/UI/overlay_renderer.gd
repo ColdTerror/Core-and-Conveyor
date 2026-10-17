@@ -29,6 +29,7 @@ var _prev_terraform_jobs_empty: bool = true
 var _prev_overlay_threshold: int = 1
 var _prev_show_overlay_numbers: bool = true
 var _prev_mode: int = 0 
+var _prev_weather: int = -1
 
 var _overlay_tick_timer: float = 0.0
 const OVERLAY_TICK_RATE: float = 1.0
@@ -96,6 +97,13 @@ func _process(delta):
 	# Ghost placement update
 	if bm.placing_building or current_mode != 0: 
 		needs_redraw = true
+
+	# Weather shift check to refresh range circles immediately
+	var weather_mgr = get_tree().get_first_node_in_group("WeatherManager")
+	var current_weather = weather_mgr.current_weather if weather_mgr else -1
+	if current_weather != _prev_weather:
+		needs_redraw = true
+		_prev_weather = current_weather
 
 	# Throttled overlay ticks
 	var has_slow_overlay = bm.show_build_grid or bm.show_safe_grid or \

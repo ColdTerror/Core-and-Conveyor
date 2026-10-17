@@ -153,6 +153,8 @@ func _ready():
 		
 	weather_manager.level_ref = self
 	weather_manager.time_manager = get_node_or_null("TimeManager")
+	if building_manager:
+		building_manager._connect_weather_manager()
 
 	var weather_overlay = WeatherOverlay.new()
 	weather_overlay.name = "WeatherOverlay"
@@ -531,6 +533,8 @@ func reroll_map(new_map_type: MapGenType, new_biome: MapBiome) -> void:
 	
 	if weather_manager:
 		weather_manager.reset_for_biome()
+		if building_manager:
+			building_manager.rebuild_attack_tiles()
 	
 	print("Level: Map rerolled -> Type: %s, Biome: %s" % [MapGenType.keys()[current_map_type], MapBiome.keys()[current_biome]])
 

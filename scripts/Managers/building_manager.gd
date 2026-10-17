@@ -87,6 +87,7 @@ func _counts_towards_limit(building: Node) -> bool:
 
 func _ready():
 	EconomyManager.inventory_changed.connect(_on_inventory_changed)
+	_connect_weather_manager()
 
 
 
@@ -103,6 +104,22 @@ func _process(delta):
 ## Initializes the manager with the level instance reference.
 func initialize(level_instance: Node2D):
 	level_ref = level_instance
+	_connect_weather_manager()
+
+
+func _connect_weather_manager() -> void:
+	var weather_mgr = null
+	if level_ref and "weather_manager" in level_ref and level_ref.weather_manager:
+		weather_mgr = level_ref.weather_manager
+	elif is_inside_tree():
+		weather_mgr = get_tree().get_first_node_in_group("WeatherManager")
+		
+	if weather_mgr and weather_mgr.has_signal("weather_changed"):
+		if not weather_mgr.weather_changed.is_connected(_on_weather_changed):
+			weather_mgr.weather_changed.connect(_on_weather_changed)
+
+func _on_weather_changed(_new_weather, _old_weather) -> void:
+	rebuild_attack_tiles()
 
 
 
@@ -951,6 +968,32 @@ func _remove_attack_zone(building: Building):
 		if attack_tiles.has(tile):
 			attack_tiles[tile] -= 1
 			if attack_tiles[tile] <= 0: attack_tiles.erase(tile)
+
+
+## Rebuilds the combined attack coverage tiles across all placed towers and active ghosts when weather shifts.
+func rebuild_attack_tiles() -> void:
+	attack_tiles.clear()
+	for b in buildings:
+		if is_instance_valid(b) and "attack_range" in b:
+			if b.has_method("update_weather_range"):
+				b.update_weather_range()
+			elif "_cached_range_tiles" in b and b.has_method("_get_local_range_tiles"):
+				b._cached_range_tiles = b._get_local_range_tiles()
+			_add_attack_zone(b)
+			
+	if placing_building and is_instance_valid(ghost_building):
+		if ghost_building.has_method("update_weather_range"):
+			ghost_building.update_weather_range()
+		elif "_cached_range_tiles" in ghost_building and ghost_building.has_method("_get_local_range_tiles"):
+			ghost_building._cached_range_tiles = ghost_building._get_local_range_tiles()
+		for g in drag_ghosts:
+			if is_instance_valid(g) and "_cached_range_tiles" in ghost_building:
+				g._cached_range_tiles = ghost_building._cached_range_tiles
+				
+	queue_redraw()
+	var renderer = get_tree().get_first_node_in_group("OverlayRenderer")
+	if renderer:
+		renderer.queue_redraw()
 
 
 
