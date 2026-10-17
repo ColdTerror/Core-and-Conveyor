@@ -36,26 +36,24 @@ func setup(p_resource_name: String) -> void:
 	if counter:
 		_configure_counter_mouse_filter(counter)
 	
-	_update_tooltip(0, 0)
+	_setup_tooltip()
 
 func update_values(secured: int, in_transit: int) -> void:
 	if counter:
 		counter.set_value(secured)
 	
-	unsecured_label.show()
+	if not unsecured_label.visible:
+		unsecured_label.show()
+
 	if in_transit > 0:
 		unsecured_label.text = "(+%d)" % in_transit
 		unsecured_label.modulate = COLOR_UNSECURED_ACTIVE
 	else:
 		unsecured_label.text = "(+0)"
 		unsecured_label.modulate = COLOR_UNSECURED_IDLE
-	
-	_update_tooltip(secured, in_transit)
 
-func _update_tooltip(secured: int, in_transit: int) -> void:
-	var tip = "%s Inventory:\n• Main Count (%d): Secured items stored in Core or Stockpiles (available to spend).\n• (+%d) Unsecured: Items held in harvesters, machines, or transit (not yet stored)." % [
-		current_resource_name, secured, in_transit
-	]
+func _setup_tooltip() -> void:
+	var tip = "%s Inventory:\n• Main Number: Secured items stored in Core or Stockpiles (available to spend).\n• (+#): Unsecured items held in harvesting buildings, machines, or transit (not yet stored)." % current_resource_name
 	tooltip_text = tip
 	name_label.tooltip_text = tip
 	unsecured_label.tooltip_text = tip

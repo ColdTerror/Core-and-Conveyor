@@ -467,17 +467,23 @@ func update_labels():
 		return
 	_is_updating_labels = true
 
-	# Hide all existing labels
+	# Determine which resources are currently active/pinned
+	var max_slots = min(EconomyManager.pinned_resources.size(), EconomyManager.MAX_PINNED_RESOURCES)
+	var active_pinned_names: Array[String] = []
+	for i in range(max_slots):
+		active_pinned_names.append(EconomyManager.pinned_resources[i])
+
+	# Only hide resource widgets that were unpinned or exceed max slots (do NOT hide active widgets!)
 	for key in resource_labels.keys():
-		resource_labels[key].hide()
+		if not active_pinned_names.has(key):
+			resource_labels[key].hide()
 
 	# Get the full unsecured map once to avoid calling it in the loop
 	var unsecured_map = EconomyManager.get_unsecured_inventory()
 
 	# Loop through ONLY the pinned list (capped at MAX_PINNED_RESOURCES items to prevent HUD overlaps)
-	var max_slots = min(EconomyManager.pinned_resources.size(), EconomyManager.MAX_PINNED_RESOURCES)
 	for i in range(max_slots):
-		var resource_name = EconomyManager.pinned_resources[i]
+		var resource_name = active_pinned_names[i]
 		
 		# Grab both values
 		var secured = EconomyManager.get_item_count(resource_name)
@@ -491,11 +497,13 @@ func update_labels():
 			new_item.setup(resource_name)
 			resource_labels[resource_name] = new_item
 
-		# Update values on the custom split-flap widget
+		# Update values on the custom split-flap widget without interrupting active hovers
 		var item = resource_labels[resource_name]
 		item.update_values(secured, in_transit)
-		item.show()
-		inventoryContainer.move_child(item, i)
+		if not item.visible:
+			item.show()
+		if item.get_index() != i:
+			inventoryContainer.move_child(item, i)
 
 	_is_updating_labels = false
 
