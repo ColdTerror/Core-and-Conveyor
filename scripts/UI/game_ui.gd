@@ -23,6 +23,9 @@ extends Control
 @export var time_manager: TimeManager
 @export var building_manager: BuildingManager
 @export var corruption_manager: CorruptionManager
+@export var quota_manager: QuotaManager
+
+signal research_screen_requested
 
 @onready var game_over_panel = $"../../GameOverPanel"
 @onready var stats_label = $"../../GameOverPanel/VBoxContainer/Stats"
@@ -44,6 +47,8 @@ var clock_divider: Label
 var minute_digits: Array = []
 var weather_badge: Button
 var _weather_update_cooldown: float = 0.0
+var rp_badge: Button
+var quota_banner_label: Label = null
 
 var wave_hud: HBoxContainer
 var wave_digits: Array = []
@@ -178,6 +183,37 @@ func _ready():
 	
 	minute_digits = _create_digit_list(date_hud, 2)
 	
+	var rp_sep = Label.new()
+	rp_sep.text = "   "
+	date_hud.add_child(rp_sep)
+
+	rp_badge = Button.new()
+	rp_badge.focus_mode = Control.FOCUS_NONE
+	rp_badge.text = " 🧪 0 RP "
+	rp_badge.tooltip_text = "Available Research Points (Click to open Research Tree)"
+	rp_badge.add_theme_font_size_override("font_size", 13)
+
+	var rp_style = StyleBoxFlat.new()
+	rp_style.bg_color = Color(0.1, 0.18, 0.28, 0.85)
+	rp_style.border_color = Color(0.25, 0.65, 0.95, 0.7)
+	rp_style.set_border_width_all(1)
+	rp_style.set_corner_radius_all(6)
+	rp_style.content_margin_left = 8
+	rp_style.content_margin_right = 8
+	rp_style.content_margin_top = 2
+	rp_style.content_margin_bottom = 2
+	rp_badge.add_theme_stylebox_override("normal", rp_style)
+
+	var rp_hov = rp_style.duplicate()
+	rp_hov.bg_color = Color(0.15, 0.28, 0.45, 0.95)
+	rp_hov.border_color = Color(0.4, 0.85, 1.0, 0.9)
+	rp_badge.add_theme_stylebox_override("hover", rp_hov)
+
+	date_hud.add_child(rp_badge)
+	rp_badge.pressed.connect(func():
+		research_screen_requested.emit()
+	)
+
 	# Instantiate dynamic Wave HUD
 	wave_hud = HBoxContainer.new()
 	wave_hud.alignment = HBoxContainer.ALIGNMENT_CENTER
@@ -297,6 +333,66 @@ func _ready():
 	$VBoxContainer.move_child(threshold_hud, 4)
 	$VBoxContainer.move_child(build_grid_hud, 5)
 	$VBoxContainer.move_child(path_grid_hud, 6)
+
+	# Dynamic Quota Evaluation Banner
+	quota_banner_label = Label.new()
+	quota_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	quota_banner_label.add_theme_font_size_override("font_size", 16)
+	quota_banner_label.hide()
+	$VBoxContainer.add_child(quota_banner_label)
+	$VBoxContainer.move_child(quota_banner_label, 1)
+
+	if ResearchManager and ResearchManager.has_signal("research_points_changed"):
+		ResearchManager.research_points_changed.connect(_on_rp_changed)
+		_on_rp_changed(ResearchManager.research_points)
+		
+	_connect_quota_manager()
+
+
+func _on_rp_changed(new_amount: int):
+	if rp_badge:
+		rp_badge.text = " 🧪 %d RP " % new_amount
+
+
+func _connect_quota_manager():
+	if not quota_manager:
+		var lvl = building_manager.level_ref if building_manager else null
+		if not lvl:
+			lvl = get_tree().get_first_node_in_group("Level")
+		if lvl and lvl.has_node("QuotaManager"):
+			quota_manager = lvl.get_node("QuotaManager")
+			
+	if quota_manager and quota_manager.has_signal("daily_evaluation_completed"):
+		if not quota_manager.daily_evaluation_completed.is_connected(_on_daily_evaluation_completed):
+			quota_manager.daily_evaluation_completed.connect(_on_daily_evaluation_completed)
+
+
+func _on_daily_evaluation_completed(day: int, rp_earned: int, completion_ratio: float):
+	if not quota_banner_label or day <= 2:
+		return
+		
+	var pct = int(completion_ratio * 100.0)
+	if completion_ratio >= 2.0:
+		quota_banner_label.text = "★ Day %d Midnight Report: Max Surplus (%d%%)! +%d Research Points Granted ★" % [day, pct, rp_earned]
+		quota_banner_label.modulate = Color(0.2, 0.9, 1.0)
+	elif completion_ratio >= 1.0:
+		quota_banner_label.text = "✔ Day %d Midnight Report: Quota Fulfilled (%d%%)! +%d Research Points Granted" % [day, pct, rp_earned]
+		quota_banner_label.modulate = Color(0.3, 1.0, 0.4)
+	else:
+		quota_banner_label.text = "⚠ Day %d Midnight Report: Partial Delivery (%d%%, halved penalty). +%d Research Points Granted" % [day, pct, rp_earned]
+		quota_banner_label.modulate = Color(1.0, 0.75, 0.3)
+		
+	quota_banner_label.modulate.a = 1.0
+	quota_banner_label.show()
+	
+	var tween = create_tween()
+	tween.tween_interval(5.0)
+	tween.tween_property(quota_banner_label, "modulate:a", 0.0, 1.5)
+	tween.tween_callback(func():
+		quota_banner_label.hide()
+		quota_banner_label.modulate.a = 1.0
+	)
+
 
 ## Updates gameplay labels including the clock, wave forecast, corruption state, and safe grid metrics.
 func _process(delta: float):

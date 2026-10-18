@@ -47,6 +47,7 @@ func _ready():
 	research_button.pressed.connect(_on_research_pressed)
 	
 	ResearchManager.research_unlocked.connect(_refresh_button)
+	ResearchManager.research_points_changed.connect(func(_amt): _refresh_button())
 	_refresh_button()
 
 
@@ -81,12 +82,17 @@ func _refresh_editor_ui():
 func _refresh_button():
 	var already_done = research_name in ResearchManager.unlocked_techs
 	var tier_met = ResearchManager.can_research(research_name)
+	var rp_cost = ResearchManager.get_tech_rp_cost(research_name)
+	var has_rp = ResearchManager.has_enough_rp(research_name)
 	
 	if already_done:
 		research_button.text = "Researched"
 		research_button.disabled = true
 	elif not tier_met:
 		research_button.text = "Locked"
+		research_button.disabled = true
+	elif not has_rp:
+		research_button.text = "Need %d RP" % rp_cost
 		research_button.disabled = true
 	else:
 		research_button.text = "Research"
@@ -99,10 +105,16 @@ func _on_research_pressed():
 	if not ResearchManager.can_research(research_name):
 		print("Tier not unlocked yet!")
 		return
+	if not ResearchManager.has_enough_rp(research_name):
+		print("Not enough Research Points!")
+		return
 		
 	_sync_costs_from_database()
 	var core = get_tree().get_first_node_in_group("Core")
 	if core and core.has_method("start_research"):
+		var rp_cost = ResearchManager.get_tech_rp_cost(research_name)
+		if rp_cost > 0 and not ResearchManager.spend_research_points(rp_cost):
+			return
 		core.start_research(research_name, research_cost)
 		research_started.emit()
 
@@ -111,6 +123,12 @@ func _on_research_pressed():
 ## Formats the research resource costs dictionary into a comma-separated display string.
 func _format_costs(costs: Dictionary) -> String:
 	var parts: Array[String] = []
+	var rp_cost = 0
+	if ResearchManager and ResearchManager.has_method("get_tech_rp_cost"):
+		rp_cost = ResearchManager.get_tech_rp_cost(research_name)
+	if rp_cost > 0:
+		parts.append("%d RP" % rp_cost)
+		
 	for resource in costs.keys():
 		# Safety check so the editor doesn't crash if an empty key is added
 		if resource and "display_name" in resource:

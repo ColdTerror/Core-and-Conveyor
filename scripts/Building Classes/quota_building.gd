@@ -93,25 +93,34 @@ func get_inventory_info() -> Dictionary:
 	if not level_ref or not level_ref.has_node("QuotaManager"): 
 		return {}
 		
-	var qm = level_ref.get_node("QuotaManager")
+	var qm: QuotaManager = level_ref.get_node("QuotaManager")
 	var info = {}
 	
 	if qm.daily_requirements.is_empty():
-		info["Status"] = "GRACE PERIOD"
-		info["Weekly Success"] = "7 / 7 Days"
+		info["Status"] = "GRACE PERIOD (Starts Day 3)"
+		info["Midnight Grant"] = "0 RP"
+		info["Weekly Met"] = "%d / 7 Days" % qm.successful_days
 		return info
 
-	if qm._is_daily_quota_met():
-		info["Status"] = "SAFE TODAY"
+	var ratio = qm.get_daily_completion_ratio()
+	var projected_rp = qm.get_projected_rp_for_today()
+	var base_rp = qm.get_base_rp_for_day(qm.current_day)
+	
+	if ratio >= 2.0:
+		info["Status"] = "MAX SURPLUS (200%)"
+	elif ratio >= 1.0:
+		info["Status"] = "SURPLUS (%d%%)" % int(ratio * 100.0)
 	else:
-		info["Status"] = "PENDING"
+		info["Status"] = "IN PROGRESS (%d%%)" % int(ratio * 100.0)
 		
-	info["Weekly Success"] = "%d / 7 Days" % qm.successful_days
+	info["Midnight Grant"] = "+%d RP (Base %d)" % [projected_rp, base_rp]
+	info["Weekly Met"] = "%d / 7 Days" % qm.successful_days
 	
 	for item in qm.daily_requirements.keys():
 		var needed = qm.daily_requirements[item]
 		var have = qm.daily_delivered.get(item, 0)
-		info[item] = "%d / %d" % [have, needed]
+		var max_allowed = needed * 2
+		info[item] = "%d / %d (Max %d)" % [have, needed, max_allowed]
 		
 	return info
 

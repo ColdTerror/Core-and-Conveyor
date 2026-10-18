@@ -20,6 +20,8 @@ func _ready():
 	detail_menu.research_button_clicked.connect(_on_open_research_tree)
 	research_screen.close_research_tree.connect(_on_close_research_tree)
 	detail_menu.quota_shortcut_clicked.connect(_on_quota_shortcut_clicked)
+	if game_ui and game_ui.has_signal("research_screen_requested"):
+		game_ui.research_screen_requested.connect(_on_open_research_tree)
 
 
 

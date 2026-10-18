@@ -124,9 +124,10 @@ func _process_midnight():
 	var yesterday = current_day 
 	
 	var level_node = get_parent()
+	var quota_mgr: QuotaManager = null
 	if level_node and level_node.has_node("QuotaManager"):
-		var quota_mgr = level_node.get_node("QuotaManager")
-		quota_mgr.process_end_of_day()
+		quota_mgr = level_node.get_node("QuotaManager")
+		quota_mgr.process_end_of_day(yesterday)
 		
 		# If yesterday was day 7, 14, 21, etc., the week is over!
 		if yesterday % 7 == 0:
@@ -137,6 +138,10 @@ func _process_midnight():
 	# FLIP THE CALENDAR FIRST
 	current_day += 1
 	print("--- DAY %d ---" % current_day)
+	
+	# Configure quota for the new day
+	if quota_mgr:
+		quota_mgr.start_next_day(current_day)
 	
 	var new_season = get_current_season()
 	if old_season != new_season:

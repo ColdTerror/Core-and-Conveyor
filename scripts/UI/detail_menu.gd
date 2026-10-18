@@ -566,6 +566,11 @@ func _setup_core_ui(b: CoreBuilding):
 			info_label.text += "\n%s: %d / %d" % [item_res.display_name, currently_deposited, max_required]
 			
 		_create_button("Cancel Research", Color(1.0, 0.4, 0.4), func():
+			var r_name = b.active_research_name
+			if r_name != "" and ResearchManager and ResearchManager.has_method("get_tech_rp_cost"):
+				var refund = ResearchManager.get_tech_rp_cost(r_name)
+				if refund > 0:
+					ResearchManager.add_research_points(refund)
 			b.active_research_name = ""
 			b.research_bill.clear()
 			b.research_bill_max.clear()

@@ -17,6 +17,8 @@ extends CanvasLayer
 @onready var graph_edit = $BackgroundBlocker/MarginContainer/VBoxContainer/GraphEdit
 @onready var close_button = $BackgroundBlocker/MarginContainer/VBoxContainer/Header/CloseButton
 
+var rp_label: Label = null
+
 signal close_research_tree
 
 
@@ -30,12 +32,35 @@ func _ready():
 	hide() # Hide when the game starts
 	close_button.pressed.connect(close_screen)
 	
+	_setup_rp_label()
+	if ResearchManager and ResearchManager.has_signal("research_points_changed"):
+		ResearchManager.research_points_changed.connect(_on_rp_changed)
+	
 	for node in graph_edit.get_children():
 		if node is GraphNode and node.has_signal("research_started"):
 			node.research_started.connect(close_screen)
 			
 	# Restore the custom centered scroll offset at runtime
 	graph_edit.scroll_offset = Vector2(-375, -50)
+
+
+## Configures the live Research Points counter in the top header.
+func _setup_rp_label():
+	var header = get_node_or_null("BackgroundBlocker/MarginContainer/VBoxContainer/Header")
+	if header and not rp_label:
+		rp_label = Label.new()
+		rp_label.name = "ResearchPointsLabel"
+		var current_rp = ResearchManager.research_points if ResearchManager else 0
+		rp_label.text = "   |   Available Research Points: %d RP" % current_rp
+		rp_label.modulate = Color(0.3, 0.85, 1.0)
+		header.add_child(rp_label)
+		header.move_child(rp_label, 1)
+
+
+func _on_rp_changed(new_amount: int):
+	if rp_label:
+		rp_label.text = "   |   Available Research Points: %d RP" % new_amount
+	_refresh_all_nodes()
 
 
 
@@ -130,6 +155,8 @@ func _place(ge: GraphEdit, node_name: String, x: float, y: float):
 ## Opens the research screen, updates all upgrade nodes, and registers menu focus.
 func open_screen():
 	if GameState.open_menu(GameState.MenuType.RESEARCH):
+		if rp_label and ResearchManager:
+			rp_label.text = "   |   Available Research Points: %d RP" % ResearchManager.research_points
 		_refresh_all_nodes()
 		show()
 		await get_tree().process_frame

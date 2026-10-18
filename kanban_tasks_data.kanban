@@ -18,8 +18,7 @@
 				"fd2e9ffb-cbd0-4a9f-9dba-5c60928863ec",
 				"acde8781-ff29-4a12-99dd-ab748c852411",
 				"5cddb597-1d54-408f-b02d-89944c71b046",
-				"b38bcdb8-37f5-4266-973b-18edac1c3efd",
-				"07777806-299d-4761-ad85-56e33abc5a1f"
+				"b38bcdb8-37f5-4266-973b-18edac1c3efd"
 			]
 		},
 		{
@@ -27,7 +26,6 @@
 			"title": "Doing",
 			"tasks": [
 				"e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
-				"b5824cf2-1d7b-4ee4-99c6-82f63119b856",
 				"81666a40-4240-4fa0-87d1-ea974b6bde91",
 				"24601864-4559-4f91-b17c-c1d5a82d74d7",
 				"b35104c5-bbe1-48c2-b9c6-888dea8c539f"
@@ -125,13 +123,6 @@
 			"steps": []
 		},
 		{
-			"uuid": "07777806-299d-4761-ad85-56e33abc5a1f",
-			"title": "a map view of inaccessible/accessible tiles for bots",
-			"description": "movement cost from core screen as well? so you can see if walls are effective etc",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
 			"uuid": "decd8a19-19d7-45ef-8e7f-7f5e88a35d98",
 			"title": "firepits boost surrounding bothome charging speed?",
 			"description": "cause of the light?",
@@ -197,13 +188,6 @@
 		{
 			"uuid": "24601864-4559-4f91-b17c-c1d5a82d74d7",
 			"title": "ore drill animation?",
-			"description": "",
-			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
-			"steps": []
-		},
-		{
-			"uuid": "d6e88b41-0b20-4d82-bdb0-40e87ef54175",
-			"title": "attack tower range preview is unaffected by weather but the placing tower is",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

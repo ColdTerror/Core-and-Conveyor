@@ -666,25 +666,29 @@ func _refresh_quota_tab():
 		print("Couldnt find quota or time manager")
 		return
 
-	# Update weekly statistics
-	var failure_ratio: float = 1.0 - (float(quota_mgr.successful_days) / 7.0)
-	var current_penalty = quota_mgr.max_weekly_corruption * failure_ratio
+	# Update daily/weekly statistics
+	var base_rp = quota_mgr.get_base_rp_for_day(time_mgr.current_day)
+	var projected_rp = quota_mgr.get_projected_rp_for_today()
+	var current_rp = ResearchManager.research_points if ResearchManager else 0
 	
-	var weekly_req_text = ""
+	var target_req_text = ""
 	if quota_mgr.daily_requirements.is_empty():
-		weekly_req_text = "GRACE PERIOD - FREE BUILD"
-		current_penalty = 0.0
+		target_req_text = "GRACE PERIOD (Starts Day 3)"
 	else:
 		var items_added = 0
 		for item in quota_mgr.daily_requirements:
-			if items_added > 0: weekly_req_text += "   |   "
-			var weekly_amount = quota_mgr.daily_requirements[item] * 7
-			weekly_req_text += "%s: %d" % [item, weekly_amount]
+			if items_added > 0: target_req_text += "   |   "
+			var daily_amount = quota_mgr.daily_requirements[item]
+			var max_amount = daily_amount * 2
+			target_req_text += "%s: %d (Max %d)" % [item, daily_amount, max_amount]
 			items_added += 1
 	
-	quota_info_label.text = "--- WEEK %d ---\n" % [int((time_mgr.current_day - 1) / 7) + 1]
-	quota_info_label.text += "Weekly Factory Target: [ %s ]\n" % weekly_req_text
-	quota_info_label.text += "Projected Corruption Penalty: +%d\n" % int(current_penalty)
+	quota_info_label.text = "--- WEEK %d (Day %d) ---\n" % [int((time_mgr.current_day - 1) / 7) + 1, time_mgr.current_day]
+	quota_info_label.text += "Today's Factory Target: [ %s ]\n" % target_req_text
+	if quota_mgr.daily_requirements.is_empty():
+		quota_info_label.text += "Banked Research Points: %d RP  |  Grace Period Active\n" % current_rp
+	else:
+		quota_info_label.text += "Projected Midnight Grant: +%d RP (Base %d)  |  Banked: %d RP\n" % [projected_rp, base_rp, current_rp]
 
 	# Clear previous rows
 	for child in quota_list_container.get_children():
@@ -699,8 +703,9 @@ func _refresh_quota_tab():
 		var row = HBoxContainer.new()
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
 		
+		var day_number = time_mgr.current_day - current_day_index + day_i
 		var day_label = Label.new()
-		day_label.text = "Day " + str(day_i + 1)
+		day_label.text = "Day " + str(day_number)
 		day_label.custom_minimum_size = Vector2(80, 0)
 		row.add_child(day_label)
 		
@@ -710,18 +715,19 @@ func _refresh_quota_tab():
 			status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			
 			var passed_today = false
-			
-			if quota_mgr.daily_requirements.is_empty():
-				passed_today = true
-			elif "weekly_history" in quota_mgr and day_i < quota_mgr.weekly_history.size():
-				passed_today = quota_mgr.weekly_history[day_i]
-				
-			if passed_today:
-				status_lbl.text = "QUOTA MET"
-				status_lbl.modulate = Color(0.2, 1.0, 0.2)
+			if day_number <= 2:
+				status_lbl.text = "GRACE PERIOD"
+				status_lbl.modulate = Color(0.5, 0.8, 1.0)
 			else:
-				status_lbl.text = "MISSED"
-				status_lbl.modulate = Color(1.0, 0.2, 0.2)
+				if "weekly_history" in quota_mgr and day_i < quota_mgr.weekly_history.size():
+					passed_today = quota_mgr.weekly_history[day_i]
+					
+				if passed_today:
+					status_lbl.text = "QUOTA MET"
+					status_lbl.modulate = Color(0.2, 1.0, 0.2)
+				else:
+					status_lbl.text = "PARTIAL / MISSED"
+					status_lbl.modulate = Color(1.0, 0.6, 0.2)
 				
 			row.add_child(status_lbl)
 			
@@ -733,7 +739,7 @@ func _refresh_quota_tab():
 			
 			if quota_mgr.daily_requirements.is_empty():
 				var free_label = Label.new()
-				free_label.text = "Free Build Time! Expand your factory."
+				free_label.text = "Free Build Time! Grace period ends on Day 3."
 				free_label.modulate = Color(0.4, 1.0, 0.4)
 				today_vbox.add_child(free_label)
 			else:
@@ -743,16 +749,20 @@ func _refresh_quota_tab():
 				for item in quota_mgr.daily_requirements:
 					var needed = quota_mgr.daily_requirements[item]
 					total_req += needed
-					total_have += min(quota_mgr.daily_delivered.get(item, 0), needed)
+					total_have += clamp(quota_mgr.daily_delivered.get(item, 0), 0, needed * 2)
 					
 				var progress_bar = ProgressBar.new()
 				progress_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				progress_bar.custom_minimum_size = Vector2(0, 24)
-				progress_bar.max_value = total_req
+				progress_bar.max_value = total_req * 2.0
 				progress_bar.value = total_have
 				
-				if total_have >= total_req:
-					progress_bar.modulate = Color(0.2, 1.0, 0.2) 
+				if total_have >= total_req * 2.0:
+					progress_bar.modulate = Color(0.2, 0.9, 1.0) # Bright Cyan (Max Surplus)
+				elif total_have >= total_req:
+					progress_bar.modulate = Color(1.0, 0.85, 0.2) # Gold (Surplus)
+				else:
+					progress_bar.modulate = Color(0.4, 0.8, 1.0) # Blue (In Progress)
 					
 				today_vbox.add_child(progress_bar)
 				
@@ -764,6 +774,7 @@ func _refresh_quota_tab():
 				for item in quota_mgr.daily_requirements:
 					var needed = quota_mgr.daily_requirements[item]
 					var have = quota_mgr.daily_delivered.get(item, 0)
+					var max_allowed = needed * 2
 					
 					if daily_items_added > 0:
 						var divider = Label.new()
@@ -772,10 +783,12 @@ func _refresh_quota_tab():
 						breakdown_hbox.add_child(divider)
 					
 					var item_label = Label.new()
-					item_label.text = "%s: %d / %d" % [item, have, needed]
+					item_label.text = "%s: %d / %d (Max %d)" % [item, have, needed, max_allowed]
 					
-					if have >= needed:
-						item_label.modulate = Color(0.2, 1.0, 0.2)
+					if have >= max_allowed:
+						item_label.modulate = Color(0.2, 0.9, 1.0)
+					elif have >= needed:
+						item_label.modulate = Color(1.0, 0.85, 0.2)
 					else:
 						item_label.modulate = Color(0.9, 0.9, 0.9)
 						
@@ -796,12 +809,13 @@ func _refresh_quota_tab():
 			future_vbox.add_child(status_lbl)
 			
 			var req_lbl = Label.new()
-			if quota_mgr.daily_requirements.is_empty():
-				req_lbl.text = "Requires: Nothing!"
+			var future_quota = quota_mgr.get_quota_for_day(day_number)
+			if future_quota.is_empty():
+				req_lbl.text = "Requires: Nothing (Grace Period)"
 			else:
 				var req_strings = []
-				for item in quota_mgr.daily_requirements:
-					req_strings.append("%s: %d" % [item, quota_mgr.daily_requirements[item]])
+				for item in future_quota:
+					req_strings.append("%s: %d" % [item, future_quota[item]])
 				req_lbl.text = "Requires: " + "  |  ".join(req_strings)
 				
 			req_lbl.modulate = Color(0.4, 0.4, 0.4)

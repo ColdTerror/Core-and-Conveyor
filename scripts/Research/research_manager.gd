@@ -17,6 +17,10 @@ var belt_speed_mult: float = 1.0
 var max_buildings_allowed: int = 10
 var tower_damage_mult: float = 1.0
 
+# RESEARCH POINTS (RP) CURRENCY
+var research_points: int = 0
+signal research_points_changed(new_amount: int)
+
 signal research_unlocked
 
 # TIER GATING
@@ -80,11 +84,69 @@ var research_costs: Dictionary = {
 	"Battery Upgrade": { "Planks": 50, "Stone Bricks": 40, "Iron Ingot": 35 }
 }
 
+# Research Points costs for authorizing technology blueprints
+const RESEARCH_RP_COSTS: Dictionary = {
+	# --- Tier 0 (Free of RP so players can build early tech on Days 1-2) ---
+	"Core Expansion 1": 0,
+
+	# --- Tier 1 (Unlocked starting Day 3+ with Quota RP) ---
+	"Wave Measurement": 20,
+	"Belt Speed 1":     25,
+	"Building Limit 1": 35,
+	"Tower Damage 1":   35,
+	"Fleet Expansion":  45,
+	"Core Expansion 2": 60,
+
+	# --- Tier 2 ---
+	"Moon Measurement 1": 40,
+	"Advanced Tooling":   50,
+	"Belt Speed 2":       55,
+	"Building Limit 2":   60,
+	"Tower Damage 2":     60,
+	"Core Expansion 3":   80,
+
+	# --- Tier 3 ---
+	"Moon Measurement 2":  60,
+	"Pneumatic Logistics": 70,
+	"Thruster Upgrade":    75,
+	"Building Limit 3":    80,
+	"Tower Damage 3":      85,
+	"Core Expansion 4":    100,
+
+	# --- Tier 4 ---
+	"Battery Upgrade": 90,
+}
+
 var unlocked_techs: Array[String] = []
 
 # Intel trackers
 var wave_measure: bool = false
 var moon_measure_level: int = 0
+
+
+## Returns the required Research Points (RP) cost to begin researching this tech.
+func get_tech_rp_cost(tech_name: String) -> int:
+	return RESEARCH_RP_COSTS.get(tech_name, 0)
+
+
+## Checks whether the player currently holds enough Research Points for the given tech.
+func has_enough_rp(tech_name: String) -> bool:
+	return research_points >= get_tech_rp_cost(tech_name)
+
+
+## Deposits Research Points (e.g. from midnight quota evaluations) into the bank.
+func add_research_points(amount: int):
+	research_points += amount
+	research_points_changed.emit(research_points)
+
+
+## Attempts to spend Research Points for authorizing a technology.
+func spend_research_points(amount: int) -> bool:
+	if research_points >= amount:
+		research_points -= amount
+		research_points_changed.emit(research_points)
+		return true
+	return false
 
 
 ## Returns raw research cost dictionary (item names -> amounts) for a tech.
@@ -230,15 +292,16 @@ func _update_living_belts():
 
 
 
-## Packs the array of unlocked technology names into a dictionary for game saves.
+## Packs the array of unlocked technology names and research points into a dictionary for game saves.
 func get_save_data() -> Dictionary:
 	return {
-		"unlocked_techs": unlocked_techs
+		"unlocked_techs": unlocked_techs,
+		"research_points": research_points
 	}
 
 
 
-## Resets research stats to defaults and restores unlocked technologies from saved data.
+## Resets research stats to defaults and restores unlocked technologies and research points from saved data.
 func load_save_data(data: Dictionary):
 	unlocked_techs.clear()
 	
@@ -248,10 +311,14 @@ func load_save_data(data: Dictionary):
 		for tech in saved_techs:
 			unlocked_techs.append(tech)
 			
+	research_points = data.get("research_points", 0)
+	research_points_changed.emit(research_points)
 	recalculate_all_stats()
 
 
-## Resets all research unlocks and stats to fresh game defaults.
+## Resets all research unlocks, RP balance, and stats to fresh game defaults.
 func reset_state() -> void:
 	unlocked_techs.clear()
+	research_points = 0
+	research_points_changed.emit(research_points)
 	recalculate_all_stats()
