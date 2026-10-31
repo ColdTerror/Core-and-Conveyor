@@ -28,7 +28,8 @@
 				"e6c9500c-7bb3-4ae6-80c0-a0e8dea8ef64",
 				"81666a40-4240-4fa0-87d1-ea974b6bde91",
 				"24601864-4559-4f91-b17c-c1d5a82d74d7",
-				"b35104c5-bbe1-48c2-b9c6-888dea8c539f"
+				"b35104c5-bbe1-48c2-b9c6-888dea8c539f",
+				"2dc661b5-cf69-4dab-b1c6-3d5ac8a0b614"
 			]
 		},
 		{
@@ -195,6 +196,13 @@
 		{
 			"uuid": "b35104c5-bbe1-48c2-b9c6-888dea8c539f",
 			"title": "ability to turn off flashes from weather",
+			"description": "",
+			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
+			"steps": []
+		},
+		{
+			"uuid": "2dc661b5-cf69-4dab-b1c6-3d5ac8a0b614",
+			"title": "pause button blocks inventory",
 			"description": "",
 			"category": "77a736eb-da5c-421c-a04c-d30dc72cc492",
 			"steps": []

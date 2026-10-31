@@ -80,6 +80,9 @@ func _refresh_editor_ui():
 
 ## Syncs the research button text and state (Researched, Locked, or Research) with current status.
 func _refresh_button():
+	if Engine.is_editor_hint():
+		return
+
 	var already_done = research_name in ResearchManager.unlocked_techs
 	var tier_met = ResearchManager.can_research(research_name)
 	var rp_cost = ResearchManager.get_tech_rp_cost(research_name)
@@ -102,6 +105,9 @@ func _refresh_button():
 
 ## Triggered on button press; initiates research if valid and emits the research_started signal.
 func _on_research_pressed():
+	if Engine.is_editor_hint():
+		return
+
 	if not ResearchManager.can_research(research_name):
 		print("Tier not unlocked yet!")
 		return
@@ -124,8 +130,14 @@ func _on_research_pressed():
 func _format_costs(costs: Dictionary) -> String:
 	var parts: Array[String] = []
 	var rp_cost = 0
-	if ResearchManager and ResearchManager.has_method("get_tech_rp_cost"):
-		rp_cost = ResearchManager.get_tech_rp_cost(research_name)
+	if not Engine.is_editor_hint():
+		if ResearchManager and ResearchManager.has_method("get_tech_rp_cost"):
+			rp_cost = ResearchManager.get_tech_rp_cost(research_name)
+	else:
+		const ResearchScript = preload("res://scripts/Research/research_manager.gd")
+		if "RESEARCH_RP_COSTS" in ResearchScript:
+			rp_cost = ResearchScript.RESEARCH_RP_COSTS.get(research_name, 0)
+			
 	if rp_cost > 0:
 		parts.append("%d RP" % rp_cost)
 		

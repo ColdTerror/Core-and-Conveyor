@@ -1,0 +1,25 @@
+﻿Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+godot.windows.opt.tools.64.exe : SCRIPT ERROR: Compile Error: Identifier not found: EconomyManager
+At line:1 char:1
++ & 'S:\SteamLibrary\steamapps\common\Godot Engine\godot.windows.opt.to ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (SCRIPT ERROR: C... EconomyManager:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   at: GDScript::reload (res://scripts/Managers/quota_manager.gd:277)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+   at: GDScript::reload (res://tests_verify_scheduling.gd:0)
+ERROR: Failed to load script "res://tests_verify_scheduling.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+--- BEGIN REQUISITION CONTRACT SCHEDULING UNIT TEST ---
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: _initialize (res://tests_verify_scheduling.gd:5)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests_verify_scheduling.gd:5)
+music finished signal
+music finished signal
+music finished signal
+music finished signal
+music finished signal
+music finished signal

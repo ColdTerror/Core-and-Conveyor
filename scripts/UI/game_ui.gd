@@ -367,21 +367,29 @@ func _connect_quota_manager():
 			quota_manager.daily_evaluation_completed.connect(_on_daily_evaluation_completed)
 
 
-func _on_daily_evaluation_completed(day: int, rp_earned: int, completion_ratio: float):
+func _on_daily_evaluation_completed(day: int, rp_earned: int, completion_ratio: float, rep_earned: int = 0, leveled_up: bool = false, tier_unlocked: bool = false, scheduled_contract_name: String = ""):
 	if not quota_banner_label or day <= 2:
 		return
 		
 	var pct = int(completion_ratio * 100.0)
-	if completion_ratio >= 2.0:
-		quota_banner_label.text = "★ Day %d Midnight Report: Max Surplus (%d%%)! +%d Research Points Granted ★" % [day, pct, rp_earned]
+	var banner_text = ""
+	if tier_unlocked:
+		banner_text = "★ NEW REQUISITION TIER UNLOCKED! +%d RP & +1 Rep Granted ★" % rp_earned
 		quota_banner_label.modulate = Color(0.2, 0.9, 1.0)
+	elif leveled_up:
+		banner_text = "★ CONTRACT PROMOTION! Requisition Leveled Up! +%d RP & +1 Rep Granted ★" % rp_earned
+		quota_banner_label.modulate = Color(1.0, 0.85, 0.2)
 	elif completion_ratio >= 1.0:
-		quota_banner_label.text = "✔ Day %d Midnight Report: Quota Fulfilled (%d%%)! +%d Research Points Granted" % [day, pct, rp_earned]
+		banner_text = "✔ Day %d Report: Contract Fulfilled! +%d Research Points & +1 Rep Granted" % [day, rp_earned]
 		quota_banner_label.modulate = Color(0.3, 1.0, 0.4)
 	else:
-		quota_banner_label.text = "⚠ Day %d Midnight Report: Partial Delivery (%d%%, halved penalty). +%d Research Points Granted" % [day, pct, rp_earned]
+		banner_text = "⚠ Day %d Report: Partial Delivery (%d%%). +%d Research Points Granted" % [day, pct, rp_earned]
 		quota_banner_label.modulate = Color(1.0, 0.75, 0.3)
 		
+	if scheduled_contract_name != "":
+		banner_text += "\n📋 Scheduled Contract Activated: %s" % scheduled_contract_name
+		
+	quota_banner_label.text = banner_text
 	quota_banner_label.modulate.a = 1.0
 	quota_banner_label.show()
 	

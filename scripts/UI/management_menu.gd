@@ -49,6 +49,11 @@ var current_codex_entry: Dictionary = {}
 var current_codex_tier_index: int = 0
 var _codex_entry_buttons: Dictionary = {}
 
+var _contract_preview_levels: Dictionary = { 1: 1, 2: 1, 3: 1 }
+var contract_switch_dialog: ConfirmationDialog
+var _pending_switch_tier: int = -1
+var _pending_switch_level: int = -1
+
 @onready var close_button = $PanelContainer/Close
 
 var update_timer: float = 0.0
@@ -82,6 +87,13 @@ func _ready():
 		
 	if close_button:
 		close_button.pressed.connect(close_menu)
+
+	contract_switch_dialog = ConfirmationDialog.new()
+	contract_switch_dialog.title = "Reset Today's Deliveries?"
+	contract_switch_dialog.ok_button_text = "Switch & Reset"
+	contract_switch_dialog.cancel_button_text = "Keep Current"
+	contract_switch_dialog.confirmed.connect(_on_contract_switch_confirmed)
+	add_child(contract_switch_dialog)
 		
 	if tab_container:
 		tab_container.focus_mode = Control.FOCUS_NONE
@@ -659,46 +671,354 @@ func _refresh_quota_tab():
 	if not quota_list_container or not building_manager or not building_manager.level_ref: 
 		return
 		
-	var quota_mgr = building_manager.level_ref.get_node_or_null("QuotaManager")
+	var quota_mgr: QuotaManager = building_manager.level_ref.get_node_or_null("QuotaManager")
 	var time_mgr = building_manager.level_ref.get_node_or_null("TimeManager")
 	
 	if not quota_mgr or not time_mgr:
 		print("Couldnt find quota or time manager")
 		return
 
-	# Update daily/weekly statistics
-	var base_rp = quota_mgr.get_base_rp_for_day(time_mgr.current_day)
-	var projected_rp = quota_mgr.get_projected_rp_for_today()
+	# Ensure preview levels dictionary exists
+	if not _contract_preview_levels.has(1):
+		_contract_preview_levels[1] = quota_mgr.active_level if quota_mgr.active_tier == 1 else 1
+	if not _contract_preview_levels.has(2):
+		_contract_preview_levels[2] = quota_mgr.active_level if quota_mgr.active_tier == 2 else 1
+	if not _contract_preview_levels.has(3):
+		_contract_preview_levels[3] = quota_mgr.active_level if quota_mgr.active_tier == 3 else 1
+
+	for t in [1, 2, 3]:
+		var max_lvl = quota_mgr.get_tier_max_level(t)
+		_contract_preview_levels[t] = clamp(_contract_preview_levels[t], 1, max_lvl)
+
 	var current_rp = ResearchManager.research_points if ResearchManager else 0
+	var is_grace = time_mgr.current_day <= 2
 	
-	var target_req_text = ""
-	if quota_mgr.daily_requirements.is_empty():
-		target_req_text = "GRACE PERIOD (Starts Day 3)"
+	# Top status banner
+	if is_grace:
+		quota_info_label.text = "--- DAY %d: CORPORATE GRACE PERIOD ---\n" % time_mgr.current_day
+		quota_info_label.text += "Requisition contracts open on Day 3. Banked Research Points: %d RP\n" % current_rp
+		if quota_mgr.has_scheduled_contract():
+			var sched = quota_mgr.get_scheduled_contract_info()
+			quota_info_label.text += "Scheduled to start on Day 3: Tier %d (Lvl %d) - %s" % [sched.get("tier", 1), sched.get("level", 1), sched.get("title", "")]
+		else:
+			quota_info_label.text += "Expand your base and establish early automated logistics!"
 	else:
-		var items_added = 0
+		var act_cat = quota_mgr.get_contract_definition(quota_mgr.active_tier)
+		var act_title = act_cat.get("title", "Contract")
+		var base_rp = quota_mgr.get_active_contract_rp()
+		var proj_rp = quota_mgr.get_projected_rp_for_today()
+		
+		var req_strs = []
 		for item in quota_mgr.daily_requirements:
-			if items_added > 0: target_req_text += "   |   "
-			var daily_amount = quota_mgr.daily_requirements[item]
-			var max_amount = daily_amount * 2
-			target_req_text += "%s: %d (Max %d)" % [item, daily_amount, max_amount]
-			items_added += 1
-	
-	quota_info_label.text = "--- WEEK %d (Day %d) ---\n" % [int((time_mgr.current_day - 1) / 7) + 1, time_mgr.current_day]
-	quota_info_label.text += "Today's Factory Target: [ %s ]\n" % target_req_text
-	if quota_mgr.daily_requirements.is_empty():
-		quota_info_label.text += "Banked Research Points: %d RP  |  Grace Period Active\n" % current_rp
-	else:
-		quota_info_label.text += "Projected Midnight Grant: +%d RP (Base %d)  |  Banked: %d RP\n" % [projected_rp, base_rp, current_rp]
+			req_strs.append("%s: %d" % [item, quota_mgr.daily_requirements[item]])
+		var req_text = "   |   ".join(req_strs)
+		
+		var renew_note = "[Auto-Renews Tomorrow]"
+		if quota_mgr.has_scheduled_contract():
+			var sched = quota_mgr.get_scheduled_contract_info()
+			renew_note = "[Switches at Midnight: Tier %d (Lvl %d)]" % [sched.get("tier", 1), sched.get("level", 1)]
+			
+		quota_info_label.text = "--- DAY %d REQUISITION: TIER %d (Level %d) - %s %s ---\n" % [
+			time_mgr.current_day, quota_mgr.active_tier, quota_mgr.active_level, act_title, renew_note
+		]
+		quota_info_label.text += "Active Daily Quota: [ %s ]\n" % req_text
+		if quota_mgr.has_scheduled_contract():
+			var sched = quota_mgr.get_scheduled_contract_info()
+			quota_info_label.text += "⏰ Scheduled for Tomorrow at Midnight: Tier %d (Lvl %d) - %s (+%d RP)  |  Today's Projected Grant: +%d RP  |  Banked: %d RP" % [
+				sched.get("tier", 1), sched.get("level", 1), sched.get("title", ""), sched.get("rp", 0), proj_rp, current_rp
+			]
+		else:
+			quota_info_label.text += "Midnight Grant: +%d RP (Base %d) & +1 Reputation  |  Banked: %d RP" % [
+				proj_rp, base_rp, current_rp
+			]
 
 	# Clear previous rows
 	for child in quota_list_container.get_children():
 		child.queue_free()
 
-	# Calculate calendar columns
-	var current_day_index = (time_mgr.current_day - 1) % 7 
-	var successes_assigned = 0
+	# 1. TODAY'S LIVE DELIVERY TRACKER (Day 3+)
+	if not is_grace and not quota_mgr.daily_requirements.is_empty():
+		var tracker_box = VBoxContainer.new()
+		tracker_box.add_theme_constant_override("separation", 6)
+		
+		var tracker_title = Label.new()
+		tracker_title.text = "TODAY'S INTAKE PROGRESS (100% MAXIMUM CAP)"
+		tracker_title.modulate = Color(0.3, 0.85, 1.0)
+		tracker_title.add_theme_font_size_override("font_size", 16)
+		tracker_box.add_child(tracker_title)
+		
+		var total_req = 0.0
+		var total_have = 0.0
+		for item in quota_mgr.daily_requirements:
+			var req = quota_mgr.daily_requirements[item]
+			total_req += req
+			total_have += clamp(quota_mgr.daily_delivered.get(item, 0), 0, req)
+			
+		var progress_bar = ProgressBar.new()
+		progress_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		progress_bar.custom_minimum_size = Vector2(0, 24)
+		progress_bar.max_value = total_req
+		progress_bar.value = total_have
+		
+		if total_have >= total_req:
+			progress_bar.modulate = Color(0.2, 1.0, 0.2)
+		else:
+			progress_bar.modulate = Color(0.3, 0.85, 1.0)
+		tracker_box.add_child(progress_bar)
+		
+		var items_row = HBoxContainer.new()
+		items_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		var first = true
+		for item in quota_mgr.daily_requirements:
+			if not first:
+				var sep = Label.new()
+				sep.text = "   |   "
+				sep.modulate = Color(0.4, 0.4, 0.4)
+				items_row.add_child(sep)
+			first = false
+			
+			var req = quota_mgr.daily_requirements[item]
+			var have = quota_mgr.daily_delivered.get(item, 0)
+			var item_lbl = Label.new()
+			if have >= req:
+				item_lbl.text = "%s: %d / %d (Fulfilled!)" % [item, have, req]
+				item_lbl.modulate = Color(0.2, 1.0, 0.2)
+			else:
+				item_lbl.text = "%s: %d / %d" % [item, have, req]
+				item_lbl.modulate = Color(0.9, 0.9, 0.9)
+			items_row.add_child(item_lbl)
+			
+		tracker_box.add_child(items_row)
+		quota_list_container.add_child(tracker_box)
+		quota_list_container.add_child(HSeparator.new())
 
-	# Build weekly columns
+	# 2. REQUISITION CONTRACT BOARD (THE 3 TIERS)
+	var board_title = Label.new()
+	board_title.text = "REQUISITION CONTRACT BOARD"
+	board_title.modulate = Color(1.0, 0.85, 0.2)
+	board_title.add_theme_font_size_override("font_size", 18)
+	quota_list_container.add_child(board_title)
+	
+	var board_desc = Label.new()
+	board_desc.text = "Select your colony's active contract. Selected contracts automatically renew every morning at midnight. Complete 100% to earn Research Points and Tier Reputation."
+	board_desc.modulate = Color(0.7, 0.7, 0.7)
+	quota_list_container.add_child(board_desc)
+
+	for tier_idx in [1, 2, 3]:
+		var cat_data = quota_mgr.get_contract_definition(tier_idx)
+		var is_unlocked = quota_mgr.is_tier_unlocked(tier_idx)
+		var max_lvl = quota_mgr.get_tier_max_level(tier_idx)
+		var selected_lvl = _contract_preview_levels[tier_idx]
+		var is_active = (quota_mgr.active_tier == tier_idx and quota_mgr.active_level == selected_lvl and not is_grace)
+		var is_queued = (quota_mgr.queued_tier == tier_idx and quota_mgr.queued_level == selected_lvl)
+		
+		var card = PanelContainer.new()
+		var card_style = StyleBoxFlat.new()
+		if is_active:
+			card_style.bg_color = Color(0.08, 0.18, 0.14, 0.9)
+			card_style.border_color = Color(0.2, 0.9, 0.3, 0.9)
+			card_style.set_border_width_all(2)
+		elif is_queued:
+			card_style.bg_color = Color(0.18, 0.16, 0.08, 0.9)
+			card_style.border_color = Color(1.0, 0.85, 0.2, 0.9)
+			card_style.set_border_width_all(2)
+		elif is_unlocked:
+			card_style.bg_color = Color(0.12, 0.14, 0.2, 0.8)
+			card_style.border_color = Color(0.3, 0.45, 0.65, 0.7)
+			card_style.set_border_width_all(1)
+		else:
+			card_style.bg_color = Color(0.08, 0.08, 0.1, 0.6)
+			card_style.border_color = Color(0.25, 0.25, 0.3, 0.4)
+			card_style.set_border_width_all(1)
+			
+		card_style.set_corner_radius_all(6)
+		card_style.content_margin_left = 12
+		card_style.content_margin_right = 12
+		card_style.content_margin_top = 10
+		card_style.content_margin_bottom = 10
+		card.add_theme_stylebox_override("panel", card_style)
+		
+		var card_vbox = VBoxContainer.new()
+		card_vbox.add_theme_constant_override("separation", 6)
+		
+		# Card Header
+		var header_hbox = HBoxContainer.new()
+		var title_lbl = Label.new()
+		title_lbl.text = "Tier %d: %s  [%s]" % [tier_idx, cat_data.get("title", ""), cat_data.get("category", "")]
+		title_lbl.add_theme_font_size_override("font_size", 16)
+		if is_active:
+			title_lbl.modulate = Color(0.3, 1.0, 0.4)
+		elif is_queued:
+			title_lbl.modulate = Color(1.0, 0.85, 0.2)
+		elif is_unlocked:
+			title_lbl.modulate = Color(0.9, 0.9, 1.0)
+		else:
+			title_lbl.modulate = Color(0.5, 0.5, 0.5)
+		header_hbox.add_child(title_lbl)
+		
+		var spacer = Control.new()
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		header_hbox.add_child(spacer)
+		
+		if is_active:
+			var active_tag = Label.new()
+			if quota_mgr.has_scheduled_contract():
+				active_tag.text = "★ ACTIVE TODAY (Switches at Midnight)"
+			else:
+				active_tag.text = "★ ACTIVE CONTRACT (Auto-Renews Daily)"
+			active_tag.modulate = Color(0.3, 1.0, 0.4)
+			header_hbox.add_child(active_tag)
+		elif is_queued:
+			var queued_tag = Label.new()
+			queued_tag.text = "⏰ QUEUED FOR TOMORROW"
+			queued_tag.modulate = Color(1.0, 0.85, 0.2)
+			header_hbox.add_child(queued_tag)
+		elif not is_unlocked:
+			var lock_tag = Label.new()
+			var req_tier = tier_idx - 1
+			lock_tag.text = "🔒 LOCKED (Requires Tier %d Level 2)" % req_tier
+			lock_tag.modulate = Color(1.0, 0.5, 0.4)
+			header_hbox.add_child(lock_tag)
+			
+		card_vbox.add_child(header_hbox)
+		
+		# Description
+		var desc_lbl = Label.new()
+		desc_lbl.text = cat_data.get("desc", "")
+		desc_lbl.modulate = Color(0.65, 0.65, 0.7)
+		card_vbox.add_child(desc_lbl)
+		
+		if is_unlocked:
+			# Reputation & Leveling info
+			var cur_rep = quota_mgr.get_tier_reputation(tier_idx)
+			var rep_needed = quota_mgr.get_reputation_needed_for_next_level(tier_idx, max_lvl)
+			var rep_hbox = HBoxContainer.new()
+			
+			var rep_lbl = Label.new()
+			if rep_needed > 0:
+				rep_lbl.text = "Tier Reputation: ★ %d / %d towards Level %d" % [cur_rep, rep_needed, max_lvl + 1]
+			else:
+				rep_lbl.text = "Tier Reputation: ★ Max Level Achieved (%d)" % max_lvl
+			rep_lbl.modulate = Color(1.0, 0.85, 0.2)
+			rep_hbox.add_child(rep_lbl)
+			card_vbox.add_child(rep_hbox)
+			
+			# Level Selector & Requirement Preview
+			var details_hbox = HBoxContainer.new()
+			details_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+			
+			var lvl_lbl = Label.new()
+			lvl_lbl.text = "Select Level: "
+			details_hbox.add_child(lvl_lbl)
+			
+			var prev_btn = Button.new()
+			prev_btn.text = " ◀ "
+			prev_btn.disabled = (selected_lvl <= 1)
+			prev_btn.pressed.connect(func():
+				_contract_preview_levels[tier_idx] = max(1, selected_lvl - 1)
+				_refresh_quota_tab()
+			)
+			details_hbox.add_child(prev_btn)
+			
+			var lvl_val_lbl = Label.new()
+			lvl_val_lbl.text = " Level %d " % selected_lvl
+			lvl_val_lbl.modulate = Color(0.3, 0.9, 1.0)
+			details_hbox.add_child(lvl_val_lbl)
+			
+			var next_btn = Button.new()
+			next_btn.text = " ▶ "
+			next_btn.disabled = (selected_lvl >= max_lvl)
+			next_btn.pressed.connect(func():
+				_contract_preview_levels[tier_idx] = min(max_lvl, selected_lvl + 1)
+				_refresh_quota_tab()
+			)
+			details_hbox.add_child(next_btn)
+			
+			var sep2 = Label.new()
+			sep2.text = "   |   "
+			sep2.modulate = Color(0.4, 0.4, 0.4)
+			details_hbox.add_child(sep2)
+			
+			# Selected Level Requirements & RP Payout
+			var lvl_req = quota_mgr.get_contract_requirements(tier_idx, selected_lvl)
+			var lvl_rp = quota_mgr.get_contract_rp(tier_idx, selected_lvl)
+			var req_parts = []
+			for item_name in lvl_req:
+				req_parts.append("%s: %d" % [item_name, lvl_req[item_name]])
+				
+			var req_summary_lbl = Label.new()
+			req_summary_lbl.text = "Requirements: %s   ➔   Grant: +%d RP" % [", ".join(req_parts), lvl_rp]
+			req_summary_lbl.modulate = Color(0.9, 0.9, 0.9)
+			details_hbox.add_child(req_summary_lbl)
+			
+			var spacer2 = Control.new()
+			spacer2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			details_hbox.add_child(spacer2)
+			
+			# Action Buttons
+			if is_active:
+				var act_btn = Button.new()
+				if quota_mgr.has_scheduled_contract():
+					act_btn.text = "✔ Active Today"
+					act_btn.disabled = true
+					details_hbox.add_child(act_btn)
+					
+					var restore_btn = Button.new()
+					restore_btn.text = "Restore Auto-Renew Tomorrow"
+					restore_btn.pressed.connect(func():
+						quota_mgr.cancel_scheduled_contract()
+						_refresh_quota_tab()
+					)
+					details_hbox.add_child(restore_btn)
+				else:
+					act_btn.text = "✔ Active (Auto-Renews)"
+					act_btn.disabled = true
+					details_hbox.add_child(act_btn)
+			elif is_queued:
+				var switch_now_btn = Button.new()
+				switch_now_btn.text = "Switch Immediately"
+				switch_now_btn.pressed.connect(func():
+					_prompt_contract_switch(tier_idx, selected_lvl, quota_mgr, time_mgr)
+				)
+				details_hbox.add_child(switch_now_btn)
+				
+				var cancel_sched_btn = Button.new()
+				cancel_sched_btn.text = "✖ Cancel Scheduled Switch"
+				cancel_sched_btn.modulate = Color(1.0, 0.65, 0.5)
+				cancel_sched_btn.pressed.connect(func():
+					quota_mgr.cancel_scheduled_contract()
+					_refresh_quota_tab()
+				)
+				details_hbox.add_child(cancel_sched_btn)
+			else:
+				var switch_now_btn = Button.new()
+				switch_now_btn.text = "Switch Immediately"
+				switch_now_btn.pressed.connect(func():
+					_prompt_contract_switch(tier_idx, selected_lvl, quota_mgr, time_mgr)
+				)
+				details_hbox.add_child(switch_now_btn)
+				
+				var sched_tomorrow_btn = Button.new()
+				sched_tomorrow_btn.text = "Schedule for Tomorrow ➔"
+				sched_tomorrow_btn.modulate = Color(1.0, 0.85, 0.2)
+				sched_tomorrow_btn.pressed.connect(func():
+					quota_mgr.schedule_contract_for_tomorrow(tier_idx, selected_lvl)
+					_refresh_quota_tab()
+				)
+				details_hbox.add_child(sched_tomorrow_btn)
+			card_vbox.add_child(details_hbox)
+			
+		card.add_child(card_vbox)
+		quota_list_container.add_child(card)
+
+	# 3. WEEKLY COMPLIANCE HISTORY
+	quota_list_container.add_child(HSeparator.new())
+	var hist_title = Label.new()
+	hist_title.text = "RECENT WEEKLY COMPLIANCE (7-DAY RECORD)"
+	hist_title.modulate = Color(0.7, 0.7, 0.8)
+	quota_list_container.add_child(hist_title)
+
+	var current_day_index = (time_mgr.current_day - 1) % 7 
 	for day_i in range(7):
 		var row = HBoxContainer.new()
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -709,122 +1029,67 @@ func _refresh_quota_tab():
 		day_label.custom_minimum_size = Vector2(80, 0)
 		row.add_child(day_label)
 		
-		if day_i < current_day_index:
-			# Check compliance history
-			var status_lbl = Label.new()
-			status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			
-			var passed_today = false
-			if day_number <= 2:
-				status_lbl.text = "GRACE PERIOD"
-				status_lbl.modulate = Color(0.5, 0.8, 1.0)
+		var status_lbl = Label.new()
+		status_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		
+		if day_number <= 2:
+			status_lbl.text = "GRACE PERIOD"
+			status_lbl.modulate = Color(0.5, 0.8, 1.0)
+		elif day_i < current_day_index:
+			var passed = false
+			if "weekly_history" in quota_mgr and day_i < quota_mgr.weekly_history.size():
+				passed = quota_mgr.weekly_history[day_i]
+			if passed:
+				status_lbl.text = "CONTRACT MET (+1 Rep)"
+				status_lbl.modulate = Color(0.2, 1.0, 0.2)
 			else:
-				if "weekly_history" in quota_mgr and day_i < quota_mgr.weekly_history.size():
-					passed_today = quota_mgr.weekly_history[day_i]
-					
-				if passed_today:
-					status_lbl.text = "QUOTA MET"
-					status_lbl.modulate = Color(0.2, 1.0, 0.2)
-				else:
-					status_lbl.text = "PARTIAL / MISSED"
-					status_lbl.modulate = Color(1.0, 0.6, 0.2)
-				
-			row.add_child(status_lbl)
-			
+				status_lbl.text = "PARTIAL / MISSED"
+				status_lbl.modulate = Color(1.0, 0.6, 0.2)
 		elif day_i == current_day_index:
-			day_label.modulate = Color(1.0, 0.8, 0.2) 
-			
-			var today_vbox = VBoxContainer.new()
-			today_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			
-			if quota_mgr.daily_requirements.is_empty():
-				var free_label = Label.new()
-				free_label.text = "Free Build Time! Grace period ends on Day 3."
-				free_label.modulate = Color(0.4, 1.0, 0.4)
-				today_vbox.add_child(free_label)
+			day_label.modulate = Color(1.0, 0.8, 0.2)
+			if quota_mgr._is_daily_quota_met():
+				status_lbl.text = "TODAY: FULFILLED (100%)"
+				status_lbl.modulate = Color(0.2, 1.0, 0.2)
 			else:
-				# Build daily material bars
-				var total_req = 0.0
-				var total_have = 0.0
-				for item in quota_mgr.daily_requirements:
-					var needed = quota_mgr.daily_requirements[item]
-					total_req += needed
-					total_have += clamp(quota_mgr.daily_delivered.get(item, 0), 0, needed * 2)
-					
-				var progress_bar = ProgressBar.new()
-				progress_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				progress_bar.custom_minimum_size = Vector2(0, 24)
-				progress_bar.max_value = total_req * 2.0
-				progress_bar.value = total_have
-				
-				if total_have >= total_req * 2.0:
-					progress_bar.modulate = Color(0.2, 0.9, 1.0) # Bright Cyan (Max Surplus)
-				elif total_have >= total_req:
-					progress_bar.modulate = Color(1.0, 0.85, 0.2) # Gold (Surplus)
-				else:
-					progress_bar.modulate = Color(0.4, 0.8, 1.0) # Blue (In Progress)
-					
-				today_vbox.add_child(progress_bar)
-				
-				# Build material breakdown text
-				var breakdown_hbox = HBoxContainer.new()
-				breakdown_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-				
-				var daily_items_added = 0
-				for item in quota_mgr.daily_requirements:
-					var needed = quota_mgr.daily_requirements[item]
-					var have = quota_mgr.daily_delivered.get(item, 0)
-					var max_allowed = needed * 2
-					
-					if daily_items_added > 0:
-						var divider = Label.new()
-						divider.text = "   |   "
-						divider.modulate = Color(0.4, 0.4, 0.4)
-						breakdown_hbox.add_child(divider)
-					
-					var item_label = Label.new()
-					item_label.text = "%s: %d / %d (Max %d)" % [item, have, needed, max_allowed]
-					
-					if have >= max_allowed:
-						item_label.modulate = Color(0.2, 0.9, 1.0)
-					elif have >= needed:
-						item_label.modulate = Color(1.0, 0.85, 0.2)
-					else:
-						item_label.modulate = Color(0.9, 0.9, 0.9)
-						
-					breakdown_hbox.add_child(item_label)
-					daily_items_added += 1
-					
-				today_vbox.add_child(breakdown_hbox)
-				
-			row.add_child(today_vbox)
-			
+				var pct = int(quota_mgr.get_daily_completion_ratio() * 100.0)
+				status_lbl.text = "TODAY: IN PROGRESS (%d%%)" % pct
+				status_lbl.modulate = Color(0.3, 0.85, 1.0)
 		else:
-			var future_vbox = VBoxContainer.new()
-			future_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			status_lbl.text = "Upcoming"
+			status_lbl.modulate = Color(0.5, 0.5, 0.5)
 			
-			var status_lbl = Label.new()
-			status_lbl.text = "Pending..."
-			status_lbl.modulate = Color(0.5, 0.5, 0.5) 
-			future_vbox.add_child(status_lbl)
-			
-			var req_lbl = Label.new()
-			var future_quota = quota_mgr.get_quota_for_day(day_number)
-			if future_quota.is_empty():
-				req_lbl.text = "Requires: Nothing (Grace Period)"
-			else:
-				var req_strings = []
-				for item in future_quota:
-					req_strings.append("%s: %d" % [item, future_quota[item]])
-				req_lbl.text = "Requires: " + "  |  ".join(req_strings)
-				
-			req_lbl.modulate = Color(0.4, 0.4, 0.4)
-			future_vbox.add_child(req_lbl)
-			
-			row.add_child(future_vbox)
-			
+		row.add_child(status_lbl)
 		quota_list_container.add_child(row)
-		quota_list_container.add_child(HSeparator.new())
+
+
+func _prompt_contract_switch(tier_idx: int, selected_lvl: int, quota_mgr: QuotaManager, time_mgr: Node):
+	var total_delivered_today = 0
+	for item in quota_mgr.daily_delivered:
+		total_delivered_today += quota_mgr.daily_delivered[item]
+	
+	if total_delivered_today > 0 and time_mgr.current_day > 2:
+		_pending_switch_tier = tier_idx
+		_pending_switch_level = selected_lvl
+		contract_switch_dialog.dialog_text = (
+			"Warning: You have already delivered %d items towards today's active contract.\n\n" +
+			"Switching to Tier %d (Level %d) immediately will reset today's delivered progress to 0.\n\n" +
+			"Tip: You can use 'Schedule for Tomorrow' instead to switch cleanly at midnight with zero resource loss!\n\n" +
+			"Do you still want to switch immediately and reset today?"
+		) % [total_delivered_today, tier_idx, selected_lvl]
+		contract_switch_dialog.popup_centered()
+	else:
+		quota_mgr.select_contract(tier_idx, selected_lvl)
+		_refresh_quota_tab()
+
+
+func _on_contract_switch_confirmed():
+	if _pending_switch_tier != -1 and building_manager and building_manager.level_ref:
+		var quota_mgr = building_manager.level_ref.get_node_or_null("QuotaManager")
+		if quota_mgr:
+			quota_mgr.select_contract(_pending_switch_tier, _pending_switch_level)
+		_pending_switch_tier = -1
+		_pending_switch_level = -1
+		_refresh_quota_tab()
 
 
 func _on_sort_button_pressed():

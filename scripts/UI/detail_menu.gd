@@ -659,14 +659,14 @@ func _setup_quota_ui(b: QuotaBuilding):
 		info_label.text = txt
 		info_label.modulate = Color(0.4, 1.0, 0.4)
 		
-		_create_button("View Global Quota", Color(0.3, 0.8, 1.0), func():
+		_create_button("Requisition Contract Board", Color(1.0, 0.85, 0.2), func():
 			quota_shortcut_clicked.emit()
 			close_menu() 
 		)
 		return
 		
 	# Color code the entire text block based on safety!
-	if info.get("Status", "") == "SAFE TODAY":
+	if info.get("Status", "").begins_with("FULFILLED"):
 		info_label.modulate = Color(0.2, 1.0, 0.2)
 	else:
 		info_label.modulate = Color(1.0, 0.8, 0.2)
@@ -674,21 +674,26 @@ func _setup_quota_ui(b: QuotaBuilding):
 	# Build the display string
 	var details = ""
 	details += "Status: %s\n" % info.get("Status", "Unknown")
-	details += "Weekly Success: %s\n" % info.get("Weekly Success", "0 / 7 Days")
+	if info.has("Active Contract"):
+		details += "Contract: %s\n" % info["Active Contract"]
+	if info.has("Tomorrow"):
+		details += "Tomorrow: %s\n" % info["Tomorrow"]
+	if info.has("Midnight Grant"):
+		details += "Grant: %s\n" % info["Midnight Grant"]
+	details += "Weekly Met: %s\n" % info.get("Weekly Met", "0 / 7 Days")
 	details += "--- Daily Requirements ---\n"
 	
 	# Loop through the dictionary to find the raw material numbers
 	for key in info.keys():
-		# Skip the header info we already printed
-		if key == "Status" or key == "Weekly Success":
+		# Skip header metadata keys
+		if key in ["Status", "Weekly Met", "Weekly Success", "Active Contract", "Tomorrow", "Midnight Grant"]:
 			continue
 			
-		# This prints: "Wood: 45 / 100"
 		details += " • %s: %s\n" % [key, info[key]]
 		
 	info_label.text = details.strip_edges()
 	
-	_create_button("View Global Quota", Color(0.3, 0.8, 1.0), func():
+	_create_button("Requisition Contract Board", Color(1.0, 0.85, 0.2), func():
 		quota_shortcut_clicked.emit()
 		close_menu()
 	)

@@ -98,29 +98,37 @@ func get_inventory_info() -> Dictionary:
 	
 	if qm.daily_requirements.is_empty():
 		info["Status"] = "GRACE PERIOD (Starts Day 3)"
+		info["Active Contract"] = "None"
 		info["Midnight Grant"] = "0 RP"
 		info["Weekly Met"] = "%d / 7 Days" % qm.successful_days
 		return info
 
+	var cat = qm.get_contract_definition(qm.active_tier)
+	var title = cat.get("title", "Contract")
+	if qm.has_scheduled_contract():
+		info["Active Contract"] = "Tier %d (Lvl %d) - %s (Switches at Midnight)" % [qm.active_tier, qm.active_level, title]
+		var sched = qm.get_scheduled_contract_info()
+		info["Tomorrow"] = "Tier %d (Lvl %d) - %s" % [sched.get("tier", 1), sched.get("level", 1), sched.get("title", "")]
+	else:
+		info["Active Contract"] = "Tier %d (Lvl %d) - %s (Auto-Renews Daily)" % [qm.active_tier, qm.active_level, title]
+		info["Tomorrow"] = "Auto-Renews Current"
+
 	var ratio = qm.get_daily_completion_ratio()
 	var projected_rp = qm.get_projected_rp_for_today()
-	var base_rp = qm.get_base_rp_for_day(qm.current_day)
+	var base_rp = qm.get_active_contract_rp()
 	
-	if ratio >= 2.0:
-		info["Status"] = "MAX SURPLUS (200%)"
-	elif ratio >= 1.0:
-		info["Status"] = "SURPLUS (%d%%)" % int(ratio * 100.0)
+	if ratio >= 1.0:
+		info["Status"] = "FULFILLED (100%)"
 	else:
 		info["Status"] = "IN PROGRESS (%d%%)" % int(ratio * 100.0)
 		
-	info["Midnight Grant"] = "+%d RP (Base %d)" % [projected_rp, base_rp]
+	info["Midnight Grant"] = "+%d RP (Base %d) & +1 Rep" % [projected_rp, base_rp]
 	info["Weekly Met"] = "%d / 7 Days" % qm.successful_days
 	
 	for item in qm.daily_requirements.keys():
 		var needed = qm.daily_requirements[item]
 		var have = qm.daily_delivered.get(item, 0)
-		var max_allowed = needed * 2
-		info[item] = "%d / %d (Max %d)" % [have, needed, max_allowed]
+		info[item] = "%d / %d" % [have, needed]
 		
 	return info
 

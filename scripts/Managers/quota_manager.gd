@@ -1,39 +1,87 @@
 # ==============================================================================
 # Script: Managers/quota_manager.gd
-# Purpose: Manages progressive daily quotas (starting Day 3), validates items fed from
-#          belts into the quota building (up to 200% surplus cap), evaluates delivery ratios,
-#          and credits Research Points (RP) at midnight based on performance.
+# Purpose: Manages the Requisition Contract Board with 3 distinct Tiers (Raw, Refined,
+#          Advanced), tier reputation progression, flexible level selection, a strict 100%
+#          resource-saving cap, and midnight Research Points (RP) payouts.
 # Dependencies: Global EconomyManager, ResearchManager autoloads, Level scene structures.
 # Signals:
-#   - quota_progress_updated: Emitted when deliveries, requirements, or days change.
-#   - daily_evaluation_completed(day: int, rp_earned: int, completion_ratio: float):
-#       Emitted at midnight when daily evaluation finishes and RP is credited.
+#   - quota_progress_updated: Emitted when deliveries, requirements, active contract, or day changes.
+#   - daily_evaluation_completed(day: int, rp_earned: int, completion_ratio: float, rep_earned: int, leveled_up: bool, tier_unlocked: bool):
+#       Emitted at midnight when daily evaluation finishes and rewards are granted.
 # ==============================================================================
 class_name QuotaManager
 extends Node2D
 
 signal quota_progress_updated
-signal daily_evaluation_completed(day: int, rp_earned: int, completion_ratio: float)
+signal daily_evaluation_completed(day: int, rp_earned: int, completion_ratio: float, rep_earned: int, leveled_up: bool, tier_unlocked: bool, scheduled_contract_activated: String)
 
-@export var quota_growth_per_week: int = 50
+# MASTER REQUISITION CONTRACT CATALOG
+const CONTRACT_CATALOG: Dictionary = {
+	1: {
+		"title": "Raw Requisition",
+		"category": "Basic Materials",
+		"desc": "Supply raw timber and stone to maintain foundation scaffolding.",
+		"levels": {
+			1: { "req": { "Wood": 20, "Stone": 20 }, "rp": 10, "rep_needed": 2 },
+			2: { "req": { "Wood": 35, "Stone": 35 }, "rp": 18, "rep_needed": 3 },
+			3: { "req": { "Wood": 50, "Stone": 50 }, "rp": 25, "rep_needed": 4 },
+			4: { "req": { "Wood": 70, "Stone": 70 }, "rp": 30, "rep_needed": 0 },
+		}
+	},
+	2: {
+		"title": "Refined Requisition",
+		"category": "Processed Goods",
+		"desc": "Deliver sawed planks and masonry stone bricks for reinforced infrastructure.",
+		"levels": {
+			1: { "req": { "Planks": 15, "Stone Bricks": 15 }, "rp": 25, "rep_needed": 2 },
+			2: { "req": { "Planks": 25, "Stone Bricks": 25 }, "rp": 35, "rep_needed": 3 },
+			3: { "req": { "Planks": 40, "Stone Bricks": 40 }, "rp": 45, "rep_needed": 4 },
+			4: { "req": { "Planks": 55, "Stone Bricks": 55 }, "rp": 50, "rep_needed": 0 },
+		}
+	},
+	3: {
+		"title": "Advanced Logistics",
+		"category": "High-Tier Munitions",
+		"desc": "Ship defensive arrows, smelted iron ingots, and precision materials off-world.",
+		"levels": {
+			1: { "req": { "Stone Arrow": 20, "Planks": 15, "Iron Ingot": 10 }, "rp": 50, "rep_needed": 3 },
+			2: { "req": { "Stone Arrow": 30, "Planks": 25, "Iron Ingot": 15 }, "rp": 60, "rep_needed": 4 },
+			3: { "req": { "Stone Arrow": 45, "Planks": 35, "Iron Ingot": 20 }, "rp": 70, "rep_needed": 5 },
+			4: { "req": { "Stone Arrow": 60, "Planks": 50, "Iron Ingot": 30 }, "rp": 75, "rep_needed": 0 },
+		}
+	}
+}
 
 var current_day: int = 1
 var current_week: int = 1
+
+# Active Contract Selection
+var active_tier: int = 1
+var active_level: int = 1
+
+# Scheduled Next-Day Contract (-1 if none, meaning auto-renew active contract)
+var queued_tier: int = -1
+var queued_level: int = -1
+
+# Reputation and Progression State
+var tier_reputation: Dictionary = { 1: 0, 2: 0, 3: 0 }
+var tier_max_level: Dictionary = { 1: 1, 2: 1, 3: 1 }
+var unlocked_tiers: Array = [1]
+
 var daily_requirements: Dictionary = {}
 var daily_delivered: Dictionary = {}
 
 var successful_days: int = 0
 var weekly_history: Array[bool] = []
-var max_weekly_corruption: float = 100.0
 var level_ref: Node2D
 
-var is_today_scored: bool = false 
+var is_today_scored: bool = false
 var last_day_rp_earned: int = 0
 var last_day_completion_ratio: float = 0.0
 
 
 
-## Binds this manager to the active level and sets up day 1 / loaded state.
+## Binds this manager to the active level and synchronizes day/contract state.
 func initialize(level_instance: Node2D):
 	level_ref = level_instance
 	
@@ -43,102 +91,173 @@ func initialize(level_instance: Node2D):
 		current_week = int((current_day - 1) / 7) + 1
 		
 	if daily_requirements.is_empty():
-		daily_requirements = get_quota_for_day(current_day)
-		
+		if current_day > 2:
+			daily_requirements = get_contract_requirements(active_tier, active_level)
+		else:
+			daily_requirements = {}
+			
 	_reset_daily_deliveries()
 	quota_progress_updated.emit()
 
 
 
-## Computes resource quota requirements for a given day.
-## Days 1-2: Grace Period (empty).
-## Days 3-7: First Quota (raw Wood & Stone).
-## Week 2+: Progressive expansion.
-func get_quota_for_day(day: int) -> Dictionary:
-	if day <= 2:
-		return {} # Grace period for days 1 and 2
+## Checks whether a requisition tier is currently unlocked for selection.
+func is_tier_unlocked(tier: int) -> bool:
+	return tier in unlocked_tiers
+
+
+
+## Returns the maximum unlocked level for a given tier.
+func get_tier_max_level(tier: int) -> int:
+	return tier_max_level.get(tier, 1)
+
+
+
+## Returns the current reputation progress in a tier.
+func get_tier_reputation(tier: int) -> int:
+	return tier_reputation.get(tier, 0)
+
+
+
+## Returns reputation points needed to advance to the next level in a tier (0 if at max level).
+func get_reputation_needed_for_next_level(tier: int, current_lvl: int) -> int:
+	var catalog = CONTRACT_CATALOG.get(tier, {})
+	var levels = catalog.get("levels", {})
+	if levels.has(current_lvl):
+		return levels[current_lvl].get("rep_needed", 0)
+	return 0
+
+
+
+## Returns static information for a specific tier in the catalog.
+func get_contract_definition(tier: int) -> Dictionary:
+	return CONTRACT_CATALOG.get(tier, {})
+
+
+
+## Returns level metadata (req, rp, rep_needed) for a specific tier and level.
+func get_level_data(tier: int, level: int) -> Dictionary:
+	var cat = CONTRACT_CATALOG.get(tier, {})
+	var levels = cat.get("levels", {})
+	return levels.get(level, {})
+
+
+
+## Returns item requirements dictionary for a specific tier and level.
+func get_contract_requirements(tier: int, level: int) -> Dictionary:
+	var lvl_data = get_level_data(tier, level)
+	if lvl_data.has("req"):
+		return lvl_data["req"].duplicate()
+	return {}
+
+
+
+## Returns base Research Points reward for a specific tier and level.
+func get_contract_rp(tier: int, level: int) -> int:
+	var lvl_data = get_level_data(tier, level)
+	return lvl_data.get("rp", 0)
+
+
+
+## Returns the base RP payout for the currently active contract.
+func get_active_contract_rp() -> int:
+	return get_contract_rp(active_tier, active_level)
+
+
+
+## Switches the active requisition contract immediately, updating today's requirements.
+func select_contract(tier: int, level: int) -> bool:
+	if not is_tier_unlocked(tier):
+		return false
 		
-	var week = int((day - 1) / 7) + 1
-	var quota: Dictionary = {}
+	var max_lvl = get_tier_max_level(tier)
+	level = clamp(level, 1, max_lvl)
 	
-	if week == 1:
-		# Days 3-7: Starter delivery (50 raw items)
-		quota["Wood"] = 25
-		quota["Stone"] = 25
-	elif week == 2:
-		# Week 2 (Days 8-14): Expanded raw materials (80 items)
-		var total_vol = 80
-		quota["Wood"] = int(total_vol * 0.5)
-		quota["Stone"] = total_vol - quota["Wood"]
-	elif week == 3:
-		# Week 3 (Days 15-21): Basic processing mix (120 items)
-		var total_vol = 120
-		quota["Wood"] = int(total_vol * 0.25)
-		quota["Stone"] = int(total_vol * 0.25)
-		quota["Planks"] = int(total_vol * 0.20)
-		quota["Stone Bricks"] = int(total_vol * 0.20)
-		quota["Stone Arrow"] = total_vol - quota["Wood"] - quota["Stone"] - quota["Planks"] - quota["Stone Bricks"]
-	elif week == 4:
-		# Week 4 (Days 22-28): Advanced processing (150 items)
-		var total_vol = 150
-		quota["Planks"] = int(total_vol * 0.40)
-		quota["Stone Bricks"] = int(total_vol * 0.40)
-		quota["Stone Arrow"] = total_vol - quota["Planks"] - quota["Stone Bricks"]
-	else:
-		# Year 2+ Infinite mathematically scaled composition
-		var total_vol = 150 + (week - 4) * quota_growth_per_week
-		quota["Wood"] = int(total_vol * 0.15)
-		quota["Stone"] = int(total_vol * 0.15)
-		quota["Planks"] = int(total_vol * 0.28)
-		quota["Stone Bricks"] = int(total_vol * 0.28)
-		quota["Stone Arrow"] = total_vol - quota["Wood"] - quota["Stone"] - quota["Planks"] - quota["Stone Bricks"]
+	active_tier = tier
+	active_level = level
+	queued_tier = -1
+	queued_level = -1
+	
+	if current_day > 2:
+		daily_requirements = get_contract_requirements(active_tier, active_level)
+		_reset_daily_deliveries()
+		is_today_scored = false
 		
-	return quota
+	quota_progress_updated.emit()
+	return true
 
 
 
-## Compatibility function returning base quota for the given week.
-func get_quota_for_week(week: int) -> Dictionary:
-	var representative_day = (week - 1) * 7 + (3 if week == 1 else 1)
-	return get_quota_for_day(representative_day)
+## Schedules a contract to activate cleanly at midnight with zero resource loss today.
+func schedule_contract_for_tomorrow(tier: int, level: int) -> bool:
+	if not is_tier_unlocked(tier):
+		return false
+		
+	var max_lvl = get_tier_max_level(tier)
+	level = clamp(level, 1, max_lvl)
+	
+	if tier == active_tier and level == active_level:
+		cancel_scheduled_contract()
+		return true
+		
+	queued_tier = tier
+	queued_level = level
+	quota_progress_updated.emit()
+	return true
 
 
 
-## Returns the base Research Points reward for completing 100% of the day's quota.
-func get_base_rp_for_day(day: int) -> int:
-	if day <= 2:
-		return 0 # Grace period
-	var week = int((day - 1) / 7) + 1
-	if week == 1:
-		return 50 # Day 3-7
-	return 50 + (week - 1) * 20 # Week 2 = 70 RP, Week 3 = 90 RP, Week 4 = 110 RP
+## Cancels any scheduled contract, reverting to auto-renewing today's contract tomorrow.
+func cancel_scheduled_contract():
+	queued_tier = -1
+	queued_level = -1
+	quota_progress_updated.emit()
 
 
 
-## Checks whether the delivery of the specified resource is accepted.
-## Accepts up to 200% of the required daily amount (surplus cap).
+## Checks whether an explicit contract change is scheduled for tomorrow.
+func has_scheduled_contract() -> bool:
+	return queued_tier != -1 and (queued_tier != active_tier or queued_level != active_level)
+
+
+
+## Returns details of the contract scheduled for tomorrow, or empty dict if none.
+func get_scheduled_contract_info() -> Dictionary:
+	if not has_scheduled_contract():
+		return {}
+	var cat = get_contract_definition(queued_tier)
+	return {
+		"tier": queued_tier,
+		"level": queued_level,
+		"title": cat.get("title", "Contract"),
+		"req": get_contract_requirements(queued_tier, queued_level),
+		"rp": get_contract_rp(queued_tier, queued_level)
+	}
+
+
+
+## Checks whether the delivery of the specified resource is accepted today.
+## Strictly enforces a 100% cap to preserve player resources.
 func can_accept_item(item_name: String) -> bool:
 	if not daily_requirements.has(item_name): 
 		return false 
 		
 	var needed = daily_requirements[item_name]
-	var max_allowed = needed * 2
 	var have = daily_delivered.get(item_name, 0)
 	
-	return have < max_allowed
+	return have < needed
 
 
 
-## Computes amount accepted today for an item, respecting the 200% surplus cap.
+## Computes amount accepted today for an item, stopping strictly at 100%.
 func get_needed_amount(item_name: String, offered_amount: int) -> int:
 	if not daily_requirements.has(item_name):
 		return 0
 		
 	var total_required = daily_requirements[item_name]
-	var max_allowed = total_required * 2
 	var currently_have = daily_delivered.get(item_name, 0)
 	
-	var space_left = max_allowed - currently_have
+	var space_left = total_required - currently_have
 	if space_left <= 0:
 		return 0
 		
@@ -157,7 +276,6 @@ func deliver_item(item_name: String, amount: int):
 	daily_delivered[item_name] += amount
 	EconomyManager.log_item_consumed(item_name, amount)
 	
-	# Mark scored for the day if 100% baseline is reached
 	if not is_today_scored and _is_daily_quota_met():
 		is_today_scored = true
 		successful_days += 1
@@ -166,22 +284,22 @@ func deliver_item(item_name: String, amount: int):
 
 
 
-## Calculates current overall daily completion ratio (1.0 = 100%, 2.0 = 200% cap).
+## Calculates current overall daily completion ratio (clamped between 0.0 and 1.0).
 func get_daily_completion_ratio() -> float:
 	if daily_requirements.is_empty():
-		return 1.0 # Grace period is counted as satisfied
+		return 1.0
 		
 	var total_req: int = 0
 	var total_deliv: int = 0
 	for item in daily_requirements:
 		var req = daily_requirements[item]
 		total_req += req
-		var deliv = clamp(daily_delivered.get(item, 0), 0, req * 2)
+		var deliv = clamp(daily_delivered.get(item, 0), 0, req)
 		total_deliv += deliv
 		
 	if total_req <= 0:
 		return 1.0
-	return float(total_deliv) / float(total_req)
+	return clamp(float(total_deliv) / float(total_req), 0.0, 1.0)
 
 
 
@@ -190,20 +308,17 @@ func get_projected_rp_for_today() -> int:
 	if daily_requirements.is_empty():
 		return 0
 		
-	var base_rp = get_base_rp_for_day(current_day)
+	var base_rp = get_active_contract_rp()
 	var ratio = get_daily_completion_ratio()
 	
-	if ratio < 1.0:
-		# Under 100%: Halved return penalty (e.g. 80% delivery gives 40% RP)
-		return int(round(base_rp * (ratio * 0.5)))
+	if ratio >= 1.0:
+		return base_rp
 	else:
-		# 100% to 200%: Base 100% RP + up to 25% surplus bonus
-		var surplus_ratio = clamp(ratio - 1.0, 0.0, 1.0)
-		return int(round(base_rp * (1.0 + 0.25 * surplus_ratio)))
+		return int(round(base_rp * (ratio * 0.5)))
 
 
 
-## Evaluates whether the 100% baseline quota has been met today.
+## Evaluates whether the active contract is 100% fulfilled.
 func _is_daily_quota_met() -> bool:
 	if daily_requirements.is_empty():
 		return true
@@ -216,40 +331,47 @@ func _is_daily_quota_met() -> bool:
 
 
 
-## Evaluates whether all items have reached the 200% surplus cap.
-func _is_daily_quota_maxed() -> bool:
-	if daily_requirements.is_empty():
-		return true
-	for item_name in daily_requirements:
-		var max_allowed = daily_requirements[item_name] * 2
-		var have = daily_delivered.get(item_name, 0)
-		if have < max_allowed:
-			return false
-	return true
-
-
-
-## Processes midnight score checking and pays out Research Points.
+## Processes midnight score checking, pays out RP, and advances Reputation / Levels.
 func process_end_of_day(day_evaluated: int = -1):
 	if day_evaluated != -1:
 		current_day = day_evaluated
 		
-	var base_rp = get_base_rp_for_day(current_day)
+	var base_rp = get_active_contract_rp()
 	var completion_ratio = get_daily_completion_ratio()
 	var rp_earned: int = 0
+	var rep_earned: int = 0
+	var leveled_up: bool = false
+	var new_tier_unlocked: bool = false
 	
 	if not daily_requirements.is_empty():
-		if completion_ratio < 1.0:
-			# Partial delivery: halved penalty (e.g. 80% completion = 40% RP payout)
-			rp_earned = int(round(base_rp * (completion_ratio * 0.5)))
+		if completion_ratio >= 1.0:
+			rp_earned = base_rp
+			rep_earned = 1
+			tier_reputation[active_tier] = tier_reputation.get(active_tier, 0) + 1
+			
+			# Check if Reputation threshold is met to level up
+			var cur_max_lvl = get_tier_max_level(active_tier)
+			var rep_needed = get_reputation_needed_for_next_level(active_tier, cur_max_lvl)
+			if rep_needed > 0 and tier_reputation[active_tier] >= rep_needed:
+				tier_reputation[active_tier] -= rep_needed
+				tier_max_level[active_tier] = cur_max_lvl + 1
+				active_level = tier_max_level[active_tier]
+				leveled_up = true
+				
+				# Check Tier Unlocks
+				if active_tier == 1 and tier_max_level[1] >= 2 and not is_tier_unlocked(2):
+					unlocked_tiers.append(2)
+					new_tier_unlocked = true
+				elif active_tier == 2 and tier_max_level[2] >= 2 and not is_tier_unlocked(3):
+					unlocked_tiers.append(3)
+					new_tier_unlocked = true
 		else:
-			# Baseline met + surplus up to 200% gives up to 125% RP (+25% bonus)
-			var surplus_ratio = clamp(completion_ratio - 1.0, 0.0, 1.0)
-			rp_earned = int(round(base_rp * (1.0 + 0.25 * surplus_ratio)))
+			# Partial delivery: halved penalty (e.g. 50% delivery = 25% RP payout)
+			rp_earned = int(round(base_rp * (completion_ratio * 0.5)))
 			
 		if rp_earned > 0 and ResearchManager:
 			ResearchManager.add_research_points(rp_earned)
-			print("Quota Midnight Evaluation: Day %d completed at %.1f%%. Awarded %d Research Points!" % [current_day, completion_ratio * 100.0, rp_earned])
+			print("Contract Midnight Evaluation: Day %d completed at %.1f%%. Awarded %d RP!" % [current_day, completion_ratio * 100.0, rp_earned])
 			
 	var was_met = completion_ratio >= 1.0 or daily_requirements.is_empty()
 	if not is_today_scored and was_met and not daily_requirements.is_empty():
@@ -261,7 +383,13 @@ func process_end_of_day(day_evaluated: int = -1):
 	last_day_completion_ratio = completion_ratio
 	is_today_scored = false
 	
-	daily_evaluation_completed.emit(current_day, rp_earned, completion_ratio)
+	var scheduled_activation_name: String = ""
+	if has_scheduled_contract():
+		var sched_cat = get_contract_definition(queued_tier)
+		var sched_title = sched_cat.get("title", "Contract")
+		scheduled_activation_name = "Tier %d (Level %d) - %s" % [queued_tier, queued_level, sched_title]
+	
+	daily_evaluation_completed.emit(current_day, rp_earned, completion_ratio, rep_earned, leveled_up, new_tier_unlocked, scheduled_activation_name)
 	quota_progress_updated.emit()
 
 
@@ -270,15 +398,26 @@ func process_end_of_day(day_evaluated: int = -1):
 func start_next_day(new_day: int):
 	current_day = new_day
 	current_week = int((new_day - 1) / 7) + 1
+	
+	if has_scheduled_contract():
+		active_tier = queued_tier
+		active_level = queued_level
+		queued_tier = -1
+		queued_level = -1
+		
 	_reset_daily_deliveries()
-	daily_requirements = get_quota_for_day(new_day)
+	
+	if new_day > 2:
+		daily_requirements = get_contract_requirements(active_tier, active_level)
+	else:
+		daily_requirements = {}
+		
 	is_today_scored = false
 	quota_progress_updated.emit()
 
 
 
 ## Cleans weekly tracking records at the end of each week.
-## Note: Quota failure no longer penalizes waves or corruption!
 func process_end_of_week():
 	successful_days = 0
 	weekly_history.clear()
@@ -295,13 +434,20 @@ func _reset_daily_deliveries():
 
 
 
-## Packages current quota scoring history and variables for saving.
+## Packages current contract requisition state, reputation, and scoring history for saving.
 func get_save_data() -> Dictionary:
 	return {
+		"current_day": current_day,
+		"current_week": current_week,
+		"active_tier": active_tier,
+		"active_level": active_level,
+		"queued_tier": queued_tier,
+		"queued_level": queued_level,
+		"tier_reputation": tier_reputation,
+		"tier_max_level": tier_max_level,
+		"unlocked_tiers": unlocked_tiers,
 		"successful_days": successful_days,
 		"weekly_history": weekly_history,
-		"current_week": current_week,
-		"current_day": current_day,
 		"daily_requirements": daily_requirements,
 		"daily_delivered": daily_delivered,
 		"is_today_scored": is_today_scored,
@@ -311,13 +457,33 @@ func get_save_data() -> Dictionary:
 
 
 
-## Unpacks saved quota variables and updates UI state.
+## Unpacks saved requisition variables and restores state.
 func load_save_data(data: Dictionary):
+	current_day = data.get("current_day", 1)
+	current_week = data.get("current_week", 1)
+	active_tier = data.get("active_tier", 1)
+	active_level = data.get("active_level", 1)
+	queued_tier = data.get("queued_tier", -1)
+	queued_level = data.get("queued_level", -1)
+	
+	if data.has("tier_reputation"):
+		tier_reputation = data["tier_reputation"]
+	else:
+		tier_reputation = { 1: 0, 2: 0, 3: 0 }
+		
+	if data.has("tier_max_level"):
+		tier_max_level = data["tier_max_level"]
+	else:
+		tier_max_level = { 1: 1, 2: 1, 3: 1 }
+		
+	if data.has("unlocked_tiers"):
+		unlocked_tiers = data["unlocked_tiers"]
+	else:
+		unlocked_tiers = [1]
+		
 	successful_days = data.get("successful_days", 0)
 	var saved_history = data.get("weekly_history", [])
 	weekly_history.assign(saved_history)
-	current_week = data.get("current_week", 1)
-	current_day = data.get("current_day", 1)
 	is_today_scored = data.get("is_today_scored", false)
 	last_day_rp_earned = data.get("last_day_rp_earned", 0)
 	last_day_completion_ratio = data.get("last_day_completion_ratio", 0.0)
@@ -325,8 +491,11 @@ func load_save_data(data: Dictionary):
 	if data.has("daily_requirements"):
 		daily_requirements = data["daily_requirements"]
 	else:
-		daily_requirements = get_quota_for_day(current_day)
-		
+		if current_day > 2:
+			daily_requirements = get_contract_requirements(active_tier, active_level)
+		else:
+			daily_requirements = {}
+			
 	if data.has("daily_delivered"):
 		daily_delivered = data["daily_delivered"]
 	else:
